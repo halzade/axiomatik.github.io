@@ -1,0 +1,36 @@
+:root {
+    --bg: #0f0f0f;
+    --text: #e8e8e8;
+    --topbar-bg: #1c1c1c;
+    --border: #333;
+    --card-bg: #1a1a1a;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+}
+
+.topbar {
+    background: var(--topbar-bg);
+    border-bottom: 1px solid var(--border);
+}
+
+.main-nav a {
+    color: var(--text);
+}
+
+.hero-text p {
+    color: #b8b8b8;
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+}
+
+.footer {
+    background: var(--topbar-bg);
+    border-top: 1px solid var(--border);
+    color: var(--text);
+}
