@@ -20,6 +20,10 @@ body {
     padding:0;
 }
 
+main.content {
+    overflow: auto;
+}
+
 .topbar {
     position: sticky;
     top: 0;
@@ -138,6 +142,7 @@ a {
 .article-meta {
     font-size: 0.95rem;
     opacity: 0.75;
+    margin-top: 12px;
     margin-bottom: 28px;
 }
 
@@ -218,7 +223,4 @@ footer {
     background: var(--topbar-bg);
     margin-top: 40px;
     border-top: 1px solid var(--border);
-    position: fixed;
-    width: 100%;
-    bottom: 0;
 }
