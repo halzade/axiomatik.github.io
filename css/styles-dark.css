@@ -26,7 +26,7 @@ a {
     color: red;
 }
 
-.main-article-text p {
+.main-article-text p, .category-header p {
     color: #b8b8b8;
 }
 
