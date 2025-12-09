@@ -98,6 +98,7 @@ a {
 .article-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 25px;
     margin-top: 30px;
     margin-bottom: 10px;
 }
@@ -193,30 +194,7 @@ a {
 }
 
 .related-section {
-    margin-top: 60px;
-}
-
-.related-section h2 {
-    font-size: 1.8rem;
-    margin-bottom: 20px;
-}
-
-.related-grid {
-    display: grid;
-    gap: 24px;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-}
-
-.related-card {
-    background: var(--card-bg);
-    padding: 20px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-}
-
-.related-card h3 {
-    margin-top: 0;
-    font-size: 1.25rem;
+    margin-top: 35px;
 }
 
 footer {
