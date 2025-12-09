@@ -18,11 +18,15 @@ a {
     color: red;
 }
 
-.main-nav a {
-    color: #e8e8e8;
+.article a, .main-article a {
+    color: white;
 }
 
-.hero-text p {
+.main-nav a {
+    color: red;
+}
+
+.main-article-text p {
     color: #b8b8b8;
 }
 
