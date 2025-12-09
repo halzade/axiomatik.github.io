@@ -18,7 +18,7 @@ a {
     color: red;
 }
 
-.article a, .main-article a {
+.article a, .main-article a, .article-grid a {
     color: white;
 }
 
@@ -35,7 +35,7 @@ a {
     border: 1px solid var(--border);
 }
 
-.footer {
+footer {
     background: var(--topbar-bg);
     border-top: 1px solid var(--border);
     color: #e8e8e8;

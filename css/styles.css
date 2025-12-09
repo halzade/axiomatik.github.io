@@ -9,6 +9,7 @@ body {
     font-family: "Georgia", serif;
     background: #f6f4ef;
     color: #222;
+    height: 100%;
 }
 
 .topbar {
@@ -100,7 +101,7 @@ a {
     margin-bottom: 10px;
 }
 
-.footer {
+footer {
     padding: 20px;
     text-align: center;
     background: var(--topbar-bg);
