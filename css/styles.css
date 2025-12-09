@@ -3,6 +3,9 @@
     --border: #d4c3b6;
     --card-bg: #fff;
 }
+html, body {
+    height: 100%;
+}
 
 body {
     margin: 0;
@@ -215,4 +218,7 @@ footer {
     background: var(--topbar-bg);
     margin-top: 40px;
     border-top: 1px solid var(--border);
+    position: fixed;
+    width: 100%;
+    bottom: 0;
 }
