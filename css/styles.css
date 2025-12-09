@@ -1,6 +1,4 @@
 :root {
-    --bg: #f6f4ef;
-    --text: #222;
     --topbar-bg: #f2dfce;
     --border: #d4c3b6;
     --card-bg: #fff;
@@ -9,8 +7,8 @@
 body {
     margin: 0;
     font-family: "Georgia", serif;
-    background: var(--bg);
-    color: var(--text);
+    background: #f6f4ef;
+    color: #222;
 }
 
 .topbar {
@@ -34,7 +32,7 @@ body {
 .main-nav a {
     margin-left: 18px;
     text-decoration: none;
-    color: var(--text);
+    color: #222;
     font-weight: 500;
 }
 .main-nav a:hover {
