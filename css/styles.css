@@ -98,7 +98,8 @@ a {
 .article-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 25px;
+    margin-top: 30px;
+    margin-bottom: 10px;
 }
 
 .card {
@@ -135,6 +136,7 @@ a {
 
 .article-title {
     font-size: 2.6rem;
+    margin-top: 30px;
     margin-bottom: 10px;
     line-height: 1.25;
 }
