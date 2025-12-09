@@ -14,7 +14,7 @@ body {
     border-bottom: 1px solid var(--border);
 }
 
-.breadcrumb a {
+a {
     color: red;
 }
 
