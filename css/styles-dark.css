@@ -11,7 +11,8 @@ body {
 
 .topbar {
     background: var(--topbar-bg);
-    border-bottom: 1px solid var(--border);
+    order-top: 1px solid silver;
+    order-bottom: 1px solid silver;
 }
 
 a {
@@ -37,6 +38,7 @@ a {
 
 footer {
     background: var(--topbar-bg);
-    border-top: 1px solid var(--border);
+    order-top: 1px solid silver;
+    order-bottom: 1px solid silver;
     color: #e8e8e8;
 }

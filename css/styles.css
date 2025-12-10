@@ -30,6 +30,7 @@ main.content {
     border-top: 1px solid #d4c3b6;
     border-bottom: 1px solid #d4c3b6;
     z-index: 10;
+    height: 50px;
 }
 
 .logo:hover,
@@ -212,4 +213,7 @@ footer {
     margin-top: 40px;
     border-top: 1px solid #d4c3b6;
     border-bottom: 1px solid #d4c3b6;
+    margin-top: auto;
+    height: 50px;
+    bottom: 0px;
 }
