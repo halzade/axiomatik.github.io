@@ -20,7 +20,6 @@ main.content {
 }
 
 .topbar {
-    position: sticky;
     top: 0;
     display: flex;
     justify-content: space-between;
@@ -201,9 +200,18 @@ a {
     margin-top: 35px;
 }
 
-.right {
+.double {
     width: 100%;
-    text-align: right;
+    vertical-align: middle;
+    display: inline-block;
+    text-align: left;
+}
+
+.half {
+    width: 45%;
+    margin: 2%;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 footer {
