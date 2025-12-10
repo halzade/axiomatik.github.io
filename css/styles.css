@@ -27,6 +27,7 @@ main.content {
     align-items: center;
     background: #f2dfce;
     padding: 12px 24px;
+    border-top: 1px solid #d4c3b6;
     border-bottom: 1px solid #d4c3b6;
     z-index: 10;
 }
@@ -74,6 +75,9 @@ a {
     grid-template-columns: 2fr 3fr;
     gap: 20px;
     margin-bottom: 40px;
+    border-bottom: solid thin #d4c3b6;
+    padding-top: 30px;
+    padding-bottom: 30px;
 }
 
 .main-article img {
@@ -166,6 +170,10 @@ a {
     line-height: 1.68;
 }
 
+.category-header {
+    border-bottom: solid thin #d4c3b6;
+}
+
 .article-body h2 {
     margin-top: 38px;
     margin-bottom: 12px;
@@ -203,4 +211,5 @@ footer {
     background: #f2dfce;
     margin-top: 40px;
     border-top: 1px solid #d4c3b6;
+    border-bottom: 1px solid #d4c3b6;
 }
