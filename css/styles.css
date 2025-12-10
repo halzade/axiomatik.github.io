@@ -17,6 +17,7 @@ body {
 
 main.content {
     overflow: auto;
+    padding-bottom: 125px;
 }
 
 .topbar {
@@ -209,19 +210,31 @@ a {
 
 .half {
     width: 45%;
-    margin: 2%;
     display: inline-block;
     vertical-align: middle;
 }
 
+.half.left{
+    margin-right: 20px;
+}
+
 footer {
-    padding: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     text-align: center;
     background: #f2dfce;
-    margin-top: 40px;
     border-top: 1px solid #d4c3b6;
     border-bottom: 1px solid #d4c3b6;
-    margin-top: auto;
     height: 50px;
-    bottom: 0px;
+    width: 100%;
+    vertical-align: bottom;
+    margin-top: auto;
+    position: absolute;
+    bottom: 0;
+}
+
+.all {
+    width: 100%;
+    position: relative;
+    min-height: 100%;
 }
