@@ -1,5 +1,4 @@
 :root {
-    --topbar-bg: #f2dfce;
     --border: #d4c3b6;
     --card-bg: #fff;
 }
@@ -30,7 +29,7 @@ main.content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--topbar-bg);
+    background: #f2dfce;
     padding: 12px 24px;
     border-bottom: 1px solid var(--border);
     z-index: 10;
@@ -51,6 +50,7 @@ main.content {
 
 a {
     text-decoration: none;
+    color: #333333;
 }
 
 .breadcrumb a {
@@ -200,7 +200,7 @@ a {
 footer {
     padding: 20px;
     text-align: center;
-    background: var(--topbar-bg);
+    background: #f2dfce;
     margin-top: 40px;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid #8b8072;
 }
