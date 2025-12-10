@@ -192,6 +192,11 @@ a {
     margin-top: 35px;
 }
 
+.right {
+    width: 100%;
+    text-align: right;
+}
+
 footer {
     padding: 20px;
     text-align: center;
