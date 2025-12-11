@@ -233,6 +233,20 @@ footer {
     bottom: 0;
 }
 
+.video-holder {
+    position: relative;
+    width: 100%;
+    max-width: 497px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
 .all {
     width: 100%;
     position: relative;

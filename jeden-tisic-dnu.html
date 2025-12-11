@@ -20,7 +20,6 @@
             <a href="veda.html">věda</a>
         </nav>
     </header>
-
     <main class="content">
 
         <nav class="breadcrumb">
@@ -125,7 +124,32 @@
                         </blockquote>
                     </div>
                     <div class="half">
-                        <img src="images/fasces-one.jpg" alt="Jeden tisíc dnů">
+                        <div class="video-holder">
+                            <video muted playsinline class="video">
+                                <source src="images/fasces-one.mp4" type="video/mp4">
+                            </video>
+
+                            <script>
+                                const video = document.querySelector('video');
+                                const container = video.parentElement;
+
+                                let ended = false;
+                                container.addEventListener('mouseenter', () => {
+                                    if (!ended) {
+                                        video.play();
+                                    }
+                                });
+
+                                container.addEventListener('mouseleave', () => {
+                                  video.pause();
+                                });
+
+                                video.addEventListener('ended', () => {
+                                  video.pause();
+                                  ended = true;
+                                });
+                            </script>
+                        </div>
                     </div>
                 </div>
                 <p>
@@ -157,7 +181,7 @@
     </main>
 
     <footer>
-        <p>Axiomatik © 2025 </p>
+        <p>Axiomatik © 2026</p>
     </footer>
 </div>
 </body>
