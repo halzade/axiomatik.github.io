@@ -36,7 +36,7 @@ a {
     border: 1px solid var(--border);
 }
 
-.article-body blockquote {
+blockquote {
     background: #222;
 }
 
