@@ -18,6 +18,7 @@ struct FormTemplate;
 #[template(path = "article_template.html")]
 struct ArticleTemplate {
     title: String,
+    author: String,
     text: String,
     image_path: String,
     video_path: Option<String>,
@@ -52,6 +53,7 @@ async fn show_form() -> impl IntoResponse {
 async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
     println!("Received create_article request");
     let mut title = String::new();
+    let mut author = String::new();
     let mut text = String::new();
     let mut category = String::new();
     let mut image_path = String::new();
@@ -63,6 +65,8 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
 
         match name.as_str() {
             "title" => title = field.text().await.unwrap(),
+
+            "author" => author = field.text().await.unwrap(),
 
             "text" => {
                 let raw_text = field.text().await.unwrap();
@@ -140,6 +144,7 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
 
     let template = ArticleTemplate {
         title: title.clone(),
+        author,
         text,
         image_path,
         video_path,
