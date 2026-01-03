@@ -33,6 +33,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(show_form))
         .route("/create", post(create_article))
+        .nest_service("/unp", ServeDir::new("unp"))
         .nest_service("/uploads", ServeDir::new("uploads"))
         .nest_service("/css", ServeDir::new("css"))
         .nest_service("/js", ServeDir::new("js"));
@@ -48,6 +49,7 @@ async fn show_form() -> impl IntoResponse {
 }
 
 async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
+    println!("Received create_article request");
     let mut title = String::new();
     let mut text = String::new();
     let mut category = String::new();
@@ -56,6 +58,7 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
 
     while let Some(field) = multipart.next_field().await.unwrap() {
         let name = field.name().unwrap().to_string();
+        println!("Processing field: {}", name);
 
         match name.as_str() {
             "title" => title = field.text().await.unwrap(),
@@ -73,7 +76,8 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
                 let new_name = format!("{}.{}", Uuid::new_v4(), extension);
                 let data = field.bytes().await.unwrap();
                 fs::write(format!("uploads/{}", new_name), data).unwrap();
-                image_path = new_name;
+                image_path = new_name.clone();
+                println!("Saved image to uploads/{}", new_name);
             }
 
             "video" => {
@@ -86,7 +90,8 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
                         let new_name = format!("{}.{}", Uuid::new_v4(), extension);
                         let data = field.bytes().await.unwrap();
                         fs::write(format!("uploads/{}", new_name), data).unwrap();
-                        video_path = Some(new_name);
+                        video_path = Some(new_name.clone());
+                        println!("Saved video to uploads/{}", new_name);
                     }
                 }
             }
@@ -116,5 +121,5 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
 
     println!("Generated static file at: {}", file_path);
 
-    Redirect::to("/")
+    Redirect::to(&format!("/unp/{}.html", safe_title))
 }
