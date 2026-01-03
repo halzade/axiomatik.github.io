@@ -91,7 +91,7 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
                 // 2. Split by "two empty lines" (3 or more newlines) into containers
                 // 3. Within each container, split by "one empty line" (2 newlines) into paragraphs
                 let normalized = raw_text.replace("\r\n", "\n");
-                
+
                 let processed = normalized
                     .split("\n\n\n") // Three newlines = two empty lines
                     .filter(|block| !block.trim().is_empty())
@@ -167,7 +167,8 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
         "technologie" => "technologie",
         "veda" => "věda",
         _ => &category,
-    }.to_string();
+    }
+    .to_string();
 
     let template = ArticleTemplate {
         title: title.clone(),
@@ -195,17 +196,19 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
     // Update category-month-year.html
     let now = chrono::Local::now();
     let czech_months = [
-        "leden", "unor", "brezen", "duben", "kveten", "cerven",
-        "cervenec", "srpen", "zari", "rijen", "listopad", "prosinec"
+        "leden", "unor", "brezen", "duben", "kveten", "cerven", "cervenec", "srpen", "zari",
+        "rijen", "listopad", "prosinec",
     ];
     let month_name = czech_months[(now.month() - 1) as usize];
     let cat_month_year_filename = format!("{}-{}-{}.html", category, month_name, now.year());
-    
+
     let snippet = SnippetTemplate {
         url: file_path.clone(),
         title: title.clone(),
         short_text,
-    }.render().unwrap();
+    }
+    .render()
+    .unwrap();
 
     if !std::path::Path::new(&cat_month_year_filename).exists() {
         let cat_template = CategoryTemplate {
@@ -213,12 +216,31 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
         };
         let mut base_html = cat_template.render().unwrap();
         // Insert snippet into the article-grid section using the comment marker
-        base_html = base_html.replace("<!-- SNIPPETS -->", &format!("<!-- SNIPPETS -->\n{}", snippet));
+        base_html = base_html.replace(
+            "<!-- SNIPPETS -->",
+            &format!("<!-- SNIPPETS -->\n{}", snippet),
+        );
         fs::write(&cat_month_year_filename, base_html).unwrap();
     } else {
         let mut content = fs::read_to_string(&cat_month_year_filename).unwrap();
-        content = content.replace("<!-- SNIPPETS -->", &format!("<!-- SNIPPETS -->\n{}", snippet));
+        content = content.replace(
+            "<!-- SNIPPETS -->",
+            &format!("<!-- SNIPPETS -->\n{}", snippet),
+        );
         fs::write(&cat_month_year_filename, content).unwrap();
+    }
+
+    // Update main category page (e.g., zahranici.html)
+    let main_cat_filename = format!("{}.html", category);
+    if std::path::Path::new(&main_cat_filename).exists() {
+        let mut content = fs::read_to_string(&main_cat_filename).unwrap();
+        if content.contains("<!-- SNIPPETS -->") {
+            content = content.replace(
+                "<!-- SNIPPETS -->",
+                &format!("<!-- SNIPPETS -->\n{}", snippet),
+            );
+        }
+        fs::write(&main_cat_filename, content).unwrap();
     }
 
     Redirect::to(&format!("/{}.html", safe_title))
