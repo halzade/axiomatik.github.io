@@ -21,29 +21,23 @@
         </nav>
     </header>
     <main class="content">
-
         <nav class="breadcrumb">
             <a href="/">domů</a> /
             <a href="{{ category }}.html">{{ category }}</a> /
             {{ title }}
         </nav>
-
         <article class="article">
-
             <h1 class="article-title">{{ title }}</h1>
-
             <div class="article-meta">
                 <span>Redakce Axiomatik • 2026</span>
             </div>
-
             <figure class="article-figure">
-                <img src="/uploads/{{ image_path }}" alt="{{ title }}">
+                <img src="uploads/{{ image_path }}" alt="{{ title }}">
             </figure>
 
             <div class="container">
-                {{ text|linebreaksbr|safe }}
+                {{ text|safe }}
             </div>
-
             {% if video_path.is_some() %}
             <div class="container">
                 <div class="video-holder">
@@ -53,10 +47,14 @@
                 </div>
             </div>
             {% endif %}
-
         </article>
-    </main>
+        <section class="related-section">
+            <h2>související články</h2>
+            <div class="article-grid">
 
+            </div>
+        </section>
+    </main>
     <footer>
         <p>Axiomatik © 2026</p>
     </footer>

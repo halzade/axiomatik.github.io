@@ -63,7 +63,21 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
         match name.as_str() {
             "title" => title = field.text().await.unwrap(),
 
-            "text" => text = field.text().await.unwrap(),
+            "text" => {
+                let raw_text = field.text().await.unwrap();
+                // Process text: 
+                // 1. Normalize line endings
+                // 2. Split by empty lines (double newlines)
+                // 3. Wrap segments in <p> tags
+                let processed = raw_text.trim()
+                    .replace("\r\n", "\n")
+                    .split("\n\n")
+                    .filter(|s| !s.trim().is_empty())
+                    .map(|s| format!("<p>{}</p>", s.trim().replace("\n", " ")))
+                    .collect::<Vec<String>>()
+                    .join("");
+                text = processed;
+            }
 
             "category" => category = field.text().await.unwrap(),
 
@@ -115,11 +129,11 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
         .chars()
         .map(|c| if c.is_alphanumeric() { c } else { '-' })
         .collect::<String>();
-    let file_path = format!("unp/{}.html", safe_title);
+    let file_path = format!("{}.html", safe_title);
 
     fs::write(&file_path, html_content).unwrap();
 
     println!("Generated static file at: {}", file_path);
 
-    Redirect::to(&format!("/unp/{}.html", safe_title))
+    Redirect::to(&format!("/{}.html", safe_title))
 }
