@@ -46,10 +46,11 @@
             </div>
             {% endif %}
         </article>
-        <section class="related-section">
+        <section class="related-section"{% if related_snippets.is_empty() %} style="display: none;"{% endif %}>
             <h2>související články</h2>
             <div class="article-grid">
-
+                {{ related_snippets|safe }}
+                <!-- SNIPPETS -->
             </div>
         </section>
     </main>

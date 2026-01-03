@@ -1,0 +1,14 @@
+<article class="card">
+    <a href="jeden-tisic-dnu.html"><h2>Jeden tisíc dnů</h2></a>
+    <a href="jeden-tisic-dnu.html">
+        <p>
+            Německé volby roku 2029 otřesou celou Evropou
+        </p>
+        <p>
+            Jen tak málo nás dělí od Německého fašismu za Českými hranicemi.<br>
+            Již dnes, by pro politickou stranu AfD hlasovala většina
+            Německých voličů,<br>
+            zatímco situace v Říši se nezlepšuje...
+        </p>
+    </a>
+</article>

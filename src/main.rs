@@ -25,6 +25,7 @@ struct ArticleTemplate {
     video_path: Option<String>,
     category: String,
     category_display: String,
+    related_snippets: String,
 }
 
 #[derive(Template)]
@@ -46,6 +47,7 @@ async fn main() {
     // Ensure uploads directory exists
     fs::create_dir_all("uploads").unwrap();
     fs::create_dir_all("unp").unwrap();
+    fs::create_dir_all("snippets").unwrap();
 
     let app = Router::new()
         .route("/", get(show_form))
@@ -72,6 +74,7 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
     let mut text = String::new();
     let mut short_text = String::new();
     let mut category = String::new();
+    let mut related_articles_input = String::new();
     let mut image_path = String::new();
     let mut video_path = None;
 
@@ -128,6 +131,8 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
 
             "category" => category = field.text().await.unwrap(),
 
+            "related_articles" => related_articles_input = field.text().await.unwrap(),
+
             "image" => {
                 let file_name = field.file_name().unwrap().to_string();
                 let extension = std::path::Path::new(&file_name)
@@ -170,6 +175,25 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
     }
     .to_string();
 
+    let mut related_snippets = String::new();
+    let related_article_paths: Vec<&str> = related_articles_input
+        .lines()
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    for path in &related_article_paths {
+        // Look for the snippet in the snippets/ folder
+        // The snippet file is named [url].txt, where [url] is the filename like "jeden-tisic-dnu.html"
+        let snippet_path = format!("snippets/{}.txt", path);
+        if let Ok(snippet_html) = fs::read_to_string(&snippet_path) {
+            related_snippets.push_str(&snippet_html);
+            related_snippets.push('\n');
+        } else {
+            println!("Warning: Snippet not found for related article: {}", path);
+        }
+    }
+
     let template = ArticleTemplate {
         title: title.clone(),
         author,
@@ -178,6 +202,7 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
         video_path,
         category: category.clone(),
         category_display: category_display.clone(),
+        related_snippets: related_snippets.clone(),
     };
 
     let html_content = template.render().unwrap();
@@ -200,7 +225,7 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
         "rijen", "listopad", "prosinec",
     ];
     let month_name = czech_months[(now.month() - 1) as usize];
-    let cat_month_year_filename = format!("{}-{}-{}.html", category, month_name, now.year());
+    let cat_month_year_filename = format!("archive-{}-{}-{}.html", category, month_name, now.year());
 
     let snippet = SnippetTemplate {
         url: file_path.clone(),
@@ -209,6 +234,11 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
     }
     .render()
     .unwrap();
+
+    // Save snippet to 'snippets' folder
+    let snippet_file_path = format!("snippets/{}.txt", file_path);
+    fs::write(snippet_file_path, &snippet).unwrap();
+    println!("Saved snippet to snippets/{}.txt", file_path);
 
     if !std::path::Path::new(&cat_month_year_filename).exists() {
         let cat_template = CategoryTemplate {
@@ -241,6 +271,26 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
             );
         }
         fs::write(&main_cat_filename, content).unwrap();
+    }
+
+    // Update related articles with the new article's snippet
+    for path in &related_article_paths {
+        if let Ok(mut content) = fs::read_to_string(path) {
+            if content.contains("<!-- SNIPPETS -->") {
+                content = content.replace(
+                    "<!-- SNIPPETS -->",
+                    &format!("<!-- SNIPPETS -->\n{}", snippet),
+                );
+                fs::write(path, content).unwrap();
+            } else if content.contains("<div class=\"article-grid\">") {
+                // fallback if comment marker is missing but grid exists
+                content = content.replace(
+                    "<div class=\"article-grid\">",
+                    &format!("<div class=\"article-grid\">\n{}", snippet),
+                );
+                fs::write(path, content).unwrap();
+            }
+        }
     }
 
     Redirect::to(&format!("/{}.html", safe_title))
