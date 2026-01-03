@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Article</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/styles-dark.css" media="(prefers-color-scheme: dark)">
+</head>
+<body>
+    <h1>Create New Article</h1>
+    <form action="/create" method="post" enctype="multipart/form-data">
+        <div>
+            <label>Title:</label><br>
+            <input type="text" name="title" required>
+        </div>
+        <div>
+            <label>Text:</label><br>
+            <textarea name="text" rows="10" cols="50" required></textarea>
+        </div>
+        <div>
+            <label>Main Image File:</label><br>
+            <input type="file" name="image" accept="image/*" required>
+        </div>
+        <div>
+            <label>Image Video File:</label><br>
+            <input type="file" name="video" accept="video/*">
+        </div>
+        <div>
+            <label>Category:</label><br>
+            <select name="category">
+                <option value="zahranici">Zahraničí</option>
+                <option value="republika">Republika</option>
+                <option value="finance">Finance</option>
+                <option value="technologie">Technologie</option>
+                <option value="veda">Věda</option>
+            </select>
+        </div>
+        <br>
+        <button type="submit">Generate Article</button>
+    </form>
+</body>
+</html>

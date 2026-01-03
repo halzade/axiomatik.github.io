@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <article>
+        <h1>{{ title }}</h1>
+        <p class="category">Kategorie: {{ category }}</p>
+        
+        <div class="main-image">
+            <img src="/uploads/{{ image_path }}" alt="{{ title }}" style="max-width: 100%;">
+        </div>
+
+        {% if video_path.is_some() %}
+        <div class="main-video">
+            <video controls style="max-width: 100%;">
+                <source src="/uploads/{{ video_path.as_ref().unwrap() }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        {% endif %}
+
+        <div class="content">
+            {{ text|linebreaksbr|safe }}
+        </div>
+    </article>
+    <br>
+    <a href="/">Zpět na hlavní stranu</a>
+</body>
+</html>
