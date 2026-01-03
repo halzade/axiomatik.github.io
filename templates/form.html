@@ -2,13 +2,13 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Create Article</title>
+    <title>Nový článek</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/styles-dark.css" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="../css/webapp.css">
 </head>
 <body>
-    <h1>Create New Article</h1>
+    <h1>Vytvořit nový článek</h1>
     <form action="/create" method="post" enctype="multipart/form-data">
         <div>
             <label>Titulek</label><br>
@@ -27,9 +27,19 @@
                 prázdný řádek pro nový odstavec
             </p>
             <p>
+                dva prázdné řádky pro novou sekci
+            </p>
+            <p>
                 řádek se třemi mezerami na začátku pro "quote"
             </p>
         </div>
+
+        <div class="container-wide">
+            <br/>
+            <label>Krátký text, souvysející článek náhled</label><br>
+            <textarea name="short_text" rows="5" cols="50" required></textarea>
+        </div>
+
         <div class="container-wide">
             <br/>
             <label>Soubor obrázku článku</label><br>

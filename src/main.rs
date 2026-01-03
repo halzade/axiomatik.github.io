@@ -5,6 +5,7 @@ use axum::{
     response::{Html, IntoResponse, Redirect},
     routing::{get, post},
 };
+use chrono::Datelike;
 use std::fs;
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
@@ -24,6 +25,14 @@ struct ArticleTemplate {
     video_path: Option<String>,
     category: String,
     category_display: String,
+}
+
+#[derive(Template)]
+#[template(path = "snippet_template.html")]
+struct SnippetTemplate {
+    url: String,
+    title: String,
+    short_text: String,
 }
 
 #[tokio::main]
@@ -55,6 +64,7 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
     let mut title = String::new();
     let mut author = String::new();
     let mut text = String::new();
+    let mut short_text = String::new();
     let mut category = String::new();
     let mut image_path = String::new();
     let mut video_path = None;
@@ -97,6 +107,17 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
                     .collect::<Vec<String>>()
                     .join("");
                 text = processed;
+            }
+
+            "short_text" => {
+                let raw_text = field.text().await.unwrap();
+                let normalized = raw_text.replace("\r\n", "\n");
+                short_text = normalized
+                    .split("\n\n")
+                    .filter(|s| !s.trim().is_empty())
+                    .map(|s| s.trim().replace("\n", "<br>\n"))
+                    .collect::<Vec<String>>()
+                    .join("</p><p>");
             }
 
             "category" => category = field.text().await.unwrap(),
@@ -148,8 +169,8 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
         text,
         image_path,
         video_path,
-        category,
-        category_display,
+        category: category.clone(),
+        category_display: category_display.clone(),
     };
 
     let html_content = template.render().unwrap();
@@ -163,8 +184,37 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
     let file_path = format!("{}.html", safe_title);
 
     fs::write(&file_path, html_content).unwrap();
-
     println!("Generated static file at: {}", file_path);
+
+    // Update category-month-year.html
+    let now = chrono::Local::now();
+    let cat_month_year_filename = format!("{}-{}-{}.html", category, now.month(), now.year());
+    
+    let snippet = SnippetTemplate {
+        url: file_path.clone(),
+        title: title.clone(),
+        short_text,
+    }.render().unwrap();
+
+    if !std::path::Path::new(&cat_month_year_filename).exists() {
+        let base_template = ArticleTemplate {
+            title: format!("{} - {}/{}", category_display, now.month(), now.year()),
+            author: "Axiomatik".to_string(),
+            text: "".to_string(),
+            image_path: "".to_string(), // This might be an issue if template expects it
+            video_path: None,
+            category: category.clone(),
+            category_display: category_display.clone(),
+        };
+        let mut base_html = base_template.render().unwrap();
+        // Insert snippet into the article-grid section
+        base_html = base_html.replace("<div class=\"article-grid\">\n\n            </div>", &format!("<div class=\"article-grid\">\n{}\n            </div>", snippet));
+        fs::write(&cat_month_year_filename, base_html).unwrap();
+    } else {
+        let mut content = fs::read_to_string(&cat_month_year_filename).unwrap();
+        content = content.replace("            </div>\n        </section>", &format!("{}\n            </div>\n        </section>", snippet));
+        fs::write(&cat_month_year_filename, content).unwrap();
+    }
 
     Redirect::to(&format!("/{}.html", safe_title))
 }
