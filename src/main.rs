@@ -35,6 +35,12 @@ struct SnippetTemplate {
     short_text: String,
 }
 
+#[derive(Template)]
+#[template(path = "category_template.html")]
+struct CategoryTemplate {
+    title: String,
+}
+
 #[tokio::main]
 async fn main() {
     // Ensure uploads directory exists
@@ -202,22 +208,16 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
     }.render().unwrap();
 
     if !std::path::Path::new(&cat_month_year_filename).exists() {
-        let base_template = ArticleTemplate {
+        let cat_template = CategoryTemplate {
             title: format!("{} - {} {}", category_display, month_name, now.year()),
-            author: "Axiomatik".to_string(),
-            text: "".to_string(),
-            image_path: "".to_string(), // This might be an issue if template expects it
-            video_path: None,
-            category: category.clone(),
-            category_display: category_display.clone(),
         };
-        let mut base_html = base_template.render().unwrap();
-        // Insert snippet into the article-grid section
-        base_html = base_html.replace("<div class=\"article-grid\">\n\n            </div>", &format!("<div class=\"article-grid\">\n{}\n            </div>", snippet));
+        let mut base_html = cat_template.render().unwrap();
+        // Insert snippet into the article-grid section using the comment marker
+        base_html = base_html.replace("<!-- SNIPPETS -->", &format!("<!-- SNIPPETS -->\n{}", snippet));
         fs::write(&cat_month_year_filename, base_html).unwrap();
     } else {
         let mut content = fs::read_to_string(&cat_month_year_filename).unwrap();
-        content = content.replace("            </div>\n        </section>", &format!("{}\n            </div>\n        </section>", snippet));
+        content = content.replace("<!-- SNIPPETS -->", &format!("<!-- SNIPPETS -->\n{}", snippet));
         fs::write(&cat_month_year_filename, content).unwrap();
     }
 
