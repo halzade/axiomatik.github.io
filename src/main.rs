@@ -1,10 +1,10 @@
+use askama::Template;
 use axum::{
+    Router,
     extract::Multipart,
     response::{Html, IntoResponse, Redirect},
     routing::{get, post},
-    Router,
 };
-use askama::Template;
 use std::fs;
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
@@ -56,11 +56,14 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
 
     while let Some(field) = multipart.next_field().await.unwrap() {
         let name = field.name().unwrap().to_string();
-        
+
         match name.as_str() {
             "title" => title = field.text().await.unwrap(),
+
             "text" => text = field.text().await.unwrap(),
+
             "category" => category = field.text().await.unwrap(),
+
             "image" => {
                 let file_name = field.file_name().unwrap().to_string();
                 let extension = std::path::Path::new(&file_name)
@@ -72,6 +75,7 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
                 fs::write(format!("uploads/{}", new_name), data).unwrap();
                 image_path = new_name;
             }
+
             "video" => {
                 if let Some(file_name) = field.file_name() {
                     if !file_name.is_empty() {
@@ -99,14 +103,15 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
     };
 
     let html_content = template.render().unwrap();
-    
+
     // Generate a slug-like filename
-    let safe_title = title.to_lowercase()
+    let safe_title = title
+        .to_lowercase()
         .chars()
         .map(|c| if c.is_alphanumeric() { c } else { '-' })
         .collect::<String>();
     let file_path = format!("unp/{}.html", safe_title);
-    
+
     fs::write(&file_path, html_content).unwrap();
 
     println!("Generated static file at: {}", file_path);
