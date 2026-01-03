@@ -1,30 +1,34 @@
-use rsa::{Pkcs1v15Sign, RsaPublicKey};
-use rsa::pkcs8::DecodePublicKey;
-use sha2::{Digest, Sha256};
-use base64::{Engine as _, engine::general_purpose};
-use std::fs;
+use crate::db::{Database, User};
+use bcrypt::{verify, hash, DEFAULT_COST};
 
-pub fn verify_token(token: &str) -> bool {
-    let public_key_pem = match fs::read_to_string("public_key.pem") {
-        Ok(key) => key,
-        Err(_) => return false,
-    };
+pub async fn authenticate_user(db: &Database, username: &str, password: &str) -> Result<User, String> {
+    match db.get_user(username).await {
+        Ok(Some(user)) => {
+            if verify(password, &user.password_hash).unwrap_or(false) {
+                Ok(user)
+            } else {
+                Err("Invalid password".to_string())
+            }
+        }
+        Ok(None) => Err("User not found".to_string()),
+        Err(e) => Err(format!("Database error: {}", e)),
+    }
+}
 
-    let public_key = match RsaPublicKey::from_public_key_pem(&public_key_pem) {
-        Ok(key) => key,
-        Err(_) => return false,
-    };
+pub async fn change_password(db: &Database, username: &str, new_password: &str) -> Result<(), String> {
+    if new_password.len() < 8 {
+        return Err("Heslo musí mít alespoň 8 znaků".to_string());
+    }
 
-    let signature_bytes = match general_purpose::STANDARD.decode(token.trim()) {
-        Ok(bytes) => bytes,
-        Err(_) => return false,
-    };
-
-    let message = b"Axiomatik Article Creation";
-    let mut hasher = Sha256::new();
-    hasher.update(message);
-    let hashed = hasher.finalize();
-
-    let verifier = Pkcs1v15Sign::new::<Sha256>();
-    public_key.verify(verifier, &hashed, &signature_bytes).is_ok()
+    match db.get_user(username).await {
+        Ok(Some(mut user)) => {
+            let password_hash = hash(new_password, DEFAULT_COST).unwrap();
+            user.password_hash = password_hash;
+            user.needs_password_change = false;
+            db.update_user(user).await.map_err(|e| e.to_string())?;
+            Ok(())
+        }
+        Ok(None) => Err("User not found".to_string()),
+        Err(e) => Err(format!("Database error: {}", e)),
+    }
 }

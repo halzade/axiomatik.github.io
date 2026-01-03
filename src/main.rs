@@ -1,9 +1,10 @@
 mod auth;
+mod db;
 
 use askama::Template;
 use axum::{
     Router,
-    extract::{Multipart, Form},
+    extract::{Multipart, Form, State},
     response::{Html, IntoResponse, Redirect, Response},
     routing::{get, post},
     http::StatusCode,
@@ -13,6 +14,7 @@ use chrono::Datelike;
 use serde::Deserialize;
 use std::fs;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tower_http::services::ServeDir;
 use uuid::Uuid;
 
@@ -22,11 +24,25 @@ struct FormTemplate;
 
 #[derive(Template)]
 #[template(path = "login.html")]
-struct LoginTemplate;
+struct LoginTemplate {
+    error: Option<String>,
+}
+
+#[derive(Template)]
+#[template(path = "change_password.html")]
+struct ChangePasswordTemplate {
+    error: Option<String>,
+}
 
 #[derive(Deserialize)]
 struct LoginPayload {
-    token: String,
+    username: String,
+    password: String,
+}
+
+#[derive(Deserialize)]
+struct ChangePasswordPayload {
+    new_password: String,
 }
 
 const AUTH_COOKIE: &str = "axiomatik_auth";
@@ -65,15 +81,19 @@ async fn main() {
     fs::create_dir_all("unp").unwrap();
     fs::create_dir_all("snippets").unwrap();
 
+    let db = Arc::new(db::init_db().await.expect("Failed to initialize database"));
+
     let app = Router::new()
         .route("/", get(|| async { Redirect::to("/form") }))
         .route("/form", get(show_form))
         .route("/login", get(show_login).post(handle_login))
+        .route("/change-password", get(show_change_password).post(handle_change_password))
         .route("/create", post(create_article))
         .nest_service("/unp", ServeDir::new("unp"))
         .nest_service("/uploads", ServeDir::new("uploads"))
         .nest_service("/css", ServeDir::new("css"))
-        .nest_service("/js", ServeDir::new("js"));
+        .nest_service("/js", ServeDir::new("js"))
+        .with_state(db);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("listening on {}", addr);
@@ -82,28 +102,99 @@ async fn main() {
 }
 
 async fn show_login() -> impl IntoResponse {
-    Html(LoginTemplate.render().unwrap())
+    Html(LoginTemplate { error: None }.render().unwrap())
 }
 
-async fn handle_login(jar: CookieJar, Form(payload): Form<LoginPayload>) -> impl IntoResponse {
-    if auth::verify_token(&payload.token) {
-        let jar = jar.add(Cookie::new(AUTH_COOKIE, "authenticated"));
-        (jar, Redirect::to("/form"))
-    } else {
-        (jar, Redirect::to("/login"))
+async fn handle_login(
+    State(db): State<Arc<db::Database>>,
+    jar: CookieJar,
+    Form(payload): Form<LoginPayload>,
+) -> impl IntoResponse {
+    match auth::authenticate_user(&db, &payload.username, &payload.password).await {
+        Ok(user) => {
+            let jar = jar.add(Cookie::new(AUTH_COOKIE, user.username));
+            if user.needs_password_change {
+                (jar, Redirect::to("/change-password")).into_response()
+            } else {
+                (jar, Redirect::to("/form")).into_response()
+            }
+        }
+        Err(_) => (
+            jar,
+            Html(
+                LoginTemplate {
+                    error: Some("Neplatné jméno nebo heslo".to_string()),
+                }
+                .render()
+                .unwrap(),
+            ),
+        )
+            .into_response(),
     }
 }
 
-async fn show_form(jar: CookieJar) -> Response {
-    if jar.get(AUTH_COOKIE).is_some() {
+async fn show_change_password(jar: CookieJar) -> Response {
+    if let Some(_cookie) = jar.get(AUTH_COOKIE) {
+        Html(
+            ChangePasswordTemplate { error: None }
+                .render()
+                .unwrap(),
+        )
+        .into_response()
+    } else {
+        Redirect::to("/login").into_response()
+    }
+}
+
+async fn handle_change_password(
+    State(db): State<Arc<db::Database>>,
+    jar: CookieJar,
+    Form(payload): Form<ChangePasswordPayload>,
+) -> Response {
+    if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        let username = cookie.value();
+        match auth::change_password(&db, username, &payload.new_password).await {
+            Ok(_) => Redirect::to("/form").into_response(),
+            Err(e) => Html(
+                ChangePasswordTemplate {
+                    error: Some(format!("Chyba při změně hesla: {}", e)),
+                }
+                .render()
+                .unwrap(),
+            )
+            .into_response(),
+        }
+    } else {
+        Redirect::to("/login").into_response()
+    }
+}
+
+async fn show_form(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
+    if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        // Check if user needs password change
+        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
+            if user.needs_password_change {
+                return Redirect::to("/change-password").into_response();
+            }
+        }
         Html(FormTemplate.render().unwrap()).into_response()
     } else {
         Redirect::to("/login").into_response()
     }
 }
 
-async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Response {
-    if jar.get(AUTH_COOKIE).is_none() {
+async fn create_article(
+    State(db): State<Arc<db::Database>>,
+    jar: CookieJar,
+    mut multipart: Multipart,
+) -> Response {
+    if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
+            if user.needs_password_change {
+                return Redirect::to("/change-password").into_response();
+            }
+        }
+    } else {
         return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
     }
     println!("Received create_article request");
