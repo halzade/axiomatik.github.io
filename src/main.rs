@@ -19,23 +19,23 @@ use tower_http::services::ServeDir;
 use uuid::Uuid;
 
 #[derive(Template)]
-#[template(path = "form.html")]
+#[template(path = "../pages/form.html")]
 struct FormTemplate;
 
 #[derive(Template)]
-#[template(path = "login.html")]
+#[template(path = "../pages/login.html")]
 struct LoginTemplate {
     error: bool,
 }
 
 #[derive(Template)]
-#[template(path = "change_password.html")]
+#[template(path = "../pages/change_password.html")]
 struct ChangePasswordTemplate {
     error: bool,
 }
 
 #[derive(Template)]
-#[template(path = "create_user.html")]
+#[template(path = "../pages/create_user.html")]
 struct CreateUserTemplate {
     error: bool,
     success: bool,
