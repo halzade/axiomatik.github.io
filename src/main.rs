@@ -25,20 +25,20 @@ struct FormTemplate;
 #[derive(Template)]
 #[template(path = "login.html")]
 struct LoginTemplate {
-    error: Option<String>,
+    error: bool,
 }
 
 #[derive(Template)]
 #[template(path = "change_password.html")]
 struct ChangePasswordTemplate {
-    error: Option<String>,
+    error: bool,
 }
 
 #[derive(Template)]
 #[template(path = "create_user.html")]
 struct CreateUserTemplate {
-    error: Option<String>,
-    success: Option<String>,
+    error: bool,
+    success: bool,
 }
 
 #[derive(Deserialize)]
@@ -116,7 +116,7 @@ async fn main() {
 }
 
 async fn show_login() -> impl IntoResponse {
-    Html(LoginTemplate { error: None }.render().unwrap())
+    Html(LoginTemplate { error: false }.render().unwrap())
 }
 
 async fn handle_login(
@@ -137,7 +137,7 @@ async fn handle_login(
             jar,
             Html(
                 LoginTemplate {
-                    error: Some("Neplatné jméno nebo heslo".to_string()),
+                    error: true,
                 }
                 .render()
                 .unwrap(),
@@ -150,7 +150,7 @@ async fn handle_login(
 async fn show_change_password(jar: CookieJar) -> Response {
     if let Some(_cookie) = jar.get(AUTH_COOKIE) {
         Html(
-            ChangePasswordTemplate { error: None }
+            ChangePasswordTemplate { error: false }
                 .render()
                 .unwrap(),
         )
@@ -169,9 +169,9 @@ async fn handle_change_password(
         let username = cookie.value();
         match auth::change_password(&db, username, &payload.new_password).await {
             Ok(_) => Redirect::to("/form").into_response(),
-            Err(e) => Html(
+            Err(_) => Html(
                 ChangePasswordTemplate {
-                    error: Some(format!("Chyba při změně hesla: {}", e)),
+                    error: true,
                 }
                 .render()
                 .unwrap(),
@@ -187,8 +187,8 @@ async fn show_create_user(State(db): State<Arc<db::Database>>, jar: CookieJar) -
     if !db.has_users().await {
         return Html(
             CreateUserTemplate {
-                error: None,
-                success: None,
+                error: false,
+                success: false,
             }
             .render()
             .unwrap(),
@@ -203,8 +203,8 @@ async fn show_create_user(State(db): State<Arc<db::Database>>, jar: CookieJar) -
         }
         Html(
             CreateUserTemplate {
-                error: None,
-                success: None,
+                error: false,
+                success: false,
             }
             .render()
             .unwrap(),
@@ -246,17 +246,17 @@ async fn handle_create_user(
         match db.create_user(new_user).await {
             Ok(_) => Html(
                 CreateUserTemplate {
-                    error: None,
-                    success: Some(format!("Uživatel {} byl úspěšně vytvořen", payload.username)),
+                    error: false,
+                    success: true,
                 }
                 .render()
                 .unwrap(),
             )
             .into_response(),
-            Err(e) => Html(
+            Err(_) => Html(
                 CreateUserTemplate {
-                    error: Some(format!("Chyba při vytváření uživatele: {}", e)),
-                    success: None,
+                    error: true,
+                    success: false,
                 }
                 .render()
                 .unwrap(),

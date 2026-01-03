@@ -68,6 +68,11 @@ input[type="file"] {
     padding: 8px 12px;
 }
 
+input[type="text"].input-error,
+input[type="password"].input-error {
+    border-color: red;
+}
+
 button[type="submit"] {
     width: 100%;
     padding: 14px;

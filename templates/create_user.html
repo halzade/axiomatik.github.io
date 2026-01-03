@@ -6,25 +6,26 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/styles-dark.css" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="../css/webapp.css">
+    <script src="../js/create_user.js" defer></script>
 </head>
 <body>
     <div class="all">
-        <main class="content">
+        <main class="content" data-error="{{ error }}" data-success="{{ success }}">
             <h1>Vytvořit nového uživatele</h1>
-            {% if error.is_some() %}
-            <p style="color: red;">{{ error.as_ref().unwrap() }}</p>
-            {% endif %}
-            {% if success.is_some() %}
-            <p style="color: green;">{{ success.as_ref().unwrap() }}</p>
-            {% endif %}
+            <div id="create-user-error" style="display: none; color: red; margin-bottom: 20px;">
+                Chyba při vytváření uživatele.
+            </div>
+            <div id="create-user-success" style="display: none; color: green; margin-bottom: 20px;">
+                Uživatel byl úspěšně vytvořen.
+            </div>
             <form action="/create-user" method="post">
                 <div>
                     <label>Uživatelské jméno</label>
-                    <input type="text" name="username" required>
+                    <input type="text" name="username" required id="username">
                 </div>
                 <div>
                     <label>Počáteční heslo</label>
-                    <input type="password" name="password" required>
+                    <input type="password" name="password" required id="password">
                 </div>
                 <button type="submit">Vytvořit uživatele</button>
             </form>
