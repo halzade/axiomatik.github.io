@@ -10,3 +10,9 @@ tower-http = { version = "0.6.8", features = ["fs", "trace"] }
 askama = { version = "0.15" }
 uuid = { version = "1.19", features = ["v4"] }
 chrono = "0.4.42"
+rsa = "0.9.9"
+base64 = "0.22.1"
+pkcs8 = "0.10.2"
+sha2 = { version = "0.10.9", features = ["oid"] }
+axum-extra = { version = "0.12.5", features = ["cookie"] }
+serde = { version = "1.0.228", features = ["derive"] }

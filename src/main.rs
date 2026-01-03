@@ -1,11 +1,16 @@
+mod auth;
+
 use askama::Template;
 use axum::{
     Router,
-    extract::Multipart,
-    response::{Html, IntoResponse, Redirect},
+    extract::{Multipart, Form},
+    response::{Html, IntoResponse, Redirect, Response},
     routing::{get, post},
+    http::StatusCode,
 };
+use axum_extra::extract::cookie::{Cookie, CookieJar};
 use chrono::Datelike;
+use serde::Deserialize;
 use std::fs;
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
@@ -14,6 +19,17 @@ use uuid::Uuid;
 #[derive(Template)]
 #[template(path = "form.html")]
 struct FormTemplate;
+
+#[derive(Template)]
+#[template(path = "login.html")]
+struct LoginTemplate;
+
+#[derive(Deserialize)]
+struct LoginPayload {
+    token: String,
+}
+
+const AUTH_COOKIE: &str = "axiomatik_auth";
 
 #[derive(Template)]
 #[template(path = "article_template.html")]
@@ -50,7 +66,9 @@ async fn main() {
     fs::create_dir_all("snippets").unwrap();
 
     let app = Router::new()
-        .route("/", get(show_form))
+        .route("/", get(|| async { Redirect::to("/form") }))
+        .route("/form", get(show_form))
+        .route("/login", get(show_login).post(handle_login))
         .route("/create", post(create_article))
         .nest_service("/unp", ServeDir::new("unp"))
         .nest_service("/uploads", ServeDir::new("uploads"))
@@ -63,11 +81,31 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn show_form() -> impl IntoResponse {
-    Html(FormTemplate.render().unwrap())
+async fn show_login() -> impl IntoResponse {
+    Html(LoginTemplate.render().unwrap())
 }
 
-async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
+async fn handle_login(jar: CookieJar, Form(payload): Form<LoginPayload>) -> impl IntoResponse {
+    if auth::verify_token(&payload.token) {
+        let jar = jar.add(Cookie::new(AUTH_COOKIE, "authenticated"));
+        (jar, Redirect::to("/form"))
+    } else {
+        (jar, Redirect::to("/login"))
+    }
+}
+
+async fn show_form(jar: CookieJar) -> Response {
+    if jar.get(AUTH_COOKIE).is_some() {
+        Html(FormTemplate.render().unwrap()).into_response()
+    } else {
+        Redirect::to("/login").into_response()
+    }
+}
+
+async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Response {
+    if jar.get(AUTH_COOKIE).is_none() {
+        return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
+    }
     println!("Received create_article request");
     let mut title = String::new();
     let mut author = String::new();
@@ -293,5 +331,5 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
         }
     }
 
-    Redirect::to(&format!("/{}.html", safe_title))
+    Redirect::to(&format!("/{}.html", safe_title)).into_response()
 }

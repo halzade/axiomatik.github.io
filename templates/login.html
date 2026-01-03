@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Přihlášení - Axiomatik</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-dark.css" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="../css/webapp.css">
+</head>
+<body>
+    <div class="all">
+        <main class="content">
+            <h1>Přihlášení</h1>
+            <p>Zadejte svůj autentizační token pro přístup k editoru.</p>
+            <form action="/login" method="post">
+                <div>
+                    <label>Autentizační token (Podpis)</label><br>
+                    <textarea name="token" rows="4" cols="50" required style="width: 100%;"></textarea>
+                </div>
+                <br>
+                <button type="submit">Přihlásit se</button>
+            </form>
+        </main>
+    </div>
+</body>
+</html>
