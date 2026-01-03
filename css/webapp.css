@@ -39,6 +39,8 @@ label {
 }
 
 input[type="text"],
+input[type="password"],
+input[type="file"],
 textarea,
 select {
     width: 100%;
@@ -48,9 +50,12 @@ select {
     border-radius: 4px;
     font-size: 1rem;
     transition: border-color 0.2s;
+    font-family: inherit;
 }
 
 input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="file"]:focus,
 textarea:focus,
 select:focus {
     outline: none;
@@ -60,6 +65,7 @@ select:focus {
 input[type="file"] {
     display: block;
     margin-top: 5px;
+    padding: 8px 12px;
 }
 
 button[type="submit"] {
@@ -69,4 +75,5 @@ button[type="submit"] {
     margin-top: 10px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    cursor: pointer;
 }
