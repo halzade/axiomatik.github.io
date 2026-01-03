@@ -35,9 +35,7 @@
                 <img src="uploads/{{ image_path }}" alt="{{ title }}">
             </figure>
 
-            <div class="container">
-                {{ text|safe }}
-            </div>
+            {{ text|safe }}
             {% if video_path.is_some() %}
             <div class="container">
                 <div class="video-holder">

@@ -65,22 +65,29 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
 
             "text" => {
                 let raw_text = field.text().await.unwrap();
-                // Process text: 
+                // Process text:
                 // 1. Normalize line endings
-                // 2. Split by empty lines (double newlines)
-                // 3. For each block:
-                //    - If it starts with 3 spaces, wrap in <blockquote>
-                //    - Else wrap in <p>
-                let processed = raw_text
-                    .replace("\r\n", "\n")
-                    .split("\n\n")
-                    .filter(|s| !s.trim().is_empty())
-                    .map(|s| {
-                        if s.starts_with("   ") {
-                            format!("<blockquote>{}</blockquote>", s.trim())
-                        } else {
-                            format!("<p>{}</p>", s.trim().replace("\n", " "))
-                        }
+                // 2. Split by "two empty lines" (3 or more newlines) into containers
+                // 3. Within each container, split by "one empty line" (2 newlines) into paragraphs
+                let normalized = raw_text.replace("\r\n", "\n");
+                
+                let processed = normalized
+                    .split("\n\n\n") // Three newlines = two empty lines
+                    .filter(|block| !block.trim().is_empty())
+                    .map(|block| {
+                        let inner_html = block
+                            .split("\n\n")
+                            .filter(|s| !s.trim().is_empty())
+                            .map(|s| {
+                                if s.starts_with("   ") {
+                                    format!("<blockquote>{}</blockquote>", s.trim())
+                                } else {
+                                    format!("<p>{}</p>", s.trim().replace("\n", " "))
+                                }
+                            })
+                            .collect::<Vec<String>>()
+                            .join("");
+                        format!("<div class=\"container\">{}</div>", inner_html)
                     })
                     .collect::<Vec<String>>()
                     .join("");
