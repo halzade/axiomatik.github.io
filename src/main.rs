@@ -34,6 +34,13 @@ struct ChangePasswordTemplate {
     error: Option<String>,
 }
 
+#[derive(Template)]
+#[template(path = "create_user.html")]
+struct CreateUserTemplate {
+    error: Option<String>,
+    success: Option<String>,
+}
+
 #[derive(Deserialize)]
 struct LoginPayload {
     username: String,
@@ -43,6 +50,12 @@ struct LoginPayload {
 #[derive(Deserialize)]
 struct ChangePasswordPayload {
     new_password: String,
+}
+
+#[derive(Deserialize)]
+struct CreateUserPayload {
+    username: String,
+    password: String,
 }
 
 const AUTH_COOKIE: &str = "axiomatik_auth";
@@ -88,6 +101,7 @@ async fn main() {
         .route("/form", get(show_form))
         .route("/login", get(show_login).post(handle_login))
         .route("/change-password", get(show_change_password).post(handle_change_password))
+        .route("/create-user", get(show_create_user).post(handle_create_user))
         .route("/create", post(create_article))
         .nest_service("/unp", ServeDir::new("unp"))
         .nest_service("/uploads", ServeDir::new("uploads"))
@@ -167,6 +181,88 @@ async fn handle_change_password(
     } else {
         Redirect::to("/login").into_response()
     }
+}
+
+async fn show_create_user(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
+    if !db.has_users().await {
+        return Html(
+            CreateUserTemplate {
+                error: None,
+                success: None,
+            }
+            .render()
+            .unwrap(),
+        )
+        .into_response();
+    }
+    if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
+            if user.needs_password_change {
+                return Redirect::to("/change-password").into_response();
+            }
+        }
+        Html(
+            CreateUserTemplate {
+                error: None,
+                success: None,
+            }
+            .render()
+            .unwrap(),
+        )
+        .into_response()
+    } else {
+        Redirect::to("/login").into_response()
+    }
+}
+
+async fn handle_create_user(
+    State(db): State<Arc<db::Database>>,
+    jar: CookieJar,
+    Form(payload): Form<CreateUserPayload>,
+) -> Response {
+    let is_bootstrap = !db.has_users().await;
+
+    if !is_bootstrap {
+        if let Some(cookie) = jar.get(AUTH_COOKIE) {
+            if let Ok(Some(current_user)) = db.get_user(cookie.value()).await {
+                if current_user.needs_password_change {
+                    return Redirect::to("/change-password").into_response();
+                }
+            } else {
+                return Redirect::to("/login").into_response();
+            }
+        } else {
+            return Redirect::to("/login").into_response();
+        }
+    }
+
+    let password_hash = bcrypt::hash(&payload.password, bcrypt::DEFAULT_COST).unwrap();
+    let new_user = db::User {
+        username: payload.username.clone(),
+        password_hash,
+        needs_password_change: !is_bootstrap, // Bootstrap user doesn't need to change password immediately as they just set it
+    };
+
+        match db.create_user(new_user).await {
+            Ok(_) => Html(
+                CreateUserTemplate {
+                    error: None,
+                    success: Some(format!("Uživatel {} byl úspěšně vytvořen", payload.username)),
+                }
+                .render()
+                .unwrap(),
+            )
+            .into_response(),
+            Err(e) => Html(
+                CreateUserTemplate {
+                    error: Some(format!("Chyba při vytváření uživatele: {}", e)),
+                    success: None,
+                }
+                .render()
+                .unwrap(),
+            )
+            .into_response(),
+        }
 }
 
 async fn show_form(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
