@@ -22,6 +22,7 @@ struct ArticleTemplate {
     image_path: String,
     video_path: Option<String>,
     category: String,
+    category_display: String,
 }
 
 #[tokio::main]
@@ -128,12 +129,22 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
         }
     }
 
+    let category_display = match category.as_str() {
+        "zahranici" => "zahraničí",
+        "republika" => "republika",
+        "finance" => "finance",
+        "technologie" => "technologie",
+        "veda" => "věda",
+        _ => &category,
+    }.to_string();
+
     let template = ArticleTemplate {
         title: title.clone(),
         text,
         image_path,
         video_path,
         category,
+        category_display,
     };
 
     let html_content = template.render().unwrap();
