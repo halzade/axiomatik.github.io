@@ -188,7 +188,12 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
 
     // Update category-month-year.html
     let now = chrono::Local::now();
-    let cat_month_year_filename = format!("{}-{}-{}.html", category, now.month(), now.year());
+    let czech_months = [
+        "leden", "unor", "brezen", "duben", "kveten", "cerven",
+        "cervenec", "srpen", "zari", "rijen", "listopad", "prosinec"
+    ];
+    let month_name = czech_months[(now.month() - 1) as usize];
+    let cat_month_year_filename = format!("{}-{}-{}.html", category, month_name, now.year());
     
     let snippet = SnippetTemplate {
         url: file_path.clone(),
@@ -198,7 +203,7 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
 
     if !std::path::Path::new(&cat_month_year_filename).exists() {
         let base_template = ArticleTemplate {
-            title: format!("{} - {}/{}", category_display, now.month(), now.year()),
+            title: format!("{} - {} {}", category_display, month_name, now.year()),
             author: "Axiomatik".to_string(),
             text: "".to_string(),
             image_path: "".to_string(), // This might be an issue if template expects it
