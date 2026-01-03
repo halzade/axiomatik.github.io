@@ -2,32 +2,64 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axiomatik.cz — {{ title }}</title>
+    <script src="js/script.js" defer></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles-dark.css" media="(prefers-color-scheme: dark)">
 </head>
 <body>
-    <article>
-        <h1>{{ title }}</h1>
-        <p class="category">Kategorie: {{ category }}</p>
-        
-        <div class="main-image">
-            <img src="/uploads/{{ image_path }}" alt="{{ title }}" style="max-width: 100%;">
-        </div>
+<div class="all">
+    <header class="topbar">
+        <a href="/" class="logo">Axiomatik</a>
+        <nav class="main-nav">
+            <a href="republika.html">republika</a>
+            <a href="zahranici.html">zahraničí</a>
+            <a href="technologie.html">technologie</a>
+            <a href="finance.html">finance</a>
+            <a href="veda.html">věda</a>
+        </nav>
+    </header>
+    <main class="content">
 
-        {% if video_path.is_some() %}
-        <div class="main-video">
-            <video controls style="max-width: 100%;">
-                <source src="/uploads/{{ video_path.as_ref().unwrap() }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        </div>
-        {% endif %}
+        <nav class="breadcrumb">
+            <a href="/">domů</a> /
+            <a href="{{ category }}.html">{{ category }}</a> /
+            {{ title }}
+        </nav>
 
-        <div class="content">
-            {{ text|linebreaksbr|safe }}
-        </div>
-    </article>
-    <br>
-    <a href="/">Zpět na hlavní stranu</a>
+        <article class="article">
+
+            <h1 class="article-title">{{ title }}</h1>
+
+            <div class="article-meta">
+                <span>Redakce Axiomatik • 2026</span>
+            </div>
+
+            <figure class="article-figure">
+                <img src="/uploads/{{ image_path }}" alt="{{ title }}">
+            </figure>
+
+            <div class="container">
+                {{ text|linebreaksbr|safe }}
+            </div>
+
+            {% if video_path.is_some() %}
+            <div class="container">
+                <div class="video-holder">
+                    <video muted playsinline controls class="video">
+                        <source src="/uploads/{{ video_path.as_ref().unwrap() }}" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+            {% endif %}
+
+        </article>
+    </main>
+
+    <footer>
+        <p>Axiomatik © 2026</p>
+    </footer>
+</div>
 </body>
 </html>
