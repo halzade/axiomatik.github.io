@@ -24,6 +24,14 @@ body {
     border-bottom: solid thin silver;
 }
 
+.container-wide {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    vertical-align: top;
+    border-bottom: solid thin silver;
+}
+
 .container > * {
     display: block;
     vertical-align: top;

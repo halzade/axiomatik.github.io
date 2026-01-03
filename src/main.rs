@@ -68,12 +68,20 @@ async fn create_article(mut multipart: Multipart) -> impl IntoResponse {
                 // Process text: 
                 // 1. Normalize line endings
                 // 2. Split by empty lines (double newlines)
-                // 3. Wrap segments in <p> tags
-                let processed = raw_text.trim()
+                // 3. For each block:
+                //    - If it starts with 3 spaces, wrap in <blockquote>
+                //    - Else wrap in <p>
+                let processed = raw_text
                     .replace("\r\n", "\n")
                     .split("\n\n")
                     .filter(|s| !s.trim().is_empty())
-                    .map(|s| format!("<p>{}</p>", s.trim().replace("\n", " ")))
+                    .map(|s| {
+                        if s.starts_with("   ") {
+                            format!("<blockquote>{}</blockquote>", s.trim())
+                        } else {
+                            format!("<p>{}</p>", s.trim().replace("\n", " "))
+                        }
+                    })
                     .collect::<Vec<String>>()
                     .join("");
                 text = processed;
