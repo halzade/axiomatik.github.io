@@ -7,7 +7,7 @@ use axum::{
     Router,
     body::Body,
     extract::{Form, Multipart, State},
-    http::Request,
+    http::{Request, StatusCode},
     middleware::{self, Next},
     response::{Html, IntoResponse, Redirect, Response},
     routing::{get, post},
@@ -142,8 +142,12 @@ pub async fn handle_login(
     State(db): State<Arc<db::Database>>,
     jar: CookieJar,
     Form(payload): Form<LoginPayload>,
-) -> impl IntoResponse {
-    match auth::authenticate_user(&db, &payload.username, &payload.password).await {
+) -> Response {
+    if validate_input(&payload.username).is_err() || validate_input(&payload.password).is_err() {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    let username = &payload.username;
+    match auth::authenticate_user(&db, username, &payload.password).await {
         Ok(user) => {
             info!(user = %user.username, "User logged in successfully");
             let jar = jar.add(Cookie::new(AUTH_COOKIE, user.username));
@@ -184,6 +188,9 @@ pub async fn handle_change_password(
 ) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value();
+        if validate_input(&payload.new_password).is_err() {
+            return StatusCode::BAD_REQUEST.into_response();
+        }
         match auth::change_password(&db, username, &payload.new_password).await {
             Ok(_) => Redirect::to("/account").into_response(),
             Err(e) => {
@@ -196,8 +203,8 @@ pub async fn handle_change_password(
                     .render()
                     .unwrap(),
                 )
+                .into_response()
             }
-            .into_response(),
         }
     } else {
         Redirect::to("/login").into_response()
@@ -250,6 +257,9 @@ pub async fn handle_update_author_name(
 ) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value();
+        if validate_input(&payload.author_name).is_err() {
+            return StatusCode::BAD_REQUEST.into_response();
+        }
         match auth::update_author_name(&db, username, &payload.author_name).await {
             Ok(_) => Redirect::to("/account").into_response(),
             Err(_) => Redirect::to("/account").into_response(), // Simple error handling for now
@@ -285,10 +295,27 @@ pub async fn create_article(
         let name = field.name().unwrap().to_string();
 
         match name.as_str() {
-            "title" => title = field.text().await.unwrap(),
-            "author" => author = field.text().await.unwrap(),
+            "title" => {
+                let text = field.text().await.unwrap();
+                if validate_input(&text).is_err() {
+                    return StatusCode::BAD_REQUEST.into_response();
+                }
+                title = text;
+            }
+
+            "author" => {
+                let text = field.text().await.unwrap();
+                if validate_input(&text).is_err() {
+                    return StatusCode::BAD_REQUEST.into_response();
+                }
+                author = text;
+            }
+
             "text" => {
                 let raw_text = field.text().await.unwrap();
+                if validate_input(&raw_text).is_err() {
+                    return StatusCode::BAD_REQUEST.into_response();
+                }
                 text_raw = raw_text.clone();
                 let normalized = raw_text.replace("\r\n", "\n");
                 let processed = normalized
@@ -313,8 +340,12 @@ pub async fn create_article(
                     .join("");
                 text_processed = processed;
             }
+
             "short_text" => {
                 let raw_text = field.text().await.unwrap();
+                if validate_input(&raw_text).is_err() {
+                    return StatusCode::BAD_REQUEST.into_response();
+                }
                 short_text_raw = raw_text.clone();
                 let normalized = raw_text.replace("\r\n", "\n");
                 short_text_processed = normalized
@@ -324,8 +355,23 @@ pub async fn create_article(
                     .collect::<Vec<String>>()
                     .join("</p><p>");
             }
-            "category" => category = field.text().await.unwrap(),
-            "related_articles" => related_articles_input = field.text().await.unwrap(),
+
+            "category" => {
+                let text = field.text().await.unwrap();
+                if validate_input(&text).is_err() {
+                    return StatusCode::BAD_REQUEST.into_response();
+                }
+                category = text;
+            }
+
+            "related_articles" => {
+                let text = field.text().await.unwrap();
+                if validate_input(&text).is_err() {
+                    return StatusCode::BAD_REQUEST.into_response();
+                }
+                related_articles_input = text;
+            }
+
             "image" => {
                 if let Some(file_name) = field.file_name() {
                     if !file_name.is_empty() {
@@ -349,6 +395,7 @@ pub async fn create_article(
                     }
                 }
             }
+
             "video" => {
                 if let Some(file_name) = field.file_name() {
                     if !file_name.is_empty() {
@@ -501,4 +548,18 @@ pub async fn create_article(
     }
 
     Redirect::to(&format!("/{}.html", safe_title)).into_response()
+}
+
+fn validate_input(input: &str) -> Result<(), &'static str> {
+    for c in input.chars() {
+        if c.is_ascii() {
+            let val = c as u32;
+            // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
+            if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
+                return Err("Invalid character detected");
+            }
+        }
+        // Non-ASCII (UTF-8) is allowed
+    }
+    Ok(())
 }
