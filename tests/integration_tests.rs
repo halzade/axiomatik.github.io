@@ -3,6 +3,7 @@ use axum::{
     body::Body,
     http::{Request, StatusCode, header},
 };
+use chrono::Datelike;
 use std::sync::Arc;
 use tower::ServiceExt;
 use url::form_urlencoded;
@@ -147,6 +148,16 @@ async fn test_create_article() {
 
     // 3. Create article (Multipart)
     let boundary = "---------------------------123456789012345678901234567";
+
+    // Create related article and category files for testing
+    let related_article_content = "<html><body><!-- SNIPPETS --></body></html>";
+    std::fs::write("related-test-article.html", related_article_content).unwrap();
+    std::fs::create_dir_all("snippets").unwrap();
+    std::fs::write("snippets/related-test-article.html.txt", "<div>Related Snippet</div>").unwrap();
+    
+    let category_content = "<html><body><!-- SNIPPETS --></body></html>";
+    std::fs::write("test-cathegory.html", category_content).unwrap();
+
     let body = format!(
         "--{0}\r\n\
         Content-Disposition: form-data; name=\"title\"\r\n\r\n\
@@ -156,13 +167,16 @@ async fn test_create_article() {
         Test Author\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"category\"\r\n\r\n\
-        zahranici\r\n\
+        test-cathegory\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"text\"\r\n\r\n\
         This is a test article text.\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"short_text\"\r\n\r\n\
         Short text.\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"related_articles\"\r\n\r\n\
+        related-test-article.html\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"image\"; filename=\"test.jpg\"\r\n\
         Content-Type: image/jpeg\r\n\r\n\
@@ -189,4 +203,25 @@ async fn test_create_article() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    assert_eq!(response.headers().get(header::LOCATION).unwrap(), "/test-article.html");
+
+    // Verify files were created
+    assert!(std::path::Path::new("test-article.html").exists());
+    
+    // Cleanup
+    let _ = std::fs::remove_file("test-article.html");
+    let _ = std::fs::remove_file("snippets/test-article.html.txt");
+    let _ = std::fs::remove_file("related-test-article.html");
+    let _ = std::fs::remove_file("snippets/related-test-article.html.txt");
+    let _ = std::fs::remove_file("test-cathegory.html");
+    
+    // Also cleanup the archive file if it was created
+    let now = chrono::Local::now();
+    let czech_months = [
+        "leden", "unor", "brezen", "duben", "kveten", "cerven", "cervenec", "srpen", "zari",
+        "rijen", "listopad", "prosinec",
+    ];
+    let month_name = czech_months[(now.month() - 1) as usize];
+    let archive_filename = format!("archive-test-cathegory-{}-{}.html", month_name, now.year());
+    let _ = std::fs::remove_file(archive_filename);
 }
