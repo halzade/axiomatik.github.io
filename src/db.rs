@@ -78,7 +78,7 @@ impl Database {
     }
 
     pub async fn delete_user(&self, username: &str) -> surrealdb::Result<()> {
-        let _: Option<surrealdb::sql::Value> = self.client.delete(("user", username)).await?;
+        let _: Option<User> = self.client.delete(("user", username)).await?;
         Ok(())
     }
 
