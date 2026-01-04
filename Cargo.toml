@@ -16,6 +16,7 @@ surrealdb = { version = "2.4.0", features = ["kv-rocksdb", "kv-mem", "protocol-w
 bcrypt = "0.17.1"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+config = "0.15"
 
 [dev-dependencies]
 http = "1.4.0"

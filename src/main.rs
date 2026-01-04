@@ -1,13 +1,14 @@
+use axiomatik_web::configuration::get_configuration;
 use axiomatik_web::db;
 use std::env;
 use std::fs;
-use std::net::SocketAddr;
 use std::sync::Arc;
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() {
+    let configuration = get_configuration().expect("Failed to read configuration.");
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 1 && args[1] == "create-user" {
@@ -71,8 +72,13 @@ async fn main() {
 
     let app = axiomatik_web::app(db);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 80));
+    let addr = format!(
+        "{}:{}",
+        configuration.application.host, configuration.application.port
+    );
     println!("listening on {}", addr);
-    let listener = tokio::net::TcpListener::bind(addr).await.expect("Failed to bind to port 80");
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .expect(&format!("Failed to bind to {}", addr));
     axum::serve(listener, app).await.unwrap();
 }
