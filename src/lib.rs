@@ -111,6 +111,7 @@ pub fn app(db: Arc<db::Database>) -> Router {
         .nest_service("/uploads", ServeDir::new("uploads"))
         .nest_service("/css", ServeDir::new("css"))
         .nest_service("/js", ServeDir::new("js"))
+        .fallback_service(ServeDir::new("."))
         .with_state(db)
 }
 

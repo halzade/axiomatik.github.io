@@ -124,6 +124,24 @@ async fn test_change_password() {
 }
 
 #[tokio::test]
+async fn test_serve_static_html() {
+    let (app, _db) = setup_app().await;
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/jeden-tisic-dnu.html")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+}
+
+#[tokio::test]
 async fn test_account_page() {
     let (app, db) = setup_app().await;
 

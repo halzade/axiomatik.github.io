@@ -71,8 +71,8 @@ async fn main() {
 
     let app = axiomatik_web::app(db);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 80));
     println!("listening on {}", addr);
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(addr).await.expect("Failed to bind to port 80");
     axum::serve(listener, app).await.unwrap();
 }
