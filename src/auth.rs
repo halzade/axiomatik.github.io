@@ -25,7 +25,7 @@ pub async fn create_editor_user(
     password: &str,
 ) -> Result<(), String> {
     if password.len() < 3 {
-        return Err("Password must be longer".to_string());
+        return Err("Heslo musí být delší".to_string());
     }
 
     let password_hash = hash(password, DEFAULT_COST).map_err(|e| e.to_string())?;
@@ -46,8 +46,8 @@ pub async fn change_password(
     username: &str,
     new_password: &str
 ) -> Result<(), String> {
-    if new_password.len() < 8 {
-        return Err("Heslo musí mít alespoň 8 znaků".to_string());
+    if new_password.len() < 3 {
+        return Err("Heslo musí být delší".to_string());
     }
 
     match db.get_user(username).await {

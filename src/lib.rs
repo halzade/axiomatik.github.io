@@ -6,7 +6,7 @@ use axum::{
     Router,
     body::Body,
     extract::{Form, Multipart, State},
-    http::{Request},
+    http::Request,
     middleware::{self, Next},
     response::{Html, IntoResponse, Redirect, Response},
     routing::{get, post},
@@ -93,7 +93,10 @@ pub fn app(db: Arc<db::Database>) -> Router {
     let protected_routes = Router::new()
         .route("/form", get(show_form))
         .route("/create", post(create_article))
-        .route("/change-password", get(show_change_password).post(handle_change_password))
+        .route(
+            "/change-password",
+            get(show_change_password).post(handle_change_password),
+        )
         .route("/account", get(show_account))
         .route("/account/update-author", post(handle_update_author_name))
         .layer(middleware::from_fn_with_state(db.clone(), auth_middleware));
@@ -153,9 +156,7 @@ pub async fn handle_login(
     }
 }
 
-pub async fn show_change_password(
-    jar: CookieJar,
-) -> Response {
+pub async fn show_change_password(jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value().to_string();
         Html(
@@ -179,18 +180,19 @@ pub async fn handle_change_password(
 ) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value();
-        match auth::change_password(&db, username, &payload.new_password)
-            .await
-        {
+        match auth::change_password(&db, username, &payload.new_password).await {
             Ok(_) => Redirect::to("/form").into_response(),
-            Err(_) => Html(
-                ChangePasswordTemplate {
-                    error: true,
-                    username: username.to_string(),
-                }
-                .render()
-                .unwrap(),
-            )
+            Err(e) => {
+                println!("{:?}", e);
+                Html(
+                    ChangePasswordTemplate {
+                        error: true,
+                        username: username.to_string(),
+                    }
+                    .render()
+                    .unwrap(),
+                )
+            }
             .into_response(),
         }
     } else {
@@ -202,10 +204,7 @@ pub async fn show_form() -> Response {
     Html(FormTemplate.render().unwrap()).into_response()
 }
 
-pub async fn show_account(
-    State(db): State<Arc<db::Database>>,
-    jar: CookieJar,
-) -> Response {
+pub async fn show_account(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         if let Ok(Some(user)) = db.get_user(cookie.value()).await {
             return Html(
@@ -238,9 +237,7 @@ pub async fn handle_update_author_name(
     }
 }
 
-pub async fn create_article(
-    mut multipart: Multipart,
-) -> Response {
+pub async fn create_article(mut multipart: Multipart) -> Response {
     let mut title = String::new();
     let mut author = String::new();
     let mut text = String::new();
