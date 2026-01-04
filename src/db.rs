@@ -33,7 +33,15 @@ impl Database {
 }
 
 pub async fn init_db() -> surrealdb::Result<Database> {
-    let client = connect("file://axiomatik.db").await?; 
+    init_db_with_url("file://axiomatik.db").await
+}
+
+pub async fn init_mem_db() -> surrealdb::Result<Database> {
+    init_db_with_url("mem://").await
+}
+
+async fn init_db_with_url(url: &str) -> surrealdb::Result<Database> {
+    let client = connect(url).await?; 
     client.use_ns("axiomatik").use_db("axiomatik").await?;
 
     let db = Database { client };
