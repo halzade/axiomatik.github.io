@@ -19,6 +19,7 @@ pub struct User {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Article {
     pub author: String,
+    pub created_by: String,
     pub date: String,
     pub title: String,
     pub text: String,
@@ -108,10 +109,10 @@ impl Database {
             .await
     }
 
-    pub async fn get_articles_by_author(&self, author: &str) -> surrealdb::Result<Vec<Article>> {
+    pub async fn get_articles_by_username(&self, username: &str) -> surrealdb::Result<Vec<Article>> {
         let mut response = self.client
-            .query("SELECT * FROM article WHERE author = $author ORDER BY date DESC")
-            .bind(("author", author.to_string()))
+            .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
+            .bind(("username", username.to_string()))
             .await?;
         response.take(0)
     }

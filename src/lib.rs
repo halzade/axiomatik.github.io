@@ -223,7 +223,7 @@ pub async fn show_account(State(db): State<Arc<db::Database>>, jar: CookieJar) -
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         if let Ok(Some(user)) = db.get_user(cookie.value()).await {
             let articles = db
-                .get_articles_by_author(&user.author_name)
+                .get_articles_by_username(&user.username)
                 .await
                 .unwrap_or_default();
 
@@ -260,9 +260,15 @@ pub async fn handle_update_author_name(
 
 pub async fn create_article(
     State(db): State<Arc<db::Database>>,
-    _jar: CookieJar,
+    jar: CookieJar,
     mut multipart: Multipart,
 ) -> Response {
+    let created_by = if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        cookie.value().to_string()
+    } else {
+        return Redirect::to("/login").into_response();
+    };
+
     let mut title = String::new();
     let mut author = String::new();
     let mut text_raw = String::new();
@@ -419,6 +425,7 @@ pub async fn create_article(
     // Store in DB
     let article_db = db::Article {
         author: author.clone(),
+        created_by,
         date: now.format("%Y-%m-%d %H:%M:%S").to_string(),
         title: title.clone(),
         text: text_raw,

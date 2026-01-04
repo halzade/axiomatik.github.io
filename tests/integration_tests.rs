@@ -204,6 +204,102 @@ async fn test_account_page() {
     // 5. Verify update in DB
     let user = db.get_user("account_user").await.unwrap().unwrap();
     assert_eq!(user.author_name, "Updated Author");
+
+    // 6. Create an article for this user
+    let boundary = "---------------------------123456789012345678901234567";
+    let body = format!(
+        "--{0}\r\n\
+        Content-Disposition: form-data; name=\"title\"\r\n\r\n\
+        User Article\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"author\"\r\n\r\n\
+        Updated Author\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"category\"\r\n\r\n\
+        test-cathegory\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"text\"\r\n\r\n\
+        Content\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"short_text\"\r\n\r\n\
+        Short\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"image\"; filename=\"test.jpg\"\r\n\r\n\
+        data\r\n\
+        --{0}--\r\n",
+        boundary
+    );
+
+    let _ = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/create")
+                .header(header::CONTENT_TYPE, format!("multipart/form-data; boundary={}", boundary))
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(body))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    // 7. Verify article is on account page
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/account")
+                .header(header::COOKIE, &cookie)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body_str = String::from_utf8_lossy(&body);
+    assert!(body_str.contains("User Article"));
+
+    // 8. Update author name again
+    let update_params = [("author_name", "Second Update")];
+    let _ = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/account/update-author")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(serialize(&update_params)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    // 9. Verify article is STILL on account page (linked by username, not author_name)
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/account")
+                .header(header::COOKIE, &cookie)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body_str = String::from_utf8_lossy(&body);
+    assert!(body_str.contains("User Article"));
+    assert!(body_str.contains("Second Update"));
+
+    // Cleanup files
+    let _ = std::fs::remove_file("user-article.html");
+    let _ = std::fs::remove_file("snippets/user-article.html.txt");
 }
 
 #[tokio::test]
