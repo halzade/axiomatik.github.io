@@ -32,3 +32,8 @@ button[type="submit"], .button {
 .article-header .right {
     color: #aaa;
 }
+
+a {
+    color: red !important;
+}
+

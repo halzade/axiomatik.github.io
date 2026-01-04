@@ -38,17 +38,18 @@
         </div>
 
         <h2>Moje články</h2>
-        <div id="my-articles">
+        <div id="my-articles" class="article-grid">
             {% for article in articles %}
-            <div class="article-item">
+            <div class="article-item card">
                 <div class="article-header">
                     <div class="left">
-                        <span class="file-name">{{ article.article_file_name }}</span>
+                        <a class="" href="{{ article.article_file_name }}">{{ article.article_file_name }}</a>
+                        <br/>
+                        <span class="">{{ article.date }}</span>
+                        <br/>
+                        <span class="">{{ article.category }}</span>
+                        <br/>
                         <h3 class="title">{{ article.title }}</h3>
-                    </div>
-                    <div class="right">
-                        <span class="category">{{ article.category }}</span>
-                        <span class="date">{{ article.date }}</span>
                     </div>
                 </div>
                 <div class="article-body">

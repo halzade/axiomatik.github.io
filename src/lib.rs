@@ -106,12 +106,11 @@ pub fn app(db: Arc<db::Database>) -> Router {
         .layer(middleware::from_fn_with_state(db.clone(), auth_middleware));
 
     Router::new()
-        .route("/", get(|| async { Redirect::to("/form") }))
+        .route("/", get(|| async { Redirect::to("/index.html") }))
         .route("/login", get(show_login).post(handle_login))
         .merge(protected_routes)
-        .nest_service("/uploads", ServeDir::new("uploads"))
-        .nest_service("/css", ServeDir::new("css"))
-        .nest_service("/js", ServeDir::new("js"))
+        // serve static content
+        // TODO serve only html, css, js
         .fallback_service(ServeDir::new("."))
         .with_state(db)
 }
@@ -333,11 +332,20 @@ pub async fn create_article(
                         let extension = std::path::Path::new(file_name)
                             .extension()
                             .and_then(|s| s.to_str())
-                            .unwrap_or("jpg");
-                        let new_name = format!("{}.{}", Uuid::new_v4(), extension);
-                        let data = field.bytes().await.unwrap();
-                        fs::write(format!("uploads/{}", new_name), data).unwrap();
-                        image_path = new_name;
+                            .map(|s| s.to_lowercase());
+
+                        match extension {
+                            Some(ext) if ["jpg", "jpeg", "png", "webp"].contains(&ext.as_str()) => {
+                                let new_name = format!("{}.{}", Uuid::new_v4(), ext);
+                                let data = field.bytes().await.unwrap();
+                                fs::write(format!("uploads/{}", new_name), data).unwrap();
+                                image_path = new_name;
+                            }
+                            _ => {
+                                // If extension is missing or not allowed, we just skip it or could return error
+                                // For now, let's just not set image_path
+                            }
+                        }
                     }
                 }
             }
@@ -347,11 +355,19 @@ pub async fn create_article(
                         let extension = std::path::Path::new(file_name)
                             .extension()
                             .and_then(|s| s.to_str())
-                            .unwrap_or("mp4");
-                        let new_name = format!("{}.{}", Uuid::new_v4(), extension);
-                        let data = field.bytes().await.unwrap();
-                        fs::write(format!("uploads/{}", new_name), data).unwrap();
-                        video_path = Some(new_name);
+                            .map(|s| s.to_lowercase());
+
+                        match extension {
+                            Some(ext) if ["avi", "mp4", "webm", "mov"].contains(&ext.as_str()) => {
+                                let new_name = format!("{}.{}", Uuid::new_v4(), ext);
+                                let data = field.bytes().await.unwrap();
+                                fs::write(format!("uploads/{}", new_name), data).unwrap();
+                                video_path = Some(new_name);
+                            }
+                            _ => {
+                                // If extension is missing or not allowed, skip
+                            }
+                        }
                     }
                 }
             }
