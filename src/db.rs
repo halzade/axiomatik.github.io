@@ -16,8 +16,46 @@ pub struct User {
     pub role: Role,
 }
 
+use tokio::sync::RwLock;
+
+#[derive(Debug, Clone)]
 pub struct Database {
     pub client: Surreal<Any>,
+}
+
+pub struct WrapDb {
+    pub db: RwLock<Option<Database>>,
+}
+
+impl WrapDb {
+    pub fn new() -> Self {
+        Self {
+            db: RwLock::new(None),
+        }
+    }
+
+    pub async fn get_db(&self) -> Database {
+        let read_guard = self.db.read().await;
+        if let Some(db) = &*read_guard {
+            return db.clone();
+        }
+        drop(read_guard);
+
+        let mut write_guard = self.db.write().await;
+        if let Some(db) = &*write_guard {
+            return db.clone();
+        }
+
+        let db = init_db().await.expect("Failed to initialize database");
+        *write_guard = Some(db.clone());
+        db
+    }
+}
+
+pub static DB_INSTANCE: std::sync::OnceLock<WrapDb> = std::sync::OnceLock::new();
+
+pub fn get_wrap_db() -> &'static WrapDb {
+    DB_INSTANCE.get_or_init(WrapDb::new)
 }
 
 impl Database {
