@@ -19,6 +19,22 @@ pub async fn authenticate_user(
     }
 }
 
+pub async fn create_admin_user(
+    db: &Database,
+    username: &str,
+    password: &str,
+) -> Result<(), String> {
+    let password_hash = hash(password, DEFAULT_COST).map_err(|e| e.to_string())?;
+    let user = User {
+        username: username.to_string(),
+        password_hash,
+        needs_password_change: false,
+    };
+
+    db.create_user(user).await.map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 pub async fn change_password(
     db: &Database,
     username: &str,

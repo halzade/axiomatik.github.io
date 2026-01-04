@@ -159,7 +159,7 @@ pub async fn handle_change_password(
     }
 }
 
-pub async fn show_create_user(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
+pub async fn show_create_user() -> Response {
     return Html(
         CreateUserTemplate {
             error: false,
