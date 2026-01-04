@@ -129,3 +129,15 @@ button[type="submit"]:hover, .button:hover {
     font-size: 1rem;
     line-height: 1.4;
 }
+
+input[readonly],
+input:read-only {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+input[readonly]:focus,
+input:read-only:focus {
+    outline: none;
+    box-shadow: none;
+}
