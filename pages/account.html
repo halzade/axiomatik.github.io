@@ -17,6 +17,7 @@
                 <label>Uživatelské jméno:</label>
                 <span>{{ username }}</span>
             </div>
+            <br/>
             <div class="field">
                 <label>Jméno autora:</label>
                 <form id="author-form" action="/account/update-author" method="post" style="display: inline;">
@@ -28,9 +29,31 @@
             </div>
         </div>
 
+        <div class="account-buttons">
+            <a href="/form" class="button">Vytvořit článek</a>
+        </div>
+
         <h2>Moje články</h2>
         <div id="my-articles">
+            {% for article in articles %}
+            <div class="article-item">
+                <div class="article-header">
+                    <div class="left">
+                        <span class="file-name">{{ article.article_file_name }}</span>
+                        <h3 class="title">{{ article.title }}</h3>
+                    </div>
+                    <div class="right">
+                        <span class="category">{{ article.category }}</span>
+                        <span class="date">{{ article.date }}</span>
+                    </div>
+                </div>
+                <div class="article-body">
+                    <p class="short-text">{{ article.short_text }}</p>
+                </div>
+            </div>
+            {% else %}
             <p>Zatím žádné články.</p>
+            {% endfor %}
         </div>
     </main>
 </div>

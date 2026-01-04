@@ -73,7 +73,8 @@ input[type="password"].input-error {
     border-color: red;
 }
 
-button[type="submit"] {
+button[type="submit"], .button {
+    display: block;
     width: 100%;
     padding: 14px;
     font-size: 1.1rem;
@@ -81,4 +82,87 @@ button[type="submit"] {
     text-transform: uppercase;
     letter-spacing: 1px;
     cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    background-color: #efefef;
+    color: black;
+    border: 1px solid #767676;
+    border-radius: 2px;
+    box-sizing: border-box;
+}
+
+button[type="submit"]:hover, .button:hover {
+    background-color: #e5e5e5;
+}
+
+@media (prefers-color-scheme: dark) {
+    button[type="submit"], .button {
+        background-color: #3b3b3b;
+        color: white;
+        border-color: #858585;
+    }
+    button[type="submit"]:hover, .button:hover {
+        background-color: #4b4b4b;
+    }
+}
+
+.article-item {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+@media (prefers-color-scheme: dark) {
+    .article-item {
+        border-color: #444;
+        background: #333;
+    }
+}
+
+.article-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .article-header {
+        border-bottom-color: #444;
+    }
+}
+
+.article-header .left {
+    text-align: left;
+}
+
+.article-header .right {
+    text-align: right;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+@media (prefers-color-scheme: dark) {
+    .article-header .right {
+        color: #aaa;
+    }
+}
+
+.article-header .file-name {
+    font-size: 0.8rem;
+    color: #888;
+    display: block;
+}
+
+.article-header .title {
+    margin: 5px 0 0 0;
+    font-size: 1.2rem;
+}
+
+.article-body .short-text {
+    font-size: 1rem;
+    line-height: 1.4;
 }

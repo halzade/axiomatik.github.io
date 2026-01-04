@@ -22,7 +22,9 @@ use uuid::Uuid;
 
 #[derive(Template)]
 #[template(path = "../pages/form.html")]
-pub struct FormTemplate;
+pub struct FormTemplate {
+    pub author_name: String,
+}
 
 #[derive(Template)]
 #[template(path = "../pages/login.html")]
@@ -42,6 +44,7 @@ pub struct ChangePasswordTemplate {
 pub struct AccountTemplate {
     pub username: String,
     pub author_name: String,
+    pub articles: Vec<db::Article>,
 }
 
 #[derive(Deserialize)]
@@ -181,7 +184,7 @@ pub async fn handle_change_password(
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value();
         match auth::change_password(&db, username, &payload.new_password).await {
-            Ok(_) => Redirect::to("/form").into_response(),
+            Ok(_) => Redirect::to("/account").into_response(),
             Err(e) => {
                 println!("{:?}", e);
                 Html(
@@ -200,17 +203,35 @@ pub async fn handle_change_password(
     }
 }
 
-pub async fn show_form() -> Response {
-    Html(FormTemplate.render().unwrap()).into_response()
+pub async fn show_form(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
+    if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
+            return Html(
+                FormTemplate {
+                    author_name: user.author_name,
+                }
+                .render()
+                .unwrap(),
+            )
+            .into_response();
+        }
+    }
+    Redirect::to("/login").into_response()
 }
 
 pub async fn show_account(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         if let Ok(Some(user)) = db.get_user(cookie.value()).await {
+            let articles = db
+                .get_articles_by_author(&user.author_name)
+                .await
+                .unwrap_or_default();
+
             return Html(
                 AccountTemplate {
                     username: user.username,
                     author_name: user.author_name,
+                    articles,
                 }
                 .render()
                 .unwrap(),
@@ -237,11 +258,17 @@ pub async fn handle_update_author_name(
     }
 }
 
-pub async fn create_article(mut multipart: Multipart) -> Response {
+pub async fn create_article(
+    State(db): State<Arc<db::Database>>,
+    _jar: CookieJar,
+    mut multipart: Multipart,
+) -> Response {
     let mut title = String::new();
     let mut author = String::new();
-    let mut text = String::new();
-    let mut short_text = String::new();
+    let mut text_raw = String::new();
+    let mut text_processed = String::new();
+    let mut short_text_raw = String::new();
+    let mut short_text_processed = String::new();
     let mut category = String::new();
     let mut related_articles_input = String::new();
     let mut image_path = String::new();
@@ -255,6 +282,7 @@ pub async fn create_article(mut multipart: Multipart) -> Response {
             "author" => author = field.text().await.unwrap(),
             "text" => {
                 let raw_text = field.text().await.unwrap();
+                text_raw = raw_text.clone();
                 let normalized = raw_text.replace("\r\n", "\n");
                 let processed = normalized
                     .split("\n\n\n")
@@ -276,12 +304,13 @@ pub async fn create_article(mut multipart: Multipart) -> Response {
                     })
                     .collect::<Vec<String>>()
                     .join("");
-                text = processed;
+                text_processed = processed;
             }
             "short_text" => {
                 let raw_text = field.text().await.unwrap();
+                short_text_raw = raw_text.clone();
                 let normalized = raw_text.replace("\r\n", "\n");
-                short_text = normalized
+                short_text_processed = normalized
                     .split("\n\n")
                     .filter(|s| !s.trim().is_empty())
                     .map(|s| s.trim().replace("\n", "<br>\n"))
@@ -292,14 +321,16 @@ pub async fn create_article(mut multipart: Multipart) -> Response {
             "related_articles" => related_articles_input = field.text().await.unwrap(),
             "image" => {
                 if let Some(file_name) = field.file_name() {
-                    let extension = std::path::Path::new(file_name)
-                        .extension()
-                        .and_then(|s| s.to_str())
-                        .unwrap_or("jpg");
-                    let new_name = format!("{}.{}", Uuid::new_v4(), extension);
-                    let data = field.bytes().await.unwrap();
-                    fs::write(format!("uploads/{}", new_name), data).unwrap();
-                    image_path = new_name;
+                    if !file_name.is_empty() {
+                        let extension = std::path::Path::new(file_name)
+                            .extension()
+                            .and_then(|s| s.to_str())
+                            .unwrap_or("jpg");
+                        let new_name = format!("{}.{}", Uuid::new_v4(), extension);
+                        let data = field.bytes().await.unwrap();
+                        fs::write(format!("uploads/{}", new_name), data).unwrap();
+                        image_path = new_name;
+                    }
                 }
             }
             "video" => {
@@ -347,10 +378,10 @@ pub async fn create_article(mut multipart: Multipart) -> Response {
 
     let template = ArticleTemplate {
         title: title.clone(),
-        author,
-        text,
-        image_path,
-        video_path,
+        author: author.clone(),
+        text: text_processed,
+        image_path: image_path.clone(),
+        video_path: video_path.clone(),
         category: category.clone(),
         category_display: category_display.clone(),
         related_snippets: related_snippets.clone(),
@@ -377,13 +408,29 @@ pub async fn create_article(mut multipart: Multipart) -> Response {
     let snippet = SnippetTemplate {
         url: file_path.clone(),
         title: title.clone(),
-        short_text,
+        short_text: short_text_processed,
     }
     .render()
     .unwrap();
 
     let snippet_file_path = format!("snippets/{}.txt", file_path);
     fs::write(snippet_file_path, &snippet).unwrap();
+
+    // Store in DB
+    let article_db = db::Article {
+        author: author.clone(),
+        date: now.format("%Y-%m-%d %H:%M:%S").to_string(),
+        title: title.clone(),
+        text: text_raw,
+        short_text: short_text_raw,
+        article_file_name: file_path.clone(),
+        image_url: image_path,
+        video_url: video_path,
+        category: category.clone(),
+        related_articles: related_articles_input.clone(),
+    };
+
+    let _ = db.create_article(article_db).await;
 
     if !std::path::Path::new(&cat_month_year_filename).exists() {
         let cat_template = CategoryTemplate {

@@ -114,7 +114,7 @@ async fn test_change_password() {
     assert_eq!(change_resp.status(), StatusCode::SEE_OTHER);
     assert_eq!(
         change_resp.headers().get(header::LOCATION).unwrap(),
-        "/form"
+        "/account"
     );
 
     // Verify change in DB

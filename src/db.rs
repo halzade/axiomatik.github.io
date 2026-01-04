@@ -16,6 +16,20 @@ pub struct User {
     pub role: Role,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Article {
+    pub author: String,
+    pub date: String,
+    pub title: String,
+    pub text: String,
+    pub short_text: String,
+    pub article_file_name: String,
+    pub image_url: String,
+    pub video_url: Option<String>,
+    pub category: String,
+    pub related_articles: String,
+}
+
 use tokio::sync::RwLock;
 
 #[derive(Debug, Clone)]
@@ -85,6 +99,21 @@ impl Database {
     pub async fn has_users(&self) -> bool {
         let users: Vec<User> = self.client.select("user").await.unwrap_or_default();
         !users.is_empty()
+    }
+
+    pub async fn create_article(&self, article: Article) -> surrealdb::Result<Option<Article>> {
+        self.client
+            .create("article")
+            .content(article)
+            .await
+    }
+
+    pub async fn get_articles_by_author(&self, author: &str) -> surrealdb::Result<Vec<Article>> {
+        let mut response = self.client
+            .query("SELECT * FROM article WHERE author = $author ORDER BY date DESC")
+            .bind(("author", author.to_string()))
+            .await?;
+        response.take(0)
     }
 }
 
