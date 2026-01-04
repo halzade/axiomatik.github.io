@@ -10,6 +10,7 @@ pub enum Role {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     pub username: String,
+    pub author_name: String,
     pub password_hash: String,
     pub needs_password_change: bool,
     pub role: Role,

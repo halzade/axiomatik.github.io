@@ -34,6 +34,7 @@ pub struct LoginTemplate {
 #[template(path = "../pages/change_password.html")]
 pub struct ChangePasswordTemplate {
     pub error: bool,
+    pub username: String,
 }
 
 #[derive(Deserialize)]
@@ -45,6 +46,7 @@ pub struct LoginPayload {
 #[derive(Deserialize)]
 pub struct ChangePasswordPayload {
     pub new_password: String,
+    pub author_name: String,
 }
 
 pub const AUTH_COOKIE: &str = "axiomatik_auth";
@@ -138,8 +140,23 @@ pub async fn handle_login(
     }
 }
 
-pub async fn show_change_password() -> Response {
-    Html(ChangePasswordTemplate { error: false }.render().unwrap()).into_response()
+pub async fn show_change_password(
+    jar: CookieJar,
+) -> Response {
+    if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        let username = cookie.value().to_string();
+        Html(
+            ChangePasswordTemplate {
+                error: false,
+                username,
+            }
+            .render()
+            .unwrap(),
+        )
+        .into_response()
+    } else {
+        Redirect::to("/login").into_response()
+    }
 }
 
 pub async fn handle_change_password(
@@ -149,11 +166,19 @@ pub async fn handle_change_password(
 ) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value();
-        match auth::change_password(&db, username, &payload.new_password).await {
+        match auth::change_password(&db, username, &payload.new_password)
+            .await
+        {
             Ok(_) => Redirect::to("/form").into_response(),
-            Err(_) => {
-                Html(ChangePasswordTemplate { error: true }.render().unwrap()).into_response()
-            }
+            Err(_) => Html(
+                ChangePasswordTemplate {
+                    error: true,
+                    username: username.to_string(),
+                }
+                .render()
+                .unwrap(),
+            )
+            .into_response(),
         }
     } else {
         Redirect::to("/login").into_response()

@@ -28,7 +28,7 @@ mod tests {
 
         let user = auth_result.unwrap();
         assert_eq!(user.username, username);
-        assert!(!user.needs_password_change);
+        assert!(user.needs_password_change);
         assert_eq!(user.role, Role::Editor);
     }
 }

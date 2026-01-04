@@ -1,4 +1,4 @@
-use crate::db::{Database, User, Role};
+use crate::db::{Database, Role, User};
 use bcrypt::{DEFAULT_COST, hash, verify};
 
 pub async fn authenticate_user(
@@ -31,6 +31,7 @@ pub async fn create_editor_user(
     let password_hash = hash(password, DEFAULT_COST).map_err(|e| e.to_string())?;
     let user = User {
         username: username.to_string(),
+        author_name: username.to_string().clone(),
         password_hash,
         needs_password_change: true,
         role: Role::Editor,

@@ -44,7 +44,7 @@ async fn test_login() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(response.headers().get(header::LOCATION).unwrap(), "/form");
+    assert_eq!(response.headers().get(header::LOCATION).unwrap(), "/change-password");
     assert!(response.headers().get(header::SET_COOKIE).is_some());
 }
 
@@ -56,6 +56,7 @@ async fn test_change_password() {
     let password_hash = bcrypt::hash("pass1234", bcrypt::DEFAULT_COST).unwrap();
     db.create_user(db::User {
         username: "user1".to_string(),
+        author_name: "user1".to_string(),
         password_hash,
         needs_password_change: true,
         role: db::Role::Editor,
@@ -93,7 +94,10 @@ async fn test_change_password() {
         .to_string();
 
     // Change password
-    let change_params = [("new_password", "new_password_123")];
+    let change_params = [
+        ("new_password", "new_password_123"),
+        ("author_name", "User One"),
+    ];
     let change_resp = app
         .clone()
         .oneshot(
@@ -119,10 +123,17 @@ async fn test_change_password() {
 async fn test_create_article() {
     let (app, db) = setup_app().await;
 
-    // 1. Create user
-    auth::create_editor_user(&db, "admin", "password123")
-        .await
-        .unwrap();
+    // 1. Create user who does NOT need password change
+    let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
+    db.create_user(db::User {
+        username: "admin".to_string(),
+        author_name: "admin".to_string(),
+        password_hash,
+        needs_password_change: false,
+        role: db::Role::Editor,
+    })
+    .await
+    .unwrap();
 
     // 2. Login
     let login_params = [("username", "admin"), ("password", "password123")];
@@ -214,6 +225,17 @@ async fn test_create_article() {
     let _ = std::fs::remove_file("related-test-article.html");
     let _ = std::fs::remove_file("snippets/related-test-article.html.txt");
     let _ = std::fs::remove_file("test-cathegory.html");
+
+    // Cleanup uploads
+    if let Ok(entries) = std::fs::read_dir("uploads") {
+        for entry in entries.flatten() {
+            if let Some(name) = entry.file_name().to_str() {
+                if name.ends_with(".jpg") {
+                    let _ = std::fs::remove_file(entry.path());
+                }
+            }
+        }
+    }
     
     // Also cleanup the archive file if it was created
     let now = chrono::Local::now();
