@@ -4,8 +4,10 @@ pub mod db;
 use askama::Template;
 use axum::{
     Router,
+    body::Body,
     extract::{Form, Multipart, State},
-    http::StatusCode,
+    http::{Request},
+    middleware::{self, Next},
     response::{Html, IntoResponse, Redirect, Response},
     routing::{get, post},
 };
@@ -75,17 +77,39 @@ pub struct CategoryTemplate {
 }
 
 pub fn app(db: Arc<db::Database>) -> Router {
-    Router::new()
-        .route("/", get(|| async { Redirect::to("index.html").into_response() }))
+    let protected_routes = Router::new()
         .route("/form", get(show_form))
-        .route("/login", get(show_login).post(handle_login))
-        .route(
-            "/change-password",
-            get(show_change_password).post(handle_change_password),
-        )
         .route("/create", post(create_article))
+        .route("/change-password", get(show_change_password).post(handle_change_password))
+        .layer(middleware::from_fn_with_state(db.clone(), auth_middleware));
+
+    Router::new()
+        .route("/", get(|| async { Redirect::to("/form") }))
+        .route("/login", get(show_login).post(handle_login))
+        .merge(protected_routes)
         .nest_service("/uploads", ServeDir::new("uploads"))
+        .nest_service("/css", ServeDir::new("css"))
+        .nest_service("/js", ServeDir::new("js"))
         .with_state(db)
+}
+
+async fn auth_middleware(
+    State(db): State<Arc<db::Database>>,
+    jar: CookieJar,
+    req: Request<Body>,
+    next: Next,
+) -> Response {
+    if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
+            if user.needs_password_change && req.uri().path() != "/change-password" {
+                return Redirect::to("/change-password").into_response();
+            }
+            if user.role == db::Role::Editor {
+                return next.run(req).await;
+            }
+        }
+    }
+    Redirect::to("/login").into_response()
 }
 
 pub async fn show_login() -> impl IntoResponse {
@@ -114,12 +138,8 @@ pub async fn handle_login(
     }
 }
 
-pub async fn show_change_password(jar: CookieJar) -> Response {
-    if let Some(_cookie) = jar.get(AUTH_COOKIE) {
-        Html(ChangePasswordTemplate { error: false }.render().unwrap()).into_response()
-    } else {
-        Redirect::to("/login").into_response()
-    }
+pub async fn show_change_password() -> Response {
+    Html(ChangePasswordTemplate { error: false }.render().unwrap()).into_response()
 }
 
 pub async fn handle_change_password(
@@ -140,42 +160,13 @@ pub async fn handle_change_password(
     }
 }
 
-pub async fn show_form(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
-            if user.needs_password_change {
-                return Redirect::to("/change-password").into_response();
-            }
-            if user.role == db::Role::Editor {
-                return Html(FormTemplate.render().unwrap()).into_response();
-            }
-        }
-        Redirect::to("/login").into_response()
-    } else {
-        Redirect::to("/login").into_response()
-    }
+pub async fn show_form() -> Response {
+    Html(FormTemplate.render().unwrap()).into_response()
 }
 
 pub async fn create_article(
-    State(db): State<Arc<db::Database>>,
-    jar: CookieJar,
     mut multipart: Multipart,
 ) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
-            if user.needs_password_change {
-                return Redirect::to("/change-password").into_response();
-            }
-            if user.role != db::Role::Editor {
-                return (StatusCode::FORBIDDEN, "Forbidden").into_response();
-            }
-        } else {
-            return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
-        }
-    } else {
-        return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
-    }
-
     let mut title = String::new();
     let mut author = String::new();
     let mut text = String::new();

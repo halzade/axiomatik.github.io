@@ -1,8 +1,6 @@
 /.idea/
 /*.iml
-/article.html
-
-# unpublished articles
 /unp/
 /target
 /axiomatik.db
+/dev.sh

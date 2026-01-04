@@ -1,4 +1,3 @@
-`cargo run`
 
 `cargo install cargo-watch`
 

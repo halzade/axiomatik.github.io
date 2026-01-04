@@ -24,8 +24,8 @@ pub async fn create_editor_user(
     username: &str,
     password: &str,
 ) -> Result<(), String> {
-    if password.len() < 5 {
-        return Err("Password must be at least 5 characters long".to_string());
+    if password.len() < 3 {
+        return Err("Password must be longer".to_string());
     }
 
     let password_hash = hash(password, DEFAULT_COST).map_err(|e| e.to_string())?;
