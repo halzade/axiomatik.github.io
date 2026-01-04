@@ -117,6 +117,94 @@ async fn test_change_password() {
         change_resp.headers().get(header::LOCATION).unwrap(),
         "/form"
     );
+
+    // Verify change in DB
+    let user = db.get_user("user1").await.unwrap().unwrap();
+    assert_eq!(user.author_name, "User One");
+    assert!(!user.needs_password_change);
+}
+
+#[tokio::test]
+async fn test_account_page() {
+    let (app, db) = setup_app().await;
+
+    // 1. Create user
+    let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
+    db.create_user(db::User {
+        username: "account_user".to_string(),
+        author_name: "Initial Author".to_string(),
+        password_hash,
+        needs_password_change: false,
+        role: db::Role::Editor,
+    })
+    .await
+    .unwrap();
+
+    // 2. Login
+    let login_params = [("username", "account_user"), ("password", "password123")];
+    let login_resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(serialize(&login_params)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let cookie = login_resp
+        .headers()
+        .get(header::SET_COOKIE)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
+
+    // 3. Access account page
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/account")
+                .header(header::COOKIE, &cookie)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body_str = String::from_utf8_lossy(&body);
+    assert!(body_str.contains("account_user"));
+    assert!(body_str.contains("Initial Author"));
+    assert!(body_str.contains("Moje články"));
+
+    // 4. Update author name
+    let update_params = [("author_name", "Updated Author")];
+    let update_resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/account/update-author")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(serialize(&update_params)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(update_resp.status(), StatusCode::SEE_OTHER);
+    assert_eq!(update_resp.headers().get(header::LOCATION).unwrap(), "/account");
+
+    // 5. Verify update in DB
+    let user = db.get_user("account_user").await.unwrap().unwrap();
+    assert_eq!(user.author_name, "Updated Author");
 }
 
 #[tokio::test]

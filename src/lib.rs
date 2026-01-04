@@ -37,6 +37,13 @@ pub struct ChangePasswordTemplate {
     pub username: String,
 }
 
+#[derive(Template)]
+#[template(path = "../pages/account.html")]
+pub struct AccountTemplate {
+    pub username: String,
+    pub author_name: String,
+}
+
 #[derive(Deserialize)]
 pub struct LoginPayload {
     pub username: String,
@@ -46,6 +53,11 @@ pub struct LoginPayload {
 #[derive(Deserialize)]
 pub struct ChangePasswordPayload {
     pub new_password: String,
+    pub author_name: String,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateAuthorNamePayload {
     pub author_name: String,
 }
 
@@ -83,6 +95,8 @@ pub fn app(db: Arc<db::Database>) -> Router {
         .route("/form", get(show_form))
         .route("/create", post(create_article))
         .route("/change-password", get(show_change_password).post(handle_change_password))
+        .route("/account", get(show_account))
+        .route("/account/update-author", post(handle_update_author_name))
         .layer(middleware::from_fn_with_state(db.clone(), auth_middleware));
 
     Router::new()
@@ -166,7 +180,7 @@ pub async fn handle_change_password(
 ) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value();
-        match auth::change_password(&db, username, &payload.new_password)
+        match auth::change_password(&db, username, &payload.new_password, &payload.author_name)
             .await
         {
             Ok(_) => Redirect::to("/form").into_response(),
@@ -187,6 +201,42 @@ pub async fn handle_change_password(
 
 pub async fn show_form() -> Response {
     Html(FormTemplate.render().unwrap()).into_response()
+}
+
+pub async fn show_account(
+    State(db): State<Arc<db::Database>>,
+    jar: CookieJar,
+) -> Response {
+    if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
+            return Html(
+                AccountTemplate {
+                    username: user.username,
+                    author_name: user.author_name,
+                }
+                .render()
+                .unwrap(),
+            )
+            .into_response();
+        }
+    }
+    Redirect::to("/login").into_response()
+}
+
+pub async fn handle_update_author_name(
+    State(db): State<Arc<db::Database>>,
+    jar: CookieJar,
+    Form(payload): Form<UpdateAuthorNamePayload>,
+) -> Response {
+    if let Some(cookie) = jar.get(AUTH_COOKIE) {
+        let username = cookie.value();
+        match auth::update_author_name(&db, username, &payload.author_name).await {
+            Ok(_) => Redirect::to("/account").into_response(),
+            Err(_) => Redirect::to("/account").into_response(), // Simple error handling for now
+        }
+    } else {
+        Redirect::to("/login").into_response()
+    }
 }
 
 pub async fn create_article(

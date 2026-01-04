@@ -42,12 +42,8 @@ async fn main() {
 
         let db = db::init_db().await.expect("Failed to initialize database");
         match db.delete_user(username).await {
-            Ok(Some(_)) => {
-                println!("User '{}' deleted successfully.", username);
-                std::process::exit(0);
-            }
-            Ok(None) => {
-                println!("User '{}' not found.", username);
+            Ok(_) => {
+                println!("User '{}' attempted to be deleted.", username);
                 std::process::exit(0);
             }
             Err(e) => {

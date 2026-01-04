@@ -45,6 +45,7 @@ pub async fn change_password(
     db: &Database,
     username: &str,
     new_password: &str,
+    author_name: &str,
 ) -> Result<(), String> {
     if new_password.len() < 8 {
         return Err("Heslo musí mít alespoň 8 znaků".to_string());
@@ -54,7 +55,24 @@ pub async fn change_password(
         Ok(Some(mut user)) => {
             let password_hash = hash(new_password, DEFAULT_COST).unwrap();
             user.password_hash = password_hash;
+            user.author_name = author_name.to_string();
             user.needs_password_change = false;
+            db.update_user(user).await.map_err(|e| e.to_string())?;
+            Ok(())
+        }
+        Ok(None) => Err("User not found".to_string()),
+        Err(e) => Err(format!("Database error: {}", e)),
+    }
+}
+
+pub async fn update_author_name(
+    db: &Database,
+    username: &str,
+    author_name: &str,
+) -> Result<(), String> {
+    match db.get_user(username).await {
+        Ok(Some(mut user)) => {
+            user.author_name = author_name.to_string();
             db.update_user(user).await.map_err(|e| e.to_string())?;
             Ok(())
         }
