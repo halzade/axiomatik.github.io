@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/styles-dark.css" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="../css/webapp.css">
+    <link rel="stylesheet" href="../css/webapp-dark.css">
     <script src="../js/account.js" defer></script>
 </head>
 <body>
@@ -21,16 +22,19 @@
             <div class="field">
                 <label>Jméno autora:</label>
                 <form id="author-form" action="/account/update-author" method="post" style="display: inline;">
-                    <span id="author-name-display">{{ author_name }}</span>
+                    <span id="author-name-display">{{ author_name }}</span>&nbsp;&nbsp;
                     <input type="text" name="author_name" id="author-name-input" value="{{ author_name }}" style="display: none;">
                     <button type="button" id="btn-edit">Změnit</button>
                     <button type="submit" id="btn-save" style="display: none;">Uložit</button>
                 </form>
             </div>
         </div>
-
+        <br/>
+        <br/>
         <div class="account-buttons">
-            <a href="/form" class="button">Vytvořit článek</a>
+            <button type="button" onclick="window.location.href='/form'" class="button">
+                Vytvořit článek
+            </button>
         </div>
 
         <h2>Moje články</h2>

@@ -20,13 +20,6 @@ form {
     margin-bottom: 50px;
 }
 
-@media (prefers-color-scheme: dark) {
-    form {
-        background: #2a2a2a;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    }
-}
-
 form div {
     margin-bottom: 20px;
 }
@@ -95,30 +88,12 @@ button[type="submit"]:hover, .button:hover {
     background-color: #e5e5e5;
 }
 
-@media (prefers-color-scheme: dark) {
-    button[type="submit"], .button {
-        background-color: #3b3b3b;
-        color: white;
-        border-color: #858585;
-    }
-    button[type="submit"]:hover, .button:hover {
-        background-color: #4b4b4b;
-    }
-}
-
 .article-item {
     border: 1px solid #ccc;
     padding: 15px;
     margin-bottom: 20px;
     border-radius: 8px;
     background: #f9f9f9;
-}
-
-@media (prefers-color-scheme: dark) {
-    .article-item {
-        border-color: #444;
-        background: #333;
-    }
 }
 
 .article-header {
@@ -129,12 +104,6 @@ button[type="submit"]:hover, .button:hover {
     padding-bottom: 10px;
 }
 
-@media (prefers-color-scheme: dark) {
-    .article-header {
-        border-bottom-color: #444;
-    }
-}
-
 .article-header .left {
     text-align: left;
 }
@@ -143,12 +112,6 @@ button[type="submit"]:hover, .button:hover {
     text-align: right;
     font-size: 0.9rem;
     color: #666;
-}
-
-@media (prefers-color-scheme: dark) {
-    .article-header .right {
-        color: #aaa;
-    }
 }
 
 .article-header .file-name {

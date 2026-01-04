@@ -1,0 +1,27 @@
+form {
+    background: #2a2a2a;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+button[type="submit"], .button {
+    background-color: #3b3b3b;
+    color: white;
+    border-color: #858585;
+}
+
+button[type="submit"]:hover, .button:hover {
+    background-color: #4b4b4b;
+}
+
+.article-item {
+    border-color: #444;
+    background: #333;
+}
+
+.article-header {
+    border-bottom-color: #444;
+}
+
+.article-header .right {
+    color: #aaa;
+}
