@@ -1,7 +1,11 @@
 use crate::db::{Database, User};
-use bcrypt::{verify, hash, DEFAULT_COST};
+use bcrypt::{DEFAULT_COST, hash, verify};
 
-pub async fn authenticate_user(db: &Database, username: &str, password: &str) -> Result<User, String> {
+pub async fn authenticate_user(
+    db: &Database,
+    username: &str,
+    password: &str,
+) -> Result<User, String> {
     match db.get_user(username).await {
         Ok(Some(user)) => {
             if verify(password, &user.password_hash).unwrap_or(false) {
@@ -15,7 +19,11 @@ pub async fn authenticate_user(db: &Database, username: &str, password: &str) ->
     }
 }
 
-pub async fn change_password(db: &Database, username: &str, new_password: &str) -> Result<(), String> {
+pub async fn change_password(
+    db: &Database,
+    username: &str,
+    new_password: &str,
+) -> Result<(), String> {
     if new_password.len() < 8 {
         return Err("Heslo musí mít alespoň 8 znaků".to_string());
     }

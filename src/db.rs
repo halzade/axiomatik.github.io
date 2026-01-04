@@ -1,6 +1,6 @@
-use surrealdb::engine::any::{connect, Any};
+use serde::{Deserialize, Serialize};
 use surrealdb::Surreal;
-use serde::{Serialize, Deserialize};
+use surrealdb::engine::any::{Any, connect};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
@@ -19,11 +19,17 @@ impl Database {
     }
 
     pub async fn update_user(&self, user: User) -> surrealdb::Result<Option<User>> {
-        self.client.update(("user", user.username.clone())).content(user).await
+        self.client
+            .update(("user", user.username.clone()))
+            .content(user)
+            .await
     }
 
     pub async fn create_user(&self, user: User) -> surrealdb::Result<Option<User>> {
-        self.client.create(("user", user.username.clone())).content(user).await
+        self.client
+            .create(("user", user.username.clone()))
+            .content(user)
+            .await
     }
 
     pub async fn has_users(&self) -> bool {
@@ -41,7 +47,7 @@ pub async fn init_mem_db() -> surrealdb::Result<Database> {
 }
 
 async fn init_db_with_url(url: &str) -> surrealdb::Result<Database> {
-    let client = connect(url).await?; 
+    let client = connect(url).await?;
     client.use_ns("axiomatik").use_db("axiomatik").await?;
 
     let db = Database { client };

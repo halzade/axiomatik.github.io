@@ -4,10 +4,10 @@ pub mod db;
 use askama::Template;
 use axum::{
     Router,
-    extract::{Multipart, Form, State},
+    extract::{Form, Multipart, State},
+    http::StatusCode,
     response::{Html, IntoResponse, Redirect, Response},
     routing::{get, post},
-    http::StatusCode,
 };
 use axum_extra::extract::cookie::{Cookie, CookieJar};
 use chrono::Datelike;
@@ -92,10 +92,15 @@ pub fn app(db: Arc<db::Database>) -> Router {
         .route("/", get(|| async { Redirect::to("/form") }))
         .route("/form", get(show_form))
         .route("/login", get(show_login).post(handle_login))
-        .route("/change-password", get(show_change_password).post(handle_change_password))
-        .route("/create-user", get(show_create_user).post(handle_create_user))
+        .route(
+            "/change-password",
+            get(show_change_password).post(handle_change_password),
+        )
+        .route(
+            "/create-user",
+            get(show_create_user).post(handle_create_user),
+        )
         .route("/create", post(create_article))
-        .nest_service("/unp", ServeDir::new("unp"))
         .nest_service("/uploads", ServeDir::new("uploads"))
         .nest_service("/css", ServeDir::new("css"))
         .nest_service("/js", ServeDir::new("js"))
@@ -123,29 +128,14 @@ pub async fn handle_login(
         }
         Err(e) => {
             warn!(username = %payload.username, error = %e, "Failed login attempt");
-            (
-                jar,
-                Html(
-                    LoginTemplate {
-                        error: true,
-                    }
-                    .render()
-                    .unwrap(),
-                ),
-            )
-                .into_response()
+            (jar, Html(LoginTemplate { error: true }.render().unwrap())).into_response()
         }
     }
 }
 
 pub async fn show_change_password(jar: CookieJar) -> Response {
     if let Some(_cookie) = jar.get(AUTH_COOKIE) {
-        Html(
-            ChangePasswordTemplate { error: false }
-                .render()
-                .unwrap(),
-        )
-        .into_response()
+        Html(ChangePasswordTemplate { error: false }.render().unwrap()).into_response()
     } else {
         Redirect::to("/login").into_response()
     }
@@ -160,14 +150,9 @@ pub async fn handle_change_password(
         let username = cookie.value();
         match auth::change_password(&db, username, &payload.new_password).await {
             Ok(_) => Redirect::to("/form").into_response(),
-            Err(_) => Html(
-                ChangePasswordTemplate {
-                    error: true,
-                }
-                .render()
-                .unwrap(),
-            )
-            .into_response(),
+            Err(_) => {
+                Html(ChangePasswordTemplate { error: true }.render().unwrap()).into_response()
+            }
         }
     } else {
         Redirect::to("/login").into_response()
@@ -175,35 +160,15 @@ pub async fn handle_change_password(
 }
 
 pub async fn show_create_user(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
-    if !db.has_users().await {
-        return Html(
-            CreateUserTemplate {
-                error: false,
-                success: false,
-            }
-            .render()
-            .unwrap(),
-        )
-        .into_response();
-    }
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
-            if user.needs_password_change {
-                return Redirect::to("/change-password").into_response();
-            }
+    return Html(
+        CreateUserTemplate {
+            error: false,
+            success: false,
         }
-        Html(
-            CreateUserTemplate {
-                error: false,
-                success: false,
-            }
-            .render()
-            .unwrap(),
-        )
-        .into_response()
-    } else {
-        Redirect::to("/login").into_response()
-    }
+        .render()
+        .unwrap(),
+    )
+    .into_response();
 }
 
 pub async fn handle_create_user(
@@ -289,7 +254,7 @@ pub async fn create_article(
     } else {
         return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
     }
-    
+
     let mut title = String::new();
     let mut author = String::new();
     let mut text = String::new();
@@ -379,7 +344,8 @@ pub async fn create_article(
         "technologie" => "technologie",
         "veda" => "věda",
         _ => &category,
-    }.to_string();
+    }
+    .to_string();
 
     let mut related_snippets = String::new();
     let related_article_paths: Vec<&str> = related_articles_input
@@ -417,15 +383,21 @@ pub async fn create_article(
     fs::write(&file_path, html_content).unwrap();
 
     let now = chrono::Local::now();
-    let czech_months = ["leden", "unor", "brezen", "duben", "kveten", "cerven", "cervenec", "srpen", "zari", "rijen", "listopad", "prosinec"];
+    let czech_months = [
+        "leden", "unor", "brezen", "duben", "kveten", "cerven", "cervenec", "srpen", "zari",
+        "rijen", "listopad", "prosinec",
+    ];
     let month_name = czech_months[(now.month() - 1) as usize];
-    let cat_month_year_filename = format!("archive-{}-{}-{}.html", category, month_name, now.year());
+    let cat_month_year_filename =
+        format!("archive-{}-{}-{}.html", category, month_name, now.year());
 
     let snippet = SnippetTemplate {
         url: file_path.clone(),
         title: title.clone(),
         short_text,
-    }.render().unwrap();
+    }
+    .render()
+    .unwrap();
 
     let snippet_file_path = format!("snippets/{}.txt", file_path);
     fs::write(snippet_file_path, &snippet).unwrap();
@@ -435,11 +407,17 @@ pub async fn create_article(
             title: format!("{} - {} {}", category_display, month_name, now.year()),
         };
         let mut base_html = cat_template.render().unwrap();
-        base_html = base_html.replace("<!-- SNIPPETS -->", &format!("<!-- SNIPPETS -->\n{}", snippet));
+        base_html = base_html.replace(
+            "<!-- SNIPPETS -->",
+            &format!("<!-- SNIPPETS -->\n{}", snippet),
+        );
         fs::write(&cat_month_year_filename, base_html).unwrap();
     } else {
         let mut content = fs::read_to_string(&cat_month_year_filename).unwrap();
-        content = content.replace("<!-- SNIPPETS -->", &format!("<!-- SNIPPETS -->\n{}", snippet));
+        content = content.replace(
+            "<!-- SNIPPETS -->",
+            &format!("<!-- SNIPPETS -->\n{}", snippet),
+        );
         fs::write(&cat_month_year_filename, content).unwrap();
     }
 
@@ -447,7 +425,10 @@ pub async fn create_article(
     if std::path::Path::new(&main_cat_filename).exists() {
         let mut content = fs::read_to_string(&main_cat_filename).unwrap();
         if content.contains("<!-- SNIPPETS -->") {
-            content = content.replace("<!-- SNIPPETS -->", &format!("<!-- SNIPPETS -->\n{}", snippet));
+            content = content.replace(
+                "<!-- SNIPPETS -->",
+                &format!("<!-- SNIPPETS -->\n{}", snippet),
+            );
         }
         fs::write(&main_cat_filename, content).unwrap();
     }
@@ -455,7 +436,10 @@ pub async fn create_article(
     for path in &related_article_paths {
         if let Ok(mut content) = fs::read_to_string(path) {
             if content.contains("<!-- SNIPPETS -->") {
-                content = content.replace("<!-- SNIPPETS -->", &format!("<!-- SNIPPETS -->\n{}", snippet));
+                content = content.replace(
+                    "<!-- SNIPPETS -->",
+                    &format!("<!-- SNIPPETS -->\n{}", snippet),
+                );
                 fs::write(path, content).unwrap();
             }
         }

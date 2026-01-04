@@ -1,5 +1,4 @@
 use axiomatik_web::db;
-use axum::Router;
 use std::fs;
 use std::net::SocketAddr;
 use std::sync::Arc;

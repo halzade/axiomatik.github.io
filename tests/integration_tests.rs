@@ -1,7 +1,7 @@
 use axiomatik_web::{app, db};
 use axum::{
     body::Body,
-    http::{header, Request, StatusCode},
+    http::{Request, StatusCode, header},
 };
 use std::sync::Arc;
 use tower::ServiceExt;
@@ -39,7 +39,9 @@ async fn test_create_user_bootstrap() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
-    let body = axum::body::to_bytes(response.into_body(), 100000).await.unwrap();
+    let body = axum::body::to_bytes(response.into_body(), 100000)
+        .await
+        .unwrap();
     assert!(String::from_utf8_lossy(&body).contains("Účet byl úspěšně vytvořen"));
 }
 
@@ -88,73 +90,109 @@ async fn test_change_password() {
 
     // 1. Create user (not bootstrap, so we need a session)
     // Actually, let's create a bootstrap user, then log in, then create ANOTHER user who will need password change.
-    
+
     // Create bootstrap user
     let params = [("username", "admin"), ("password", "password123")];
-    app.clone().oneshot(
-        Request::builder()
-            .method("POST")
-            .uri("/create-user")
-            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .body(Body::from(serialize(&params)))
-            .unwrap(),
-    ).await.unwrap();
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/create-user")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(serialize(&params)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
     // Login as admin
     let login_params = [("username", "admin"), ("password", "password123")];
-    let login_resp = app.clone().oneshot(
-        Request::builder()
-            .method("POST")
-            .uri("/login")
-            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .body(Body::from(serialize(&login_params)))
-            .unwrap(),
-    ).await.unwrap();
-    
-    let cookie = login_resp.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap().to_string();
+    let login_resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(serialize(&login_params)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let cookie = login_resp
+        .headers()
+        .get(header::SET_COOKIE)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
 
     // Create user 'user1' who needs password change
     let create_params = [("username", "user1"), ("password", "pass1234")];
-    app.clone().oneshot(
-        Request::builder()
-            .method("POST")
-            .uri("/create-user")
-            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .header(header::COOKIE, &cookie)
-            .body(Body::from(serialize(&create_params)))
-            .unwrap(),
-    ).await.unwrap();
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/create-user")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(serialize(&create_params)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
     // Login as user1
     let login_params1 = [("username", "user1"), ("password", "pass1234")];
-    let login_resp1 = app.clone().oneshot(
-        Request::builder()
-            .method("POST")
-            .uri("/login")
-            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .body(Body::from(serialize(&login_params1)))
-            .unwrap(),
-    ).await.unwrap();
+    let login_resp1 = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(serialize(&login_params1)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
     // Should redirect to change-password
     assert_eq!(login_resp1.status(), StatusCode::SEE_OTHER);
-    assert_eq!(login_resp1.headers().get(header::LOCATION).unwrap(), "/change-password");
-    let cookie1 = login_resp1.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap().to_string();
+    assert_eq!(
+        login_resp1.headers().get(header::LOCATION).unwrap(),
+        "/change-password"
+    );
+    let cookie1 = login_resp1
+        .headers()
+        .get(header::SET_COOKIE)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
 
     // Change password
     let change_params = [("new_password", "new_password_123")];
-    let change_resp = app.clone().oneshot(
-        Request::builder()
-            .method("POST")
-            .uri("/change-password")
-            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .header(header::COOKIE, &cookie1)
-            .body(Body::from(serialize(&change_params)))
-            .unwrap(),
-    ).await.unwrap();
+    let change_resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/change-password")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, &cookie1)
+                .body(Body::from(serialize(&change_params)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
     assert_eq!(change_resp.status(), StatusCode::SEE_OTHER);
-    assert_eq!(change_resp.headers().get(header::LOCATION).unwrap(), "/form");
+    assert_eq!(
+        change_resp.headers().get(header::LOCATION).unwrap(),
+        "/form"
+    );
 }
 
 #[tokio::test]
@@ -163,25 +201,38 @@ async fn test_create_article() {
 
     // 1. Login
     let params = [("username", "admin"), ("password", "password123")];
-    app.clone().oneshot(
-        Request::builder()
-            .method("POST")
-            .uri("/create-user")
-            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .body(Body::from(serialize(&params)))
-            .unwrap(),
-    ).await.unwrap();
+    app.clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/create-user")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(serialize(&params)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
     let login_params = [("username", "admin"), ("password", "password123")];
-    let login_resp = app.clone().oneshot(
-        Request::builder()
-            .method("POST")
-            .uri("/login")
-            .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .body(Body::from(serialize(&login_params)))
-            .unwrap(),
-    ).await.unwrap();
-    let cookie = login_resp.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap().to_string();
+    let login_resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(serialize(&login_params)))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let cookie = login_resp
+        .headers()
+        .get(header::SET_COOKIE)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
 
     // 2. Create article (Multipart)
     // We'll use a simple multipart body
@@ -210,15 +261,22 @@ async fn test_create_article() {
         boundary
     );
 
-    let response = app.clone().oneshot(
-        Request::builder()
-            .method("POST")
-            .uri("/create")
-            .header(header::CONTENT_TYPE, format!("multipart/form-data; boundary={}", boundary))
-            .header(header::COOKIE, &cookie)
-            .body(Body::from(body))
-            .unwrap(),
-    ).await.unwrap();
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/create")
+                .header(
+                    header::CONTENT_TYPE,
+                    format!("multipart/form-data; boundary={}", boundary),
+                )
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(body))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
 
     assert_eq!(response.status(), StatusCode::SEE_OTHER);
 }
