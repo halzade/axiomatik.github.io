@@ -32,7 +32,7 @@ pub async fn create_editor_user(
     let user = User {
         username: username.to_string(),
         password_hash,
-        needs_password_change: false,
+        needs_password_change: true,
         role: Role::Editor,
     };
 

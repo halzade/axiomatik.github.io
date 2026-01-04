@@ -38,6 +38,10 @@ impl Database {
             .await
     }
 
+    pub async fn delete_user(&self, username: &str) -> surrealdb::Result<Option<User>> {
+        self.client.delete(("user", username)).await
+    }
+
     pub async fn has_users(&self) -> bool {
         let users: Vec<User> = self.client.select("user").await.unwrap_or_default();
         !users.is_empty()

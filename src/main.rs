@@ -32,6 +32,31 @@ async fn main() {
         }
     }
 
+    if args.len() > 1 && args[1] == "delete-user" {
+        if args.len() != 3 {
+            eprintln!("Usage: cargo run -- delete-user <username>");
+            std::process::exit(1);
+        }
+
+        let username = &args[2];
+
+        let db = db::init_db().await.expect("Failed to initialize database");
+        match db.delete_user(username).await {
+            Ok(Some(_)) => {
+                println!("User '{}' deleted successfully.", username);
+                std::process::exit(0);
+            }
+            Ok(None) => {
+                println!("User '{}' not found.", username);
+                std::process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Failed to delete user: {}", e);
+                std::process::exit(1);
+            }
+        }
+    }
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
