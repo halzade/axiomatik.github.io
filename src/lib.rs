@@ -53,7 +53,6 @@ pub struct LoginPayload {
 #[derive(Deserialize)]
 pub struct ChangePasswordPayload {
     pub new_password: String,
-    pub author_name: String,
 }
 
 #[derive(Deserialize)]
@@ -180,7 +179,7 @@ pub async fn handle_change_password(
 ) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value();
-        match auth::change_password(&db, username, &payload.new_password, &payload.author_name)
+        match auth::change_password(&db, username, &payload.new_password)
             .await
         {
             Ok(_) => Redirect::to("/form").into_response(),

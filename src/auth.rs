@@ -44,8 +44,7 @@ pub async fn create_editor_user(
 pub async fn change_password(
     db: &Database,
     username: &str,
-    new_password: &str,
-    author_name: &str,
+    new_password: &str
 ) -> Result<(), String> {
     if new_password.len() < 8 {
         return Err("Heslo musí mít alespoň 8 znaků".to_string());
@@ -55,7 +54,6 @@ pub async fn change_password(
         Ok(Some(mut user)) => {
             let password_hash = hash(new_password, DEFAULT_COST).unwrap();
             user.password_hash = password_hash;
-            user.author_name = author_name.to_string();
             user.needs_password_change = false;
             db.update_user(user).await.map_err(|e| e.to_string())?;
             Ok(())

@@ -96,7 +96,6 @@ async fn test_change_password() {
     // Change password
     let change_params = [
         ("new_password", "new_password_123"),
-        ("author_name", "User One"),
     ];
     let change_resp = app
         .clone()
@@ -120,7 +119,7 @@ async fn test_change_password() {
 
     // Verify change in DB
     let user = db.get_user("user1").await.unwrap().unwrap();
-    assert_eq!(user.author_name, "User One");
+    assert_eq!(user.author_name, "user1");
     assert!(!user.needs_password_change);
 }
 
