@@ -1,4 +1,4 @@
-use axiomatik_web::{app, db};
+use axiomatik_web::{app, auth, db};
 use axum::{
     body::Body,
     http::{Request, StatusCode, header},
@@ -7,9 +7,9 @@ use std::sync::Arc;
 use tower::ServiceExt;
 use url::form_urlencoded;
 
-async fn setup_app() -> axum::Router {
+async fn setup_app() -> (axum::Router, Arc<db::Database>) {
     let db = Arc::new(db::init_mem_db().await.unwrap());
-    app(db)
+    (app(db.clone()), db)
 }
 
 fn serialize(params: &[(&str, &str)]) -> String {
@@ -19,48 +19,11 @@ fn serialize(params: &[(&str, &str)]) -> String {
 }
 
 #[tokio::test]
-async fn test_create_user_bootstrap() {
-    let app = setup_app().await;
-
-    // Bootstrap user creation (no users in DB)
-    let params = [("username", "admin"), ("password", "password123")];
-    let body = serialize(&params);
-
-    let response = app
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/create-user")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(body))
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    assert_eq!(response.status(), StatusCode::OK);
-    let body = axum::body::to_bytes(response.into_body(), 100000)
-        .await
-        .unwrap();
-    assert!(String::from_utf8_lossy(&body).contains("Účet byl úspěšně vytvořen"));
-}
-
-#[tokio::test]
 async fn test_login() {
-    let app = setup_app().await;
+    let (app, db) = setup_app().await;
 
-    // 1. Create user via bootstrap
-    let params = [("username", "admin"), ("password", "password123")];
-    let body = serialize(&params);
-    app.clone()
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/create-user")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(body))
-                .unwrap(),
-        )
+    // 1. Create user via auth module (simulating command)
+    auth::create_editor_user(&db, "admin", "password123")
         .await
         .unwrap();
 
@@ -86,62 +49,18 @@ async fn test_login() {
 
 #[tokio::test]
 async fn test_change_password() {
-    let app = setup_app().await;
+    let (app, db) = setup_app().await;
 
-    // 1. Create user (not bootstrap, so we need a session)
-    // Actually, let's create a bootstrap user, then log in, then create ANOTHER user who will need password change.
-
-    // Create bootstrap user
-    let params = [("username", "admin"), ("password", "password123")];
-    app.clone()
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/create-user")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(serialize(&params)))
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    // Login as admin
-    let login_params = [("username", "admin"), ("password", "password123")];
-    let login_resp = app
-        .clone()
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/login")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(serialize(&login_params)))
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-
-    let cookie = login_resp
-        .headers()
-        .get(header::SET_COOKIE)
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string();
-
-    // Create user 'user1' who needs password change
-    let create_params = [("username", "user1"), ("password", "pass1234")];
-    app.clone()
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/create-user")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .header(header::COOKIE, &cookie)
-                .body(Body::from(serialize(&create_params)))
-                .unwrap(),
-        )
-        .await
-        .unwrap();
+    // Create user who needs password change
+    let password_hash = bcrypt::hash("pass1234", bcrypt::DEFAULT_COST).unwrap();
+    db.create_user(db::User {
+        username: "user1".to_string(),
+        password_hash,
+        needs_password_change: true,
+        role: db::Role::Editor,
+    })
+    .await
+    .unwrap();
 
     // Login as user1
     let login_params1 = [("username", "user1"), ("password", "pass1234")];
@@ -197,22 +116,14 @@ async fn test_change_password() {
 
 #[tokio::test]
 async fn test_create_article() {
-    let app = setup_app().await;
+    let (app, db) = setup_app().await;
 
-    // 1. Login
-    let params = [("username", "admin"), ("password", "password123")];
-    app.clone()
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/create-user")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(serialize(&params)))
-                .unwrap(),
-        )
+    // 1. Create user
+    auth::create_editor_user(&db, "admin", "password123")
         .await
         .unwrap();
 
+    // 2. Login
     let login_params = [("username", "admin"), ("password", "password123")];
     let login_resp = app
         .clone()
@@ -234,8 +145,7 @@ async fn test_create_article() {
         .unwrap()
         .to_string();
 
-    // 2. Create article (Multipart)
-    // We'll use a simple multipart body
+    // 3. Create article (Multipart)
     let boundary = "---------------------------123456789012345678901234567";
     let body = format!(
         "--{0}\r\n\

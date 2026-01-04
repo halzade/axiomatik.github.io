@@ -10,9 +10,9 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 async fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() > 1 && args[1] == "create-admin" {
+    if args.len() > 1 && args[1] == "create-user" {
         if args.len() != 4 {
-            eprintln!("Usage: cargo run -- create-admin <username> <password>");
+            eprintln!("Usage: cargo run -- create-user <username> <password>");
             std::process::exit(1);
         }
 
@@ -20,13 +20,13 @@ async fn main() {
         let password = &args[3];
 
         let db = db::init_db().await.expect("Failed to initialize database");
-        match axiomatik_web::auth::create_admin_user(&db, username, password).await {
+        match axiomatik_web::auth::create_editor_user(&db, username, password).await {
             Ok(_) => {
-                println!("Admin user '{}' created successfully.", username);
+                println!("Editor user '{}' created successfully.", username);
                 std::process::exit(0);
             }
             Err(e) => {
-                eprintln!("Failed to create admin user: {}", e);
+                eprintln!("Failed to create editor user: {}", e);
                 std::process::exit(1);
             }
         }
@@ -44,7 +44,6 @@ async fn main() {
 
     // Ensure uploads directory exists
     fs::create_dir_all("uploads").unwrap();
-    fs::create_dir_all("unp").unwrap();
     fs::create_dir_all("snippets").unwrap();
 
     let db = Arc::new(db::init_db().await.expect("Failed to initialize database"));

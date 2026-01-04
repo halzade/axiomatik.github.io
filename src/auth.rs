@@ -1,4 +1,4 @@
-use crate::db::{Database, User};
+use crate::db::{Database, User, Role};
 use bcrypt::{DEFAULT_COST, hash, verify};
 
 pub async fn authenticate_user(
@@ -19,16 +19,21 @@ pub async fn authenticate_user(
     }
 }
 
-pub async fn create_admin_user(
+pub async fn create_editor_user(
     db: &Database,
     username: &str,
     password: &str,
 ) -> Result<(), String> {
+    if password.len() < 5 {
+        return Err("Password must be at least 5 characters long".to_string());
+    }
+
     let password_hash = hash(password, DEFAULT_COST).map_err(|e| e.to_string())?;
     let user = User {
         username: username.to_string(),
         password_hash,
         needs_password_change: false,
+        role: Role::Editor,
     };
 
     db.create_user(user).await.map_err(|e| e.to_string())?;

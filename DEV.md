@@ -4,6 +4,6 @@
 
 `cargo watch -x run`
 
-### Create Admin User
-`cargo run -- create-admin <username> <password>`
+### Create Editor User
+`cargo run -- create-user <username> <password>`
 

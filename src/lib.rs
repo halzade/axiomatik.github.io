@@ -34,13 +34,6 @@ pub struct ChangePasswordTemplate {
     pub error: bool,
 }
 
-#[derive(Template)]
-#[template(path = "../pages/create_user.html")]
-pub struct CreateUserTemplate {
-    pub error: bool,
-    pub success: bool,
-}
-
 #[derive(Deserialize)]
 pub struct LoginPayload {
     pub username: String,
@@ -50,12 +43,6 @@ pub struct LoginPayload {
 #[derive(Deserialize)]
 pub struct ChangePasswordPayload {
     pub new_password: String,
-}
-
-#[derive(Deserialize)]
-pub struct CreateUserPayload {
-    pub username: String,
-    pub password: String,
 }
 
 pub const AUTH_COOKIE: &str = "axiomatik_auth";
@@ -95,10 +82,6 @@ pub fn app(db: Arc<db::Database>) -> Router {
         .route(
             "/change-password",
             get(show_change_password).post(handle_change_password),
-        )
-        .route(
-            "/create-user",
-            get(show_create_user).post(handle_create_user),
         )
         .route("/create", post(create_article))
         .nest_service("/uploads", ServeDir::new("uploads"))
@@ -159,82 +142,17 @@ pub async fn handle_change_password(
     }
 }
 
-pub async fn show_create_user() -> Response {
-    return Html(
-        CreateUserTemplate {
-            error: false,
-            success: false,
-        }
-        .render()
-        .unwrap(),
-    )
-    .into_response();
-}
-
-pub async fn handle_create_user(
-    State(db): State<Arc<db::Database>>,
-    jar: CookieJar,
-    Form(payload): Form<CreateUserPayload>,
-) -> Response {
-    let is_bootstrap = !db.has_users().await;
-
-    if !is_bootstrap {
-        if let Some(cookie) = jar.get(AUTH_COOKIE) {
-            if let Ok(Some(current_user)) = db.get_user(cookie.value()).await {
-                if current_user.needs_password_change {
-                    return Redirect::to("/change-password").into_response();
-                }
-            } else {
-                return Redirect::to("/login").into_response();
-            }
-        } else {
-            return Redirect::to("/login").into_response();
-        }
-    }
-
-    let password_hash = bcrypt::hash(&payload.password, bcrypt::DEFAULT_COST).unwrap();
-    let new_user = db::User {
-        username: payload.username.clone(),
-        password_hash,
-        needs_password_change: !is_bootstrap,
-    };
-
-    match db.create_user(new_user).await {
-        Ok(_) => {
-            info!(user = %payload.username, bootstrap = is_bootstrap, "New user created successfully");
-            Html(
-                CreateUserTemplate {
-                    error: false,
-                    success: true,
-                }
-                .render()
-                .unwrap(),
-            )
-            .into_response()
-        }
-        Err(e) => {
-            warn!(user = %payload.username, error = %e, "Failed to create new user");
-            Html(
-                CreateUserTemplate {
-                    error: true,
-                    success: false,
-                }
-                .render()
-                .unwrap(),
-            )
-            .into_response()
-        }
-    }
-}
-
 pub async fn show_form(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         if let Ok(Some(user)) = db.get_user(cookie.value()).await {
             if user.needs_password_change {
                 return Redirect::to("/change-password").into_response();
             }
+            if user.role == db::Role::Editor {
+                return Html(FormTemplate.render().unwrap()).into_response();
+            }
         }
-        Html(FormTemplate.render().unwrap()).into_response()
+        Redirect::to("/login").into_response()
     } else {
         Redirect::to("/login").into_response()
     }
@@ -250,6 +168,11 @@ pub async fn create_article(
             if user.needs_password_change {
                 return Redirect::to("/change-password").into_response();
             }
+            if user.role != db::Role::Editor {
+                return (StatusCode::FORBIDDEN, "Forbidden").into_response();
+            }
+        } else {
+            return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
         }
     } else {
         return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response();

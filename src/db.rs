@@ -2,11 +2,17 @@ use serde::{Deserialize, Serialize};
 use surrealdb::Surreal;
 use surrealdb::engine::any::{Any, connect};
 
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum Role {
+    Editor,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     pub username: String,
     pub password_hash: String,
     pub needs_password_change: bool,
+    pub role: Role,
 }
 
 pub struct Database {
