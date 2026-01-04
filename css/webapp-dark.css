@@ -8,9 +8,16 @@ button[type="submit"], .button {
     color: white;
     border-color: #858585;
 }
-
 button[type="submit"]:hover, .button:hover {
-    background-color: #4b4b4b;
+    background-color: black;
+    border-color: red;
+    color: red;
+}
+
+button[type="submit"], .button {
+    background-color: black;
+    border-color: red;
+    color: red;
 }
 
 .article-item {
