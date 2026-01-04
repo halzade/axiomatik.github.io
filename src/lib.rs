@@ -76,7 +76,7 @@ pub struct CategoryTemplate {
 
 pub fn app(db: Arc<db::Database>) -> Router {
     Router::new()
-        .route("/", get(|| async { Redirect::to("/form") }))
+        .route("/", get(|| async { Redirect::to("index.html").into_response() }))
         .route("/form", get(show_form))
         .route("/login", get(show_login).post(handle_login))
         .route(
@@ -85,8 +85,6 @@ pub fn app(db: Arc<db::Database>) -> Router {
         )
         .route("/create", post(create_article))
         .nest_service("/uploads", ServeDir::new("uploads"))
-        .nest_service("/css", ServeDir::new("css"))
-        .nest_service("/js", ServeDir::new("js"))
         .with_state(db)
 }
 

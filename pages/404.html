@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axiomatik.cz</title>
+</head>
+<body>
+<div class="all">
+    <main>
+        <table>
+            <thead>
+            <tr>
+                <th>status</th>
+                <th>popis</th>
+                <th>vysvětlivky</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td class="code">100</td>
+                <td>Continue</td>
+                <td>Server přijal úvodní část požadavku a klient může pokračovat.</td>
+            </tr>
+            <tr>
+                <td class="code">101</td>
+                <td>Switching Protocols</td>
+                <td>Server přepíná na protokol požadovaný klientem.</td>
+            </tr>
+            <tr>
+                <td class="code">102</td>
+                <td>Processing</td>
+                <td>Požadavek byl přijat a je zpracováván.</td>
+            </tr>
+
+            <tr>
+                <td class="code">200</td>
+                <td>OK</td>
+                <td>Požadavek byl úspěšně zpracován.</td>
+            </tr>
+            <tr>
+                <td class="code">201</td>
+                <td>Created</td>
+                <td>Byl úspěšně vytvořen nový zdroj.</td>
+            </tr>
+            <tr>
+                <td class="code">202</td>
+                <td>Accepted</td>
+                <td>Požadavek byl přijat ke zpracování, ale ještě nebyl dokončen.</td>
+            </tr>
+            <tr>
+                <td class="code">204</td>
+                <td>No Content</td>
+                <td>Požadavek byl úspěšný, ale odpověď neobsahuje žádná data.</td>
+            </tr>
+            <tr>
+                <td class="code">206</td>
+                <td>Partial Content</td>
+                <td>Server vrací pouze část požadovaného obsahu.</td>
+            </tr>
+
+            <tr>
+                <td class="code">301</td>
+                <td>Moved Permanently</td>
+                <td>Zdroj byl trvale přesunut na novou adresu.</td>
+            </tr>
+            <tr>
+                <td class="code">302</td>
+                <td>Found</td>
+                <td>Zdroj je dočasně dostupný na jiné adrese.</td>
+            </tr>
+            <tr>
+                <td class="code">303</td>
+                <td>See Other</td>
+                <td>Odpověď je dostupná na jiné URL pomocí metody GET.</td>
+            </tr>
+            <tr>
+                <td class="code">304</td>
+                <td>Not Modified</td>
+                <td>Zdroj nebyl změněn a lze použít verzi z cache.</td>
+            </tr>
+
+            <tr>
+                <td class="code">400</td>
+                <td>Bad Request</td>
+                <td>Požadavek je syntakticky chybný nebo neplatný.</td>
+            </tr>
+            <tr>
+                <td class="code">401</td>
+                <td>Unauthorized</td>
+                <td>Je vyžadováno ověření uživatele.</td>
+            </tr>
+            <tr>
+                <td class="code">403</td>
+                <td>Forbidden</td>
+                <td>Server požadavek pochopil, ale odmítá jej provést.</td>
+            </tr>
+            <tr style="font-weight: bold">
+                <td class="code">404</td>
+                <td>Not Found</td>
+                <td>Požadovaný zdroj nebyl na serveru nalezen.</td>
+            </tr>
+            <tr>
+                <td class="code">405</td>
+                <td>Method Not Allowed</td>
+                <td>Použitá HTTP metoda není pro tento zdroj povolena.</td>
+            </tr>
+            <tr>
+                <td class="code">408</td>
+                <td>Request Timeout</td>
+                <td>Server neobdržel požadavek v očekávaném čase.</td>
+            </tr>
+            <tr>
+                <td class="code">410</td>
+                <td>Gone</td>
+                <td>Zdroj byl trvale odstraněn a již není dostupný.</td>
+            </tr>
+            <tr>
+                <td class="code">429</td>
+                <td>Too Many Requests</td>
+                <td>Byl překročen povolený počet požadavků.</td>
+            </tr>
+
+            <tr>
+                <td class="code">500</td>
+                <td>Internal Server Error</td>
+                <td>Na serveru došlo k interní chybě.</td>
+            </tr>
+            <tr>
+                <td class="code">502</td>
+                <td>Bad Gateway</td>
+                <td>Server obdržel neplatnou odpověď od nadřazeného serveru.</td>
+            </tr>
+            <tr>
+                <td class="code">503</td>
+                <td>Service Unavailable</td>
+                <td>Služba je momentálně nedostupná.</td>
+            </tr>
+            <tr>
+                <td class="code">504</td>
+                <td>Gateway Timeout</td>
+                <td>Nadřazený server neodpověděl včas.</td>
+            </tr>
+            <tr>
+                <td class="code">505</td>
+                <td>HTTP Version Not Supported</td>
+                <td>Server nepodporuje použitou verzi HTTP protokolu.</td>
+            </tr>
+            </tbody>
+        </table>
+    </main>
+</div>
+</body>
+</html>

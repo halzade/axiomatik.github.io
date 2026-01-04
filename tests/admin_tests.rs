@@ -7,7 +7,7 @@ mod tests {
     async fn test_create_editor_user() {
         let db = init_mem_db().await.expect("Failed to init mem db");
 
-        let username = "editor";
+        let username = "editor1";
         let password = "password123";
 
         // Create editor user
