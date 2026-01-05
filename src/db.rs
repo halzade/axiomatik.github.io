@@ -30,6 +30,7 @@ pub struct Article {
     pub video_url: Option<String>,
     pub category: String,
     pub related_articles: String,
+    pub views: i64,
 }
 
 use tokio::sync::RwLock;
@@ -116,6 +117,15 @@ impl Database {
             .bind(("username", username.to_string()))
             .await?;
         response.take(0)
+    }
+
+    pub async fn increment_article_views(&self, file_name: &str) -> surrealdb::Result<i64> {
+        let mut response = self.client
+            .query("UPDATE article SET views += 1 WHERE article_file_name = $file_name RETURN views")
+            .bind(("file_name", file_name.to_string()))
+            .await?;
+        let views: Option<i64> = response.take("views")?;
+        Ok(views.unwrap_or(0))
     }
 }
 

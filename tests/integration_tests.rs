@@ -489,6 +489,35 @@ async fn test_create_article() {
     // Verify files were created
     assert!(std::path::Path::new("test-article.html").exists());
 
+    // 2. Request the article (to increment views)
+    let _ = app.clone()
+        .oneshot(
+            Request::builder()
+                .uri("/test-article.html")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    // 3. Check account page for views
+    let account_resp = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/account")
+                .header(header::COOKIE, &cookie)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(account_resp.status(), StatusCode::OK);
+    let body_bytes = axum::body::to_bytes(account_resp.into_body(), usize::MAX).await.unwrap();
+    let body_str = String::from_utf8(body_bytes.to_vec()).unwrap();
+    assert!(body_str.contains("Přečteno: 1x"));
+
     // Cleanup
     let _ = std::fs::remove_file("test-article.html");
     let _ = std::fs::remove_file("snippets/test-article.html.txt");

@@ -132,8 +132,40 @@ pub fn app(db: Arc<db::Database>) -> Router {
         .merge(protected_routes)
         // serve static content
         // TODO serve only html, css, js
-        .fallback_service(ServeDir::new(".").not_found_service(get(show_404)))
+        .fallback(handle_fallback)
         .with_state(db)
+}
+
+pub async fn handle_fallback(
+    State(db): State<Arc<db::Database>>,
+    req: Request<Body>,
+) -> Response {
+    let path = req.uri().path();
+    let file_path = if path == "/" || path.is_empty() {
+        "index.html".to_string()
+    } else {
+        path.trim_start_matches('/').to_string()
+    };
+
+    if file_path.ends_with(".html") {
+        if let Ok(content) = fs::read_to_string(&file_path) {
+            let _ = db.increment_article_views(&file_path).await;
+            return Html(content).into_response();
+        }
+    }
+
+    // Default to serving from ServeDir
+    let service = ServeDir::new(".");
+    match tower::ServiceExt::oneshot(service, req).await {
+        Ok(res) => {
+            if res.status() == StatusCode::NOT_FOUND {
+                show_404().await.into_response()
+            } else {
+                res.into_response()
+            }
+        }
+        Err(_) => show_404().await.into_response(),
+    }
 }
 
 pub async fn show_404() -> impl IntoResponse {
@@ -542,6 +574,7 @@ pub async fn create_article(
         video_url: video_path,
         category: category.clone(),
         related_articles: related_articles_input.clone(),
+        views: 0,
     };
 
     let _ = db.create_article(article_db).await;
