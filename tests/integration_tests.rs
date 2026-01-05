@@ -44,7 +44,10 @@ async fn test_login() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(response.headers().get(header::LOCATION).unwrap(), "/change-password");
+    assert_eq!(
+        response.headers().get(header::LOCATION).unwrap(),
+        "/change-password"
+    );
     assert!(response.headers().get(header::SET_COOKIE).is_some());
 }
 
@@ -94,9 +97,7 @@ async fn test_change_password() {
         .to_string();
 
     // Change password
-    let change_params = [
-        ("new_password", "new_password_123"),
-    ];
+    let change_params = [("new_password", "new_password_123")];
     let change_resp = app
         .clone()
         .oneshot(
@@ -157,10 +158,12 @@ async fn test_404_fallback() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
-    
-    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let body_str = String::from_utf8_lossy(&body);
-    
+
     let expected_404_content = std::fs::read_to_string("404.html").unwrap();
     assert_eq!(true, expected_404_content.len() > 200);
     assert_eq!(body_str, expected_404_content);
@@ -169,25 +172,23 @@ async fn test_404_fallback() {
 #[tokio::test]
 async fn test_404_fallback_curl() {
     let (app, _db) = setup_app().await;
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    let addr = listener.local_addr().unwrap();
 
-    let response = app
-        .oneshot(
-            Request::builder()
-                .method("GET")
-                .uri("/asdf.html")
-                .body(Body::empty())
-                .unwrap(),
-        )
-        .await
-        .unwrap();
+    tokio::spawn(async move {
+        axum::serve(listener, app).await.unwrap();
+    });
 
-    assert_eq!(response.status(), StatusCode::NOT_FOUND);
-    
-    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
-    let body_str = String::from_utf8_lossy(&body);
-    
+    let url = format!("http://{}/non-existent-page.html", addr);
+    let output = std::process::Command::new("curl")
+        .arg("-s")
+        .arg(url)
+        .output()
+        .expect("Failed to execute curl");
+
+    let body_str = String::from_utf8_lossy(&output.stdout);
     let expected_404_content = std::fs::read_to_string("404.html").unwrap();
-    assert_eq!(body_str, expected_404_content);
+    assert_eq!(body_str.trim(), expected_404_content.trim());
 }
 
 #[tokio::test]
@@ -243,7 +244,9 @@ async fn test_account_page() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
-    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let body_str = String::from_utf8_lossy(&body);
     assert!(body_str.contains("account_user"));
     assert!(body_str.contains("Initial Author"));
@@ -266,7 +269,10 @@ async fn test_account_page() {
         .unwrap();
 
     assert_eq!(update_resp.status(), StatusCode::SEE_OTHER);
-    assert_eq!(update_resp.headers().get(header::LOCATION).unwrap(), "/account");
+    assert_eq!(
+        update_resp.headers().get(header::LOCATION).unwrap(),
+        "/account"
+    );
 
     // 5. Verify update in DB
     let user = db.get_user("account_user").await.unwrap().unwrap();
@@ -303,7 +309,10 @@ async fn test_account_page() {
             Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(header::CONTENT_TYPE, format!("multipart/form-data; boundary={}", boundary))
+                .header(
+                    header::CONTENT_TYPE,
+                    format!("multipart/form-data; boundary={}", boundary),
+                )
                 .header(header::COOKIE, &cookie)
                 .body(Body::from(body))
                 .unwrap(),
@@ -325,7 +334,9 @@ async fn test_account_page() {
         .await
         .unwrap();
 
-    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let body_str = String::from_utf8_lossy(&body);
     assert!(body_str.contains("User Article"));
 
@@ -359,7 +370,9 @@ async fn test_account_page() {
         .await
         .unwrap();
 
-    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let body_str = String::from_utf8_lossy(&body);
     assert!(body_str.contains("User Article"));
     assert!(body_str.contains("Second Update"));
@@ -414,8 +427,12 @@ async fn test_create_article() {
     let related_article_content = "<html><body><!-- SNIPPETS --></body></html>";
     std::fs::write("related-test-article.html", related_article_content).unwrap();
     std::fs::create_dir_all("snippets").unwrap();
-    std::fs::write("snippets/related-test-article.html.txt", "<div>Related Snippet</div>").unwrap();
-    
+    std::fs::write(
+        "snippets/related-test-article.html.txt",
+        "<div>Related Snippet</div>",
+    )
+    .unwrap();
+
     let category_content = "<html><body><!-- SNIPPETS --></body></html>";
     std::fs::write("test-cathegory.html", category_content).unwrap();
 
@@ -464,11 +481,14 @@ async fn test_create_article() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(response.headers().get(header::LOCATION).unwrap(), "/test-article.html");
+    assert_eq!(
+        response.headers().get(header::LOCATION).unwrap(),
+        "/test-article.html"
+    );
 
     // Verify files were created
     assert!(std::path::Path::new("test-article.html").exists());
-    
+
     // Cleanup
     let _ = std::fs::remove_file("test-article.html");
     let _ = std::fs::remove_file("snippets/test-article.html.txt");
@@ -486,7 +506,7 @@ async fn test_create_article() {
             }
         }
     }
-    
+
     // Also cleanup the archive file if it was created
     let now = chrono::Local::now();
     let czech_months = [
