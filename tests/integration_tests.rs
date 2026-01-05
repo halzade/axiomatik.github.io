@@ -142,6 +142,55 @@ async fn test_serve_static_html() {
 }
 
 #[tokio::test]
+async fn test_404_fallback() {
+    let (app, _db) = setup_app().await;
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/non-existent-page.html")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body_str = String::from_utf8_lossy(&body);
+    
+    let expected_404_content = std::fs::read_to_string("404.html").unwrap();
+    assert_eq!(true, expected_404_content.len() > 200);
+    assert_eq!(body_str, expected_404_content);
+}
+
+#[tokio::test]
+async fn test_404_fallback_curl() {
+    let (app, _db) = setup_app().await;
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("GET")
+                .uri("/asdf.html")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body_str = String::from_utf8_lossy(&body);
+    
+    let expected_404_content = std::fs::read_to_string("404.html").unwrap();
+    assert_eq!(body_str, expected_404_content);
+}
+
+#[tokio::test]
 async fn test_account_page() {
     let (app, db) = setup_app().await;
 

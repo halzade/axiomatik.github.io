@@ -111,8 +111,16 @@ pub fn app(db: Arc<db::Database>) -> Router {
         .merge(protected_routes)
         // serve static content
         // TODO serve only html, css, js
-        .fallback_service(ServeDir::new("."))
+        .fallback_service(ServeDir::new(".").not_found_service(get(show_404)))
         .with_state(db)
+}
+
+pub async fn show_404() -> impl IntoResponse {
+    info!("show_404 called");
+    (
+        StatusCode::NOT_FOUND,
+        Html(fs::read_to_string("404.html").unwrap_or_else(|_| "404 Not Found".to_string())),
+    )
 }
 
 async fn auth_middleware(
@@ -143,7 +151,9 @@ pub async fn handle_login(
     jar: CookieJar,
     Form(payload): Form<LoginPayload>,
 ) -> Response {
-    if validate_input(&payload.username).is_err() || validate_input(&payload.password).is_err() {
+    if validate_input_simple(&payload.username).is_err()
+        || validate_input_simple(&payload.password).is_err()
+    {
         return StatusCode::BAD_REQUEST.into_response();
     }
     let username = &payload.username;
@@ -560,6 +570,17 @@ fn validate_input(input: &str) -> Result<(), &'static str> {
             }
         }
         // Non-ASCII (UTF-8) is allowed
+    }
+    Ok(())
+}
+
+fn validate_input_simple(input: &str) -> Result<(), &'static str> {
+    for c in input.chars() {
+        if !c.is_ascii_alphanumeric() {
+            if c != '_' {
+                return Err("Incorrect character detected");
+            }
+        }
     }
     Ok(())
 }
