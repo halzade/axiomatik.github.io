@@ -7,11 +7,12 @@
     <link rel="stylesheet" href="../css/styles-dark.css" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="../css/webapp.css">
     <link rel="stylesheet" href="../css/webapp-dark.css">
+    <script src="js/form.js" defer></script>
 </head>
 <body>
 <div>
     <h1>Vytvořit nový článek</h1>
-    <form action="/create" method="post" enctype="multipart/form-data">
+    <form action="/create" method="post" enctype="multipart/form-data" id="article-form">
         <div>
             <label>Titulek</label><br>
             <input type="text" name="title" required>
@@ -44,8 +45,12 @@
 
         <div class="container-wide">
             <br/>
-            <label>Soubor obrázku článku</label><br>
-            <input type="file" name="image" accept="image/*" required>
+            <label>Soubor obrázku článku (povinný rozměr na šířku je 820 px)</label><br/>
+            <input type="file" name="image" id="image-input" accept="image/*" required>
+            <div id="image-error" style="color: red; display: none;">Obrázek musí mít šířku přesně 820 px.</div>
+            <br/>
+            <label>Popis obrázku</label><br/>
+            <textarea name="image_description" rows="2" style="width: 100%;"></textarea>
             <br/>
             <label>Soubor video obrázku</label><br>
             <input type="file" name="video" accept="video/*">

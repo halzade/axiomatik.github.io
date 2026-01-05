@@ -71,8 +71,10 @@ pub const AUTH_COOKIE: &str = "axiomatik_auth";
 pub struct ArticleTemplate {
     pub title: String,
     pub author: String,
+    pub date: String,
     pub text: String,
     pub image_path: String,
+    pub image_description: String,
     pub video_path: Option<String>,
     pub category: String,
     pub category_display: String,
@@ -91,6 +93,25 @@ pub struct SnippetTemplate {
 #[template(path = "category_template.html")]
 pub struct CategoryTemplate {
     pub title: String,
+}
+
+const CZECH_MONTHS: [&str; 12] = [
+    "Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen",
+    "Listopad", "Prosinec",
+];
+
+const CZECH_MONTHS_SHORT: [&str; 12] = [
+    "leden", "unor", "brezen", "duben", "kveten", "cerven", "cervenec", "srpen", "zari", "rijen",
+    "listopad", "prosinec",
+];
+
+fn get_czech_month(month: u32, capitalized: bool) -> &'static str {
+    let idx = (month - 1) as usize;
+    if capitalized {
+        CZECH_MONTHS[idx]
+    } else {
+        CZECH_MONTHS_SHORT[idx]
+    }
 }
 
 pub fn app(db: Arc<db::Database>) -> Router {
@@ -299,6 +320,7 @@ pub async fn create_article(
     let mut category = String::new();
     let mut related_articles_input = String::new();
     let mut image_path = String::new();
+    let mut image_description = String::new();
     let mut video_path = None;
 
     while let Ok(Some(field)) = multipart.next_field().await {
@@ -382,6 +404,14 @@ pub async fn create_article(
                 related_articles_input = text;
             }
 
+            "image_description" => {
+                let text = field.text().await.unwrap();
+                if validate_input(&text).is_err() {
+                    return StatusCode::BAD_REQUEST.into_response();
+                }
+                image_description = text;
+            }
+
             "image" => {
                 if let Some(file_name) = field.file_name() {
                     if !file_name.is_empty() {
@@ -457,11 +487,17 @@ pub async fn create_article(
         }
     }
 
+    let now = chrono::Local::now();
+    let month_name = get_czech_month(now.month(), true);
+    let formatted_date = format!("{}. {} {}", now.day(), month_name, now.year());
+
     let template = ArticleTemplate {
         title: title.clone(),
         author: author.clone(),
+        date: formatted_date.clone(),
         text: text_processed,
         image_path: image_path.clone(),
+        image_description: image_description.clone(),
         video_path: video_path.clone(),
         category: category.clone(),
         category_display: category_display.clone(),
@@ -477,12 +513,7 @@ pub async fn create_article(
     let file_path = format!("{}.html", safe_title);
     fs::write(&file_path, html_content).unwrap();
 
-    let now = chrono::Local::now();
-    let czech_months = [
-        "leden", "unor", "brezen", "duben", "kveten", "cerven", "cervenec", "srpen", "zari",
-        "rijen", "listopad", "prosinec",
-    ];
-    let month_name = czech_months[(now.month() - 1) as usize];
+    let month_name = get_czech_month(now.month(), false);
     let cat_month_year_filename =
         format!("archive-{}-{}-{}.html", category, month_name, now.year());
 
@@ -501,12 +532,13 @@ pub async fn create_article(
     let article_db = db::Article {
         author: author.clone(),
         created_by,
-        date: now.format("%Y-%m-%d %H:%M:%S").to_string(),
+        date: formatted_date,
         title: title.clone(),
         text: text_raw,
         short_text: short_text_raw,
         article_file_name: file_path.clone(),
         image_url: image_path,
+        image_description: image_description.clone(),
         video_url: video_path,
         category: category.clone(),
         related_articles: related_articles_input.clone(),

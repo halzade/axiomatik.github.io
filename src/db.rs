@@ -26,6 +26,7 @@ pub struct Article {
     pub short_text: String,
     pub article_file_name: String,
     pub image_url: String,
+    pub image_description: String,
     pub video_url: Option<String>,
     pub category: String,
     pub related_articles: String,
