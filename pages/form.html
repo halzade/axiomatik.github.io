@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/styles-dark.css" media="(prefers-color-scheme: dark)">
     <link rel="stylesheet" href="../css/webapp.css">
     <link rel="stylesheet" href="../css/webapp-dark.css">
-    <script src="js/form.js" defer></script>
+    <script src="../js/form.js" defer></script>
 </head>
 <body>
 <div>
@@ -47,13 +47,15 @@
             <br/>
             <label>Soubor obrázku článku (povinný rozměr na šířku je 820 px)</label><br/>
             <input type="file" name="image" id="image-input" accept="image/*" required>
-            <div id="image-error" style="color: red; display: none;">Obrázek musí mít šířku přesně 820 px.</div>
+            <div id="image-error" style="color: #dc3545; display: none;">Obrázek musí mít šířku přesně 820 px.</div>
             <br/>
             <label>Popis obrázku</label><br/>
-            <textarea name="image_description" rows="2" style="width: 100%;"></textarea>
+            <textarea name="image_description" rows="1" style="width: 100%;"></textarea><br/>
+            <br/>
             <br/>
             <label>Soubor video obrázku</label><br>
             <input type="file" name="video" accept="video/*">
+            <br/>
         </div>
         <div>
             <br/>
@@ -66,7 +68,7 @@
                 <option value="veda">Věda</option>
             </select>
         </div>
-        <div class="container-wide">
+        <div>
             <br/>
             <label>Související články, cesty k souborům, každý na nový řádek, například:
                 <br/>
@@ -77,7 +79,6 @@
         </div>
         <br>
         <button type="submit">Vytvořit článek</button>
-        <br>
         <br>
     </form>
 </div>

@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Přihlášení - Axiomatik</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/styles-dark.css" media="(prefers-color-scheme: dark)">
-    <link rel="stylesheet" href="/css/webapp.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/styles-dark.css" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="../css/webapp.css">
+    <link rel="stylesheet" href="../css/webapp-dark.css">
 </head>
 <body>
     <div class="all">
         <main class="content" data-error="{{ error }}">
             <h1>Přihlášení</h1>
             <form action="/login" method="post">
-                <div id="login-error" style="display: none; color: red; margin-bottom: 20px;">
+                <div id="login-error" style="display: none; color: #dc3545; margin-bottom: 20px;">
                     Neplatné jméno nebo heslo
                 </div>
                 <div>

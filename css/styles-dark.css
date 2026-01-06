@@ -1,18 +1,12 @@
-:root {
-    --topbar-bg: #1c1c1c;
-    --border: #333;
-    --card-bg: #1a1a1a;
-}
-
 body {
     background: #333;
     color: #e8e8e8;
 }
 
 .topbar {
-    background: var(--topbar-bg);
-    order-top: 1px solid silver;
-    order-bottom: 1px solid silver;
+    background: black;
+    border-top: 1px solid silver;
+    border-bottom: 1px solid silver;
 }
 
 a {
@@ -32,8 +26,8 @@ a {
 }
 
 .card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
+    background: black;
+    border: 1px solid silver;
 }
 
 blockquote {
@@ -41,7 +35,7 @@ blockquote {
 }
 
 footer {
-    background: var(--topbar-bg);
+    background: black;
     border-top: 1px solid silver;
     border-bottom: 1px solid silver;
     color: #e8e8e8;
