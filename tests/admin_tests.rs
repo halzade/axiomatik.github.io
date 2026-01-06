@@ -5,7 +5,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_editor_user() {
-        let db = init_mem_db().await.expect("Failed to init mem db");
+        let db = init_mem_db().await;
 
         let username = "editor1";
         let password = "password123";

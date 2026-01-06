@@ -7,7 +7,7 @@ use std::sync::Arc;
 use tower::ServiceExt;
 
 async fn setup_app() -> (axum::Router, Arc<db::Database>) {
-    let db = Arc::new(db::init_mem_db().await.unwrap());
+    let db = Arc::new(db::init_mem_db().await);
     (app(db.clone()), db)
 }
 

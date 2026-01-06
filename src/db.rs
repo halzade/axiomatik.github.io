@@ -40,18 +40,18 @@ pub struct Database {
 
 impl Database {
     pub async fn new(url: &str) -> Self {
-        let client = connect(url).await;
-        client.unwrap().use_ns("axiomatik").use_db("axiomatik").await;
+        let client = connect(url).await.unwrap();
+        client.use_ns("axiomatik").use_db("axiomatik").await.unwrap();
         Self {
-            db: RwLock::new(client.unwrap())
+            db: RwLock::new(client)
         }
     }
 
-    pub async fn read(&self) -> RwLockReadGuard<Surreal<Any>> {
+    pub async fn read(&self) -> RwLockReadGuard<'_, Surreal<Any>> {
         self.db.read().await
     }
 
-    pub async fn write(&self) -> RwLockWriteGuard<Surreal<Any>> {
+    pub async fn write(&self) -> RwLockWriteGuard<'_, Surreal<Any>> {
         self.db.write().await
     }
 
@@ -78,7 +78,7 @@ impl Database {
     }
 
     pub async fn delete_user(&self, username: &str) -> surrealdb::Result<()> {
-        self.db.write().await.delete(("user", username));
+        let _: Option<User> = self.db.write().await.delete(("user", username)).await?;
         Ok(())
     }
 
@@ -109,7 +109,7 @@ impl Database {
     ) -> surrealdb::Result<Vec<Article>> {
         let mut response = self
             .db
-            .read
+            .read()
             .await
             .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
             .bind(("username", username.to_string()))

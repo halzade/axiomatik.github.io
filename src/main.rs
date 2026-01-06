@@ -20,7 +20,7 @@ async fn main() {
         let username = &args[2];
         let password = &args[3];
 
-        let db = db::get_wrap_db().get_db().await;
+        let db = db::init_db().await;
         match axiomatik_web::auth::create_editor_user(&db, username, password).await {
             Ok(_) => {
                 println!("Editor user '{}' created successfully.", username);
@@ -41,7 +41,7 @@ async fn main() {
 
         let username = &args[2];
 
-        let db = db::get_wrap_db().get_db().await;
+        let db = db::init_db().await;
         match db.delete_user(username).await {
             Ok(_) => {
                 println!("User '{}' attempted to be deleted.", username);
@@ -68,7 +68,7 @@ async fn main() {
     fs::create_dir_all("uploads").unwrap();
     fs::create_dir_all("snippets").unwrap();
 
-    let db = Arc::new(db::get_wrap_db().get_db().await);
+    let db = Arc::new(db::init_db().await);
 
     let app = axiomatik_web::app(db);
 
