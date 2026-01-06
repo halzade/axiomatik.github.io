@@ -74,6 +74,10 @@ main.content {
     text-decoration: none;
 }
 
+.logo .b {
+    color: #0002f5;
+}
+
 a {
     text-decoration: none;
     color: #007bff;
@@ -92,6 +96,10 @@ a:hover {
 
 .breadcrumb a {
     text-decoration: underline;
+}
+
+.main-nav {
+    text-align: center;
 }
 
 .main-nav a {
@@ -263,8 +271,8 @@ blockquote {
 }
 
 footer {
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding-top: 30px;
+    padding-bottom: 10px;
     text-align: center;
     background: #f2dfce;
     border-top: 1px solid #E0E0E0;
