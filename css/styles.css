@@ -59,6 +59,7 @@ main.content {
     border-bottom: 1px solid #E0E0E0;
     z-index: 10;
     height: 50px;
+    text-align: center;
 }
 
 .logo:hover,
