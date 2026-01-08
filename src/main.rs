@@ -67,6 +67,15 @@ async fn main() {
 
     info!("Application starting...");
 
+    /*
+     *  trigger actions at startup
+     *
+     *  in devel,
+     *  changing files will cause application restart, because of cargo watch
+     */
+    info!("startup actions");
+    update_index_date();
+
     // Ensure uploads directory exists
     fs::create_dir_all("uploads").unwrap();
     fs::create_dir_all("snippets").unwrap();
@@ -84,37 +93,32 @@ async fn main() {
         .await
         .expect(&format!("Failed to bind to {}", addr));
 
+    info!("start heart beat");
+    heart_beat();
 
-    info!("start heartbeat");
-    // start heart beat
-    let _hb = heart_beat();
+    // scheduled actions
+    info!("schedule midnight worker");
+    midnight_worker();
 
     // start the application
     if let Err(err) = axum::serve(listener, app).await {
         error!("axum server exited: {:?}", err);
     };
 
-
-    // scheduled actions
-    // let _ = midnight_worker();
-
-    // trigger actions at startup
-    // let _ = update_index_date();
     info!("end.");
 }
 
-fn heart_beat() -> tokio::task::JoinHandle<()> {
-    // heart beat
+fn heart_beat() {
     tokio::spawn(async move {
-        let mut interval = interval(Duration::from_secs(5));
+        let mut interval = interval(Duration::from_secs(1));
         loop {
             interval.tick().await;
             info!("beat");
         }
-    })
+    });
 }
 
-fn midnight_worker() -> tokio::task::JoinHandle<()> {
+fn midnight_worker() {
     tokio::spawn(async {
         let start = next_midnight_instant();
         let mut interval = time::interval_at(start, Duration::from_secs(24 * 60 * 60));
@@ -124,7 +128,7 @@ fn midnight_worker() -> tokio::task::JoinHandle<()> {
             info!("midnight event");
             update_index_date();
         }
-    })
+    });
 }
 
 fn next_midnight_instant() -> Instant {
@@ -181,10 +185,14 @@ fn update_index_date() {
             new_content.push_str(&date_string);
             new_content.push_str(&content[end..]);
 
-            if let Err(e) = fs::write("index.html", new_content) {
-                eprintln!("Failed to write index.html: {}", e);
+            if content != new_content {
+                if let Err(e) = fs::write("index.html", new_content) {
+                    eprintln!("Failed to write index.html: {}", e);
+                } else {
+                    info!("index.html date updated to: {}", date_string);
+                }
             } else {
-                info!("index.html date updated to: {}", date_string);
+                info!("index.html date is already up to date: {}", date_string);
             }
         }
     }
