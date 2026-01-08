@@ -6,7 +6,7 @@ use std::fs;
 use std::sync::Arc;
 use tokio::time::interval;
 use tokio::time::{self, Duration, Instant};
-use tracing::info;
+use tracing::{error, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
@@ -75,9 +75,6 @@ async fn main() {
 
     let app = axiomatik_web::app(db);
 
-    // trigger actions at startup
-    update_index_date();
-
     let addr = format!(
         "{}:{}",
         configuration.application.host, configuration.application.port
@@ -86,16 +83,27 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(&addr)
         .await
         .expect(&format!("Failed to bind to {}", addr));
-    axum::serve(listener, app).await.unwrap();
 
-    // init heart beat
-    heart_beat();
+
+    info!("start heartbeat");
+    // start heart beat
+    let _hb = heart_beat();
+
+    // start the application
+    if let Err(err) = axum::serve(listener, app).await {
+        error!("axum server exited: {:?}", err);
+    };
+
 
     // scheduled actions
-    midnight_worker();
+    // let _ = midnight_worker();
+
+    // trigger actions at startup
+    // let _ = update_index_date();
+    info!("end.");
 }
 
-fn heart_beat() {
+fn heart_beat() -> tokio::task::JoinHandle<()> {
     // heart beat
     tokio::spawn(async move {
         let mut interval = interval(Duration::from_secs(5));
@@ -103,10 +111,10 @@ fn heart_beat() {
             interval.tick().await;
             info!("beat");
         }
-    });
+    })
 }
 
-fn midnight_worker() {
+fn midnight_worker() -> tokio::task::JoinHandle<()> {
     tokio::spawn(async {
         let start = next_midnight_instant();
         let mut interval = time::interval_at(start, Duration::from_secs(24 * 60 * 60));
@@ -116,7 +124,7 @@ fn midnight_worker() {
             info!("midnight event");
             update_index_date();
         }
-    });
+    })
 }
 
 fn next_midnight_instant() -> Instant {
