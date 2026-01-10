@@ -558,10 +558,6 @@ pub async fn create_article(
     let month_name = get_czech_month(now.month(), true);
     let formatted_date = format!("{}. {} {}", now.day(), month_name, now.year());
 
-    // TODO
-    if is_exclusive {
-        // title = format!("<span class=\"red\">EXKLUZIVNĚ:</span> {}", title);
-    }
 
     let template = ArticleTemplate {
         title: title.clone(),
@@ -640,6 +636,12 @@ pub async fn create_article(
             }
 
             // 2. Prepare new MAIN_ARTICLE
+            let title_with_exclusive = if is_exclusive {
+                format!(r#"<span class="red">EXKLUZIVNĚ:</span> {}"#, title)
+            } else {
+                title.clone()
+            };
+
             let new_main_article = format!(
                 r#"
                 <div class="main-article-text">
@@ -655,7 +657,7 @@ pub async fn create_article(
                 </a>
                 "#,
                 file_path,
-                title,
+                title_with_exclusive,
                 file_path,
                 short_text_processed,
                 file_path,
