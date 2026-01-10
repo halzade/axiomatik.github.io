@@ -89,6 +89,10 @@ button[type="submit"]:hover, .button:hover {
     color: white;
 }
 
+input[type="checkbox"].red {
+    accent-color: red;
+}
+
 .article-item {
     border: 1px solid #ccc;
     padding: 15px;
