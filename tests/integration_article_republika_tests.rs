@@ -1,11 +1,9 @@
 mod test_base;
-use axiomatik_web::{app, db};
 use axum::{
     body::Body,
     http::{Request, header},
 };
 use std::fs;
-use std::sync::Arc;
 use tower::ServiceExt;
 
 fn prepare_index_with_articles(

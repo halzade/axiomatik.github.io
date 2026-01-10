@@ -615,28 +615,31 @@ pub async fn create_article(
     .render()
     .unwrap();
 
-    // TODO
+
     if is_main {
         if let Ok(mut index_content) = fs::read_to_string("index.html") {
-            let mut main_article = String::new();
+            // 1. Get current contents
+            let mut main_article_content = String::new();
             if let (Some(start), Some(end)) = (
                 index_content.find("<!-- MAIN_ARTICLE -->"),
                 index_content.find("<!-- /MAIN_ARTICLE -->"),
             ) {
-                main_article =
-                    index_content[start + "<!-- MAIN_ARTICLE -->".len()..end].to_string();
+                main_article_content = index_content[start + "<!-- MAIN_ARTICLE -->".len()..end]
+                    .trim()
+                    .to_string();
             }
 
-            let mut first_article = String::new();
+            let mut first_article_content = String::new();
             if let (Some(start), Some(end)) = (
                 index_content.find("<!-- FIRST_ARTICLE -->"),
                 index_content.find("<!-- /FIRST_ARTICLE -->"),
             ) {
-                first_article =
-                    index_content[start + "<!-- FIRST_ARTICLE -->".len()..end].to_string();
+                first_article_content = index_content[start + "<!-- FIRST_ARTICLE -->".len()..end]
+                    .trim()
+                    .to_string();
             }
 
-            // Update MAIN_ARTICLE
+            // 2. Prepare new MAIN_ARTICLE
             let new_main_article = format!(
                 r#"
                 <div class="main-article-text">
@@ -660,6 +663,46 @@ pub async fn create_article(
                 image_description
             );
 
+            // 3. Update index_content (from back to front to avoid index shifts if we were doing simple replaces,
+            // but we'll use a more robust way since we have the full content)
+
+            // Update SECOND_ARTICLE with old FIRST_ARTICLE
+            if let (Some(start), Some(end)) = (
+                index_content.find("<!-- SECOND_ARTICLE -->"),
+                index_content.find("<!-- /SECOND_ARTICLE -->"),
+            ) {
+                let shifted_second = first_article_content
+                    .replace("class=\"first-article\"", "class=\"second-article\"")
+                    .replace("class='first-article'", "class='second-article'");
+
+                index_content.replace_range(
+                    start + "<!-- SECOND_ARTICLE -->".len()..end,
+                    &format!("\n                {}\n                ", shifted_second),
+                );
+            }
+
+            // Update FIRST_ARTICLE with old MAIN_ARTICLE
+            if let (Some(start), Some(end)) = (
+                index_content.find("<!-- FIRST_ARTICLE -->"),
+                index_content.find("<!-- /FIRST_ARTICLE -->"),
+            ) {
+                let shifted_first = main_article_content
+                    .replace("class=\"main-article-text\"", "class=\"first-article\"")
+                    .replace("class='main-article-text'", "class='first-article'")
+                    .replace("<h1>", "<h2>")
+                    .replace("</h1>", "</h2>");
+
+                // MAIN_ARTICLE might have <img> outside the div, we might need to handle that if we want it in FIRST_ARTICLE
+                // But the requirement says "The previous article, which was rendered between MAIN_ARTICLE tags... render between FIRST_ARTICLE"
+                // So we just take the whole content.
+
+                index_content.replace_range(
+                    start + "<!-- FIRST_ARTICLE -->".len()..end,
+                    &format!("\n                {}\n                ", shifted_first),
+                );
+            }
+
+            // Update MAIN_ARTICLE
             if let (Some(start), Some(end)) = (
                 index_content.find("<!-- MAIN_ARTICLE -->"),
                 index_content.find("<!-- /MAIN_ARTICLE -->"),
@@ -667,42 +710,6 @@ pub async fn create_article(
                 index_content.replace_range(
                     start + "<!-- MAIN_ARTICLE -->".len()..end,
                     &new_main_article,
-                );
-            }
-
-            // Update FIRST_ARTICLE with old MAIN_ARTICLE content
-            if let (Some(start), Some(end)) = (
-                index_content.find("<!-- FIRST_ARTICLE -->"),
-                index_content.find("<!-- /FIRST_ARTICLE -->"),
-            ) {
-                let first_article_wrapped = format!(
-                    r#"<div class="first-article">{}</div>"#,
-                    main_article.trim()
-                );
-                index_content.replace_range(
-                    start + "<!-- FIRST_ARTICLE -->".len()..end,
-                    &first_article_wrapped,
-                );
-            }
-
-            // Update SECOND_ARTICLE with old FIRST_ARTICLE content
-            if let (Some(start), Some(end)) = (
-                index_content.find("<!-- SECOND_ARTICLE -->"),
-                index_content.find("<!-- /SECOND_ARTICLE -->"),
-            ) {
-                // If the old first_article already contains <div class="first-article">,
-                // we should probably change it to <div class="second-article">
-                let second_article_content = first_article
-                    .replace("class=\"first-article\"", "class=\"second-article\"")
-                    .trim()
-                    .to_string();
-
-                index_content.replace_range(
-                    start + "<!-- SECOND_ARTICLE -->".len()..end,
-                    &format!(
-                        "\n                {}\n                ",
-                        second_article_content
-                    ),
                 );
             }
 

@@ -60,7 +60,7 @@ async fn test_create_article() {
     .unwrap();
 
     let category_content = "<html><body><!-- SNIPPETS --></body></html>";
-    std::fs::write("test-cathegory.html", category_content).unwrap();
+    std::fs::write("test-category.html", category_content).unwrap();
 
     let body = format!(
         "--{0}\r\n\
@@ -71,7 +71,7 @@ async fn test_create_article() {
         Test Author\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"category\"\r\n\r\n\
-        test-cathegory\r\n\
+        test-category\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"text\"\r\n\r\n\
         This is a test article text.\r\n\
@@ -152,7 +152,7 @@ async fn test_create_article() {
     let _ = std::fs::remove_file("snippets/test-article.html.txt");
     let _ = std::fs::remove_file("related-test-article.html");
     let _ = std::fs::remove_file("snippets/related-test-article.html.txt");
-    let _ = std::fs::remove_file("test-cathegory.html");
+    let _ = std::fs::remove_file("test-category.html");
 
     // Cleanup uploads
     if let Ok(entries) = std::fs::read_dir("uploads") {
@@ -172,6 +172,6 @@ async fn test_create_article() {
         "rijen", "listopad", "prosinec",
     ];
     let month_name = czech_months[(now.month() - 1) as usize];
-    let archive_filename = format!("archive-test-cathegory-{}-{}.html", month_name, now.year());
+    let archive_filename = format!("archive-test-category-{}-{}.html", month_name, now.year());
     let _ = std::fs::remove_file(archive_filename);
 }

@@ -11,7 +11,7 @@ use tower::ServiceExt;
 async fn test_login() {
     let (app, db) = setup_app().await;
 
-    // 1. Create user via auth module (simulating command)
+    // 1. Create a user via auth module (simulating command)
     auth::create_editor_user(&db, "admin", "password123")
         .await
         .unwrap();
@@ -271,7 +271,7 @@ async fn test_account_page() {
         Updated Author\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"category\"\r\n\r\n\
-        test-cathegory\r\n\
+        test-category\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"text\"\r\n\r\n\
         Content\r\n\
@@ -302,7 +302,7 @@ async fn test_account_page() {
         .await
         .unwrap();
 
-    // 7. Verify article is on account page
+    // 7. Verify the article is on the account page
     let response = app
         .clone()
         .oneshot(
@@ -338,7 +338,7 @@ async fn test_account_page() {
         .await
         .unwrap();
 
-    // 9. Verify article is STILL on account page (linked by username, not author_name)
+    // 9. Verify the article is STILL on the account page (linked by username, not author_name)
     let response = app
         .clone()
         .oneshot(
