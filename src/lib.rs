@@ -763,7 +763,7 @@ pub async fn create_article(
                 index_content.find("<!-- Z_REPUBLIKY -->"),
                 index_content.find("<!-- /Z_REPUBLIKY -->"),
             ) {
-                let section_content = &index_content[start + "<!-- Z_REPUBLIKY -->".len()..end];
+                let section_content = &index_content[start + "<!-- ZE_ZAHRANICI -->".len()..end];
                 let mut articles: Vec<String> = section_content
                     .split("</article>")
                     .filter(|s| s.contains("<article"))
