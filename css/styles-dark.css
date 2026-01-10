@@ -3,6 +3,10 @@ body {
     color: #e8e8e8;
 }
 
+a.logo, a.logo:hover {
+    color: white !important;
+}
+
 .topbar {
     background: black;
     border-top: 1px solid silver;
@@ -23,11 +27,6 @@ a {
 
 .main-article-text p, .category-header p {
     color: #b8b8b8;
-}
-
-.card {
-    background: black;
-    border: 1px solid silver;
 }
 
 blockquote {

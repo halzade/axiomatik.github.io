@@ -6,7 +6,7 @@ body {
     margin: 0;
     font-family: "Open Sans", serif;
     /*background: #f6f4ef;*/
-    background: #F8F8F8;
+    background: #FFFFFF;
     color: #333333;
     height: 100%;
     width: 100%;
@@ -40,7 +40,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .container > * {
     display: block;
-    vertical-align: top;
 }
 
 main.content {
@@ -55,10 +54,9 @@ main.content {
     align-items: flex-end;
     vertical-align: bottom;
     /*background: #f2dfce;*/
-    background: #F8F8F8;
+    background: #FFFFFF;
     padding: 12px 24px;
-    border-top: 1px solid #E0E0E0;
-    border-bottom: 1px solid #E0E0E0;
+    border-bottom: 2px solid #E0E0E0;
     z-index: 10;
     min-height: 80px;
     text-align: center;
@@ -75,11 +73,12 @@ main.content {
     text-decoration: none;
 }
 
-.logo {
+a.logo, a.logo:hover {
     font-size: 70px;
     font-weight: bold;
     letter-spacing: 1px;
     text-decoration: none;
+    color: #333333;
 }
 
 .logo .b {
@@ -129,7 +128,7 @@ a:hover {
 }
 
 .content {
-    max-width: 1200px;
+    /*max-width: 1200px;*/
     margin: 20px auto;
     padding: 0 20px;
 }
@@ -194,18 +193,13 @@ a:hover {
 }
 
 .article-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 25px;
     margin-top: 30px;
     margin-bottom: 10px;
 }
 
 .card {
-    background: #F8F8F8;
     padding: 20px;
-    border-radius: 4px;
-    border: 1px solid #E0E0E0;
+    display: block;
 }
 
 .card h2 {
@@ -305,7 +299,7 @@ h3 {
 blockquote {
     margin: 28px 0;
     padding: 18px 24px;
-    background: #F8F8F8;
+    background: #FFFFFF;
     border-left: 4px solid #E0E0E0;
     font-style: italic;
     font-size: 1.15rem;
@@ -338,7 +332,7 @@ footer {
     padding-top: 30px;
     padding-bottom: 10px;
     text-align: center;
-    background: #F8F8F8;
+    background: #FFFFFF;
     border-top: 1px solid #E0E0E0;
     border-bottom: 1px solid #E0E0E0;
     height: 50px;

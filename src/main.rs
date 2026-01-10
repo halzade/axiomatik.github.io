@@ -263,7 +263,7 @@ async fn update_index_weather() {
     let url = "https://api.open-meteo.com/v1/forecast?latitude=50.0755&longitude=14.4378&current_weather=true&timezone=Europe/Prague";
 
     let weather_string = match fetch_weather(url).await {
-        Ok(temp) => format!("{:.0}°C | Prague", temp),
+        Ok(temp) => format!("{:.0}°C | Praha", temp),
         Err(_) => "".to_string(),
     };
 
@@ -316,22 +316,22 @@ mod tests {
     #[test]
     fn test_weather_replacement_logic() {
         let content = "<html><!-- WEATHER -->OLD<!-- /WEATHER --></html>";
-        let weather_string = "23°C | Prague";
+        let weather_string = "23°C | Praha";
         let new_content = replace_weather_in_content(content, weather_string);
-        assert_eq!(new_content, "<html><!-- WEATHER -->23°C | Prague<!-- /WEATHER --></html>");
+        assert_eq!(new_content, "<html><!-- WEATHER -->23°C | Praha<!-- /WEATHER --></html>");
     }
 
     #[test]
     fn test_no_weather_replacement_if_same() {
-        let content = "<html><!-- WEATHER -->23°C | Prague<!-- /WEATHER --></html>";
-        let weather_string = "23°C | Prague";
+        let content = "<html><!-- WEATHER -->23°C | Praha<!-- /WEATHER --></html>";
+        let weather_string = "23°C | Praha";
         let new_content = replace_weather_in_content(content, weather_string);
         assert_eq!(content, new_content);
     }
 
     #[test]
     fn test_weather_replacement_empty_if_exception() {
-        let content = "<html><!-- WEATHER -->23°C | Prague<!-- /WEATHER --></html>";
+        let content = "<html><!-- WEATHER -->23°C | Praha<!-- /WEATHER --></html>";
         let weather_string = "";
         let new_content = replace_weather_in_content(content, weather_string);
         assert_eq!(new_content, "<html><!-- WEATHER --><!-- /WEATHER --></html>");
