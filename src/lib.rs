@@ -615,7 +615,6 @@ pub async fn create_article(
     .render()
     .unwrap();
 
-
     if is_main {
         if let Ok(mut index_content) = fs::read_to_string("index.html") {
             // 1. Get current contents
@@ -629,12 +628,13 @@ pub async fn create_article(
                     .to_string();
             }
 
-            let mut first_article_content = String::new();
+            let mut second_article_content = String::new();
             if let (Some(start), Some(end)) = (
-                index_content.find("<!-- FIRST_ARTICLE -->"),
-                index_content.find("<!-- /FIRST_ARTICLE -->"),
+                index_content.find("<!-- SECOND_ARTICLE -->"),
+                index_content.find("<!-- /SECOND_ARTICLE -->"),
             ) {
-                first_article_content = index_content[start + "<!-- FIRST_ARTICLE -->".len()..end]
+                second_article_content = index_content
+                    [start + "<!-- SECOND_ARTICLE -->".len()..end]
                     .trim()
                     .to_string();
             }
@@ -663,42 +663,45 @@ pub async fn create_article(
                 image_description
             );
 
-            // 3. Update index_content (from back to front to avoid index shifts if we were doing simple replaces,
-            // but we'll use a more robust way since we have the full content)
-
-            // Update SECOND_ARTICLE with old FIRST_ARTICLE
+            // 3. Update index_content
+            // Update THIRD_ARTICLE with old SECOND_ARTICLE
             if let (Some(start), Some(end)) = (
-                index_content.find("<!-- SECOND_ARTICLE -->"),
-                index_content.find("<!-- /SECOND_ARTICLE -->"),
+                index_content.find("<!-- THIRD_ARTICLE -->"),
+                index_content.find("<!-- /THIRD_ARTICLE -->"),
             ) {
-                let shifted_second = first_article_content
+                let shifted_third = second_article_content
                     .replace("class=\"first-article\"", "class=\"second-article\"")
                     .replace("class='first-article'", "class='second-article'");
 
                 index_content.replace_range(
-                    start + "<!-- SECOND_ARTICLE -->".len()..end,
-                    &format!("\n                {}\n                ", shifted_second),
+                    start + "<!-- THIRD_ARTICLE -->".len()..end,
+                    &format!("\n                {}\n                ", shifted_third),
                 );
             }
 
-            // Update FIRST_ARTICLE with old MAIN_ARTICLE
+            // Update SECOND_ARTICLE with old MAIN_ARTICLE
             if let (Some(start), Some(end)) = (
-                index_content.find("<!-- FIRST_ARTICLE -->"),
-                index_content.find("<!-- /FIRST_ARTICLE -->"),
+                index_content.find("<!-- SECOND_ARTICLE -->"),
+                index_content.find("<!-- /SECOND_ARTICLE -->"),
             ) {
-                let shifted_first = main_article_content
+                let shifted_second = main_article_content
                     .replace("class=\"main-article-text\"", "class=\"first-article\"")
                     .replace("class='main-article-text'", "class='first-article'")
                     .replace("<h1>", "<h2>")
-                    .replace("</h1>", "</h2>");
-
-                // MAIN_ARTICLE might have <img> outside the div, we might need to handle that if we want it in FIRST_ARTICLE
-                // But the requirement says "The previous article, which was rendered between MAIN_ARTICLE tags... render between FIRST_ARTICLE"
-                // So we just take the whole content.
+                    .replace("</h1>", "</h2>")
+                    // If there was an image in MAIN_ARTICLE, it was outside the div. 
+                    // We need to decide if we keep it or strip it for SECOND/THIRD articles.
+                    // Usually right-side articles are smaller and might not have images or have different image handling.
+                    // Looking at index.html, SECOND_ARTICLE and THIRD_ARTICLE don't seem to have images.
+                    // However, shifting the WHOLE content might include the <img> tag if it was there.
+                    .split("<a href=")
+                    .filter(|s| !s.contains("<img")) // Simple way to strip image if it's in its own <a> tag
+                    .collect::<Vec<&str>>()
+                    .join("<a href=");
 
                 index_content.replace_range(
-                    start + "<!-- FIRST_ARTICLE -->".len()..end,
-                    &format!("\n                {}\n                ", shifted_first),
+                    start + "<!-- SECOND_ARTICLE -->".len()..end,
+                    &format!("\n                {}\n                ", shifted_second),
                 );
             }
 
@@ -808,10 +811,7 @@ pub async fn create_article(
                 }
 
                 let new_section_content = format!("{}\n                    ", articles.join(""));
-                index_content.replace_range(
-                    start + marker_start.len()..end,
-                    &new_section_content,
-                );
+                index_content.replace_range(start + marker_start.len()..end, &new_section_content);
                 fs::write("index.html", index_content).unwrap();
             }
         }
