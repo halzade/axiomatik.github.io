@@ -4,6 +4,7 @@ use chrono::{Datelike, Local, Weekday};
 use std::env;
 use std::fs;
 use std::sync::Arc;
+use log::trace;
 use tokio::time::interval;
 use tokio::time::{self, Duration, Instant};
 use tracing::{error, info};
@@ -113,7 +114,7 @@ fn heart_beat() {
         let mut interval = interval(Duration::from_secs(1));
         loop {
             interval.tick().await;
-            info!("beat");
+            trace!("beat");
         }
     });
 }

@@ -223,6 +223,21 @@ p {
     margin-top: 0;
 }
 
+.split-layout {
+    display: flex;
+    gap: 20px;
+}
+
+.split-column {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .split-layout {
+        flex-direction: column;
+    }
+}
+
 .category-header {
     border-bottom: solid thin #E0E0E0;
 }
