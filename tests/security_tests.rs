@@ -1,22 +1,9 @@
-use axiomatik_web::{app, db};
+use axiomatik_web::script_base::{serialize, setup_app};
 use axum::{
     body::Body,
     http::{Request, StatusCode, header},
 };
-use std::sync::Arc;
 use tower::ServiceExt;
-use url::form_urlencoded;
-
-async fn setup_app() -> (axum::Router, Arc<db::Database>) {
-    let db = Arc::new(db::init_mem_db().await);
-    (app(db.clone()), db)
-}
-
-fn serialize(params: &[(&str, &str)]) -> String {
-    let mut serializer = form_urlencoded::Serializer::new(String::new());
-    serializer.extend_pairs(params);
-    serializer.finish()
-}
 
 #[tokio::test]
 async fn test_sql_injection_rejection_in_login() {

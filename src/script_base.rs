@@ -1,10 +1,10 @@
-use axiomatik_web::{app, db};
 use axum::body::Body;
 use http::{Request, header};
 use std::fs;
 use std::sync::Arc;
 use tower::ServiceExt;
 use url::form_urlencoded;
+use crate::{app, db};
 
 pub fn serialize(params: &[(&str, &str)]) -> String {
     let mut serializer = form_urlencoded::Serializer::new(String::new());
@@ -53,9 +53,9 @@ pub async fn setup_test_environment() -> (axum::Router, Arc<db::Database>, Strin
         .to_str()
         .unwrap()
         .to_string();
-    let original_index = fs::read_to_string("index.html").expect("Failed to read index.html");
+    let original_index = fs::read_to_string("../index.html").expect("Failed to read index.html");
 
-    fs::create_dir_all("snippets").unwrap();
+    fs::create_dir_all("../snippets").unwrap();
 
     (app, db, cookie, original_index)
 }

@@ -3,6 +3,7 @@ pub mod configuration;
 pub mod db;
 pub mod db_tool;
 pub mod namedays;
+pub mod script_base;
 
 use askama::Template;
 use axum::{

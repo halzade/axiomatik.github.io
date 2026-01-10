@@ -1,4 +1,4 @@
-mod test_base;
+use axiomatik_web::script_base;
 use axum::{
     body::Body,
     http::{Request, header},
@@ -8,7 +8,7 @@ use tower::ServiceExt;
 
 #[tokio::test]
 async fn test_exclusive_main_article_finance() {
-    let (app, _db, cookie, original_index) = test_base::setup_test_environment().await;
+    let (app, _db, cookie, original_index) = script_base::setup_test_environment().await;
 
     let boundary = "---------------------------123456789012345678901234567";
     let body = format!(

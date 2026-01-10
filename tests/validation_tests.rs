@@ -1,21 +1,10 @@
-use axiomatik_web::{app, auth, db};
+use axiomatik_web::auth;
+use axiomatik_web::script_base::{serialize, setup_app};
 use axum::{
     body::Body,
     http::{Request, StatusCode, header},
 };
-use std::sync::Arc;
 use tower::ServiceExt;
-
-async fn setup_app() -> (axum::Router, Arc<db::Database>) {
-    let db = Arc::new(db::init_mem_db().await);
-    (app(db.clone()), db)
-}
-
-fn serialize(params: &[(&str, &str)]) -> String {
-    let mut serializer = url::form_urlencoded::Serializer::new(String::new());
-    serializer.extend_pairs(params);
-    serializer.finish()
-}
 
 #[tokio::test]
 async fn test_validation_login_username() {
@@ -28,7 +17,8 @@ async fn test_validation_login_username() {
 
     // BEL
     let login_params = [("username", "adm\x07in"), ("password", "password123")];
-    let response = app.clone()
+    let response = app
+        .clone()
         .oneshot(
             Request::builder()
                 .method("POST")
@@ -54,7 +44,8 @@ async fn test_validation_login_password() {
 
     // DEL
     let login_params = [("username", "admin"), ("password", "passw\x7ford123")];
-    let response = app.clone()
+    let response = app
+        .clone()
         .oneshot(
             Request::builder()
                 .method("POST")
@@ -69,7 +60,6 @@ async fn test_validation_login_password() {
     assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 }
 
-
 #[tokio::test]
 async fn test_validation_create_article() {
     let (app, db) = setup_app().await;
@@ -78,14 +68,15 @@ async fn test_validation_create_article() {
     auth::create_editor_user(&db, "author1", "pass123")
         .await
         .unwrap();
-    
+
     // Manual update to bypass password change
     let mut user = db.get_user("author1").await.unwrap().unwrap();
     user.needs_password_change = false;
     db.update_user(user).await.unwrap();
 
     let login_params = [("username", "author1"), ("password", "pass123")];
-    let login_resp = app.clone()
+    let login_resp = app
+        .clone()
         .oneshot(
             Request::builder()
                 .method("POST")
@@ -96,9 +87,15 @@ async fn test_validation_create_article() {
         )
         .await
         .unwrap();
-    let cookie = login_resp.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap().to_string();
+    let cookie = login_resp
+        .headers()
+        .get(header::SET_COOKIE)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
 
-    // 2. Create article with malicious input
+    // 2. Create an article with malicious input
     let boundary = "---------------------------123456789012345678901234567";
     let body = format!(
         "--{0}\r\n\
@@ -126,7 +123,10 @@ async fn test_validation_create_article() {
             Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(header::CONTENT_TYPE, format!("multipart/form-data; boundary={}", boundary))
+                .header(
+                    header::CONTENT_TYPE,
+                    format!("multipart/form-data; boundary={}", boundary),
+                )
                 .header(header::COOKIE, &cookie)
                 .body(Body::from(body))
                 .unwrap(),

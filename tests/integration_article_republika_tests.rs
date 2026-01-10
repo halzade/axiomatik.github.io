@@ -1,4 +1,4 @@
-mod test_base;
+use axiomatik_web::script_base;
 use axum::{
     body::Body,
     http::{Request, header},
@@ -35,7 +35,7 @@ fn prepare_index_with_articles(
 
 #[tokio::test]
 async fn test_republika_article_creation_and_limit() {
-    let (app, _db, cookie, original_index) = test_base::setup_test_environment().await;
+    let (app, _db, cookie, original_index) = script_base::setup_test_environment().await;
     let mut test_index = original_index.clone();
     prepare_index_with_articles(
         &mut test_index,

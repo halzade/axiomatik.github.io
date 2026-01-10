@@ -1,5 +1,4 @@
-mod test_base;
-use crate::test_base::{serialize, setup_app};
+use axiomatik_web::script_base::{serialize, setup_app};
 use axiomatik_web::{auth, db};
 use axum::{
     body::Body,
