@@ -1,8 +1,8 @@
 pub mod auth;
 pub mod configuration;
 pub mod db;
-pub mod namedays;
 pub mod db_tool;
+pub mod namedays;
 
 use askama::Template;
 use axum::{
@@ -20,7 +20,7 @@ use serde::Deserialize;
 use std::fs;
 use std::sync::Arc;
 use tower_http::services::ServeDir;
-use tracing::{info, warn, error};
+use tracing::{error, info, warn};
 use uuid::Uuid;
 
 #[derive(Template)]
@@ -98,8 +98,18 @@ pub struct CategoryTemplate {
 }
 
 const CZECH_MONTHS: [&str; 12] = [
-    "Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen",
-    "Listopad", "Prosinec",
+    "Leden",
+    "Únor",
+    "Březen",
+    "Duben",
+    "Květen",
+    "Červen",
+    "Červenec",
+    "Srpen",
+    "Září",
+    "Říjen",
+    "Listopad",
+    "Prosinec",
 ];
 
 const CZECH_MONTHS_SHORT: [&str; 12] = [
@@ -138,10 +148,7 @@ pub fn app(db: Arc<db::Database>) -> Router {
         .with_state(db)
 }
 
-pub async fn handle_fallback(
-    State(db): State<Arc<db::Database>>,
-    req: Request<Body>,
-) -> Response {
+pub async fn handle_fallback(State(db): State<Arc<db::Database>>, req: Request<Body>) -> Response {
     let path = req.uri().path();
     let file_path = if path == "/" || path.is_empty() {
         "index.html".to_string()
@@ -356,25 +363,43 @@ pub async fn create_article(
     let mut image_path = String::new();
     let mut image_description = String::new();
     let mut video_path = None;
+    let mut is_main = false;
+    let mut is_exclusive = false;
 
     while let Ok(Some(field)) = multipart.next_field().await {
         let name = field.name().unwrap().to_string();
 
         match name.as_str() {
-            "title" => {
-                let text = field.text().await.unwrap();
-                if validate_input(&text).is_err() {
+            "is_main" => {
+                let val = field.text().await.unwrap();
+                if validate_input(&val).is_err() {
                     return StatusCode::BAD_REQUEST.into_response();
                 }
-                title = text;
+                is_main = val == "on";
+            }
+
+            "is_exclusive" => {
+                let val = field.text().await.unwrap();
+                if validate_input(&val).is_err() {
+                    return StatusCode::BAD_REQUEST.into_response();
+                }
+                is_exclusive = val == "on";
+            }
+
+            "title" => {
+                let val = field.text().await.unwrap();
+                if validate_input(&val).is_err() {
+                    return StatusCode::BAD_REQUEST.into_response();
+                }
+                title = val;
             }
 
             "author" => {
-                let text = field.text().await.unwrap();
-                if validate_input(&text).is_err() {
+                let val = field.text().await.unwrap();
+                if validate_input(&val).is_err() {
                     return StatusCode::BAD_REQUEST.into_response();
                 }
-                author = text;
+                author = val;
             }
 
             "text" => {
@@ -423,31 +448,35 @@ pub async fn create_article(
             }
 
             "category" => {
-                let text = field.text().await.unwrap();
-                if validate_input(&text).is_err() {
+                let val = field.text().await.unwrap();
+                if validate_input(&val).is_err() {
                     return StatusCode::BAD_REQUEST.into_response();
                 }
-                category = text;
+                category = val;
             }
 
             "related_articles" => {
-                let text = field.text().await.unwrap();
-                if validate_input(&text).is_err() {
+                let val = field.text().await.unwrap();
+                if validate_input(&val).is_err() {
                     return StatusCode::BAD_REQUEST.into_response();
                 }
-                related_articles_input = text;
+                related_articles_input = val;
             }
 
             "image_description" => {
-                let text = field.text().await.unwrap();
-                if validate_input(&text).is_err() {
+                let val = field.text().await.unwrap();
+                if validate_input(&val).is_err() {
                     return StatusCode::BAD_REQUEST.into_response();
                 }
-                image_description = text;
+                image_description = val;
             }
 
             "image" => {
                 if let Some(file_name) = field.file_name() {
+                    if validate_input(&file_name).is_err() {
+                        return StatusCode::BAD_REQUEST.into_response();
+                    }
+
                     if !file_name.is_empty() {
                         let extension = std::path::Path::new(file_name)
                             .extension()
@@ -472,6 +501,10 @@ pub async fn create_article(
 
             "video" => {
                 if let Some(file_name) = field.file_name() {
+                    if validate_input(&file_name).is_err() {
+                        return StatusCode::BAD_REQUEST.into_response();
+                    }
+
                     if !file_name.is_empty() {
                         let extension = std::path::Path::new(file_name)
                             .extension()
@@ -525,6 +558,11 @@ pub async fn create_article(
     let month_name = get_czech_month(now.month(), true);
     let formatted_date = format!("{}. {} {}", now.day(), month_name, now.year());
 
+    // TODO
+    if is_exclusive {
+        // title = format!("<span class=\"red\">EXKLUZIVNĚ:</span> {}", title);
+    }
+
     let template = ArticleTemplate {
         title: title.clone(),
         author: author.clone(),
@@ -554,10 +592,105 @@ pub async fn create_article(
     let snippet = SnippetTemplate {
         url: file_path.clone(),
         title: title.clone(),
-        short_text: short_text_processed,
+        short_text: short_text_processed.clone(),
     }
     .render()
     .unwrap();
+
+    // TODO
+    if is_main {
+        if let Ok(mut index_content) = fs::read_to_string("index.html") {
+            let mut main_article = String::new();
+            if let (Some(start), Some(end)) = (
+                index_content.find("<!-- MAIN_ARTICLE -->"),
+                index_content.find("<!-- /MAIN_ARTICLE -->"),
+            ) {
+                main_article =
+                    index_content[start + "<!-- MAIN_ARTICLE -->".len()..end].to_string();
+            }
+
+            let mut first_article = String::new();
+            if let (Some(start), Some(end)) = (
+                index_content.find("<!-- FIRST_ARTICLE -->"),
+                index_content.find("<!-- /FIRST_ARTICLE -->"),
+            ) {
+                first_article =
+                    index_content[start + "<!-- FIRST_ARTICLE -->".len()..end].to_string();
+            }
+
+            // Update MAIN_ARTICLE
+            let new_main_article = format!(
+                r#"
+                <div class="main-article-text">
+                    <a href="{}"><h1>{}</h1></a>
+                    <a href="{}">
+                        <p>
+                            {}
+                        </p>
+                    </a>
+                </div>
+                <a href="{}">
+                    <img src="uploads/{}" alt="{}">
+                </a>
+                "#,
+                file_path,
+                title,
+                file_path,
+                short_text_processed,
+                file_path,
+                image_path,
+                image_description
+            );
+
+            if let (Some(start), Some(end)) = (
+                index_content.find("<!-- MAIN_ARTICLE -->"),
+                index_content.find("<!-- /MAIN_ARTICLE -->"),
+            ) {
+                index_content.replace_range(
+                    start + "<!-- MAIN_ARTICLE -->".len()..end,
+                    &new_main_article,
+                );
+            }
+
+            // Update FIRST_ARTICLE with old MAIN_ARTICLE content
+            if let (Some(start), Some(end)) = (
+                index_content.find("<!-- FIRST_ARTICLE -->"),
+                index_content.find("<!-- /FIRST_ARTICLE -->"),
+            ) {
+                let first_article_wrapped = format!(
+                    r#"<div class="first-article">{}</div>"#,
+                    main_article.trim()
+                );
+                index_content.replace_range(
+                    start + "<!-- FIRST_ARTICLE -->".len()..end,
+                    &first_article_wrapped,
+                );
+            }
+
+            // Update SECOND_ARTICLE with old FIRST_ARTICLE content
+            if let (Some(start), Some(end)) = (
+                index_content.find("<!-- SECOND_ARTICLE -->"),
+                index_content.find("<!-- /SECOND_ARTICLE -->"),
+            ) {
+                // If the old first_article already contains <div class="first-article">,
+                // we should probably change it to <div class="second-article">
+                let second_article_content = first_article
+                    .replace("class=\"first-article\"", "class=\"second-article\"")
+                    .trim()
+                    .to_string();
+
+                index_content.replace_range(
+                    start + "<!-- SECOND_ARTICLE -->".len()..end,
+                    &format!(
+                        "\n                {}\n                ",
+                        second_article_content
+                    ),
+                );
+            }
+
+            fs::write("index.html", index_content).unwrap();
+        }
+    }
 
     let snippet_file_path = format!("snippets/{}.txt", file_path);
     fs::write(snippet_file_path, &snippet).unwrap();

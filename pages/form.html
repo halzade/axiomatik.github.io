@@ -18,7 +18,7 @@
             <input type="text" name="title" required>
         </div>
         <div>
-            <label>Autor</label><br>
+            <label>Autor </label><br>
             <input type="text" name="author" value="{{ author_name }}" readonly>
         </div>
         <div>
@@ -57,6 +57,12 @@
             <input type="file" name="video" accept="video/*">
             <br/>
         </div>
+        <div class="container-wide">
+            <br/>
+            <label>Homepage</label><br>
+            <input type="checkbox" name="is_main"/> hlavní článek<br>
+            <input type="checkbox" name="is_exclusive"/> exkluzivně
+        </div>
         <div>
             <br/>
             <label>Kategorie</label><br/>
@@ -70,7 +76,9 @@
         </div>
         <div>
             <br/>
-            <label>Související články, cesty k souborům, každý na nový řádek, například:
+            <label>Související články,
+                <br/>
+                cesty k souborům, každý na nový řádek, například:
                 <br/>
                 jeden-tisic-dnu.html
             </label>

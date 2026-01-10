@@ -546,3 +546,106 @@ async fn test_create_article() {
     let archive_filename = format!("archive-test-cathegory-{}-{}.html", month_name, now.year());
     let _ = std::fs::remove_file(archive_filename);
 }
+
+#[tokio::test]
+async fn test_create_exclusive_main_article() {
+    let (app, db) = setup_app().await;
+
+    // 1. Create user via auth module (simulating command)
+    auth::create_editor_user(&db, "editor", "password")
+        .await
+        .unwrap();
+
+    // Login to get a cookie
+    let login_params = [("username", "editor"), ("password", "password")];
+    let login_body = serialize(&login_params);
+    let login_resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(login_body))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    let cookie = login_resp
+        .headers()
+        .get(header::SET_COOKIE)
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
+
+    let boundary = "---------------------------123456789012345678901234567";
+    std::fs::create_dir_all("uploads").unwrap();
+
+    let original_index = r#"<!DOCTYPE html><html><body><section class="main-article"><!-- MAIN_ARTICLE --><div class="main-article-text"><a href="old.html"><h1>Old</h1></a></div><!-- /MAIN_ARTICLE --></section><section class="right-articles"><!-- FIRST_ARTICLE --><div class="first-article">First</div><!-- /FIRST_ARTICLE --><!-- SECOND_ARTICLE --><div class="second-article">Second</div><!-- /SECOND_ARTICLE --></section></body></html>"#;
+    std::fs::write("index.html", original_index).unwrap();
+
+    let body = format!(
+        "--{0}\r\n\
+        Content-Disposition: form-data; name=\"title\"\r\n\r\n\
+        Exclusive Article\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"author\"\r\n\r\n\
+        Test Author\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"category\"\r\n\r\n\
+        zahranici\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"text\"\r\n\r\n\
+        Text\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"short_text\"\r\n\r\n\
+        Short text\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"is_main\"\r\n\r\n\
+        on\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"is_exclusive\"\r\n\r\n\
+        on\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"image\"; filename=\"test.jpg\"\r\n\
+        Content-Type: image/jpeg\r\n\r\n\
+        fake-image-data\r\n\
+        --{0}--\r\n",
+        boundary
+    );
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/create")
+                .header(
+                    header::CONTENT_TYPE,
+                    format!("multipart/form-data; boundary={}", boundary),
+                )
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(body))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+
+    let index_content = std::fs::read_to_string("index.html").unwrap();
+    println!("[DEBUG_LOG] Index content: {}", index_content);
+    assert!(index_content.contains("EXKLUZIVNĚ:"));
+    assert!(index_content.contains("Exclusive Article"));
+    assert!(index_content.contains("old.html")); // Moved to FIRST_ARTICLE
+    assert!(index_content.contains("class=\"first-article\""));
+    assert!(index_content.contains("class=\"second-article\""));
+    assert!(index_content.contains("First")); // Moved to SECOND_ARTICLE
+
+    // Cleanup
+    let _ = std::fs::remove_file("exclusive-article.html");
+    let _ = std::fs::remove_file("index.html");
+    let _ = std::fs::remove_file("snippets/exclusive-article.html.txt");
+}

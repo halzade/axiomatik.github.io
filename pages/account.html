@@ -15,12 +15,12 @@
         <h1>Můj účet</h1>
         <div class="account-info">
             <div class="field">
-                <label>Uživatelské jméno:</label>
+                <label>uživatelské jméno:</label>
                 <span>{{ username }}</span>
             </div>
             <br/>
             <div class="field">
-                <label>Jméno autora:</label>
+                <label>jméno autora zobrazené na článcích:</label>
                 <form id="author-form" action="/account/update-author" method="post" style="display: inline;">
                     <span id="author-name-display">{{ author_name }}</span>&nbsp;&nbsp;
                     <input type="text" name="author_name" id="author-name-input" value="{{ author_name }}" style="display: none;">
