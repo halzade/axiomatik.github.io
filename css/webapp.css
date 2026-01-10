@@ -85,7 +85,8 @@ button[type="submit"], .button {
 }
 
 button[type="submit"]:hover, .button:hover {
-    background-color: #e5e5e5;
+    background-color: #007bff;
+    color: white;
 }
 
 .article-item {

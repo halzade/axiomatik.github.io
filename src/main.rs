@@ -218,7 +218,7 @@ fn update_index_date() {
 }
 
 fn update_index_nameday() {
-    let name = namedays::today_nameday();
+    let name = namedays::today_name_day();
     let nameday_string = if name.is_empty() || name.contains("No nameday") || name.contains("Invalid") {
         "".to_string()
     } else {

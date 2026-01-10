@@ -415,7 +415,7 @@ fn get_nameday(year: i32, month: u32, day: u32) -> String {
     }
 }
 
-pub fn today_nameday() -> String {
+pub fn today_name_day() -> String {
     let now = Local::now();
     get_nameday(now.year(), now.month(), now.day())
 }
