@@ -82,9 +82,16 @@ async fn test_create_article() {
         Content-Disposition: form-data; name=\"related_articles\"\r\n\r\n\
         related-test-article.html\r\n\
         --{0}\r\n\
+        Content-Disposition: form-data; name=\"image_description\"\r\n\r\n\
+        test description\r\n\
+        --{0}\r\n\
         Content-Disposition: form-data; name=\"image\"; filename=\"test.jpg\"\r\n\
         Content-Type: image/jpeg\r\n\r\n\
         fake-image-data\r\n\
+        --{0}\r\n\
+        Content-Disposition: form-data; name=\"audio\"; filename=\"test.mp3\"\r\n\
+        Content-Type: audio/mpeg\r\n\r\n\
+        fake-audio-data\r\n\
         --{0}--\r\n",
         boundary
     );
@@ -158,7 +165,9 @@ async fn test_create_article() {
     if let Ok(entries) = std::fs::read_dir("uploads") {
         for entry in entries.flatten() {
             if let Some(name) = entry.file_name().to_str() {
-                if name.ends_with(".jpg") {
+                
+                // TODO only those which beign with test-
+                if name.ends_with(".jpg") || name.ends_with(".mp3") {
                     let _ = std::fs::remove_file(entry.path());
                 }
             }

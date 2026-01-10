@@ -76,6 +76,4 @@ async fn test_exclusive_main_article_finance() {
     // Cleanup
     fs::write("index.html", original_index).unwrap();
     let _ = fs::remove_file("financni-trhy-v-soku.html");
-    let _ = fs::remove_dir_all("snippets");
-    let _ = fs::remove_dir_all("uploads");
 }

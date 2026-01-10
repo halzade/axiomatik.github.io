@@ -37,6 +37,14 @@
             </figure>
 
             {{ text|safe }}
+            {% if audio_path.is_some() %}
+            <div class="container">
+                <audio controls style="width: 100%;">
+                    <source src="/uploads/{{ audio_path.as_ref().unwrap() }}" type="audio/mpeg">
+                    Váš prohlížeč nepodporuje zvukový prvek (audio).
+                </audio>
+            </div>
+            {% endif %}
             {% if video_path.is_some() %}
             <div class="container">
                 <div class="video-holder">

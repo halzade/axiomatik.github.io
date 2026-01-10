@@ -29,6 +29,7 @@ pub struct Article {
     pub image_url: String,
     pub image_description: String,
     pub video_url: Option<String>,
+    pub audio_url: Option<String>,
     pub category: String,
     pub related_articles: String,
     pub views: i64,

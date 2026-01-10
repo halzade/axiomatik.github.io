@@ -79,6 +79,7 @@ pub struct ArticleTemplate {
     pub image_path: String,
     pub image_description: String,
     pub video_path: Option<String>,
+    pub audio_path: Option<String>,
     pub category: String,
     pub category_display: String,
     pub related_snippets: String,
@@ -364,6 +365,7 @@ pub async fn create_article(
     let mut image_path = String::new();
     let mut image_description = String::new();
     let mut video_path = None;
+    let mut audio_path = None;
     let mut is_main = false;
     let mut is_exclusive = false;
 
@@ -526,6 +528,33 @@ pub async fn create_article(
                     }
                 }
             }
+
+            "audio" => {
+                if let Some(file_name) = field.file_name() {
+                    if validate_input(&file_name).is_err() {
+                        return StatusCode::BAD_REQUEST.into_response();
+                    }
+
+                    if !file_name.is_empty() {
+                        let extension = std::path::Path::new(file_name)
+                            .extension()
+                            .and_then(|s| s.to_str())
+                            .map(|s| s.to_lowercase());
+
+                        match extension {
+                            Some(ext) if ["mp3", "wav", "ogg", "m4a"].contains(&ext.as_str()) => {
+                                let new_name = format!("{}.{}", Uuid::new_v4(), ext);
+                                let data = field.bytes().await.unwrap();
+                                fs::write(format!("uploads/{}", new_name), data).unwrap();
+                                audio_path = Some(new_name);
+                            }
+                            _ => {
+                                // If extension is missing or not allowed, skip
+                            }
+                        }
+                    }
+                }
+            }
             _ => (),
         }
     }
@@ -568,6 +597,7 @@ pub async fn create_article(
         image_path: image_path.clone(),
         image_description: image_description.clone(),
         video_path: video_path.clone(),
+        audio_path: audio_path.clone(),
         category: category.clone(),
         category_display: category_display.clone(),
         related_snippets: related_snippets.clone(),
@@ -738,6 +768,7 @@ pub async fn create_article(
         image_url: image_path,
         image_description: image_description.clone(),
         video_url: video_path,
+        audio_url: audio_path,
         category: category.clone(),
         related_articles: related_articles_input.clone(),
         views: 0,
