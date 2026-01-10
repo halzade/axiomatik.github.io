@@ -52,7 +52,7 @@ main.content {
     top: 0;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     vertical-align: bottom;
     /*background: #f2dfce;*/
     background: #F8F8F8;
@@ -60,8 +60,13 @@ main.content {
     border-top: 1px solid #E0E0E0;
     border-bottom: 1px solid #E0E0E0;
     z-index: 10;
-    height: 50px;
+    min-height: 80px;
     text-align: center;
+}
+
+.topbar .left, .topbar .right {
+    width: 200px;
+    text-align: left;
 }
 
 .logo:hover,
@@ -71,7 +76,7 @@ main.content {
 }
 
 .logo {
-    font-size: 28px;
+    font-size: 70px;
     font-weight: bold;
     letter-spacing: 1px;
     text-decoration: none;
@@ -107,6 +112,7 @@ a:hover {
 }
 
 .main-nav {
+    padding-top: 10px;
     text-align: center;
 }
 
@@ -115,6 +121,7 @@ a:hover {
     text-decoration: none;
     color: #222;
     font-weight: 500;
+    font-size: 20px;
 }
 
 .main-nav a:hover {

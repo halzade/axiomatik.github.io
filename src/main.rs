@@ -9,6 +9,8 @@ use tokio::time::interval;
 use tokio::time::{self, Duration, Instant};
 use tracing::{error, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use reqwest;
+use serde_json;
 
 #[tokio::main]
 async fn main() {
@@ -76,6 +78,7 @@ async fn main() {
      */
     info!("startup actions");
     update_index_date();
+    update_index_weather().await;
 
     // Ensure uploads directory exists
     fs::create_dir_all("uploads").unwrap();
@@ -100,6 +103,7 @@ async fn main() {
     // scheduled actions
     info!("schedule midnight worker");
     midnight_worker();
+    weather_worker();
 
     // start the application
     if let Err(err) = axum::serve(listener, app).await {
@@ -128,6 +132,17 @@ fn midnight_worker() {
             interval.tick().await;
             info!("midnight event");
             update_index_date();
+        }
+    });
+}
+
+fn weather_worker() {
+    tokio::spawn(async {
+        // Every 60 minutes
+        let mut interval = interval(Duration::from_secs(60 * 60));
+        loop {
+            interval.tick().await;
+            update_index_weather().await;
         }
     });
 }
@@ -196,5 +211,84 @@ fn update_index_date() {
                 info!("index.html date is already up to date: {}", date_string);
             }
         }
+    }
+}
+
+async fn update_index_weather() {
+    let url = "https://api.open-meteo.com/v1/forecast?latitude=50.0755&longitude=14.4378&current_weather=true&timezone=Europe/Prague";
+    
+    let weather_string = match fetch_weather(url).await {
+        Ok(temp) => format!("{:.0}°C | Prague", temp),
+        Err(_) => "".to_string(),
+    };
+
+    if let Ok(content) = fs::read_to_string("index.html") {
+        let start_tag = "<!-- WEATHER -->";
+        let end_tag = "<!-- /WEATHER -->";
+
+        if let (Some(_start), Some(_end)) = (content.find(start_tag), content.find(end_tag)) {
+            let new_content = replace_weather_in_content(&content, &weather_string);
+
+            if content != new_content {
+                if let Err(e) = fs::write("index.html", new_content) {
+                    eprintln!("Failed to write index.html for weather: {}", e);
+                } else {
+                    info!("index.html weather updated to: {}", weather_string);
+                }
+            } else {
+                info!("index.html weather is already up to date: {}", weather_string);
+            }
+        }
+    }
+}
+
+fn replace_weather_in_content(content: &str, weather_string: &str) -> String {
+    let start_tag = "<!-- WEATHER -->";
+    let end_tag = "<!-- /WEATHER -->";
+
+    if let (Some(start), Some(end)) = (content.find(start_tag), content.find(end_tag)) {
+        let mut new_content = content[..start + start_tag.len()].to_string();
+        new_content.push_str(weather_string);
+        new_content.push_str(&content[end..]);
+        new_content
+    } else {
+        content.to_string()
+    }
+}
+
+async fn fetch_weather(url: &str) -> Result<f64, Box<dyn std::error::Error>> {
+    let resp = reqwest::get(url).await?.json::<serde_json::Value>().await?;
+    let temp = resp["current_weather"]["temperature"]
+        .as_f64()
+        .ok_or("Could not find temperature")?;
+    Ok(temp)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_weather_replacement_logic() {
+        let content = "<html><!-- WEATHER -->OLD<!-- /WEATHER --></html>";
+        let weather_string = "23°C | Prague";
+        let new_content = replace_weather_in_content(content, weather_string);
+        assert_eq!(new_content, "<html><!-- WEATHER -->23°C | Prague<!-- /WEATHER --></html>");
+    }
+
+    #[test]
+    fn test_no_weather_replacement_if_same() {
+        let content = "<html><!-- WEATHER -->23°C | Prague<!-- /WEATHER --></html>";
+        let weather_string = "23°C | Prague";
+        let new_content = replace_weather_in_content(content, weather_string);
+        assert_eq!(content, new_content);
+    }
+
+    #[test]
+    fn test_weather_replacement_empty_if_exception() {
+        let content = "<html><!-- WEATHER -->23°C | Prague<!-- /WEATHER --></html>";
+        let weather_string = "";
+        let new_content = replace_weather_in_content(content, weather_string);
+        assert_eq!(new_content, "<html><!-- WEATHER --><!-- /WEATHER --></html>");
     }
 }
