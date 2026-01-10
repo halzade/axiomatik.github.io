@@ -757,6 +757,35 @@ pub async fn create_article(
         }
     }
 
+    if category == "republika" {
+        if let Ok(mut index_content) = fs::read_to_string("index.html") {
+            if let (Some(start), Some(end)) = (
+                index_content.find("<!-- Z_REPUBLIKY -->"),
+                index_content.find("<!-- /Z_REPUBLIKY -->"),
+            ) {
+                let section_content = &index_content[start + "<!-- Z_REPUBLIKY -->".len()..end];
+                let mut articles: Vec<String> = section_content
+                    .split("</article>")
+                    .filter(|s| s.contains("<article"))
+                    .map(|s| format!("{}</article>", s))
+                    .collect();
+
+                articles.insert(0, format!("\n{}", snippet.trim()));
+
+                if articles.len() > 10 {
+                    articles.truncate(10);
+                }
+
+                let new_section_content = format!("{}\n                    ", articles.join(""));
+                index_content.replace_range(
+                    start + "<!-- Z_REPUBLIKY -->".len()..end,
+                    &new_section_content,
+                );
+                fs::write("index.html", index_content).unwrap();
+            }
+        }
+    }
+
     Redirect::to(&format!("/{}.html", safe_title)).into_response()
 }
 
