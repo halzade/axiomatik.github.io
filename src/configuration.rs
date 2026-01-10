@@ -1,5 +1,6 @@
-use serde::Deserialize;
 use config::{Config, ConfigError, File};
+use serde::Deserialize;
+use tracing::info;
 
 #[derive(Deserialize, Clone)]
 pub struct Settings {
@@ -19,12 +20,17 @@ pub fn get_configuration() -> Result<Settings, ConfigError> {
     // Detect the running environment.
     // Default to `dev` if unspecified.
     let environment: Environment = std::env::var("APP_ENVIRONMENT")
-        .unwrap()
+        .unwrap_or_else(|_| {
+            info!("APP_ENVIRONMENT not set, defaulting to 'dev'");
+            "dev".into()
+        })
         .try_into()
         .expect("Failed to parse APP_ENVIRONMENT.");
 
     let settings = Config::builder()
-        .add_source(File::from(configuration_directory.join(format!("{}.toml", environment.as_str()))))
+        .add_source(File::from(
+            configuration_directory.join(format!("{}.toml", environment.as_str())),
+        ))
         .build()?;
 
     settings.try_deserialize::<Settings>()
@@ -35,6 +41,7 @@ pub enum Environment {
     Prod,
 }
 
+// runs onf different port
 impl Environment {
     pub fn as_str(&self) -> &'static str {
         match self {

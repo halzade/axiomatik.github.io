@@ -20,7 +20,7 @@ use serde::Deserialize;
 use std::fs;
 use std::sync::Arc;
 use tower_http::services::ServeDir;
-use tracing::{info, warn};
+use tracing::{info, warn, error};
 use uuid::Uuid;
 
 #[derive(Template)]
@@ -259,7 +259,7 @@ pub async fn handle_change_password(
         match auth::change_password(&db, username, &payload.new_password).await {
             Ok(_) => Redirect::to("/account").into_response(),
             Err(e) => {
-                println!("{:?}", e);
+                error!("{:?}", e);
                 Html(
                     ChangePasswordTemplate {
                         error: true,

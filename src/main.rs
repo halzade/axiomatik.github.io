@@ -2,16 +2,15 @@ use axiomatik_web::configuration::get_configuration;
 use axiomatik_web::db;
 mod namedays;
 use chrono::{Datelike, Local, Weekday};
+use reqwest;
+use serde_json;
 use std::env;
 use std::fs;
 use std::sync::Arc;
-use log::trace;
 use tokio::time::interval;
 use tokio::time::{self, Duration, Instant};
-use tracing::{error, info};
+use tracing::{error, info, trace};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use reqwest;
-use serde_json;
 
 #[tokio::main]
 async fn main() {
@@ -20,7 +19,7 @@ async fn main() {
 
     if args.len() > 1 && args[1] == "create-user" {
         if args.len() != 4 {
-            eprintln!("Usage: cargo run -- create-user <username> <password>");
+            info!("Usage: cargo run -- create-user <username> <password>");
             std::process::exit(1);
         }
 
@@ -34,7 +33,7 @@ async fn main() {
                 std::process::exit(0);
             }
             Err(e) => {
-                eprintln!("Failed to create editor user: {}", e);
+                error!("Failed to create editor user: {}", e);
                 std::process::exit(1);
             }
         }
@@ -42,7 +41,7 @@ async fn main() {
 
     if args.len() > 1 && args[1] == "delete-user" {
         if args.len() != 3 {
-            eprintln!("Usage: cargo run -- delete-user <username>");
+            info!("Usage: cargo run -- delete-user <username>");
             std::process::exit(1);
         }
 
@@ -55,7 +54,7 @@ async fn main() {
                 std::process::exit(0);
             }
             Err(e) => {
-                eprintln!("Failed to delete user: {}", e);
+                error!("Failed to delete user: {}", e);
                 std::process::exit(1);
             }
         }
@@ -63,7 +62,12 @@ async fn main() {
 
     if args.len() > 1 && args[1] == "print-from-db" {
         if args.len() != 3 {
-            eprintln!("Usage: cargo run -- print-from-db \"<query>\"");
+            info!("Usage: cargo run -- print-from-db \"<query>\"");
+
+            for arg in &args {
+                println!("Argument: {}", arg);
+            }
+
             std::process::exit(1);
         }
 
@@ -75,7 +79,7 @@ async fn main() {
                 std::process::exit(0);
             }
             Err(e) => {
-                eprintln!("Failed to execute query: {}", e);
+                error!("Failed to execute query: {}", e);
                 std::process::exit(1);
             }
         }
@@ -95,14 +99,14 @@ async fn main() {
      *  trigger actions at startup
      *
      *  in devel,
-     *  changing files will cause application restart, because of cargo watch
+     *  changing files will cause the application to restart, because of cargo watch
      */
     info!("startup actions");
     update_index_date();
     update_index_nameday();
     update_index_weather().await;
 
-    // Ensure uploads directory exists
+    // Ensure the uploads directory exists
     fs::create_dir_all("uploads").unwrap();
     fs::create_dir_all("snippets").unwrap();
 
@@ -226,7 +230,7 @@ fn update_index_date() {
 
             if content != new_content {
                 if let Err(e) = fs::write("index.html", new_content) {
-                    eprintln!("Failed to write index.html: {}", e);
+                    error!("Failed to write index.html: {}", e);
                 } else {
                     info!("index.html date updated to: {}", date_string);
                 }
@@ -239,11 +243,12 @@ fn update_index_date() {
 
 fn update_index_nameday() {
     let name = namedays::today_name_day();
-    let nameday_string = if name.is_empty() || name.contains("No nameday") || name.contains("Invalid") {
-        "".to_string()
-    } else {
-        format!("Svátek má {}", name)
-    };
+    let nameday_string =
+        if name.is_empty() || name.contains("No nameday") || name.contains("Invalid") {
+            "".to_string()
+        } else {
+            format!("Svátek má {}", name)
+        };
 
     if let Ok(content) = fs::read_to_string("index.html") {
         let start_tag = "<!-- NAME_DAY -->";
@@ -254,12 +259,15 @@ fn update_index_nameday() {
 
             if content != new_content {
                 if let Err(e) = fs::write("index.html", new_content) {
-                    eprintln!("Failed to write index.html for nameday: {}", e);
+                    error!("Failed to write index.html for nameday: {}", e);
                 } else {
                     info!("index.html nameday updated to: {}", nameday_string);
                 }
             } else {
-                info!("index.html nameday is already up to date: {}", nameday_string);
+                info!(
+                    "index.html nameday is already up to date: {}",
+                    nameday_string
+                );
             }
         }
     }
@@ -268,7 +276,15 @@ fn update_index_nameday() {
 fn replace_nameday_in_content(content: &str, nameday_string: &str) -> String {
     let start_tag = "<!-- NAME_DAY -->";
     let end_tag = "<!-- /NAME_DAY -->";
+    replace_in_content(start_tag, end_tag, content, nameday_string)
+}
 
+fn replace_in_content(
+    start_tag: &str,
+    end_tag: &str,
+    content: &str,
+    nameday_string: &str,
+) -> String {
     if let (Some(start), Some(end)) = (content.find(start_tag), content.find(end_tag)) {
         let mut new_content = content[..start + start_tag.len()].to_string();
         new_content.push_str(nameday_string);
@@ -296,12 +312,15 @@ async fn update_index_weather() {
 
             if content != new_content {
                 if let Err(e) = fs::write("index.html", new_content) {
-                    eprintln!("Failed to write index.html for weather: {}", e);
+                    error!("Failed to write index.html for weather: {}", e);
                 } else {
                     info!("index.html weather updated to: {}", weather_string);
                 }
             } else {
-                info!("index.html weather is already up to date: {}", weather_string);
+                info!(
+                    "index.html weather is already up to date: {}",
+                    weather_string
+                );
             }
         }
     }
@@ -310,15 +329,7 @@ async fn update_index_weather() {
 fn replace_weather_in_content(content: &str, weather_string: &str) -> String {
     let start_tag = "<!-- WEATHER -->";
     let end_tag = "<!-- /WEATHER -->";
-
-    if let (Some(start), Some(end)) = (content.find(start_tag), content.find(end_tag)) {
-        let mut new_content = content[..start + start_tag.len()].to_string();
-        new_content.push_str(weather_string);
-        new_content.push_str(&content[end..]);
-        new_content
-    } else {
-        content.to_string()
-    }
+    replace_in_content(start_tag, end_tag, content, weather_string)
 }
 
 async fn fetch_weather(url: &str) -> Result<f64, Box<dyn std::error::Error>> {
@@ -338,7 +349,10 @@ mod tests {
         let content = "<html><!-- WEATHER -->OLD<!-- /WEATHER --></html>";
         let weather_string = "23°C | Praha";
         let new_content = replace_weather_in_content(content, weather_string);
-        assert_eq!(new_content, "<html><!-- WEATHER -->23°C | Praha<!-- /WEATHER --></html>");
+        assert_eq!(
+            new_content,
+            "<html><!-- WEATHER -->23°C | Praha<!-- /WEATHER --></html>"
+        );
     }
 
     #[test]
@@ -354,7 +368,10 @@ mod tests {
         let content = "<html><!-- WEATHER -->23°C | Praha<!-- /WEATHER --></html>";
         let weather_string = "";
         let new_content = replace_weather_in_content(content, weather_string);
-        assert_eq!(new_content, "<html><!-- WEATHER --><!-- /WEATHER --></html>");
+        assert_eq!(
+            new_content,
+            "<html><!-- WEATHER --><!-- /WEATHER --></html>"
+        );
     }
 
     #[test]
@@ -362,7 +379,10 @@ mod tests {
         let content = "<html><!-- NAME_DAY -->OLD<!-- /NAME_DAY --></html>";
         let nameday_string = "Svátek má Jaroslava";
         let new_content = replace_nameday_in_content(content, nameday_string);
-        assert_eq!(new_content, "<html><!-- NAME_DAY -->Svátek má Jaroslava<!-- /NAME_DAY --></html>");
+        assert_eq!(
+            new_content,
+            "<html><!-- NAME_DAY -->Svátek má Jaroslava<!-- /NAME_DAY --></html>"
+        );
     }
 
     #[test]

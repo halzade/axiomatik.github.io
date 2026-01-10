@@ -393,7 +393,6 @@ dependencies = [
  "chrono",
  "config",
  "http",
- "log",
  "reqwest",
  "serde",
  "serde_json",

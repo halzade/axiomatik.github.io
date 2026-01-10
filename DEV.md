@@ -12,7 +12,7 @@
 `cargo run -- delete-user lukas`
 
 ### Print from Database
-`cargo run -- print-from-db "select username form user"`
+`cargo run -- print-from-db "select * from user"`
 
 ### other commands
 
