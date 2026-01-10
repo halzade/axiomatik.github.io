@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod configuration;
 pub mod db;
+mod namedays;
 
 use askama::Template;
 use axum::{
