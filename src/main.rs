@@ -1,5 +1,6 @@
 use axiomatik_web::configuration::get_configuration;
 use axiomatik_web::db;
+mod namedays;
 use chrono::{Datelike, Local, Weekday};
 use std::env;
 use std::fs;
@@ -78,6 +79,7 @@ async fn main() {
      */
     info!("startup actions");
     update_index_date();
+    update_index_nameday();
     update_index_weather().await;
 
     // Ensure uploads directory exists
@@ -132,6 +134,7 @@ fn midnight_worker() {
             interval.tick().await;
             info!("midnight event");
             update_index_date();
+            update_index_nameday();
         }
     });
 }
@@ -214,9 +217,51 @@ fn update_index_date() {
     }
 }
 
+fn update_index_nameday() {
+    let name = namedays::today_nameday();
+    let nameday_string = if name.is_empty() || name.contains("No nameday") || name.contains("Invalid") {
+        "".to_string()
+    } else {
+        format!("Svátek má {}", name)
+    };
+
+    if let Ok(content) = fs::read_to_string("index.html") {
+        let start_tag = "<!-- NAME_DAY -->";
+        let end_tag = "<!-- /NAME_DAY -->";
+
+        if let (Some(_start), Some(_end)) = (content.find(start_tag), content.find(end_tag)) {
+            let new_content = replace_nameday_in_content(&content, &nameday_string);
+
+            if content != new_content {
+                if let Err(e) = fs::write("index.html", new_content) {
+                    eprintln!("Failed to write index.html for nameday: {}", e);
+                } else {
+                    info!("index.html nameday updated to: {}", nameday_string);
+                }
+            } else {
+                info!("index.html nameday is already up to date: {}", nameday_string);
+            }
+        }
+    }
+}
+
+fn replace_nameday_in_content(content: &str, nameday_string: &str) -> String {
+    let start_tag = "<!-- NAME_DAY -->";
+    let end_tag = "<!-- /NAME_DAY -->";
+
+    if let (Some(start), Some(end)) = (content.find(start_tag), content.find(end_tag)) {
+        let mut new_content = content[..start + start_tag.len()].to_string();
+        new_content.push_str(nameday_string);
+        new_content.push_str(&content[end..]);
+        new_content
+    } else {
+        content.to_string()
+    }
+}
+
 async fn update_index_weather() {
     let url = "https://api.open-meteo.com/v1/forecast?latitude=50.0755&longitude=14.4378&current_weather=true&timezone=Europe/Prague";
-    
+
     let weather_string = match fetch_weather(url).await {
         Ok(temp) => format!("{:.0}°C | Prague", temp),
         Err(_) => "".to_string(),
@@ -290,5 +335,21 @@ mod tests {
         let weather_string = "";
         let new_content = replace_weather_in_content(content, weather_string);
         assert_eq!(new_content, "<html><!-- WEATHER --><!-- /WEATHER --></html>");
+    }
+
+    #[test]
+    fn test_nameday_replacement_logic() {
+        let content = "<html><!-- NAME_DAY -->OLD<!-- /NAME_DAY --></html>";
+        let nameday_string = "Svátek má Jaroslava";
+        let new_content = replace_nameday_in_content(content, nameday_string);
+        assert_eq!(new_content, "<html><!-- NAME_DAY -->Svátek má Jaroslava<!-- /NAME_DAY --></html>");
+    }
+
+    #[test]
+    fn test_no_nameday_replacement_if_same() {
+        let content = "<html><!-- NAME_DAY -->Svátek má Jaroslava<!-- /NAME_DAY --></html>";
+        let nameday_string = "Svátek má Jaroslava";
+        let new_content = replace_nameday_in_content(content, nameday_string);
+        assert_eq!(content, new_content);
     }
 }
