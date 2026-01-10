@@ -53,9 +53,10 @@ pub async fn setup_test_environment() -> (axum::Router, Arc<db::Database>, Strin
         .to_str()
         .unwrap()
         .to_string();
-    let original_index = fs::read_to_string("../index.html").expect("Failed to read index.html");
+    let original_index = fs::read_to_string("index.html").expect("Failed to read index.html");
 
-    fs::create_dir_all("../snippets").unwrap();
+    fs::create_dir_all("snippets").unwrap();
+    fs::create_dir_all("uploads").unwrap();
 
     (app, db, cookie, original_index)
 }
