@@ -204,12 +204,12 @@ a:hover {
     margin-bottom: 10px;
 }
 
-.card {
+.card, .article-grid article {
     padding: 20px;
     display: block;
 }
 
-.card h2 {
+.card h2, .article-grid article {
     font-size: 1.3rem;
     margin-bottom: 10px;
 }
