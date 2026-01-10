@@ -83,15 +83,20 @@ impl Database {
     }
 
     pub async fn has_users(&self) -> bool {
-        // TODO simplify
-        let users: Vec<User> = self
+        let response = self
             .db
             .read()
             .await
-            .select("user")
+            .query("SELECT count() FROM user")
             .await
-            .unwrap_or_default();
-        !users.is_empty()
+            .ok();
+
+        if let Some(mut response) = response {
+            let count: Option<i64> = response.take(0).unwrap_or_default();
+            count.unwrap_or(0) > 0
+        } else {
+            false
+        }
     }
 
     pub async fn create_article(&self, article: Article) -> surrealdb::Result<Option<Article>> {

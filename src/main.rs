@@ -61,6 +61,26 @@ async fn main() {
         }
     }
 
+    if args.len() > 1 && args[1] == "print-from-db" {
+        if args.len() != 3 {
+            eprintln!("Usage: cargo run -- print-from-db \"<query>\"");
+            std::process::exit(1);
+        }
+
+        let query = &args[2];
+
+        let db = db::init_db().await;
+        match axiomatik_web::db_tool::print_from_db(&db, query).await {
+            Ok(_) => {
+                std::process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Failed to execute query: {}", e);
+                std::process::exit(1);
+            }
+        }
+    }
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
