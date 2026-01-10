@@ -1,16 +1,16 @@
-use axiomatik_web::{app, auth, db};
+mod test_base;
+use crate::test_base::serialize;
+use axiomatik_web::db;
 use axum::{
     body::Body,
     http::{Request, StatusCode, header},
 };
 use chrono::Datelike;
-use std::sync::Arc;
 use tower::ServiceExt;
-use url::form_urlencoded;
 
 #[tokio::test]
 async fn test_create_article() {
-    let (app, db) = setup_app().await;
+    let (app, db) = test_base::setup_app().await;
 
     // 1. Create user who does NOT need password change
     let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();

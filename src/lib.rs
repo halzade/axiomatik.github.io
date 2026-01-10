@@ -580,7 +580,25 @@ pub async fn create_article(
     let safe_title = title
         .to_lowercase()
         .chars()
-        .map(|c| if c.is_alphanumeric() { c } else { '-' })
+        .map(|c| match c {
+            'a'..='z' | '0'..='9' => c,
+            'á' => 'a',
+            'č' => 'c',
+            'ď' => 'd',
+            'é' => 'e',
+            'ě' => 'e',
+            'í' => 'i',
+            'ň' => 'n',
+            'ó' => 'o',
+            'ř' => 'r',
+            'š' => 's',
+            'ť' => 't',
+            'ú' => 'u',
+            'ů' => 'u',
+            'ý' => 'y',
+            'ž' => 'z',
+            _ => '-',
+        })
         .collect::<String>();
     let file_path = format!("{}.html", safe_title);
     fs::write(&file_path, html_content).unwrap();
@@ -757,13 +775,19 @@ pub async fn create_article(
         }
     }
 
-    if category == "republika" {
+    let (marker_start, marker_end) = match category.as_str() {
+        "republika" => ("<!-- Z_REPUBLIKY -->", "<!-- /Z_REPUBLIKY -->"),
+        "zahranici" => ("<!-- ZE_ZAHRANICI -->", "<!-- /ZE_ZAHRANICI -->"),
+        _ => ("", ""),
+    };
+
+    if !marker_start.is_empty() {
         if let Ok(mut index_content) = fs::read_to_string("index.html") {
             if let (Some(start), Some(end)) = (
-                index_content.find("<!-- Z_REPUBLIKY -->"),
-                index_content.find("<!-- /Z_REPUBLIKY -->"),
+                index_content.find(marker_start),
+                index_content.find(marker_end),
             ) {
-                let section_content = &index_content[start + "<!-- ZE_ZAHRANICI -->".len()..end];
+                let section_content = &index_content[start + marker_start.len()..end];
                 let mut articles: Vec<String> = section_content
                     .split("</article>")
                     .filter(|s| s.contains("<article"))
@@ -778,7 +802,7 @@ pub async fn create_article(
 
                 let new_section_content = format!("{}\n                    ", articles.join(""));
                 index_content.replace_range(
-                    start + "<!-- Z_REPUBLIKY -->".len()..end,
+                    start + marker_start.len()..end,
                     &new_section_content,
                 );
                 fs::write("index.html", index_content).unwrap();

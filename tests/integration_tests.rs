@@ -1,23 +1,11 @@
-use axiomatik_web::{app, auth, db};
+mod test_base;
+use crate::test_base::{serialize, setup_app};
+use axiomatik_web::{auth, db};
 use axum::{
     body::Body,
     http::{Request, StatusCode, header},
 };
-use chrono::Datelike;
-use std::sync::Arc;
 use tower::ServiceExt;
-use url::form_urlencoded;
-
-async fn setup_app() -> (axum::Router, Arc<db::Database>) {
-    let db = Arc::new(db::init_mem_db().await);
-    (app(db.clone()), db)
-}
-
-fn serialize(params: &[(&str, &str)]) -> String {
-    let mut serializer = form_urlencoded::Serializer::new(String::new());
-    serializer.extend_pairs(params);
-    serializer.finish()
-}
 
 #[tokio::test]
 async fn test_login() {
