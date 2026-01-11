@@ -15,7 +15,7 @@
     <form action="/create" method="post" enctype="multipart/form-data" id="article-form">
         <div>
             <label>Titulek</label><br>
-            <input type="text" name="title" required>
+            <input type="text" name="title" class="required">
             <div class="error-message">Prosím vyplňte titulek.</div>
         </div>
         <div>
@@ -24,7 +24,7 @@
         </div>
         <div>
             <label>Text článku</label><br>
-            <textarea name="text" rows="20" cols="50" required></textarea>
+            <textarea name="text" rows="20" cols="50" class="required"></textarea>
             <div class="error-message">Prosím vyplňte text článku.</div>
         </div>
         <div class="container-wide">
@@ -42,14 +42,14 @@
         <div class="container-wide">
             <br/>
             <label>Krátký text, souvysející článek náhled</label><br>
-            <textarea name="short_text" rows="5" cols="50" required></textarea>
+            <textarea name="short_text" rows="5" cols="50" class="required"></textarea>
             <div class="error-message">Prosím vyplňte krátký text článku.</div>
         </div>
 
         <div class="container-wide">
             <br/>
             <label>Soubor obrázku článku (povinný rozměr na šířku je minimálně 820 px)</label><br/>
-            <input type="file" name="image" id="image-input" accept="image/*" required>
+            <input type="file" name="image" id="image-input" accept="image/*" class="required">
             <div id="image-error" class="error-message">Obrázek musí mít šířku alespoň 820 px.</div>
             <br/>
             <label>Popis obrázku</label><br/>
@@ -73,7 +73,7 @@
         <div>
             <br/>
             <label>Kategorie</label><br/>
-            <select name="category" required>
+            <select name="category" class="required">
                 <option value="">-- Vyberte kategorii --</option>
                 <option value="republika">Republika</option>
                 <option value="zahranici">Zahraničí</option>
@@ -104,7 +104,7 @@
         </div>
         <br>
         <button type="submit">Vytvořit článek</button>
-    <!--<button type="submit" style="display: none;">Potvrdit</button>-->
+        <!--<button type="submit" style="display: none;">Potvrdit</button>-->
         <br>
     </form>
 </div>

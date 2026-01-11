@@ -1,4 +1,7 @@
-document.getElementById('article-form').addEventListener('submit', async function(e) {
+const form = document.getElementById('article-form');
+form.setAttribute('novalidate', true);
+
+form.addEventListener('submit', async function(e) {
     e.preventDefault();
     const form = e.target;
     let isValid = true;
@@ -8,7 +11,7 @@ document.getElementById('article-form').addEventListener('submit', async functio
     form.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
 
     // Basic required validation
-    form.querySelectorAll('[required]').forEach(input => {
+    form.querySelectorAll('.required').forEach(input => {
         if (!input.value.trim()) {
             showError(input);
             isValid = false;
