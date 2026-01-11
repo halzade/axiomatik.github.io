@@ -217,7 +217,8 @@ fn update_index_nameday() {
             format!("Svátek má {}", name)
         };
 
-    update_all_header_info(&nameday_string, &nameday_string, ""); // This is not quite right, but I'll make a better function
+    // TODO
+    // update_all_header_info("", &nameday_string, "");
 }
 
 fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) {
@@ -236,7 +237,7 @@ fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) 
 
             // date
             if !date_str.is_empty() {
-                let next = replace_in_content("<!-- DATE -->", "<!-- /DATE -->", &content, date_str);
+                let next = replace_date_in_content(&content, date_str);
                 if next != content {
                     content = next;
                     changed = true;
@@ -276,6 +277,18 @@ fn replace_nameday_in_content(content: &str, nameday_string: &str) -> String {
     replace_in_content(start_tag, end_tag, content, nameday_string)
 }
 
+fn replace_weather_in_content(content: &str, weather_string: &str) -> String {
+    let start_tag = "<!-- WEATHER -->";
+    let end_tag = "<!-- /WEATHER -->";
+    replace_in_content(start_tag, end_tag, content, weather_string)
+}
+
+fn replace_date_in_content(content: &str, date_string: &str) -> String {
+    let start_tag = "<!-- DATE -->";
+    let end_tag = "<!-- /DATE -->";
+    replace_in_content(start_tag, end_tag, content, date_string)
+}
+
 fn replace_in_content(
     start_tag: &str,
     end_tag: &str,
@@ -301,12 +314,6 @@ async fn update_index_weather() {
     };
 
     update_all_header_info("", "", &weather_string);
-}
-
-fn replace_weather_in_content(content: &str, weather_string: &str) -> String {
-    let start_tag = "<!-- WEATHER -->";
-    let end_tag = "<!-- /WEATHER -->";
-    replace_in_content(start_tag, end_tag, content, weather_string)
 }
 
 async fn fetch_weather(url: &str) -> Result<f64, Box<dyn std::error::Error>> {

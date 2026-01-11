@@ -68,3 +68,7 @@ button:hover, input[type="file"]::file-selector-button:hover {
 .main-article-text h1, article a h2, article a h3, .first-article a h2, .second-article a h2 {
     color: white;
 }
+
+.search-icon {
+    background-image: url('../images/search-50-white.png');
+}
