@@ -179,7 +179,7 @@ article a:hover {
 }
 
 .main-article a:has(img) {
-    width: 53.125%; /* (34 / 64) * 100 */
+    width: 53%; /* (34 / 64) * 100 */
 }
 
 .main-article img {

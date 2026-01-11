@@ -61,9 +61,19 @@ input[type="file"] {
     padding: 8px 12px;
 }
 
-input[type="text"].input-error,
-input[type="password"].input-error {
-    border-color: red;
+input[type="text"].error,
+input[type="password"].error,
+input[type="file"].error,
+textarea.error,
+select.error {
+    border: 2px solid #dc3545 !important;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 4px;
+    display: none;
 }
 
 button[type="submit"], .button {

@@ -16,6 +16,7 @@
         <div>
             <label>Titulek</label><br>
             <input type="text" name="title" required>
+            <div class="error-message">Prosím vyplňte titulek.</div>
         </div>
         <div>
             <label>Autor </label><br>
@@ -24,6 +25,7 @@
         <div>
             <label>Text článku</label><br>
             <textarea name="text" rows="20" cols="50" required></textarea>
+            <div class="error-message">Prosím vyplňte text článku.</div>
         </div>
         <div class="container-wide">
             <p>
@@ -41,13 +43,14 @@
             <br/>
             <label>Krátký text, souvysející článek náhled</label><br>
             <textarea name="short_text" rows="5" cols="50" required></textarea>
+            <div class="error-message">Prosím vyplňte krátký text článku.</div>
         </div>
 
         <div class="container-wide">
             <br/>
-            <label>Soubor obrázku článku (povinný rozměr na šířku je 820 px)</label><br/>
+            <label>Soubor obrázku článku (povinný rozměr na šířku je minimálně 820 px)</label><br/>
             <input type="file" name="image" id="image-input" accept="image/*" required>
-            <div id="image-error" style="color: #dc3545; display: none;">Obrázek musí mít šířku přesně 820 px.</div>
+            <div id="image-error" class="error-message">Obrázek musí mít šířku alespoň 820 px.</div>
             <br/>
             <label>Popis obrázku</label><br/>
             <textarea name="image_description" rows="1" style="width: 100%;"></textarea><br/>
@@ -71,12 +74,14 @@
             <br/>
             <label>Kategorie</label><br/>
             <select name="category" required>
+                <option value="">-- Vyberte kategorii --</option>
                 <option value="republika">Republika</option>
                 <option value="zahranici">Zahraničí</option>
                 <option value="finance">Finance</option>
                 <option value="technologie">Technologie</option>
                 <option value="veda">Věda</option>
             </select>
+            <div class="error-message">Prosím vyberte kategorii.</div>
         </div>
         <div>
             <br/>
@@ -90,7 +95,16 @@
             <textarea name="related_articles" rows="5" style="width: 100%;"></textarea>
         </div>
         <br>
+        <div class="container-wide minor-validation"
+             style="display: none;">
+            Tato pole nejsou vyplněna:<br/>
+            <span class="err-video">• video</span><br/>
+            <span class="err-audio">• audio</span><br/>
+            <span class="err-related_articles">• související články</span>
+        </div>
+        <br>
         <button type="submit">Vytvořit článek</button>
+    <!--<button type="submit" style="display: none;">Potvrdit</button>-->
         <br>
     </form>
 </div>
