@@ -14,7 +14,7 @@ async fn test_exclusive_main_article_finance() {
     let body = format!(
         "--{0}\r\n\
         Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        Financni trhy v soku\r\n\
+        test-Financni trhy v soku\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"author\"\r\n\r\n\
         Financni Expert\r\n\
@@ -69,11 +69,12 @@ async fn test_exclusive_main_article_finance() {
     let main_section = &updated_index[main_start..main_end];
 
     assert!(
-        main_section.contains(r#"<span class="red">EXKLUZIVNĚ:</span> Financni trhy v soku"#),
+        main_section.contains(r#"<span class="red">EXKLUZIVNĚ:</span> test-Financni trhy v soku"#),
         "Exclusive tag not found in main article title"
     );
 
     // Cleanup
     fs::write("index.html", original_index).unwrap();
-    let _ = fs::remove_file("financni-trhy-v-soku.html");
+    let _ = fs::remove_file("test-financni-trhy-v-soku.html");
+    let _ = fs::remove_file("snippets/test-financni-trhy-v-soku.html.txt");
 }

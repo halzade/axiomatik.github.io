@@ -50,7 +50,7 @@ async fn test_zahranici_article_creation_and_limit() {
     let body = format!(
         "--{0}\r\n\
         Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        Newest Zahranici\r\n\
+        test-Newest Zahranici\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"author\"\r\n\r\n\
         Author\r\n\
@@ -84,7 +84,7 @@ async fn test_zahranici_article_creation_and_limit() {
         .unwrap();
 
     let updated_index = fs::read_to_string("index.html").unwrap();
-    assert!(updated_index.contains("Newest Zahranici"));
+    assert!(updated_index.contains("test-Newest Zahranici"));
 
     // Count articles in ZE_ZAHRANICI section
     let start =
@@ -97,6 +97,6 @@ async fn test_zahranici_article_creation_and_limit() {
 
     // Cleanup
     fs::write("index.html", original_index).unwrap();
-    let _ = fs::remove_file("newest-zahranici.html");
-    let _ = fs::remove_dir_all("snippets");
+    let _ = fs::remove_file("test-newest-zahranici.html");
+    let _ = fs::remove_file("snippets/test-newest-zahranici.html.txt");
 }

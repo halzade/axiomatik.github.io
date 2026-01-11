@@ -16,7 +16,7 @@ fn replace_weather_in_content(content: &str, weather_string: &str) -> String {
 
 #[test]
 fn test_weather_replacement_in_file() {
-    let test_file = "test_index_weather.html";
+    let test_file = "test-index-weather.html";
     let initial_content = "<html><!-- WEATHER -->OLD<!-- /WEATHER --></html>";
     fs::write(test_file, initial_content).unwrap();
 
@@ -39,7 +39,7 @@ fn test_weather_replacement_in_file() {
 
 #[test]
 fn test_no_weather_replacement_if_same_in_file() {
-    let test_file = "test_index_weather_no_change.html";
+    let test_file = "test-index-weather-no-change.html";
     let initial_content = "<html><!-- WEATHER -->23°C | Praha<!-- /WEATHER --></html>";
     fs::write(test_file, initial_content).unwrap();
 

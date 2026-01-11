@@ -58,7 +58,7 @@ async fn test_veda_article_is_main_rotation() {
     let body = format!(
         "--{0}\r\n\
         Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        New Veda Main\r\n\
+        test-New Veda Main\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"author\"\r\n\r\n\
         Author Veda\r\n\
@@ -100,11 +100,11 @@ async fn test_veda_article_is_main_rotation() {
 
     let updated_index = fs::read_to_string("index.html").unwrap();
 
-    // Check MAIN_ARTICLE: should contain New Veda Main
+    // Check MAIN_ARTICLE: should contain test-New Veda Main
     let main_start = updated_index.find("<!-- MAIN_ARTICLE -->").unwrap();
     let main_end = updated_index.find("<!-- /MAIN_ARTICLE -->").unwrap();
     let main_section = &updated_index[main_start..main_end];
-    assert!(main_section.contains("New Veda Main"));
+    assert!(main_section.contains("test-New Veda Main"));
     assert!(main_section.contains("uploads/")); // Image should be there
 
     // Check SECOND_ARTICLE: should contain Old Main Article (stripped of image, class changed to first-article, h1 changed to h2)
@@ -131,5 +131,6 @@ async fn test_veda_article_is_main_rotation() {
 
     // Cleanup
     fs::write("index.html", original_index).unwrap();
-    // let _ = fs::remove_file("new-veda-main.html");
+    let _ = fs::remove_file("test-new-veda-main.html");
+    let _ = fs::remove_file("snippets/test-new-veda-main.html.txt");
 }

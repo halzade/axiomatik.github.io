@@ -172,9 +172,7 @@ async fn test_create_article() {
     if let Ok(entries) = std::fs::read_dir("uploads") {
         for entry in entries.flatten() {
             if let Some(name) = entry.file_name().to_str() {
-                
-                // TODO only those which beign with test-
-                if name.ends_with(".jpg") || name.ends_with(".mp3") {
+                if name.starts_with("test-") && (name.ends_with(".jpg") || name.ends_with(".mp3")) {
                     let _ = std::fs::remove_file(entry.path());
                 }
             }

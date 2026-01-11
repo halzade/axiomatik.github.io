@@ -49,7 +49,7 @@ async fn test_republika_article_creation_and_limit() {
     let body = format!(
         "--{0}\r\n\
         Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        Newest Republika\r\n\
+        test-Newest Republika\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"author\"\r\n\r\n\
         Author\r\n\
@@ -83,7 +83,7 @@ async fn test_republika_article_creation_and_limit() {
         .unwrap();
 
     let updated_index = fs::read_to_string("index.html").unwrap();
-    assert!(updated_index.contains("Newest Republika"));
+    assert!(updated_index.contains("test-Newest Republika"));
 
     // Count articles in Z_REPUBLIKY section
     let start = updated_index.find("<!-- Z_REPUBLIKY -->").unwrap() + "<!-- Z_REPUBLIKY -->".len();
@@ -95,6 +95,6 @@ async fn test_republika_article_creation_and_limit() {
 
     // Cleanup
     fs::write("index.html", original_index).unwrap();
-    let _ = fs::remove_file("newest-republika.html");
-    let _ = fs::remove_dir_all("snippets");
+    let _ = fs::remove_file("test-newest-republika.html");
+    let _ = fs::remove_file("snippets/test-newest-republika.html.txt");
 }

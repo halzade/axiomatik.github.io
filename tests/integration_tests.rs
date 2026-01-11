@@ -162,13 +162,15 @@ async fn test_404_fallback_curl() {
     let (app, _db) = setup_app().await;
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
 
+    let addr = listener.local_addr().unwrap();
+
     tokio::spawn(async move {
         axum::serve(listener, app).await.unwrap();
     });
 
     let output = std::process::Command::new("curl")
         .arg("-s")
-        .arg("http://127.0.0.1:3000/non-existent-page.html")
+        .arg(format!("http://{}/non-existent-page.html", addr))
         .output()
         .expect("Failed to execute curl");
 
@@ -269,7 +271,7 @@ async fn test_account_page() {
     let body = format!(
         "--{0}\r\n\
         Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        User Article\r\n\
+        test-User Article\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"author\"\r\n\r\n\
         Updated Author\r\n\
@@ -324,7 +326,7 @@ async fn test_account_page() {
         .await
         .unwrap();
     let body_str = String::from_utf8_lossy(&body);
-    assert!(body_str.contains("User Article"));
+    assert!(body_str.contains("test-User Article"));
 
     // 8. Update author name again
     let update_params = [("author_name", "Second Update")];
@@ -360,10 +362,10 @@ async fn test_account_page() {
         .await
         .unwrap();
     let body_str = String::from_utf8_lossy(&body);
-    assert!(body_str.contains("User Article"));
+    assert!(body_str.contains("test-User Article"));
     assert!(body_str.contains("Second Update"));
 
     // Cleanup files
-    let _ = std::fs::remove_file("user-article.html");
-    let _ = std::fs::remove_file("snippets/user-article.html.txt");
+    let _ = std::fs::remove_file("test-user-article.html");
+    let _ = std::fs::remove_file("snippets/test-user-article.html.txt");
 }

@@ -10,6 +10,7 @@ use tower::ServiceExt;
 #[tokio::test]
 async fn test_shift_main_article_removes_exclusive_tag() {
     let (app, db) = script_base::setup_app().await;
+    let original_index = std::fs::read_to_string("index.html").unwrap_or_default();
 
     // 1. Create user
     let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
@@ -61,7 +62,7 @@ async fn test_shift_main_article_removes_exclusive_tag() {
     let body1 = format!(
         "--{0}\r\n\
         Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        Exclusive Article\r\n\
+        test-Exclusive Article\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"is_exclusive\"\r\n\r\n\
         on\r\n\
@@ -109,13 +110,13 @@ async fn test_shift_main_article_removes_exclusive_tag() {
 
     // Verify it is main and exclusive in index.html
     let index_after1 = std::fs::read_to_string("index.html").unwrap();
-    assert!(index_after1.contains(r#"<span class="red">EXKLUZIVNĚ:</span> Exclusive Article"#));
+    assert!(index_after1.contains(r#"<span class="red">EXKLUZIVNĚ:</span> test-Exclusive Article"#));
 
     // 4. Create second article as MAIN (not necessarily exclusive)
     let body2 = format!(
         "--{0}\r\n\
         Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        New Main Article\r\n\
+        test-New Main Article\r\n\
         --{0}\r\n\
         Content-Disposition: form-data; name=\"is_main\"\r\n\r\n\
         on\r\n\
@@ -165,20 +166,20 @@ async fn test_shift_main_article_removes_exclusive_tag() {
     let main_start = index_after2.find("<!-- MAIN_ARTICLE -->").unwrap();
     let main_end = index_after2.find("<!-- /MAIN_ARTICLE -->").unwrap();
     let main_content = &index_after2[main_start..main_end];
-    assert!(main_content.contains("New Main Article"));
+    assert!(main_content.contains("test-New Main Article"));
 
     // Check SECOND_ARTICLE
     let second_start = index_after2.find("<!-- SECOND_ARTICLE -->").unwrap();
     let second_end = index_after2.find("<!-- /SECOND_ARTICLE -->").unwrap();
     let second_content = &index_after2[second_start..second_end];
     
-    assert!(second_content.contains("Exclusive Article"));
+    assert!(second_content.contains("test-Exclusive Article"));
     assert!(!second_content.contains(r#"<span class="red">EXKLUZIVNĚ:</span>"#), "EXKLUZIVNĚ tag should be removed when shifted to second article");
 
     // Cleanup
-    let _ = std::fs::remove_file("exclusive-article.html");
-    let _ = std::fs::remove_file("new-main-article.html");
-    let _ = std::fs::remove_file("snippets/exclusive-article.html.txt");
-    let _ = std::fs::remove_file("snippets/new-main-article.html.txt");
-    let _ = std::fs::remove_file("index.html");
+    let _ = std::fs::remove_file("test-exclusive-article.html");
+    let _ = std::fs::remove_file("test-new-main-article.html");
+    let _ = std::fs::remove_file("snippets/test-exclusive-article.html.txt");
+    let _ = std::fs::remove_file("snippets/test-new-main-article.html.txt");
+    std::fs::write("index.html", original_index).unwrap();
 }
