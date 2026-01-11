@@ -27,7 +27,7 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 40px;
     padding-bottom: 40px;
     vertical-align: top;
-    border-bottom: solid thin #E0E0E0;
+    border-bottom: solid 3px #E0E0E0;
 }
 
 .container-wide {
@@ -96,6 +96,14 @@ a {
 
 
 a:visited {
+    text-decoration: none;
+}
+
+:not(title) a:visited {
+    color: #6c757c !important;
+}
+
+:not(.main-nav) a:visited {
     text-decoration: none;
     color: #6c757c !important;
 }

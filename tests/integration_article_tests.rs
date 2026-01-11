@@ -154,6 +154,13 @@ async fn test_create_article() {
     let body_str = String::from_utf8(body_bytes.to_vec()).unwrap();
     assert!(body_str.contains("Přečteno: 1x"));
 
+    // Verify audio player placement
+    let article_content = std::fs::read_to_string("test-article.html").unwrap();
+    let audio_pos = article_content.find("<audio").unwrap();
+    let text_pos = article_content.find("This is a test article text.").unwrap();
+    assert!(audio_pos < text_pos, "Audio player should be before article text");
+    assert!(article_content.contains("<div  class=\"container\">"), "Should contain div with double space as in reference");
+
     // Cleanup
     let _ = std::fs::remove_file("test-article.html");
     let _ = std::fs::remove_file("snippets/test-article.html.txt");
