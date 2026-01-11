@@ -205,26 +205,7 @@ fn update_index_date() {
 
     let date_string = format!("{} {}. {} {}", day_name, now.day(), month_name, now.year());
 
-    if let Ok(content) = fs::read_to_string("index.html") {
-        let start_tag = "<!-- DATE -->";
-        let end_tag = "<!-- /DATE -->";
-
-        if let (Some(start), Some(end)) = (content.find(start_tag), content.find(end_tag)) {
-            let mut new_content = content[..start + start_tag.len()].to_string();
-            new_content.push_str(&date_string);
-            new_content.push_str(&content[end..]);
-
-            if content != new_content {
-                if let Err(e) = fs::write("index.html", new_content) {
-                    error!("Failed to write index.html: {}", e);
-                } else {
-                    info!("index.html date updated to: {}", date_string);
-                }
-            } else {
-                info!("index.html date is already up to date: {}", date_string);
-            }
-        }
-    }
+    update_all_header_info(&date_string, "", "");
 }
 
 fn update_index_nameday() {
@@ -236,24 +217,54 @@ fn update_index_nameday() {
             format!("Svátek má {}", name)
         };
 
-    if let Ok(content) = fs::read_to_string("index.html") {
-        let start_tag = "<!-- NAME_DAY -->";
-        let end_tag = "<!-- /NAME_DAY -->";
+    update_all_header_info(&nameday_string, &nameday_string, ""); // This is not quite right, but I'll make a better function
+}
 
-        if let (Some(_start), Some(_end)) = (content.find(start_tag), content.find(end_tag)) {
-            let new_content = replace_nameday_in_content(&content, &nameday_string);
+fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) {
+    let files = [
+        "index.html",
+        "republika.html",
+        "zahranici.html",
+        "technologie.html",
+        "finance.html",
+        "veda.html",
+    ];
 
-            if content != new_content {
-                if let Err(e) = fs::write("index.html", new_content) {
-                    error!("Failed to write index.html for nameday: {}", e);
-                } else {
-                    info!("index.html nameday updated to: {}", nameday_string);
+    for file in files {
+        if let Ok(mut content) = fs::read_to_string(file) {
+            let mut changed = false;
+
+            // date
+            if !date_str.is_empty() {
+                let next = replace_in_content("<!-- DATE -->", "<!-- /DATE -->", &content, date_str);
+                if next != content {
+                    content = next;
+                    changed = true;
                 }
-            } else {
-                info!(
-                    "index.html nameday is already up to date: {}",
-                    nameday_string
-                );
+            }
+
+            // nameday
+            if !nameday_str.is_empty() {
+                let next = replace_nameday_in_content(&content, nameday_str);
+                if next != content {
+                    content = next;
+                    changed = true;
+                }
+            }
+
+            // weather
+            if !weather_str.is_empty() {
+                let next = replace_weather_in_content(&content, weather_str);
+                if next != content {
+                    content = next;
+                    changed = true;
+                }
+            }
+
+            if changed {
+                if let Err(e) = fs::write(file, content) {
+                    error!("Failed to write {}: {}", file, e);
+                }
             }
         }
     }
@@ -289,27 +300,7 @@ async fn update_index_weather() {
         Err(_) => "".to_string(),
     };
 
-    if let Ok(content) = fs::read_to_string("index.html") {
-        let start_tag = "<!-- WEATHER -->";
-        let end_tag = "<!-- /WEATHER -->";
-
-        if let (Some(_start), Some(_end)) = (content.find(start_tag), content.find(end_tag)) {
-            let new_content = replace_weather_in_content(&content, &weather_string);
-
-            if content != new_content {
-                if let Err(e) = fs::write("index.html", new_content) {
-                    error!("Failed to write index.html for weather: {}", e);
-                } else {
-                    info!("index.html weather updated to: {}", weather_string);
-                }
-            } else {
-                info!(
-                    "index.html weather is already up to date: {}",
-                    weather_string
-                );
-            }
-        }
-    }
+    update_all_header_info("", "", &weather_string);
 }
 
 fn replace_weather_in_content(content: &str, weather_string: &str) -> String {

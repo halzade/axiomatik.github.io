@@ -621,8 +621,14 @@ pub async fn create_article(
         chrono::Weekday::Sun => "Neděle",
     };
     let month_name_genitive = get_czech_month_genitive(now.month());
-    let current_date = format!("{} {}. {} {}", day_name, now.day(), month_name_genitive, now.year());
-    
+    let current_date = format!(
+        "{} {}. {} {}",
+        day_name,
+        now.day(),
+        month_name_genitive,
+        now.year()
+    );
+
     let nameday = {
         let name = namedays::today_name_day();
         if name.is_empty() || name.contains("No nameday") || name.contains("Invalid") {
@@ -639,7 +645,9 @@ pub async fn create_article(
         match reqwest::get(url).await {
             Ok(resp) => {
                 if let Ok(json) = resp.json::<serde_json::Value>().await {
-                    let temp = json["current_weather"]["temperature"].as_f64().unwrap_or(0.0);
+                    let temp = json["current_weather"]["temperature"]
+                        .as_f64()
+                        .unwrap_or(0.0);
                     format!("{:.0}°C | Praha", temp)
                 } else {
                     "".to_string()
@@ -786,7 +794,7 @@ pub async fn create_article(
                     .replace("<h1>", "<h2>")
                     .replace("</h1>", "</h2>")
                     .replace(r#"<span class="red">EXKLUZIVNĚ:</span>"#, "")
-                    // If there was an image in MAIN_ARTICLE, it was outside the div. 
+                    // If there was an image in MAIN_ARTICLE, it was outside the div.
                     // We need to decide if we keep it or strip it for SECOND/THIRD articles.
                     // Looking at index.html, SECOND_ARTICLE and THIRD_ARTICLE don't seem to have images.
                     // However, shifting the WHOLE content might include the <img> tag if it was there.
@@ -922,12 +930,19 @@ pub struct SearchPayload {
     pub q: String,
 }
 
-pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
+pub async fn handle_search(
+    State(db): State<Arc<db::Database>>,
+    Form(payload): Form<SearchPayload>,
+) -> Response {
     let query = payload.q.trim();
 
     // Validate and sanitize the search query
     if query.chars().count() < 3 || query.chars().count() > 100 {
-        return (StatusCode::BAD_REQUEST, "Search query must be between 3 and 100 characters").into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            "Search query must be between 3 and 100 characters",
+        )
+            .into_response();
     }
 
     if let Err(e) = validate_search_query(query) {
@@ -940,32 +955,43 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
         .filter(|w| !w.is_empty())
         .collect();
 
-    let mut matched_snippets = Vec::new();
+    let articles = match db.get_all_articles().await {
+        Ok(a) => a,
+        Err(e) => {
+            error!("Failed to get articles from DB: {}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Database error").into_response();
+        }
+    };
 
-    if let Ok(entries) = fs::read_dir("snippets") {
-        for entry in entries.flatten() {
-            if entry.path().extension().map_or(false, |ext| ext == "txt") {
-                if let Ok(content) = fs::read_to_string(entry.path()) {
-                    let mut match_count = 0;
-                    for word in &search_words {
+    let mut matched_results = Vec::new();
 
-                        // TODO háčky čárky
-                        if content.to_lowercase().contains(&word.to_lowercase()) {
-                            match_count += 1;
-                        }
-                    }
-                    if match_count > 0 {
-                        matched_snippets.push((match_count, content));
-                    }
-                }
+    for article in articles {
+        let mut match_count = 0;
+        let article_text_lower = article.text.to_lowercase();
+        for word in &search_words {
+            if article_text_lower.contains(&word.to_lowercase()) {
+                match_count += 1;
+            }
+        }
+
+        if match_count > 0 {
+            // Use article url (article_file_name) to search /snippets/
+            let snippet_path = format!("snippets/{}.txt", article.article_file_name);
+            if let Ok(snippet_content) = fs::read_to_string(snippet_path) {
+                matched_results.push((match_count, snippet_content));
+            } else {
+                warn!(
+                    "Snippet not found for article: {}",
+                    article.article_file_name
+                );
             }
         }
     }
 
     // Sort by match count descending
-    matched_snippets.sort_by(|a, b| b.0.cmp(&a.0));
+    matched_results.sort_by(|a, b| b.0.cmp(&a.0));
 
-    let snippets_html: String = matched_snippets
+    let snippets_html: String = matched_results
         .into_iter()
         .map(|(_, content)| content)
         .collect::<Vec<String>>()
@@ -990,7 +1016,7 @@ pub fn validate_search_query(input: &str) -> Result<(), &'static str> {
                 return Err("Only alphanumeric characters and spaces are allowed in search");
             }
         } else if !c.is_alphanumeric() {
-             return Err("Only alphanumeric characters are allowed in search");
+            return Err("Only alphanumeric characters are allowed in search");
         }
     }
     Ok(())

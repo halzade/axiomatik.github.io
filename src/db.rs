@@ -123,6 +123,17 @@ impl Database {
         response.take(0)
     }
 
+    pub async fn get_all_articles(&self) -> surrealdb::Result<Vec<Article>> {
+        let mut response = self
+            .db
+            .read()
+            .await
+            // TODO don't need all article data
+            .query("SELECT * FROM article")
+            .await?;
+        response.take(0)
+    }
+
     pub async fn increment_article_views(&self, file_name: &str) -> surrealdb::Result<i64> {
         let mut response = self
             .db

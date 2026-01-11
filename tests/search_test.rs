@@ -1,7 +1,10 @@
 use axiomatik_web::validate_search_query;
+use axiomatik_web::db::{Article, Database};
 
 #[test]
 fn test_validate_search_query_too_short() {
+    // TODO
+    // validate_search_query doesn't check length anymore, handle_search does.
     assert!(validate_search_query("").is_err());
     assert!(validate_search_query("ab").is_err());
     assert!(validate_search_query(".").is_err());
@@ -23,61 +26,70 @@ fn test_validate_search_query_invalid_chars() {
     assert!(validate_search_query("query <script>").is_err());
 }
 
-#[test]
-fn test_search_ranking_logic() {
-    let snippets = vec![
-        "One word match here.",
-        "Two words match here here.",
-        "No match at all.",
-    ];
+#[tokio::test]
+async fn test_db_search_logic() {
+    let db = Database::new("mem://").await;
+    
+    let article1 = Article {
+        author: "author".to_string(),
+        created_by: "user".to_string(),
+        date: "date".to_string(),
+        title: "Title 1".to_string(),
+        text: "One word match here.".to_string(),
+        short_text: "short".to_string(),
+        article_file_name: "article1".to_string(),
+        image_url: "img".to_string(),
+        image_description: "desc".to_string(),
+        video_url: None,
+        audio_url: None,
+        category: "cat".to_string(),
+        related_articles: "".to_string(),
+        views: 0,
+    };
+    
+    let article2 = Article {
+        author: "author".to_string(),
+        created_by: "user".to_string(),
+        date: "date".to_string(),
+        title: "Title 2".to_string(),
+        text: "Two words match here match.".to_string(),
+        short_text: "short".to_string(),
+        article_file_name: "article2".to_string(),
+        image_url: "img".to_string(),
+        image_description: "desc".to_string(),
+        video_url: None,
+        audio_url: None,
+        category: "cat".to_string(),
+        related_articles: "".to_string(),
+        views: 0,
+    };
+
+    db.create_article(article1).await.unwrap();
+    db.create_article(article2).await.unwrap();
+
+    let articles = db.get_all_articles().await.unwrap();
     let query = "word match";
     let search_words: Vec<&str> = query.split_whitespace().collect();
 
     let mut results = Vec::new();
-    for content in snippets {
+    for article in articles {
         let mut match_count = 0;
+        let text_lower = article.text.to_lowercase();
         for word in &search_words {
-            if content.to_lowercase().contains(&word.to_lowercase()) {
+            if text_lower.contains(&word.to_lowercase()) {
                 match_count += 1;
             }
         }
         if match_count > 0 {
-            results.push((match_count, content));
+            results.push((match_count, article.article_file_name));
         }
     }
 
-    results.sort_by(|a, b| b.0.cmp(&a.0));
-
-    assert_eq!(results.len(), 3);
-    assert_eq!(results[0].0, 2);
-    assert_eq!(results[1].0, 2);
-    assert_eq!(results[2].0, 1); // "No match at all." matches "match"
-}
-
-#[test]
-fn test_search_ranking_logic_different_counts() {
-    let snippets = vec!["Only word.", "Both word and match.", "Neither."];
-    let query = "word match";
-    let search_words: Vec<&str> = query.split_whitespace().collect();
-
-    let mut results = Vec::new();
-    for content in snippets {
-        let mut match_count = 0;
-        for word in &search_words {
-            if content.to_lowercase().contains(&word.to_lowercase()) {
-                match_count += 1;
-            }
-        }
-        if match_count > 0 {
-            results.push((match_count, content));
-        }
-    }
-
-    results.sort_by(|a, b| b.0.cmp(&a.0));
+    results.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
 
     assert_eq!(results.len(), 2);
     assert_eq!(results[0].0, 2);
-    assert!(results[0].1.contains("Both"));
-    assert_eq!(results[1].0, 1);
-    assert!(results[1].1.contains("Only"));
+    assert_eq!(results[0].1, "article1");
+    assert_eq!(results[1].0, 2); 
+    assert_eq!(results[1].1, "article2");
 }

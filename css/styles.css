@@ -392,3 +392,7 @@ footer {
     position: relative;
     min-height: 100%;
 }
+
+.search button, .search input {
+    display: inline-block;
+}

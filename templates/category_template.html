@@ -4,35 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXO.cz — {{ title }}</title>
-    <script src="js/script.js" defer></script>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/styles-dark.css" media="(prefers-color-scheme: dark)">
 </head>
 <body>
 <div class="all">
     <header class="topbar">
-        <a href="/" class="logo">NEXO</a>
-        <nav class="main-nav">
-            <a href="republika.html">republika</a>
-            <a href="zahranici.html">zahraničí</a>
-            <a href="technologie.html">technologie</a>
-            <a href="finance.html">finance</a>
-            <a href="veda.html">věda</a>
-        </nav>
-    </header>
-    <main class="content">
-        <nav class="breadcrumb">
-            <a href="/">domů</a> /
-            {{ title }}
-        </nav>
-        
-        <section class="related-section">
-            <h1>{{ title }}</h1>
-            <div class="article-grid">
-
-                <!-- SNIPPETS -->
-
+        <div class="topbar-content">
+            <div class="left">
+                <!-- DATE --><!-- /DATE --><br/>
+                <div class="weather"></div>
+                <!-- WEATHER --><!-- /WEATHER --><br/>
+                <!-- NAME_DAY --><!-- /NAME_DAY -->
             </div>
+            <div class="center">
+                <a href="index.html" class="logo">NE<span class="b">X</span>O</a>
+            </div>
+            <div class="right search">
+                <form action="/search" method="get" class="search-form">
+                    <input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
+                    <button type="submit"><img src="images/search-50.png" alt="Hledat" width="20" height="20"></button>
+                </form>
+            </div>
+        </div>
+    </header>
+    <nav class="main-nav">
+        <a href="republika.html">republika</a>
+        <a href="zahranici.html">zahraničí</a>
+        <a href="technologie.html">technologie</a>
+        <a href="finance.html">finance</a>
+        <a href="veda.html">věda</a>
+    </nav>
+
+    <main class="content category-page">
+        <header class="category-header">
+            <h1>{{ title }}</h1>
+        </header>
+
+        <section class="article-grid">
+            <!-- SNIPPETS -->
         </section>
     </main>
     <footer>
