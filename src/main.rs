@@ -201,21 +201,7 @@ fn update_index_date() {
         Weekday::Sun => "Neděle",
     };
 
-    let month_name = match now.month() {
-        1 => "ledna",
-        2 => "února",
-        3 => "března",
-        4 => "dubna",
-        5 => "května",
-        6 => "června",
-        7 => "července",
-        8 => "srpna",
-        9 => "září",
-        10 => "října",
-        11 => "listopadu",
-        12 => "prosince",
-        _ => unreachable!(),
-    };
+    let month_name = axiomatik_web::get_czech_month_genitive(now.month());
 
     let date_string = format!("{} {}. {} {}", day_name, now.day(), month_name, now.year());
 

@@ -122,6 +122,21 @@ const CZECH_MONTHS_SHORT: [&str; 12] = [
     "listopad", "prosinec",
 ];
 
+const CZECH_MONTHS_GENITIVE: [&str; 12] = [
+    "ledna",
+    "února",
+    "března",
+    "dubna",
+    "května",
+    "června",
+    "července",
+    "srpna",
+    "září",
+    "října",
+    "listopadu",
+    "prosince",
+];
+
 fn get_czech_month(month: u32, capitalized: bool) -> &'static str {
     let idx = (month - 1) as usize;
     if capitalized {
@@ -129,6 +144,10 @@ fn get_czech_month(month: u32, capitalized: bool) -> &'static str {
     } else {
         CZECH_MONTHS_SHORT[idx]
     }
+}
+
+pub fn get_czech_month_genitive(month: u32) -> &'static str {
+    CZECH_MONTHS_GENITIVE[(month - 1) as usize]
 }
 
 pub fn app(db: Arc<db::Database>) -> Router {
@@ -146,6 +165,7 @@ pub fn app(db: Arc<db::Database>) -> Router {
     Router::new()
         .route("/", get(|| async { Redirect::to("/index.html") }))
         .route("/login", get(show_login).post(handle_login))
+        .route("/search", get(handle_search))
         .merge(protected_routes)
         // serve static content
         // TODO serve only html, css, js
@@ -600,21 +620,7 @@ pub async fn create_article(
         chrono::Weekday::Sat => "Sobota",
         chrono::Weekday::Sun => "Neděle",
     };
-    let month_name_genitive = match now.month() {
-        1 => "ledna",
-        2 => "února",
-        3 => "března",
-        4 => "dubna",
-        5 => "května",
-        6 => "června",
-        7 => "července",
-        8 => "srpna",
-        9 => "září",
-        10 => "října",
-        11 => "listopadu",
-        12 => "prosince",
-        _ => unreachable!(),
-    };
+    let month_name_genitive = get_czech_month_genitive(now.month());
     let current_date = format!("{} {}. {} {}", day_name, now.day(), month_name_genitive, now.year());
     
     let nameday = {
@@ -909,6 +915,85 @@ pub async fn create_article(
     }
 
     Redirect::to(&format!("/{}.html", safe_title)).into_response()
+}
+
+#[derive(Deserialize)]
+pub struct SearchPayload {
+    pub q: String,
+}
+
+pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
+    let query = payload.q.trim();
+
+    // Validate and sanitize the search query
+    if query.chars().count() < 3 || query.chars().count() > 100 {
+        return (StatusCode::BAD_REQUEST, "Search query must be between 3 and 100 characters").into_response();
+    }
+
+    if let Err(e) = validate_search_query(query) {
+        return (StatusCode::BAD_REQUEST, e).into_response();
+    }
+
+    let search_words: Vec<&str> = query
+        .split_whitespace()
+        .map(|w| w.trim())
+        .filter(|w| !w.is_empty())
+        .collect();
+
+    let mut matched_snippets = Vec::new();
+
+    if let Ok(entries) = fs::read_dir("snippets") {
+        for entry in entries.flatten() {
+            if entry.path().extension().map_or(false, |ext| ext == "txt") {
+                if let Ok(content) = fs::read_to_string(entry.path()) {
+                    let mut match_count = 0;
+                    for word in &search_words {
+
+                        // TODO háčky čárky
+                        if content.to_lowercase().contains(&word.to_lowercase()) {
+                            match_count += 1;
+                        }
+                    }
+                    if match_count > 0 {
+                        matched_snippets.push((match_count, content));
+                    }
+                }
+            }
+        }
+    }
+
+    // Sort by match count descending
+    matched_snippets.sort_by(|a, b| b.0.cmp(&a.0));
+
+    let snippets_html: String = matched_snippets
+        .into_iter()
+        .map(|(_, content)| content)
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    let template = CategoryTemplate {
+        title: format!("Výsledky hledání: {}", query),
+    };
+
+    let mut html = template.render().unwrap();
+    html = html.replace("<!-- SNIPPETS -->", &snippets_html);
+
+    Html(html).into_response()
+}
+
+pub fn validate_search_query(input: &str) -> Result<(), &'static str> {
+    for c in input.chars() {
+        if c.is_ascii() {
+            // No system characters (0-31, 127) and no special characters
+            // Allow only alphanumeric and spaces for search
+            if !c.is_ascii_alphanumeric() && c != ' ' {
+                return Err("Only alphanumeric characters and spaces are allowed in search");
+            }
+        } else if !c.is_alphanumeric() {
+             return Err("Only alphanumeric characters are allowed in search");
+        }
+    }
+    Ok(())
 }
 
 fn validate_input(input: &str) -> Result<(), &'static str> {
