@@ -722,9 +722,9 @@ pub async fn create_article(
                     .replace("class='main-article-text'", "class='first-article'")
                     .replace("<h1>", "<h2>")
                     .replace("</h1>", "</h2>")
+                    .replace(r#"<span class="red">EXKLUZIVNĚ:</span>"#, "")
                     // If there was an image in MAIN_ARTICLE, it was outside the div. 
                     // We need to decide if we keep it or strip it for SECOND/THIRD articles.
-                    // Usually right-side articles are smaller and might not have images or have different image handling.
                     // Looking at index.html, SECOND_ARTICLE and THIRD_ARTICLE don't seem to have images.
                     // However, shifting the WHOLE content might include the <img> tag if it was there.
                     .split("<a href=")
