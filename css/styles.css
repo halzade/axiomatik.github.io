@@ -94,21 +94,23 @@ a {
     color: #dc3545;
 }
 
-
-a:visited {
-    text-decoration: none;
+a h1, a h2, a h3, a h4, a h5, a h6 {
+    color: #333333;
 }
 
-:not(title) a:visited {
+h1 {
+    margin-block-start: 0 !important;
+    margin-block-end: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+
+article a:visited {
+    text-decoration: none;
     color: #6c757c !important;
 }
 
-:not(.main-nav) a:visited {
-    text-decoration: none;
-    color: #6c757c !important;
-}
-
-a:hover {
+article a:hover {
     text-decoration: none;
     color: #0056b3 !important;
 }
@@ -151,10 +153,13 @@ a:hover {
 }
 
 .weather {
+    background-image: url("../images/weather-icon-17.png");
     height: 17px;
+    width: 21px;
     /*margin-top: 2px;*/
     margin-top: 0;
     margin-bottom: 0;
+    display: inline-block;
 }
 
 .main-article {
@@ -198,7 +203,7 @@ a:hover {
 }
 
 .main-article-text h1 {
-    font-size: 2.4rem;
+    font-size: 2.0rem;
     margin-bottom: 10px;
 }
 
