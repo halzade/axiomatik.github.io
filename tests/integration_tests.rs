@@ -159,18 +159,16 @@ async fn test_404_fallback() {
 #[tokio::test]
 async fn test_404_fallback_curl() {
 
-    let (app, _db) = setup_app().await;
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-
-    let addr = listener.local_addr().unwrap();
-
-    tokio::spawn(async move {
-        axum::serve(listener, app).await.unwrap();
-    });
+    // TODO start only if not running
+    // let (app, _db) = setup_app().await;
+    // let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    // tokio::spawn(async move {
+    //     axum::serve(listener, app).await.unwrap();
+    // });
 
     let output = std::process::Command::new("curl")
         .arg("-s")
-        .arg(format!("http://{}/non-existent-page.html", addr))
+        .arg("http://127.0.0.1:3000/non-existent-page.html")
         .output()
         .expect("Failed to execute curl");
 

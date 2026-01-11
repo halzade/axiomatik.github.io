@@ -45,12 +45,14 @@ h1, h2, h3, h4, h5, h6 {
 main.content {
     overflow: auto;
     padding-bottom: 125px;
+    max-width: 2990px;
+    margin: 0 auto;
 }
 
 .topbar {
     top: 0;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: flex-end;
     vertical-align: bottom;
     /*background: #f2dfce;*/
@@ -59,6 +61,14 @@ main.content {
     border-bottom: 2px solid #E0E0E0;
     z-index: 10;
     min-height: 80px;
+}
+
+.topbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    max-width: 2990px;
     text-align: center;
 }
 

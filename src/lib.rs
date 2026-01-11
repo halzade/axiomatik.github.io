@@ -83,6 +83,9 @@ pub struct ArticleTemplate {
     pub category: String,
     pub category_display: String,
     pub related_snippets: String,
+    pub current_date: String,
+    pub weather: String,
+    pub nameday: String,
 }
 
 #[derive(Template)]
@@ -588,6 +591,57 @@ pub async fn create_article(
     let month_name = get_czech_month(now.month(), true);
     let formatted_date = format!("{}. {} {}", now.day(), month_name, now.year());
 
+    let day_name = match now.weekday() {
+        chrono::Weekday::Mon => "Pondělí",
+        chrono::Weekday::Tue => "Úterý",
+        chrono::Weekday::Wed => "Středa",
+        chrono::Weekday::Thu => "Čtvrtek",
+        chrono::Weekday::Fri => "Pátek",
+        chrono::Weekday::Sat => "Sobota",
+        chrono::Weekday::Sun => "Neděle",
+    };
+    let month_name_genitive = match now.month() {
+        1 => "ledna",
+        2 => "února",
+        3 => "března",
+        4 => "dubna",
+        5 => "května",
+        6 => "června",
+        7 => "července",
+        8 => "srpna",
+        9 => "září",
+        10 => "října",
+        11 => "listopadu",
+        12 => "prosince",
+        _ => unreachable!(),
+    };
+    let current_date = format!("{} {}. {} {}", day_name, now.day(), month_name_genitive, now.year());
+    
+    let nameday = {
+        let name = namedays::today_name_day();
+        if name.is_empty() || name.contains("No nameday") || name.contains("Invalid") {
+            "".to_string()
+        } else {
+            format!("Svátek má {}", name)
+        }
+    };
+
+    let weather = {
+        let url = "https://api.open-meteo.com/v1/forecast?latitude=50.0755&longitude=14.4378&current_weather=true&timezone=Europe/Prague";
+        // Simple synchronous fetch for simplicity in this context, or just use a default if it fails
+        // Given we are in an async function, we can use reqwest
+        match reqwest::get(url).await {
+            Ok(resp) => {
+                if let Ok(json) = resp.json::<serde_json::Value>().await {
+                    let temp = json["current_weather"]["temperature"].as_f64().unwrap_or(0.0);
+                    format!("{:.0}°C | Praha", temp)
+                } else {
+                    "".to_string()
+                }
+            }
+            Err(_) => "".to_string(),
+        }
+    };
 
     let template = ArticleTemplate {
         title: title.clone(),
@@ -601,6 +655,9 @@ pub async fn create_article(
         category: category.clone(),
         category_display: category_display.clone(),
         related_snippets: related_snippets.clone(),
+        current_date,
+        weather,
+        nameday,
     };
 
     let html_content = template.render().unwrap();
