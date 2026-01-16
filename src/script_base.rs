@@ -4,7 +4,7 @@ use std::fs;
 use std::sync::Arc;
 use tower::ServiceExt;
 use url::form_urlencoded;
-use crate::{app, db};
+use crate::{router, db};
 
 pub fn serialize(params: &[(&str, &str)]) -> String {
     let mut serializer = form_urlencoded::Serializer::new(String::new());
@@ -14,12 +14,12 @@ pub fn serialize(params: &[(&str, &str)]) -> String {
 
 pub async fn setup_app() -> (axum::Router, Arc<db::Database>) {
     let db = Arc::new(db::init_mem_db().await);
-    (app(db.clone()), db)
+    (router(db.clone()), db)
 }
 
 pub async fn setup_test_environment() -> (axum::Router, Arc<db::Database>, String, String) {
     let db = Arc::new(db::Database::new("mem://").await);
-    let app = app(db.clone());
+    let app = router(db.clone());
 
     // Create user and login
     let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();

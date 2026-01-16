@@ -17,3 +17,9 @@
 ### other commands
 
 `ps aux | grep axiomatik`
+
+
+### Notes
+
+     *  in devel,
+     *  changing files will cause the application to restart, because of cargo watch

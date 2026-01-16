@@ -13,7 +13,7 @@ pub struct ApplicationSettings {
     pub port: u16,
 }
 
-pub fn get_configuration() -> Result<Settings, ConfigError> {
+pub fn get_config() -> Result<Settings, ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
 

@@ -1,8 +1,9 @@
+mod validation;
 pub mod auth;
 pub mod configuration;
 pub mod db;
 pub mod db_tool;
-pub mod namedays;
+pub mod name_days;
 pub mod script_base;
 
 use askama::Template;
@@ -24,154 +25,6 @@ use tower_http::services::ServeDir;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
-#[derive(Template)]
-#[template(path = "../pages/form.html")]
-pub struct FormTemplate {
-    pub author_name: String,
-}
-
-#[derive(Template)]
-#[template(path = "../pages/login.html")]
-pub struct LoginTemplate {
-    pub error: bool,
-}
-
-#[derive(Template)]
-#[template(path = "../pages/change_password.html")]
-pub struct ChangePasswordTemplate {
-    pub error: bool,
-    pub username: String,
-}
-
-#[derive(Template)]
-#[template(path = "../pages/account.html")]
-pub struct AccountTemplate {
-    pub username: String,
-    pub author_name: String,
-    pub articles: Vec<db::Article>,
-}
-
-#[derive(Deserialize)]
-pub struct LoginPayload {
-    pub username: String,
-    pub password: String,
-}
-
-#[derive(Deserialize)]
-pub struct ChangePasswordPayload {
-    pub new_password: String,
-}
-
-#[derive(Deserialize)]
-pub struct UpdateAuthorNamePayload {
-    pub author_name: String,
-}
-
-pub const AUTH_COOKIE: &str = "axiomatik_auth";
-
-#[derive(Template)]
-#[template(path = "article_template.html")]
-pub struct ArticleTemplate {
-    pub title: String,
-    pub author: String,
-    pub date: String,
-    pub text: String,
-    pub image_path: String,
-    pub image_description: String,
-    pub video_path: Option<String>,
-    pub audio_path: Option<String>,
-    pub category: String,
-    pub category_display: String,
-    pub related_snippets: String,
-    pub current_date: String,
-    pub weather: String,
-    pub nameday: String,
-}
-
-#[derive(Template)]
-#[template(path = "snippet_template.html")]
-pub struct SnippetTemplate {
-    pub url: String,
-    pub title: String,
-    pub short_text: String,
-}
-
-#[derive(Template)]
-#[template(path = "category_template.html")]
-pub struct CategoryTemplate {
-    pub title: String,
-}
-
-const CZECH_MONTHS: [&str; 12] = [
-    "Leden",
-    "Únor",
-    "Březen",
-    "Duben",
-    "Květen",
-    "Červen",
-    "Červenec",
-    "Srpen",
-    "Září",
-    "Říjen",
-    "Listopad",
-    "Prosinec",
-];
-
-const CZECH_MONTHS_SHORT: [&str; 12] = [
-    "leden", "unor", "brezen", "duben", "kveten", "cerven", "cervenec", "srpen", "zari", "rijen",
-    "listopad", "prosinec",
-];
-
-const CZECH_MONTHS_GENITIVE: [&str; 12] = [
-    "ledna",
-    "února",
-    "března",
-    "dubna",
-    "května",
-    "června",
-    "července",
-    "srpna",
-    "září",
-    "října",
-    "listopadu",
-    "prosince",
-];
-
-fn get_czech_month(month: u32, capitalized: bool) -> &'static str {
-    let idx = (month - 1) as usize;
-    if capitalized {
-        CZECH_MONTHS[idx]
-    } else {
-        CZECH_MONTHS_SHORT[idx]
-    }
-}
-
-pub fn get_czech_month_genitive(month: u32) -> &'static str {
-    CZECH_MONTHS_GENITIVE[(month - 1) as usize]
-}
-
-pub fn app(db: Arc<db::Database>) -> Router {
-    let protected_routes = Router::new()
-        .route("/form", get(show_form))
-        .route("/create", post(create_article))
-        .route(
-            "/change-password",
-            get(show_change_password).post(handle_change_password),
-        )
-        .route("/account", get(show_account))
-        .route("/account/update-author", post(handle_update_author_name))
-        .layer(middleware::from_fn_with_state(db.clone(), auth_middleware));
-
-    Router::new()
-        .route("/", get(|| async { Redirect::to("/index.html") }))
-        .route("/login", get(show_login).post(handle_login))
-        .route("/search", get(handle_search))
-        .merge(protected_routes)
-        // serve static content
-        // TODO serve only html, css, js
-        .fallback(handle_fallback)
-        .with_state(db)
-}
 
 pub async fn handle_fallback(State(db): State<Arc<db::Database>>, req: Request<Body>) -> Response {
     let path = req.uri().path();
@@ -189,6 +42,7 @@ pub async fn handle_fallback(State(db): State<Arc<db::Database>>, req: Request<B
     }
 
     // Default to serving from ServeDir
+    // TODO serve only css and js
     let service = ServeDir::new(".");
     match tower::ServiceExt::oneshot(service, req).await {
         Ok(res) => {
@@ -210,24 +64,7 @@ pub async fn show_404() -> impl IntoResponse {
     )
 }
 
-async fn auth_middleware(
-    State(db): State<Arc<db::Database>>,
-    jar: CookieJar,
-    req: Request<Body>,
-    next: Next,
-) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
-            if user.needs_password_change && req.uri().path() != "/change-password" {
-                return Redirect::to("/change-password").into_response();
-            }
-            if user.role == db::Role::Editor {
-                return next.run(req).await;
-            }
-        }
-    }
-    Redirect::to("/login").into_response()
-}
+
 
 pub async fn show_login() -> impl IntoResponse {
     Html(LoginTemplate { error: false }.render().unwrap())
@@ -630,7 +467,7 @@ pub async fn create_article(
     );
 
     let nameday = {
-        let name = namedays::today_name_day();
+        let name = name_Ïdays::today_name_day();
         if name.is_empty() || name.contains("No nameday") || name.contains("Invalid") {
             "".to_string()
         } else {
@@ -945,7 +782,7 @@ pub async fn handle_search(
             .into_response();
     }
 
-    if let Err(e) = validate_search_query(query) {
+    if let Err(e) = validation::validate_search_query(query) {
         return (StatusCode::BAD_REQUEST, e).into_response();
     }
 
@@ -1005,44 +842,4 @@ pub async fn handle_search(
     html = html.replace("<!-- SNIPPETS -->", &snippets_html);
 
     Html(html).into_response()
-}
-
-pub fn validate_search_query(input: &str) -> Result<(), &'static str> {
-    for c in input.chars() {
-        if c.is_ascii() {
-            // No system characters (0-31, 127) and no special characters
-            // Allow only alphanumeric and spaces for search
-            if !c.is_ascii_alphanumeric() && c != ' ' {
-                return Err("Only alphanumeric characters and spaces are allowed in search");
-            }
-        } else if !c.is_alphanumeric() {
-            return Err("Only alphanumeric characters are allowed in search");
-        }
-    }
-    Ok(())
-}
-
-fn validate_input(input: &str) -> Result<(), &'static str> {
-    for c in input.chars() {
-        if c.is_ascii() {
-            let val = c as u32;
-            // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
-            if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
-                return Err("Invalid character detected");
-            }
-        }
-        // Non-ASCII (UTF-8) is allowed
-    }
-    Ok(())
-}
-
-fn validate_input_simple(input: &str) -> Result<(), &'static str> {
-    for c in input.chars() {
-        if !c.is_ascii_alphanumeric() {
-            if c != '_' {
-                return Err("Incorrect character detected");
-            }
-        }
-    }
-    Ok(())
 }
