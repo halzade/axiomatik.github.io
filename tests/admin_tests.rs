@@ -1,9 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::auth::{authenticate_user, create_editor_user};
-    use axiomatik_web::db::{init_mem_db, Role};
-    use axiomatik_web::db_tool::print_from_db;
-
+    
     #[tokio::test]
     async fn test_print_from_db() {
         let db = init_mem_db().await;

@@ -1,14 +1,9 @@
-use crate::db::Database;
+use crate::database;
 use serde_json::Value;
-use tracing::{debug, info};
+use tracing::info;
 
-pub async fn print_from_db(db: &Database, query: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut query = query.trim().to_string();
-    if !query.ends_with(';') {
-        query.push(';');
-    }
-
-    let mut response = db.read().await.query(&query).await?;
+pub async fn print_from_db(query: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut response = database::query(fix_query(query)).await;
 
     // Check for errors in the response and keep the response
     response = response.check()?;
@@ -16,8 +11,15 @@ pub async fn print_from_db(db: &Database, query: &str) -> Result<(), Box<dyn std
     // Print all results from the first statement as JSON
     let results: Vec<Value> = response.take(0)?;
     for result in results {
-        debug!("{}", serde_json::to_string_pretty(&result)?);
+        info!("{}", serde_json::to_string_pretty(&result)?);
     }
-
     Ok(())
+}
+
+fn fix_query(query: &str) -> String {
+    let mut query = query.trim().to_string();
+    if !query.ends_with(';') {
+        query.push(';');
+    }
+    query
 }

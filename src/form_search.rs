@@ -16,9 +16,6 @@ pub struct SearchPayload {
 }
 
 pub async fn handle_search(
-
-    // TODO this is retarded
-    State(db): State<Arc<database::Database>>,
     Form(payload): Form<SearchPayload>,
 ) -> Response {
     let query = payload.q.trim();

@@ -1,13 +1,11 @@
 use crate::library::get_czech_month_genitive;
-use crate::{library, name_days};
+use crate::{external, library, name_days};
 use axum::response::{Html, IntoResponse};
-use chrono::Local;
-use http::StatusCode;
+use chrono::prelude::*;
 use std::fs;
-use tokio::time::Instant;
 use tracing::{error, info};
 
-fn replace_nameday_in_content(content: &str, nameday_string: &str) -> String {
+fn replace_name_day_in_content(content: &str, nameday_string: &str) -> String {
     let start_tag = "<!-- NAME_DAY -->";
     let end_tag = "<!-- /NAME_DAY -->";
     replace_in_content(start_tag, end_tag, content, nameday_string)
@@ -64,6 +62,7 @@ pub fn update_index_nameday() {
 }
 
 fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) {
+    // TODO
     let files = [
         "index.html",
         "republika.html",
@@ -88,7 +87,7 @@ fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) 
 
             // nameday
             if !nameday_str.is_empty() {
-                let next = replace_nameday_in_content(&content, nameday_str);
+                let next = replace_name_day_in_content(&content, nameday_str);
                 if next != content {
                     content = next;
                     changed = true;
@@ -114,29 +113,12 @@ fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) 
 }
 
 pub async fn update_index_weather() {
-    let url = "https://api.open-meteo.com/v1/forecast?latitude=50.0755&longitude=14.4378&current_weather=true&timezone=Europe/Prague";
-
-    let weather_string = match fetch_weather(url).await {
+    let weather_string = match external::fetch_weather().await {
         Ok(temp) => format!("{:.0}°C | Praha", temp),
         Err(_) => "".to_string(),
     };
 
     update_all_header_info("", "", &weather_string);
-}
-
-fn next_midnight_instant() -> Instant {
-    let now = Local::now();
-
-    let next_midnight = now
-        .date_naive()
-        .succ_opt()
-        .unwrap()
-        .and_hms_opt(0, 0, 0)
-        .unwrap();
-
-    let duration_until = (next_midnight - now.naive_local()).to_std().unwrap();
-
-    Instant::now() + duration_until
 }
 
 #[cfg(test)]
@@ -177,7 +159,7 @@ mod tests {
     fn test_nameday_replacement_logic() {
         let content = "<html><!-- NAME_DAY -->OLD<!-- /NAME_DAY --></html>";
         let nameday_string = "Svátek má Jaroslava";
-        let new_content = replace_nameday_in_content(content, nameday_string);
+        let new_content = replace_name_day_in_content(content, nameday_string);
         assert_eq!(
             new_content,
             "<html><!-- NAME_DAY -->Svátek má Jaroslava<!-- /NAME_DAY --></html>"
@@ -188,7 +170,7 @@ mod tests {
     fn test_no_nameday_replacement_if_same() {
         let content = "<html><!-- NAME_DAY -->Svátek má Jaroslava<!-- /NAME_DAY --></html>";
         let nameday_string = "Svátek má Jaroslava";
-        let new_content = replace_nameday_in_content(content, nameday_string);
+        let new_content = replace_name_day_in_content(content, nameday_string);
         assert_eq!(content, new_content);
     }
 }

@@ -1,7 +1,11 @@
+use crate::database_internal;
+use crate::database_internal::Database;
 use serde::{Deserialize, Serialize};
-use surrealdb::Surreal;
-use surrealdb::engine::any::{Any, connect};
-use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use surrealdb::engine::any::Any;
+use surrealdb::{Response, Surreal};
+use tokio::sync::{OnceCell, RwLockReadGuard, RwLockWriteGuard};
+
+static DB: OnceCell<Database> = OnceCell::const_new();
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Role {
@@ -35,124 +39,89 @@ pub struct Article {
     pub views: i64,
 }
 
-pub struct Database {
-    pub db: RwLock<Surreal<Any>>,
+pub async fn update_user(user: User) -> Option<User> {
+    db_write()
+        .await
+        .update(("user", user.username.clone()))
+        .content(user)
+        .await
+        .unwrap()
 }
 
-impl Database {
-    pub async fn new(url: &str) -> Self {
-        let client = connect(url).await.unwrap();
-        client.use_ns("axiomatik").use_db("axiomatik").await.unwrap();
-        Self {
-            db: RwLock::new(client)
-        }
-    }
+pub async fn create_user(user: User) -> Option<User> {
+    db_write()
+        .await
+        .create(("user", user.username.clone()))
+        .content(user)
+        .await
+        .unwrap()
+}
 
-    pub async fn read(&self) -> RwLockReadGuard<'_, Surreal<Any>> {
-        self.db.read().await
-    }
+pub async fn delete_user(user_name: &str) {
+    let _: Result<Option<User>, _> = db_write().await.delete(("user", user_name)).await;
+}
 
-    pub async fn write(&self) -> RwLockWriteGuard<'_, Surreal<Any>> {
-        self.db.write().await
-    }
+pub async fn has_users() -> bool {
+    let response = db_read().await.query("SELECT count() FROM user").await.ok();
 
-    pub async fn get_user(&self, username: &str) -> surrealdb::Result<Option<User>> {
-        self.db.read().await.select(("user", username)).await
-    }
-
-    pub async fn update_user(&self, user: User) -> surrealdb::Result<Option<User>> {
-        self.db
-            .write()
-            .await
-            .update(("user", user.username.clone()))
-            .content(user)
-            .await
-    }
-
-    pub async fn create_user(&self, user: User) -> surrealdb::Result<Option<User>> {
-        self.db
-            .write()
-            .await
-            .create(("user", user.username.clone()))
-            .content(user)
-            .await
-    }
-
-    pub async fn delete_user(&self, username: &str) -> surrealdb::Result<()> {
-        let _: Option<User> = self.db.write().await.delete(("user", username)).await?;
-        Ok(())
-    }
-
-    pub async fn has_users(&self) -> bool {
-        let response = self
-            .db
-            .read()
-            .await
-            .query("SELECT count() FROM user")
-            .await
-            .ok();
-
-        if let Some(mut response) = response {
-            let count: Option<i64> = response.take(0).unwrap_or_default();
-            count.unwrap_or(0) > 0
-        } else {
-            false
-        }
-    }
-
-    pub async fn create_article(&self, article: Article) -> surrealdb::Result<Option<Article>> {
-        self.db
-            .write()
-            .await
-            .create("article")
-            .content(article)
-            .await
-    }
-
-    pub async fn get_articles_by_username(
-        &self,
-        username: &str,
-    ) -> surrealdb::Result<Vec<Article>> {
-        let mut response = self
-            .db
-            .read()
-            .await
-            .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
-            .bind(("username", username.to_string()))
-            .await?;
-        response.take(0)
-    }
-
-    pub async fn get_all_articles(&self) -> surrealdb::Result<Vec<Article>> {
-        let mut response = self
-            .db
-            .read()
-            .await
-            // TODO don't need all article data
-            .query("SELECT * FROM article")
-            .await?;
-        response.take(0)
-    }
-
-    pub async fn increment_article_views(&self, file_name: &str) -> surrealdb::Result<i64> {
-        let mut response = self
-            .db
-            .read()
-            .await
-            .query(
-                "UPDATE article SET views += 1 WHERE article_file_name = $file_name RETURN views",
-            )
-            .bind(("file_name", file_name.to_string()))
-            .await?;
-        let views: Option<i64> = response.take("views")?;
-        Ok(views.unwrap_or(0))
+    if let Some(mut response) = response {
+        let count: Option<i64> = response.take(0).unwrap_or_default();
+        count.unwrap_or(0) > 0
+    } else {
+        false
     }
 }
 
-pub async fn init_mem_db() -> Database {
-    Database::new("mem://").await
+pub async fn create_article(article: Article) -> Option<Article> {
+    db_write()
+        .await
+        .create("article")
+        .content(article)
+        .await
+        .unwrap()
 }
 
-pub async fn init_db() -> Database {
-    Database::new("rocksdb://axiomatik.db").await
+pub async fn get_articles_by_username(username: &str) -> Vec<Article> {
+    // TODO
+    db_read()
+        .await
+        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
+        .bind(("username", username.to_string()))
+        .await
+        .unwrap()
+        .take(0)
+        .unwrap()
+}
+
+pub async fn get_all_articles() -> Vec<Article> {
+    // TODO don't need all article data
+    db_read().await.select("article").await.unwrap()
+}
+
+pub async fn get_user(user_name: &str) -> Option<User> {
+    db_read().await.select(("user", user_name)).await.unwrap()
+}
+
+pub async fn query(query: String) -> Response {
+    db_read().await.query(query).await.unwrap()
+}
+
+/*
+ * Technical Methods
+ */
+
+pub async fn initialize_database() {
+    DB.get_or_init(database_internal::init_db).await;
+}
+
+pub async fn initialize_in_memory_database() {
+    DB.get_or_init(database_internal::init_mem_db).await;
+}
+
+async fn db_read<'lt>() -> RwLockReadGuard<'lt, Surreal<Any>> {
+    DB.get().unwrap().db.read().await
+}
+
+async fn db_write<'lt>() -> RwLockWriteGuard<'lt, Surreal<Any>> {
+    DB.get().unwrap().db.write().await
 }

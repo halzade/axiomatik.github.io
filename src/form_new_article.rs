@@ -1,37 +1,36 @@
-use std::fs;
-use std::sync::Arc;
+use crate::{database, library};
+use crate::server::AUTH_COOKIE;
+use crate::templates::FormTemplate;
 use askama::Template;
-use axum::extract::{Multipart, State};
+use axum::extract::Multipart;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum_extra::extract::CookieJar;
 use chrono::Datelike;
 use http::StatusCode;
+use std::fs;
 use uuid::Uuid;
-use axiomatik_web::{db, name_days};
-use crate::server::AUTH_COOKIE;
-use crate::templates::FormTemplate;
 
-pub async fn show_form(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
+pub async fn show_form(jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
-            return Html(
-                FormTemplate {
-                    author_name: user.author_name,
-                }
+        let user_o = database::get_user(cookie.value()).await;
+        match user_o {
+            None => {}
+            Some(user) => {
+                return Html(
+                    FormTemplate {
+                        author_name: user.author_name,
+                    }
                     .render()
                     .unwrap(),
-            )
+                )
                 .into_response();
+            }
         }
     }
     Redirect::to("/login").into_response()
 }
 
-pub async fn create_article(
-    State(db): State<Arc<db::Database>>,
-    jar: CookieJar,
-    mut multipart: Multipart,
-) -> Response {
+pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Response {
     let created_by = if let Some(cookie) = jar.get(AUTH_COOKIE) {
         cookie.value().to_string()
     } else {
@@ -252,7 +251,7 @@ pub async fn create_article(
         "veda" => "věda",
         _ => &category,
     }
-        .to_string();
+    .to_string();
 
     let mut related_snippets = String::new();
     let related_article_paths: Vec<&str> = related_articles_input
@@ -330,35 +329,11 @@ pub async fn create_article(
     };
 
     let html_content = template.render().unwrap();
-    let safe_title = title
-        .to_lowercase()
-        .chars()
-
-        // TODO library
-        .map(|c| match c {
-            'a'..='z' | '0'..='9' => c,
-            'á' => 'a',
-            'č' => 'c',
-            'ď' => 'd',
-            'é' => 'e',
-            'ě' => 'e',
-            'í' => 'i',
-            'ň' => 'n',
-            'ó' => 'o',
-            'ř' => 'r',
-            'š' => 's',
-            'ť' => 't',
-            'ú' => 'u',
-            'ů' => 'u',
-            'ý' => 'y',
-            'ž' => 'z',
-            _ => '-',
-        })
-        .collect::<String>();
+    let safe_title = library::save_article_file_name(title);
     let file_path = format!("{}.html", safe_title);
     fs::write(&file_path, html_content).unwrap();
 
-    let month_name = get_czech_month(now.month(), false);
+    let month_name = library::get_czech_month(now.month(), false);
     let cat_month_year_filename =
         format!("archive-{}-{}-{}.html", category, month_name, now.year());
 
@@ -367,8 +342,8 @@ pub async fn create_article(
         title: title.clone(),
         short_text: short_text_processed.clone(),
     }
-        .render()
-        .unwrap();
+    .render()
+    .unwrap();
 
     if is_main {
         if let Ok(mut index_content) = fs::read_to_string("index.html") {

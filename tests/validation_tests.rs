@@ -1,5 +1,3 @@
-use axiomatik_web::auth;
-use axiomatik_web::script_base::{serialize, setup_app};
 use axum::{
     body::Body,
     http::{Request, StatusCode, header},

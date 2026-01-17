@@ -1,10 +1,12 @@
+use crate::database;
+use crate::database::Role::Editor;
+use crate::database::User;
+use crate::server::router;
 use axum::body::Body;
-use http::{Request, header};
+use http::{header, Request};
 use std::fs;
-use std::sync::Arc;
 use tower::ServiceExt;
 use url::form_urlencoded;
-use crate::{router, db};
 
 pub fn serialize(params: &[(&str, &str)]) -> String {
     let mut serializer = form_urlencoded::Serializer::new(String::new());
@@ -12,26 +14,25 @@ pub fn serialize(params: &[(&str, &str)]) -> String {
     serializer.finish()
 }
 
-pub async fn setup_app() -> (axum::Router, Arc<db::Database>) {
-    let db = Arc::new(db::init_mem_db().await);
-    (router(db.clone()), db)
+pub async fn setup_app() -> (axum::Router) {
+    database::initialize_in_memory_database().await;
+    router(, db)
 }
 
-pub async fn setup_test_environment() -> (axum::Router, Arc<db::Database>, String, String) {
-    let db = Arc::new(db::Database::new("mem://").await);
-    let app = router(db.clone());
+pub async fn setup_test_environment() {
+    let app = router();
 
     // Create user and login
     let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
-    db.create_user(db::User {
+    database::create_user(User {
         username: "admin".to_string(),
         author_name: "admin".to_string(),
         password_hash,
         needs_password_change: false,
-        role: db::Role::Editor,
+        role: Editor,
     })
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 
     let login_resp = app
         .clone()
@@ -57,6 +58,4 @@ pub async fn setup_test_environment() -> (axum::Router, Arc<db::Database>, Strin
 
     fs::create_dir_all("snippets").unwrap();
     fs::create_dir_all("uploads").unwrap();
-
-    (app, db, cookie, original_index)
 }

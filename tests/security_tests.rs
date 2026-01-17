@@ -1,4 +1,3 @@
-use axiomatik_web::script_base::{serialize, setup_app};
 use axum::{
     body::Body,
     http::{Request, StatusCode, header},
@@ -7,8 +6,6 @@ use tower::ServiceExt;
 
 #[tokio::test]
 async fn test_sql_injection_rejection_in_login() {
-    let (app, _db) = setup_app().await;
-
     // Payload attempting SQL injection
     let injection_payload = [("username", "admin' OR '1'='1"), ("password", "anything")];
 

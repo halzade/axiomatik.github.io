@@ -1,6 +1,8 @@
+use crate::database::Article;
 use askama::Template;
 use serde::Deserialize;
-use axiomatik_web::db;
+
+// TODO remove this file
 
 #[derive(Template)]
 #[template(path = "../pages/form.html")]
@@ -26,7 +28,7 @@ pub struct ChangePasswordTemplate {
 pub struct AccountTemplate {
     pub username: String,
     pub author_name: String,
-    pub articles: Vec<db::Article>,
+    pub articles: Vec<Article>,
 }
 
 #[derive(Deserialize)]
@@ -77,4 +79,3 @@ pub struct SnippetTemplate {
 pub struct CategoryTemplate {
     pub title: String,
 }
-

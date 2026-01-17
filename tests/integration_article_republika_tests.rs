@@ -1,4 +1,3 @@
-use axiomatik_web::script_base;
 use axum::{
     body::Body,
     http::{Request, header},

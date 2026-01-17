@@ -1,9 +1,10 @@
-mod auth;
 mod commands;
 mod configuration;
 mod content_management;
 mod content_worker;
 mod database;
+mod database_internal;
+mod database_tools;
 mod external;
 mod form_account;
 mod form_change_password;
@@ -11,18 +12,18 @@ mod form_login;
 mod form_new_article;
 mod form_search;
 mod library;
+mod library_name_days;
 mod logger;
 mod name_days;
 mod server;
 mod templates;
 mod validation;
-mod library_name_days;
+mod script_base;
 
 use crate::commands::{create_user, delete_user, print_from_db};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
-use std::sync::Arc;
 use tokio::net::TcpListener;
 use tracing::{error, info};
 
@@ -72,13 +73,13 @@ async fn main() {
     /*
      * Database
      */
-    let db = Arc::new(database::init_db().await);
+    database::initialize_database().await;
 
     /*
      * Server
      */
-    let router = server::router(db);
-    let addr = format!("{}:{}", config.application.host, config.application.port);
+    let router = server::router();
+    let addr = format!("{}:{}", config.host, config.port);
     info!("listening on {}", addr);
     let listener = TcpListener::bind(&addr)
         .await

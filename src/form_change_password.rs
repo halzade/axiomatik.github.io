@@ -1,9 +1,9 @@
+use crate::database::User;
 use crate::server::AUTH_COOKIE;
-use crate::templates;
 use crate::templates::ChangePasswordPayload;
 use crate::validation::validate_input;
+use crate::{database, templates};
 use askama::Template;
-use axiomatik_web::{auth, db};
 use axum::extract::State;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
@@ -31,7 +31,6 @@ pub async fn show_change_password(jar: CookieJar) -> Response {
 }
 
 pub async fn handle_change_password(
-    State(db): State<Arc<db::Database>>,
     jar: CookieJar,
     Form(payload): Form<ChangePasswordPayload>,
 ) -> Response {
@@ -40,7 +39,7 @@ pub async fn handle_change_password(
         if validate_input(&payload.new_password).is_err() {
             return StatusCode::BAD_REQUEST.into_response();
         }
-        match change_password(&db, username, &payload.new_password).await {
+        match change_password(username, &payload.new_password).await {
             Ok(_) => Redirect::to("/account").into_response(),
             Err(e) => {
                 error!("{:?}", e);
@@ -60,20 +59,20 @@ pub async fn handle_change_password(
     }
 }
 
-async fn change_password(db: &Database, username: &str, new_password: &str) -> Result<(), String> {
+async fn change_password(username: &str, new_password: &str) -> Result<(), String> {
     if new_password.len() < 3 {
         return Err("Heslo musí být delší".to_string());
     }
 
-    match db.get_user(username).await {
-        Ok(Some(mut user)) => {
+    let user_o = database::get_user(username).await;
+    match user_o {
+        None => Err("User not found".to_string()),
+        Some(mut user) => {
             let password_hash = hash(new_password, DEFAULT_COST).unwrap();
             user.password_hash = password_hash;
             user.needs_password_change = false;
-            db.update_user(user).await.map_err(|e| e.to_string())?;
+            database::update_user(user).await;
             Ok(())
         }
-        Ok(None) => Err("User not found".to_string()),
-        Err(e) => Err(format!("Database error: {}", e)),
     }
 }

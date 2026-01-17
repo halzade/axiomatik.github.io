@@ -1,5 +1,3 @@
-use axiomatik_web::validate_search_query;
-use axiomatik_web::db::{Article, Database};
 
 #[test]
 fn test_validate_search_query_too_short() {

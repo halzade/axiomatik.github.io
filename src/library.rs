@@ -35,7 +35,7 @@ pub const CZECH_MONTHS_GENITIVE: [&str; 12] = [
     "prosince",
 ];
 
-fn get_czech_month(month: u32, capitalized: bool) -> &'static str {
+pub fn get_czech_month(month: u32, capitalized: bool) -> &'static str {
     let idx = (month - 1) as usize;
     if capitalized {
         CZECH_MONTHS[idx]
@@ -57,4 +57,34 @@ pub fn day_of_week(dtl: DateTime<Local>) -> &'static str {
         Weekday::Sat => "Sobota",
         Weekday::Sun => "Neděle",
     }
+}
+
+pub fn save_article_file_name(title: String) -> String {
+    title
+        .to_lowercase()
+        .chars()
+        .map(|c| match c {
+            'a'..='z' | '0'..='9' => c,
+
+            // samohlásky
+            'á' => 'a',
+            'é' => 'e',
+            'ě' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+            'ů' => 'u',
+
+            // souhlásky
+            'č' => 'c',
+            'ď' => 'd',
+            'ň' => 'n',
+            'ř' => 'r',
+            'š' => 's',
+            'ť' => 't',
+            'ý' => 'y',
+            'ž' => 'z',
+            _ => '-',
+        })
+        .collect::<String>()
 }

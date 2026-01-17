@@ -1,7 +1,8 @@
-use crate::{content_management, next_midnight_instant};
+use crate::content_management;
+use chrono::Local;
 use std::time::Duration;
 use tokio::time;
-use tokio::time::interval;
+use tokio::time::{interval, Instant};
 use tracing::{info, trace};
 
 pub fn heart_beat() {
@@ -39,4 +40,19 @@ pub fn weather_worker() {
             content_management::update_index_weather().await;
         }
     });
+}
+
+fn next_midnight_instant() -> Instant {
+    let now = Local::now();
+
+    let next_midnight = now
+        .date_naive()
+        .succ_opt()
+        .unwrap()
+        .and_hms_opt(0, 0, 0)
+        .unwrap();
+
+    let duration_until = (next_midnight - now.naive_local()).to_std().unwrap();
+
+    Instant::now() + duration_until
 }
