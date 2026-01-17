@@ -57,10 +57,7 @@ pub async fn print_from_db(args: &Vec<String>) {
     }
 }
 
-pub async fn create_editor_user(
-    username: &str,
-    password: &str,
-) -> Result<(), String> {
+pub async fn create_editor_user(username: &str, password: &str) -> Result<(), String> {
     if password.len() < 3 {
         return Err("Heslo musí být delší".to_string());
     }

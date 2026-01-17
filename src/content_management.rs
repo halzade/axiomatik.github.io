@@ -5,19 +5,19 @@ use chrono::prelude::*;
 use std::fs;
 use tracing::{error, info};
 
-fn replace_name_day_in_content(content: &str, nameday_string: &str) -> String {
+fn replace_name_day_in_content(content: &str, nameday_string: String) -> String {
     let start_tag = "<!-- NAME_DAY -->";
     let end_tag = "<!-- /NAME_DAY -->";
     replace_in_content(start_tag, end_tag, content, nameday_string)
 }
 
-fn replace_weather_in_content(content: &str, weather_string: &str) -> String {
+fn replace_weather_in_content(content: &str, weather_string: String) -> String {
     let start_tag = "<!-- WEATHER -->";
     let end_tag = "<!-- /WEATHER -->";
     replace_in_content(start_tag, end_tag, content, weather_string)
 }
 
-fn replace_date_in_content(content: &str, date_string: &str) -> String {
+fn replace_date_in_content(content: &str, date_string: String) -> String {
     let start_tag = "<!-- DATE -->";
     let end_tag = "<!-- /DATE -->";
     replace_in_content(start_tag, end_tag, content, date_string)
@@ -27,11 +27,11 @@ fn replace_in_content(
     start_tag: &str,
     end_tag: &str,
     content: &str,
-    nameday_string: &str,
+    nameday_string: String,
 ) -> String {
     if let (Some(start), Some(end)) = (content.find(start_tag), content.find(end_tag)) {
         let mut new_content = content[..start + start_tag.len()].to_string();
-        new_content.push_str(nameday_string);
+        new_content.push_str(&*nameday_string);
         new_content.push_str(&content[end..]);
         new_content
     } else {
@@ -39,29 +39,8 @@ fn replace_in_content(
     }
 }
 
-pub fn update_index_date() {
-    let now = Local::now();
-    let day_name = library::day_of_week(now);
-    let month_name = get_czech_month_genitive(now.month());
-    let date_string = format!("{} {}. {} {}", day_name, now.day(), month_name, now.year());
+pub fn update_all_header_info(now: DateTime<Local>) {
 
-    update_all_header_info(&date_string, "", "");
-}
-
-pub fn update_index_nameday() {
-    let name = name_days::today_name_day();
-    let nameday_string =
-        if name.is_empty() || name.contains("No nameday") || name.contains("Invalid") {
-            "".to_string()
-        } else {
-            format!("Svátek má {}", name)
-        };
-
-    // TODO
-    // update_all_header_info("", &nameday_string, "");
-}
-
-fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) {
     // TODO
     let files = [
         "index.html",
@@ -72,13 +51,17 @@ fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) 
         "veda.html",
     ];
 
+    let formated_date = library::formatted_article_date(now);
+    let formated_name_day = name_days::formatted_today_name_date(now);
+    let formated_weather = external::fetch_weather().await;
+
     for file in files {
         if let Ok(mut content) = fs::read_to_string(file) {
             let mut changed = false;
 
             // date
-            if !date_str.is_empty() {
-                let next = replace_date_in_content(&content, date_str);
+            if !formated_date.is_empty() {
+                let next = replace_date_in_content(&content, formated_date);
                 if next != content {
                     content = next;
                     changed = true;
@@ -86,8 +69,8 @@ fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) 
             }
 
             // nameday
-            if !nameday_str.is_empty() {
-                let next = replace_name_day_in_content(&content, nameday_str);
+            if !formated_name_day.is_empty() {
+                let next = replace_name_day_in_content(&content, formated_name_day);
                 if next != content {
                     content = next;
                     changed = true;
@@ -95,8 +78,8 @@ fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) 
             }
 
             // weather
-            if !weather_str.is_empty() {
-                let next = replace_weather_in_content(&content, weather_str);
+            if !formated_weather.is_empty() {
+                let next = replace_weather_in_content(&content, formated_weather);
                 if next != content {
                     content = next;
                     changed = true;
@@ -110,15 +93,6 @@ fn update_all_header_info(date_str: &str, nameday_str: &str, weather_str: &str) 
             }
         }
     }
-}
-
-pub async fn update_index_weather() {
-    let weather_string = match external::fetch_weather().await {
-        Ok(temp) => format!("{:.0}°C | Praha", temp),
-        Err(_) => "".to_string(),
-    };
-
-    update_all_header_info("", "", &weather_string);
 }
 
 #[cfg(test)]

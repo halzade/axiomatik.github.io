@@ -1,23 +1,25 @@
-use crate::templates::CategoryTemplate;
 use crate::{database, validation};
 use askama::Template;
-use axum::extract::State;
 use axum::response::{Html, IntoResponse, Response};
 use axum::Form;
 use http::StatusCode;
 use serde::Deserialize;
 use std::fs;
-use std::sync::Arc;
-use tracing::{error, warn};
+use tracing::warn;
 
 #[derive(Deserialize)]
 pub struct SearchPayload {
     pub q: String,
 }
 
-pub async fn handle_search(
-    Form(payload): Form<SearchPayload>,
-) -> Response {
+// TODO it's own category
+#[derive(Template)]
+#[template(path = "category_template.html")]
+pub struct SearchTemplate {
+    pub title: String,
+}
+
+pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
     let query = payload.q.trim();
 
     // Validate and sanitize the search query
@@ -39,13 +41,7 @@ pub async fn handle_search(
         .filter(|w| !w.is_empty())
         .collect();
 
-    let articles = match db.get_all_articles().await {
-        Ok(a) => a,
-        Err(e) => {
-            error!("Failed to get articles from DB: {}", e);
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Database error").into_response();
-        }
-    };
+    let articles = database::get_all_articles().await;
 
     let mut matched_results = Vec::new();
 
@@ -59,7 +55,7 @@ pub async fn handle_search(
         }
 
         if match_count > 0 {
-            // Use article url (article_file_name) to search /snippets/
+            // Use the article url (article_file_name) to search /snippets/
             let snippet_path = format!("snippets/{}.txt", article.article_file_name);
             if let Ok(snippet_content) = fs::read_to_string(snippet_path) {
                 matched_results.push((match_count, snippet_content));
@@ -81,8 +77,7 @@ pub async fn handle_search(
         .collect::<Vec<String>>()
         .join("\n");
 
-    // TODO use own templete
-    let template = CategoryTemplate {
+    let template = SearchTemplate {
         title: format!("Výsledky hledání: {}", query),
     };
 

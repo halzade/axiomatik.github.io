@@ -1,29 +1,28 @@
 #[cfg(test)]
 mod tests {
-    
+    use axiomatik_web::commands::create_editor_user;
+    use axiomatik_web::database::Role::Editor;
+    use axiomatik_web::{database_tools, form_login};
+
     #[tokio::test]
     async fn test_print_from_db() {
-        let db = init_mem_db().await;
-        
         // Create a user to have something to query
         let username = "testuser";
         let password = "testpassword";
-        create_editor_user(&db, username, password).await.unwrap();
+        create_editor_user(username, password).await.unwrap();
 
         // Execute print_from_db
-        let result = print_from_db(&db, "SELECT username FROM user").await;
+        let result = database_tools::print_from_db("SELECT username FROM user").await;
         assert!(result.is_ok(), "print_from_db failed: {:?}", result.err());
     }
 
     #[tokio::test]
     async fn test_create_editor_user() {
-        let db = init_mem_db().await;
-
         let username = "editor1";
         let password = "password123";
 
         // Create editor user
-        let result = create_editor_user(&db, username, password).await;
+        let result = create_editor_user(username, password).await;
         assert!(
             result.is_ok(),
             "Editor user creation failed: {:?}",
@@ -31,7 +30,7 @@ mod tests {
         );
 
         // Verify user exists and can authenticate
-        let auth_result = authenticate_user(&db, username, password).await;
+        let auth_result = form_login::authenticate_user(username, password).await;
         assert!(
             auth_result.is_ok(),
             "Authentication failed for created editor: {:?}",
@@ -41,6 +40,6 @@ mod tests {
         let user = auth_result.unwrap();
         assert_eq!(user.username, username);
         assert!(user.needs_password_change);
-        assert_eq!(user.role, Role::Editor);
+        assert_eq!(user.role, Editor);
     }
 }

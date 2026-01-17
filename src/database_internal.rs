@@ -2,11 +2,11 @@ use surrealdb::engine::any::{connect, Any};
 use surrealdb::Surreal;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-pub struct Database {
+pub struct DatabaseSurreal {
     pub db: RwLock<Surreal<Any>>,
 }
 
-impl Database {
+impl DatabaseSurreal {
     async fn new(url: &str) -> Self {
         let client = connect(url).await.unwrap();
         client
@@ -28,10 +28,10 @@ impl Database {
     }
 }
 
-pub async fn init_db() -> Database {
-    Database::new("rocksdb://axiomatik.db").await
+pub async fn init_db() -> DatabaseSurreal {
+    DatabaseSurreal::new("rocksdb://axiomatik.db").await
 }
 
-pub async fn init_mem_db() -> Database {
-    Database::new("mem://").await
+pub async fn init_mem_db() -> DatabaseSurreal {
+    DatabaseSurreal::new("mem://").await
 }

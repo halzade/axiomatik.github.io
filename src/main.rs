@@ -1,31 +1,10 @@
-mod commands;
-mod configuration;
-mod content_management;
-mod content_worker;
-mod database;
-mod database_internal;
-mod database_tools;
-mod external;
-mod form_account;
-mod form_change_password;
-mod form_login;
-mod form_new_article;
-mod form_search;
-mod library;
-mod library_name_days;
-mod logger;
-mod name_days;
-mod server;
-mod templates;
-mod validation;
-mod script_base;
-
-use crate::commands::{create_user, delete_user, print_from_db};
+use axiomatik_web::commands::{create_user, delete_user, print_from_db};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
 use tokio::net::TcpListener;
 use tracing::{error, info};
+use axiomatik_web::{configuration, content_management, content_worker, database, logger, server};
 
 #[tokio::main]
 async fn main() {
@@ -45,7 +24,7 @@ async fn main() {
         print_from_db(&args).await;
     }
 
-    // TODO terminate if application already running.
+    // TODO terminate if application already running
 
     /*
      * Init Application Infrastructure
@@ -58,10 +37,9 @@ async fn main() {
     /*
      * Trigger actions at startup
      */
+    let now = chrono::Local::now();
     info!("startup actions");
-    content_management::update_index_date();
-    content_management::update_index_nameday();
-    content_management::update_index_weather().await;
+    content_management::update_all_header_info(now);
 
     /*
      * Start regular actions

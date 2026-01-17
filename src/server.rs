@@ -1,6 +1,3 @@
-use crate::{
-    database, form_account, form_change_password, form_login, form_new_article, form_search,
-};
 use axum::body::Body;
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -12,8 +9,11 @@ use std::fs;
 use std::sync::Arc;
 use tower_http::services::ServeDir;
 use tracing::{debug, error};
+use crate::{database, form_account, form_change_password, form_login, form_new_article, form_search};
 
-// TODO alot
+// TODO
+// TODO
+// TODO
 pub const AUTH_COOKIE: &str = "axiomatik_auth";
 
 #[derive(Clone)]

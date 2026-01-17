@@ -1,11 +1,11 @@
 use crate::database_internal;
-use crate::database_internal::Database;
+use crate::database_internal::DatabaseSurreal;
 use serde::{Deserialize, Serialize};
 use surrealdb::engine::any::Any;
 use surrealdb::{Response, Surreal};
 use tokio::sync::{OnceCell, RwLockReadGuard, RwLockWriteGuard};
 
-static DB: OnceCell<Database> = OnceCell::const_new();
+static DATABASE: OnceCell<DatabaseSurreal> = OnceCell::const_new();
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Role {
@@ -111,17 +111,17 @@ pub async fn query(query: String) -> Response {
  */
 
 pub async fn initialize_database() {
-    DB.get_or_init(database_internal::init_db).await;
+    DATABASE.get_or_init(database_internal::init_db).await;
 }
 
 pub async fn initialize_in_memory_database() {
-    DB.get_or_init(database_internal::init_mem_db).await;
+    DATABASE.get_or_init(database_internal::init_mem_db).await;
 }
 
 async fn db_read<'lt>() -> RwLockReadGuard<'lt, Surreal<Any>> {
-    DB.get().unwrap().db.read().await
+    DATABASE.get().unwrap().db.read().await
 }
 
 async fn db_write<'lt>() -> RwLockWriteGuard<'lt, Surreal<Any>> {
-    DB.get().unwrap().db.write().await
+    DATABASE.get().unwrap().db.write().await
 }

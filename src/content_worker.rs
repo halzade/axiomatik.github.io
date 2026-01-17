@@ -25,8 +25,9 @@ pub fn midnight_worker() {
         loop {
             interval.tick().await;
             info!("midnight event");
-            content_management::update_index_date();
-            content_management::update_index_nameday();
+
+            let now = chrono::Local::now();
+            content_management::update_all_header_info(now);
         }
     });
 }

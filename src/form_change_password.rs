@@ -1,23 +1,32 @@
-use crate::database::User;
+use crate::database;
 use crate::server::AUTH_COOKIE;
-use crate::templates::ChangePasswordPayload;
 use crate::validation::validate_input;
-use crate::{database, templates};
 use askama::Template;
-use axum::extract::State;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
 use axum_extra::extract::CookieJar;
 use bcrypt::{hash, DEFAULT_COST};
 use http::StatusCode;
-use std::sync::Arc;
+use serde::Deserialize;
 use tracing::error;
+
+#[derive(Deserialize)]
+pub struct ChangePasswordPayload {
+    pub new_password: String,
+}
+
+#[derive(Template)]
+#[template(path = "../pages/change_password.html")]
+pub struct ChangePasswordTemplate {
+    pub error: bool,
+    pub username: String,
+}
 
 pub async fn show_change_password(jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value().to_string();
         Html(
-            templates::ChangePasswordTemplate {
+            ChangePasswordTemplate {
                 error: false,
                 username,
             }
@@ -44,7 +53,7 @@ pub async fn handle_change_password(
             Err(e) => {
                 error!("{:?}", e);
                 Html(
-                    templates::ChangePasswordTemplate {
+                    ChangePasswordTemplate {
                         error: true,
                         username: username.to_string(),
                     }

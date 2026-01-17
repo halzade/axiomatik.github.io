@@ -1,17 +1,19 @@
+#[cfg(test)]
+mod tests {
+
 use axum::{
     body::Body,
     http::{Request, StatusCode, header},
 };
 use tower::ServiceExt;
+use axiomatik_web::commands;
+use axiomatik_web::script_base::serialize;
 
 #[tokio::test]
 async fn test_login() {
-    let (app, db) = setup_app().await;
 
     // 1. Create a user via auth module (simulating command)
-    auth::create_editor_user(&db, "admin", "password123")
-        .await
-        .unwrap();
+    commands::create_editor_user("admin", "password123").await;
 
     // 2. Try login
     let login_params = [("username", "admin"), ("password", "password123")];
@@ -38,11 +40,9 @@ async fn test_login() {
 
 #[tokio::test]
 async fn test_change_password() {
-    let (app, db) = setup_app().await;
-
     // Create user who needs password change
     let password_hash = bcrypt::hash("pass1234", bcrypt::DEFAULT_COST).unwrap();
-    db.create_user(database::User {
+    database::create_user(database::User {
         username: "user1".to_string(),
         author_name: "user1".to_string(),
         password_hash,
@@ -104,7 +104,7 @@ async fn test_change_password() {
     );
 
     // Verify change in DB
-    let user = db.get_user("user1").await.unwrap().unwrap();
+    let user = database::get_user("user1").await.unwrap().unwrap();
     assert_eq!(user.author_name, "user1");
     assert!(!user.needs_password_change);
 }
@@ -181,7 +181,7 @@ async fn test_account_page() {
 
     // 1. Create user
     let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
-    db.create_user(database::User {
+    database::create_user(database::User {
         username: "account_user".to_string(),
         author_name: "Initial Author".to_string(),
         password_hash,
@@ -259,7 +259,7 @@ async fn test_account_page() {
     );
 
     // 5. Verify update in DB
-    let user = db.get_user("account_user").await.unwrap().unwrap();
+    let user = database::get_user("account_user").await.unwrap().unwrap();
     assert_eq!(user.author_name, "Updated Author");
 
     // 6. Create an article for this user
@@ -364,4 +364,5 @@ async fn test_account_page() {
     // Cleanup files
     let _ = std::fs::remove_file("test-user-article.html");
     let _ = std::fs::remove_file("snippets/test-user-article.html.txt");
+}
 }

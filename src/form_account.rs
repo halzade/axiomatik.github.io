@@ -1,11 +1,26 @@
 use crate::database;
 use crate::server::AUTH_COOKIE;
-use crate::templates::{AccountTemplate, UpdateAuthorNamePayload};
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
 use axum_extra::extract::CookieJar;
 use http::StatusCode;
+use serde::Deserialize;
+use crate::database::Article;
+use crate::validation::validate_input;
+
+#[derive(Deserialize)]
+pub struct UpdateAuthorNamePayload {
+    pub author_name: String,
+}
+
+#[derive(Template)]
+#[template(path = "../pages/account.html")]
+pub struct AccountTemplate {
+    pub username: String,
+    pub author_name: String,
+    pub articles: Vec<Article>,
+}
 
 pub async fn show_account(jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {

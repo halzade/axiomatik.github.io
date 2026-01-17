@@ -1,7 +1,6 @@
 use crate::database;
 use crate::database::User;
 use crate::server::AUTH_COOKIE;
-use crate::templates::{LoginPayload, LoginTemplate};
 use crate::validation::validate_input_simple;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -10,7 +9,21 @@ use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::CookieJar;
 use bcrypt::verify;
 use http::StatusCode;
+use serde::Deserialize;
 use tracing::{info, warn};
+
+
+#[derive(Deserialize)]
+pub struct LoginPayload {
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Template)]
+#[template(path = "../pages/login.html")]
+pub struct LoginTemplate {
+    pub error: bool,
+}
 
 pub async fn show_login() -> impl IntoResponse {
     Html(LoginTemplate { error: false }.render().unwrap())
@@ -42,7 +55,7 @@ pub async fn handle_login(jar: CookieJar, Form(payload): Form<LoginPayload>) -> 
     }
 }
 
-async fn authenticate_user(username: &str, password: &str) -> Result<User, String> {
+pub async fn authenticate_user(username: &str, password: &str) -> Result<User, String> {
     let user_o = database::get_user(username).await;
     match user_o {
         None => Err("User not found".to_string()),

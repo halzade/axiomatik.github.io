@@ -1,8 +1,9 @@
 use crate::database;
+use anyhow::Error;
 use serde_json::Value;
 use tracing::info;
 
-pub async fn print_from_db(query: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn print_from_db(query: &str) -> Result<(), Error> {
     let mut response = database::query(fix_query(query)).await;
 
     // Check for errors in the response and keep the response
