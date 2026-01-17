@@ -126,6 +126,7 @@ function scaleImage(img, targetWidth) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
+        // TODO
         canvas.toBlob(blob => {
             resolve(blob);
         }, 'image/jpeg', 0.9);

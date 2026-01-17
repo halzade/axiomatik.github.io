@@ -1,19 +1,26 @@
 use axum::Router;
 use http::{header, Request, Response};
 
-use std::fs;
+use std::string::ToString;
 use tower::ServiceExt;
 
 use crate::database::Role::Editor;
 use crate::database::User;
 use crate::{database, server};
+use ctor::dtor;
 use std::sync::{Once, OnceLock};
+use tokio::sync::OnceCell;
 
 static INIT: Once = Once::new();
 static APP_ROUTER: OnceLock<Router> = OnceLock::new();
+static ORIGINAL_INDEX: OnceCell<String> = OnceCell::const_new();
 
-pub const FAKE_IMAGE_DATA : Vec<u8> = Vec::new();
-pub const FAKE_AUDIO_DATA : Vec<u8> = Vec::new();
+pub const FAKE_IMAGE_DATA: Vec<u8> = Vec::new();
+pub const FAKE_AUDIO_DATA: Vec<u8> = Vec::new();
+
+pub const JPEG: &str = "image/jpeg";
+
+const PASSWORD: &str = "password123";
 
 async fn setup_before_tests() {
     INIT.call_once(|| {
@@ -23,12 +30,17 @@ async fn setup_before_tests() {
         let router = server::router();
         let _ = APP_ROUTER.set(router);
 
-        // TODO
-        let _ = setup_test_environment_with_user_admin();
-
-        // TODO
-        let original_index = std::fs::read_to_string("index.html").unwrap_or_default();
+        let original_index = std::fs::read_to_string("index.html").unwrap();
+        ORIGINAL_INDEX.set(original_index).unwrap();
     });
+}
+
+#[dtor]
+fn after_tests_clean_up() {
+    println!("All tests finished!");
+    if let Some(content) = ORIGINAL_INDEX.get() {
+        std::fs::write("index.html", content).unwrap();
+    }
 }
 
 pub async fn one_shot(request: Request<reqwest::Body>) -> Response<axum::body::Body> {
@@ -42,15 +54,24 @@ pub fn serialize(params: &[(&str, &str)]) -> String {
     serializer.finish()
 }
 
-async fn setup_test_environment_with_user_admin() -> String {
-    database::create_user(user_admin()).await.unwrap();
+pub fn original_index() -> String {
+    ORIGINAL_INDEX.get().unwrap().to_string()
+}
 
+pub async fn setup_user_and_login(name: &str) -> String {
+    // create user in DB
+    database::create_user(new_user(name)).await.unwrap();
+
+    // login user
     let login_resp = one_shot(
         Request::builder()
             .method("POST")
             .uri("/login")
             .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .body(reqwest::Body::from("username=admin&password=password123"))
+            .body(reqwest::Body::from(format!(
+                "username={}&password={}",
+                name, PASSWORD
+            )))
             .unwrap(),
     )
     .await;
@@ -63,17 +84,14 @@ async fn setup_test_environment_with_user_admin() -> String {
         .unwrap()
         .to_string();
 
-    fs::create_dir_all("snippets").unwrap();
-    fs::create_dir_all("uploads").unwrap();
-
     cookie
 }
 
-fn user_admin() -> User {
-    let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
+fn new_user(name: &str) -> User {
+    let password_hash = bcrypt::hash(PASSWORD, bcrypt::DEFAULT_COST).unwrap();
     User {
-        username: "admin".to_string(),
-        author_name: "admin".to_string(),
+        username: name.into(),
+        author_name: name.into(),
         password_hash,
         needs_password_change: false,
         role: Editor,

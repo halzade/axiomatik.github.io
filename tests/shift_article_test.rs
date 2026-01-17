@@ -1,58 +1,17 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::database;
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{serialize, FAKE_IMAGE_DATA};
+    use axiomatik_web::test_framework::script_base::{FAKE_IMAGE_DATA, JPEG};
     use axum::http::{header, StatusCode};
     use reqwest::Body;
 
     #[tokio::test]
     async fn test_shift_main_article_removes_exclusive_tag() {
         // 1. Create user
-        let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
-        database::create_user(database::User {
-            username: "admin".to_string(),
-            author_name: "admin".to_string(),
-            password_hash,
-            needs_password_change: false,
-            role: database::Role::Editor,
-        })
-        .await
-        .unwrap();
+        let cookie = script_base::setup_user_and_login("user3");
 
-        // 2. Login
-        let login_params = [("username", "admin"), ("password", "password123")];
-        let login_resp = script_base::one_shot(
-            axum_core::extract::Request::builder()
-                .method("POST")
-                .uri("/login")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(serialize(&login_params)))
-                .unwrap(),
-        )
-        .await;
-
-        let cookie = login_resp
-            .headers()
-            .get(header::SET_COOKIE)
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-
-        // Prepare index.html with known markers
-        let initial_index = r#"
-        <!-- MAIN_ARTICLE -->
-        <!-- /MAIN_ARTICLE -->
-        <!-- SECOND_ARTICLE -->
-        <!-- /SECOND_ARTICLE -->
-        <!-- THIRD_ARTICLE -->
-        <!-- /THIRD_ARTICLE -->
-    "#;
-        std::fs::write("index.html", initial_index).unwrap();
-
-        // 3. Create first article as MAIN and EXCLUSIVE
+        // 3. Create the first article as MAIN and EXCLUSIVE
         let body1 = ArticleBuilder::new()
             .title("test-Exclusive Article")
             .is_exclusive(true)
@@ -61,7 +20,7 @@ mod tests {
             .category("republika")
             .text("First article text.")
             .short_text("First short text.")
-            .image("test1.jpg", FAKE_IMAGE_DATA, "image/jpeg")
+            .image("test1.jpg", FAKE_IMAGE_DATA, JPEG)
             .build();
 
         let response1 = script_base::one_shot(
@@ -86,7 +45,7 @@ mod tests {
             index_after1.contains(r#"<span class="red">EXKLUZIVNĚ:</span> test-Exclusive Article"#)
         );
 
-        // 4. Create second article as MAIN (not necessarily exclusive)
+        // 4. Create the second article as MAIN (not necessarily exclusive)
         let body2 = ArticleBuilder::new()
             .title("test-New Main Article")
             .is_main(true)
@@ -94,8 +53,8 @@ mod tests {
             .category("republika")
             .text("Second article text.")
             .short_text("Second short text.")
-            .image("test2.jpg", FAKE_IMAGE_DATA, "image/jpeg")
-            .build()?;
+            .image("test2.jpg", FAKE_IMAGE_DATA, JPEG)
+            .build();
 
         let response2 = script_base::one_shot(
             axum_core::extract::Request::builder()
@@ -138,6 +97,5 @@ mod tests {
         let _ = std::fs::remove_file("test-new-main-article.html");
         let _ = std::fs::remove_file("snippets/test-exclusive-article.html.txt");
         let _ = std::fs::remove_file("snippets/test-new-main-article.html.txt");
-        std::fs::write("index.html", original_index).unwrap();
     }
 }

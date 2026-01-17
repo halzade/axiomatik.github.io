@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use axum::http::{header, Request, StatusCode};
-    use reqwest::Body;
-    use axiomatik_web::{commands, database};
+    use axiomatik_web::commands;
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::serialize;
+    use axum::http::{header, Request, StatusCode};
+    use reqwest::Body;
 
     #[tokio::test]
     async fn test_validation_login_username() {
@@ -16,7 +16,8 @@ mod tests {
 
         // BEL
         let login_params = [("username", "adm\x07in"), ("password", "password123")];
-        let response = script_base::one_shot(Request::builder()
+        let response = script_base::one_shot(
+            Request::builder()
                 .method("POST")
                 .uri("/login")
                 .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
@@ -53,33 +54,7 @@ mod tests {
     #[tokio::test]
     async fn test_validation_create_article() {
         // 1. Create and login user
-        commands::create_editor_user("author1", "pass123")
-            .await
-            .unwrap();
-
-        // Manual update to bypass password change
-        let mut user = database::get_user("author1").await.unwrap();
-        user.needs_password_change = false;
-        database::update_user(user).await.unwrap();
-
-        let login_params = [("username", "author1"), ("password", "pass123")];
-        let response = script_base::one_shot(
-            Request::builder()
-                .method("POST")
-                .uri("/login")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(serialize(&login_params)))
-                .unwrap(),
-        )
-        .await;
-
-        let cookie = response
-            .headers()
-            .get(header::SET_COOKIE)
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
+        let cookie = script_base::setup_user_and_login("user9");
 
         // 2. Create an article with malicious input
         let body = ArticleBuilder::new()
@@ -89,7 +64,6 @@ mod tests {
             .text("Content")
             .short_text("Sho\x07rt")
             .build();
-
 
         let response = script_base::one_shot(
             Request::builder()

@@ -1,17 +1,19 @@
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::test_framework::script_base::{FAKE_IMAGE_DATA, JPEG};
     use axum_core::extract::Request;
     use http::header;
     use reqwest::Body;
-    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
-    use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::FAKE_IMAGE_DATA;
+    use std::fs;
 
     #[tokio::test]
     async fn test_veda_article_is_main_rotation() {
         // Ensure index.html has known content in the sections
-        let mut initial_index = original_index.clone();
+        let mut initial_index = script_base::original_index();
+
+        let cookie = script_base::setup_user_and_login("user4");
 
         // Inject some identifiable content into MAIN, SECOND, THIRD
         let main_content = r#"
@@ -61,22 +63,23 @@ mod tests {
             .text("Main text of veda article")
             .short_text("Short text of veda article")
             .is_main(true)
-            .image("test.jpg", FAKE_IMAGE_DATA)
+            .image("test.jpg", FAKE_IMAGE_DATA, JPEG)
             .build()
             .unwrap();
 
-        script_base::one_shot(Request::builder()
-                    .method("POST")
-                    .uri("/create")
-                    .header(
-                        header::CONTENT_TYPE,
-                        format!("multipart/form-data; boundary={}", BOUNDARY),
-                    )
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::from(body))
-                    .unwrap(),
-            )
-            .await;
+        script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/create")
+                .header(
+                    header::CONTENT_TYPE,
+                    format!("multipart/form-data; boundary={}", BOUNDARY),
+                )
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(body))
+                .unwrap(),
+        )
+        .await;
 
         let updated_index = fs::read_to_string("index.html").unwrap();
 

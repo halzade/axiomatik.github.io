@@ -1,31 +1,31 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::{commands, database};
-    use axum::{
-        http::{header, Request, StatusCode},
-    };
-    use reqwest::Body;
-    use tower::ServiceExt;
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{serialize, FAKE_IMAGE_DATA};
+    use axiomatik_web::test_framework::script_base::{serialize, FAKE_IMAGE_DATA, JPEG};
+    use axiomatik_web::{commands, database};
+    use axum::http::{header, Request, StatusCode};
+    use reqwest::Body;
 
     #[tokio::test]
     async fn test_login() {
         // 1. Create a user via auth module (simulating command)
-        commands::create_editor_user("admin", "password123").await;
+        commands::create_editor_user("admin", "password123")
+            .await
+            .unwrap();
 
         // 2. Try login
         let login_params = [("username", "admin"), ("password", "password123")];
         let login_body = serialize(&login_params);
-        let response = script_base::one_shot( Request::builder()
-                    .method("POST")
-                    .uri("/login")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from(login_body))
-                    .unwrap(),
-            )
-            .await;
+        let response = script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(login_body))
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(response.status(), StatusCode::SEE_OTHER);
         assert_eq!(
@@ -51,14 +51,15 @@ mod tests {
 
         // Login as user1
         let login_params1 = [("username", "user1"), ("password", "pass1234")];
-        let login_resp1 = script_base::one_shot( Request::builder()
-                    .method("POST")
-                    .uri("/login")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from(serialize(&login_params1)))
-                    .unwrap(),
-            )
-            .await;
+        let login_resp1 = script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(serialize(&login_params1)))
+                .unwrap(),
+        )
+        .await;
 
         // Should redirect to change-password
         assert_eq!(login_resp1.status(), StatusCode::SEE_OTHER);
@@ -76,15 +77,16 @@ mod tests {
 
         // Change password
         let change_params = [("new_password", "new_password_123")];
-        let change_resp = script_base::one_shot( Request::builder()
-                    .method("POST")
-                    .uri("/change-password")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header(header::COOKIE, &cookie1)
-                    .body(Body::from(serialize(&change_params)))
-                    .unwrap(),
-            )
-            .await;
+        let change_resp = script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/change-password")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, &cookie1)
+                .body(Body::from(serialize(&change_params)))
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(change_resp.status(), StatusCode::SEE_OTHER);
         assert_eq!(
@@ -93,34 +95,35 @@ mod tests {
         );
 
         // Verify change in DB
-        let user = database::get_user("user1").await.unwrap().unwrap();
+        let user = database::get_user("user1").await.unwrap();
         assert_eq!(user.author_name, "user1");
         assert!(!user.needs_password_change);
     }
 
     #[tokio::test]
     async fn test_serve_static_html() {
-
-        let response = script_base::one_shot( Request::builder()
-                    .method("GET")
-                    .uri("/jeden-tisic-dnu.html")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await;
+        let response = script_base::one_shot(
+            Request::builder()
+                .method("GET")
+                .uri("/jeden-tisic-dnu.html")
+                .body(Body::default())
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(response.status(), StatusCode::OK);
     }
 
     #[tokio::test]
     async fn test_404_fallback() {
-        let response = script_base::one_shot( Request::builder()
-                    .method("GET")
-                    .uri("/non-existent-page.html")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await;
+        let response = script_base::one_shot(
+            Request::builder()
+                .method("GET")
+                .uri("/non-existent-page.html")
+                .body(Body::default())
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
 
@@ -156,68 +159,41 @@ mod tests {
 
     #[tokio::test]
     async fn test_account_page() {
-
         // 1. Create user
-        let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
-        database::create_user(database::User {
-            username: "account_user".to_string(),
-            author_name: "Initial Author".to_string(),
-            password_hash,
-            needs_password_change: false,
-            role: database::Role::Editor,
-        })
-        .await
-        .unwrap();
-
-        // 2. Login
-        let login_params = [("username", "account_user"), ("password", "password123")];
-        let login_resp = script_base::one_shot( Request::builder()
-                    .method("POST")
-                    .uri("/login")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from(serialize(&login_params)))
-                    .unwrap(),
-            )
-            .await;
-
-        let cookie = login_resp
-            .headers()
-            .get(header::SET_COOKIE)
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
+        let cookie = script_base::setup_user_and_login("user8");
 
         // 3. Access account page
-        let response = script_base::one_shot( Request::builder()
-                    .method("GET")
-                    .uri("/account")
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await;
+        let response = script_base::one_shot(
+            Request::builder()
+                .method("GET")
+                .uri("/account")
+                .header(header::COOKIE, &cookie)
+                .body(Body::default())
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(response.status(), StatusCode::OK);
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
             .unwrap();
         let body_str = String::from_utf8_lossy(&body);
-        assert!(body_str.contains("account_user"));
+        assert!(body_str.contains("user8"));
         assert!(body_str.contains("Initial Author"));
         assert!(body_str.contains("Moje články"));
 
         // 4. Update author name
         let update_params = [("author_name", "Updated Author")];
-        let update_resp = script_base::one_shot( Request::builder()
-                    .method("POST")
-                    .uri("/account/update-author")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::from(serialize(&update_params)))
-                    .unwrap(),
-            )
-            .await;
+        let update_resp = script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/account/update-author")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(serialize(&update_params)))
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(update_resp.status(), StatusCode::SEE_OTHER);
         assert_eq!(
@@ -226,7 +202,7 @@ mod tests {
         );
 
         // 5. Verify update in DB
-        let user = database::get_user("account_user").await.unwrap();
+        let user = database::get_user("user8").await.unwrap();
         assert_eq!(user.author_name, "Updated Author");
 
         // 6. Create an article for this user
@@ -236,32 +212,33 @@ mod tests {
             .category("test-category")
             .text("Content")
             .short_text("Short")
-            .image("test.jpg", FAKE_IMAGE_DATA,"image/jpeg")
+            .image("test.jpg", FAKE_IMAGE_DATA, JPEG)
             .build();
 
-
-        script_base::one_shot( Request::builder()
-                    .method("POST")
-                    .uri("/create")
-                    .header(
-                        header::CONTENT_TYPE,
-                        format!("multipart/form-data; boundary={}", BOUNDARY),
-                    )
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::from(body))
-                    .unwrap(),
-            )
-            .await;
+        script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/create")
+                .header(
+                    header::CONTENT_TYPE,
+                    format!("multipart/form-data; boundary={}", BOUNDARY),
+                )
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(body))
+                .unwrap(),
+        )
+        .await;
 
         // 7. Verify the article is on the account page
-        let response = script_base::one_shot( Request::builder()
-                    .method("GET")
-                    .uri("/account")
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await;
+        let response = script_base::one_shot(
+            Request::builder()
+                .method("GET")
+                .uri("/account")
+                .header(header::COOKIE, &cookie)
+                .body(Body::default())
+                .unwrap(),
+        )
+        .await;
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await
@@ -271,25 +248,27 @@ mod tests {
 
         // 8. Update author name again
         let update_params = [("author_name", "Second Update")];
-        script_base::one_shot( Request::builder()
-                    .method("POST")
-                    .uri("/account/update-author")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::from(serialize(&update_params)))
-                    .unwrap(),
-            )
-            .await;
+        script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/account/update-author")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(serialize(&update_params)))
+                .unwrap(),
+        )
+        .await;
 
         // 9. Verify the article is STILL on the account page (linked by username, not author_name)
-        let response = script_base::one_shot( Request::builder()
-                    .method("GET")
-                    .uri("/account")
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await;
+        let response = script_base::one_shot(
+            Request::builder()
+                .method("GET")
+                .uri("/account")
+                .header(header::COOKIE, &cookie)
+                .body(Body::default())
+                .unwrap(),
+        )
+        .await;
 
         let body = axum::body::to_bytes(response.into_body(), usize::MAX)
             .await

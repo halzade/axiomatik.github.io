@@ -25,6 +25,7 @@ url = "2.5.7"
 router = "0.6.0"
 axum-core = "0.5.6"
 anyhow = "1.0.100"
+ctor = "0.6.3"
 
 [dev-dependencies]
 tower = "0.5.2"
