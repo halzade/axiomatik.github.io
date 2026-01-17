@@ -22,7 +22,7 @@ pub struct ArticleData {
     pub audio_path: Option<String>,
     pub category: String,
     pub category_display: String,
-    pub related_articles: Vec<String>,
+    pub related_articles: String,
 }
 
 #[derive(Template)]
@@ -83,7 +83,7 @@ pub async fn show_form(jar: CookieJar) -> Response {
     Redirect::to("/login").into_response()
 }
 
-pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Response {
+pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
     let created_by = if let Some(cookie) = jar.get(AUTH_COOKIE) {
         cookie.value().to_string()
     } else {
@@ -99,12 +99,17 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
     let article_data_o = article_data(multipart).await;
 
     match article_data_o {
-        None => {
-            return StatusCode::BAD_REQUEST.into_response();
-        }
+        None => StatusCode::BAD_REQUEST.into_response(),
         Some(article_data) => {
+            let related_articles_vec = &article_data
+                .related_articles
+                .lines()
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .map(String::from)
+                .collect();
 
-            let mut related_article_snippets = library::read_related_articles(article_data.related_articles);
+            let related_article_snippets = library::read_related_articles(&related_articles_vec);
 
             let now = chrono::Local::now();
 
@@ -140,8 +145,12 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
             // category
 
             let month_name = library::get_czech_month(now.month());
-            let category_month_year_filename =
-                format!("archive-{}-{}-{}.html", article_data.category, month_name, now.year());
+            let category_month_year_filename = format!(
+                "archive-{}-{}-{}.html",
+                article_data.category,
+                month_name,
+                now.year()
+            );
 
             let snippet = SnippetTemplate {
                 url: file_path.clone(),
@@ -176,9 +185,12 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                             .to_string();
                     }
 
-                    // 2. Prepare new MAIN_ARTICLE
+                    // 2. Prepare a new MAIN_ARTICLE
                     let title_with_exclusive = if article_data.is_exclusive {
-                        format!(r#"<span class="red">EXKLUZIVNĚ:</span> {}"#, article_data.title)
+                        format!(
+                            r#"<span class="red">EXKLUZIVNĚ:</span> {}"#,
+                            article_data.title
+                        )
                     } else {
                         article_data.title.clone()
                     };
@@ -239,7 +251,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                             // Looking at index.html, SECOND_ARTICLE and THIRD_ARTICLE don't seem to have images.
                             // However, shifting the WHOLE content might include the <img> tag if it was there.
                             .split("<a href=")
-                            .filter(|s| !s.contains("<img")) // Simple way to strip image if it's in its own <a> tag
+                            .filter(|s| !s.contains("<img")) // Simple way to strip an image if it's in its own <a> tag
                             .collect::<Vec<&str>>()
                             .join("<a href=");
 
@@ -289,7 +301,12 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
 
             if !std::path::Path::new(&category_month_year_filename).exists() {
                 let cat_template = CategoryTemplate {
-                    title: format!("{} - {} {}", article_data.category_display, month_name, now.year()),
+                    title: format!(
+                        "{} - {} {}",
+                        article_data.category_display,
+                        month_name,
+                        now.year()
+                    ),
                 };
                 let mut base_html = cat_template.render().unwrap();
                 base_html = base_html.replace(
@@ -318,7 +335,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                 fs::write(&main_cat_filename, content).unwrap();
             }
 
-            for path in &article_data.related_article_paths {
+            for path in related_articles_vec {
                 if let Ok(mut content) = fs::read_to_string(path) {
                     if content.contains("<!-- SNIPPETS -->") {
                         content = content.replace(

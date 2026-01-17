@@ -160,7 +160,7 @@ mod tests {
     #[tokio::test]
     async fn test_account_page() {
         // 1. Create user
-        let cookie = script_base::setup_user_and_login("user8");
+        let cookie = script_base::setup_user_and_login("user8").await;
 
         // 3. Access account page
         let response = script_base::one_shot(
@@ -224,7 +224,7 @@ mod tests {
                     format!("multipart/form-data; boundary={}", BOUNDARY),
                 )
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(body))
+                .body(Body::from(body.unwrap()))
                 .unwrap(),
         )
         .await;

@@ -105,9 +105,9 @@ pub fn formatted_article_date(now: DateTime<Local>) -> String {
     )
 }
 
-pub fn read_related_articles(related_articles: Vec<String>) -> String {
+pub fn read_related_articles(related_articles: &Vec<String>) -> String {
     let mut related_article_snippets = String::new();
-    for path in &related_articles {
+    for path in related_articles {
         let snippet_path = format!("snippets/{}.txt", path);
         if let Ok(snippet_html) = fs::read_to_string(&snippet_path) {
             related_article_snippets.push_str(&snippet_html);

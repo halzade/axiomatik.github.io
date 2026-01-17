@@ -54,7 +54,7 @@ mod tests {
     #[tokio::test]
     async fn test_validation_create_article() {
         // 1. Create and login user
-        let cookie = script_base::setup_user_and_login("user9");
+        let cookie = script_base::setup_user_and_login("user9").await;
 
         // 2. Create an article with malicious input
         let body = ArticleBuilder::new()
@@ -74,7 +74,7 @@ mod tests {
                     format!("multipart/form-data; boundary={}", BOUNDARY),
                 )
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(body))
+                .body(Body::from(body.unwrap()))
                 .unwrap(),
         )
         .await;

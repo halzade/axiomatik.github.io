@@ -111,14 +111,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
                 if validate_input(&val).is_err() {
                     return None;
                 }
-                let lines = val
-                    .lines()
-                    .map(str::trim)
-                    .filter(|s| !s.is_empty())
-                    .map(String::from)
-                    .collect();
-
-                related_articles_o = Some(lines);
+                related_articles_o = Some(val);
             }
 
             "image_description" => {

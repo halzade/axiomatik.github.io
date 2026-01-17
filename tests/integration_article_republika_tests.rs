@@ -9,7 +9,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_republika_article_creation_and_limit() {
-        let cookie = script_base::setup_user_and_login("user5");
+        let cookie = script_base::setup_user_and_login("user5").await;
 
         let body = ArticleBuilder::new()
             .title("test-Newest Republika")
@@ -28,7 +28,7 @@ mod tests {
                     format!("multipart/form-data; boundary={}", BOUNDARY),
                 )
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(body))
+                .body(Body::from(body.unwrap()))
                 .unwrap(),
         )
         .await;

@@ -9,7 +9,7 @@ mod tests {
     #[tokio::test]
     async fn test_shift_main_article_removes_exclusive_tag() {
         // 1. Create user
-        let cookie = script_base::setup_user_and_login("user3");
+        let cookie = script_base::setup_user_and_login("user3").await;
 
         // 3. Create the first article as MAIN and EXCLUSIVE
         let body1 = ArticleBuilder::new()
@@ -32,7 +32,7 @@ mod tests {
                     format!("multipart/form-data; boundary={}", BOUNDARY),
                 )
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(body1))
+                .body(Body::from(body1.unwrap()))
                 .unwrap(),
         )
         .await;
@@ -65,7 +65,7 @@ mod tests {
                     format!("multipart/form-data; boundary={}", BOUNDARY),
                 )
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(body2))
+                .body(Body::from(body2.unwrap()))
                 .unwrap(),
         )
         .await;

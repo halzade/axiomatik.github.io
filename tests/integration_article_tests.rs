@@ -11,7 +11,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_article() {
         // 1. Create a user who does NOT need password change
-        let cookie = script_base::setup_user_and_login("user6");
+        let cookie = script_base::setup_user_and_login("user6").await;
 
         // 3. Create article (Multipart)
         // Create related article and category files for testing
@@ -48,7 +48,7 @@ mod tests {
                     format!("multipart/form-data; boundary={}", BOUNDARY),
                 )
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(body))
+                .body(Body::from(body.unwrap()))
                 .unwrap(),
         )
         .await;
@@ -86,7 +86,6 @@ mod tests {
         let body_bytes = axum::body::to_bytes(account_resp.into_body(), usize::MAX)
             .await
             .unwrap();
-        let body_str = String::from_utf8(body_bytes.to_vec()).unwrap();
         
         // Verify audio player placement
         let article_content = std::fs::read_to_string("test-article.html").unwrap();

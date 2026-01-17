@@ -13,7 +13,7 @@ mod tests {
         // Ensure index.html has known content in the sections
         let mut initial_index = script_base::original_index();
 
-        let cookie = script_base::setup_user_and_login("user4");
+        let cookie = script_base::setup_user_and_login("user4").await;
 
         // Inject some identifiable content into MAIN, SECOND, THIRD
         let main_content = r#"

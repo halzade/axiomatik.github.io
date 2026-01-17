@@ -11,7 +11,7 @@ mod tests {
     #[tokio::test]
     async fn test_exclusive_main_article_finance() {
 
-        let cookie = script_base::setup_user_and_login("user2");
+        let cookie = script_base::setup_user_and_login("user2").await;
 
         let body = ArticleBuilder::new()
             .title("test-Financni trhy v soku")
