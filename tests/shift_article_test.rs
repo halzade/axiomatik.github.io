@@ -14,12 +14,12 @@ async fn test_shift_main_article_removes_exclusive_tag() {
 
     // 1. Create user
     let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
-    db.create_user(db::User {
+    db.create_user(database::User {
         username: "admin".to_string(),
         author_name: "admin".to_string(),
         password_hash,
         needs_password_change: false,
-        role: db::Role::Editor,
+        role: database::Role::Editor,
     })
     .await
     .unwrap();

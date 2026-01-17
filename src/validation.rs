@@ -27,7 +27,7 @@ pub fn validate_search_query(input: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
-fn validate_input_simple(input: &str) -> Result<(), &'static str> {
+pub fn validate_input_simple(input: &str) -> Result<(), &'static str> {
     for c in input.chars() {
         if !c.is_ascii_alphanumeric() {
             if c != '_' {

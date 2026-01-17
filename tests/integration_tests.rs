@@ -44,12 +44,12 @@ async fn test_change_password() {
 
     // Create user who needs password change
     let password_hash = bcrypt::hash("pass1234", bcrypt::DEFAULT_COST).unwrap();
-    db.create_user(db::User {
+    db.create_user(database::User {
         username: "user1".to_string(),
         author_name: "user1".to_string(),
         password_hash,
         needs_password_change: true,
-        role: db::Role::Editor,
+        role: database::Role::Editor,
     })
     .await
     .unwrap();
@@ -183,12 +183,12 @@ async fn test_account_page() {
 
     // 1. Create user
     let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
-    db.create_user(db::User {
+    db.create_user(database::User {
         username: "account_user".to_string(),
         author_name: "Initial Author".to_string(),
         password_hash,
         needs_password_change: false,
-        role: db::Role::Editor,
+        role: database::Role::Editor,
     })
     .await
     .unwrap();

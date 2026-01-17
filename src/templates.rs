@@ -77,3 +77,4 @@ pub struct SnippetTemplate {
 pub struct CategoryTemplate {
     pub title: String,
 }
+

@@ -1,9 +1,11 @@
-use crate::{library, name_days};
 use crate::library::get_czech_month_genitive;
+use crate::{library, name_days};
+use axum::response::{Html, IntoResponse};
 use chrono::Local;
+use http::StatusCode;
 use std::fs;
 use tokio::time::Instant;
-use tracing::error;
+use tracing::{error, info};
 
 fn replace_nameday_in_content(content: &str, nameday_string: &str) -> String {
     let start_tag = "<!-- NAME_DAY -->";
@@ -122,6 +124,21 @@ pub async fn update_index_weather() {
     update_all_header_info("", "", &weather_string);
 }
 
+fn next_midnight_instant() -> Instant {
+    let now = Local::now();
+
+    let next_midnight = now
+        .date_naive()
+        .succ_opt()
+        .unwrap()
+        .and_hms_opt(0, 0, 0)
+        .unwrap();
+
+    let duration_until = (next_midnight - now.naive_local()).to_std().unwrap();
+
+    Instant::now() + duration_until
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -174,19 +191,4 @@ mod tests {
         let new_content = replace_nameday_in_content(content, nameday_string);
         assert_eq!(content, new_content);
     }
-}
-
-fn next_midnight_instant() -> Instant {
-    let now = Local::now();
-
-    let next_midnight = now
-        .date_naive()
-        .succ_opt()
-        .unwrap()
-        .and_hms_opt(0, 0, 0)
-        .unwrap();
-
-    let duration_until = (next_midnight - now.naive_local()).to_std().unwrap();
-
-    Instant::now() + duration_until
 }

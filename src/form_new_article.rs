@@ -1,149 +1,15 @@
-mod validation;
-pub mod auth;
-pub mod configuration;
-pub mod db;
-pub mod db_tool;
-pub mod name_days;
-pub mod script_base;
-
-use askama::Template;
-use axum::{
-    Router,
-    body::Body,
-    extract::{Form, Multipart, State},
-    http::{Request, StatusCode},
-    middleware::{self, Next},
-    response::{Html, IntoResponse, Redirect, Response},
-    routing::{get, post},
-};
-use axum_extra::extract::cookie::{Cookie, CookieJar};
-use chrono::Datelike;
-use serde::Deserialize;
 use std::fs;
 use std::sync::Arc;
-use tower_http::services::ServeDir;
-use tracing::{error, info, warn};
+use askama::Template;
+use axum::extract::{Multipart, State};
+use axum::response::{Html, IntoResponse, Redirect, Response};
+use axum_extra::extract::CookieJar;
+use chrono::Datelike;
+use http::StatusCode;
 use uuid::Uuid;
-
-
-pub async fn handle_fallback(State(db): State<Arc<db::Database>>, req: Request<Body>) -> Response {
-    let path = req.uri().path();
-    let file_path = if path == "/" || path.is_empty() {
-        "index.html".to_string()
-    } else {
-        path.trim_start_matches('/').to_string()
-    };
-
-    if file_path.ends_with(".html") {
-        if let Ok(content) = fs::read_to_string(&file_path) {
-            let _ = db.increment_article_views(&file_path).await;
-            return Html(content).into_response();
-        }
-    }
-
-    // Default to serving from ServeDir
-    // TODO serve only css and js
-    let service = ServeDir::new(".");
-    match tower::ServiceExt::oneshot(service, req).await {
-        Ok(res) => {
-            if res.status() == StatusCode::NOT_FOUND {
-                show_404().await.into_response()
-            } else {
-                res.into_response()
-            }
-        }
-        Err(_) => show_404().await.into_response(),
-    }
-}
-
-pub async fn show_404() -> impl IntoResponse {
-    info!("show_404 called");
-    (
-        StatusCode::NOT_FOUND,
-        Html(fs::read_to_string("404.html").unwrap_or_else(|_| "404 Not Found".to_string())),
-    )
-}
-
-
-
-pub async fn show_login() -> impl IntoResponse {
-    Html(LoginTemplate { error: false }.render().unwrap())
-}
-
-pub async fn handle_login(
-    State(db): State<Arc<db::Database>>,
-    jar: CookieJar,
-    Form(payload): Form<LoginPayload>,
-) -> Response {
-    if validate_input_simple(&payload.username).is_err()
-        || validate_input_simple(&payload.password).is_err()
-    {
-        return StatusCode::BAD_REQUEST.into_response();
-    }
-    let username = &payload.username;
-    match auth::authenticate_user(&db, username, &payload.password).await {
-        Ok(user) => {
-            info!(user = %user.username, "User logged in successfully");
-            let jar = jar.add(Cookie::new(AUTH_COOKIE, user.username));
-            if user.needs_password_change {
-                (jar, Redirect::to("/change-password")).into_response()
-            } else {
-                (jar, Redirect::to("/form")).into_response()
-            }
-        }
-        Err(e) => {
-            warn!(username = %payload.username, error = %e, "Failed login attempt");
-            (jar, Html(LoginTemplate { error: true }.render().unwrap())).into_response()
-        }
-    }
-}
-
-pub async fn show_change_password(jar: CookieJar) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let username = cookie.value().to_string();
-        Html(
-            ChangePasswordTemplate {
-                error: false,
-                username,
-            }
-            .render()
-            .unwrap(),
-        )
-        .into_response()
-    } else {
-        Redirect::to("/login").into_response()
-    }
-}
-
-pub async fn handle_change_password(
-    State(db): State<Arc<db::Database>>,
-    jar: CookieJar,
-    Form(payload): Form<ChangePasswordPayload>,
-) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let username = cookie.value();
-        if validate_input(&payload.new_password).is_err() {
-            return StatusCode::BAD_REQUEST.into_response();
-        }
-        match auth::change_password(&db, username, &payload.new_password).await {
-            Ok(_) => Redirect::to("/account").into_response(),
-            Err(e) => {
-                error!("{:?}", e);
-                Html(
-                    ChangePasswordTemplate {
-                        error: true,
-                        username: username.to_string(),
-                    }
-                    .render()
-                    .unwrap(),
-                )
-                .into_response()
-            }
-        }
-    } else {
-        Redirect::to("/login").into_response()
-    }
-}
+use axiomatik_web::{db, name_days};
+use crate::server::AUTH_COOKIE;
+use crate::templates::FormTemplate;
 
 pub async fn show_form(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
@@ -152,55 +18,13 @@ pub async fn show_form(State(db): State<Arc<db::Database>>, jar: CookieJar) -> R
                 FormTemplate {
                     author_name: user.author_name,
                 }
-                .render()
-                .unwrap(),
+                    .render()
+                    .unwrap(),
             )
-            .into_response();
+                .into_response();
         }
     }
     Redirect::to("/login").into_response()
-}
-
-pub async fn show_account(State(db): State<Arc<db::Database>>, jar: CookieJar) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        if let Ok(Some(user)) = db.get_user(cookie.value()).await {
-            let articles = db
-                .get_articles_by_username(&user.username)
-                .await
-                .unwrap_or_default();
-
-            return Html(
-                AccountTemplate {
-                    username: user.username,
-                    author_name: user.author_name,
-                    articles,
-                }
-                .render()
-                .unwrap(),
-            )
-            .into_response();
-        }
-    }
-    Redirect::to("/login").into_response()
-}
-
-pub async fn handle_update_author_name(
-    State(db): State<Arc<db::Database>>,
-    jar: CookieJar,
-    Form(payload): Form<UpdateAuthorNamePayload>,
-) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let username = cookie.value();
-        if validate_input(&payload.author_name).is_err() {
-            return StatusCode::BAD_REQUEST.into_response();
-        }
-        match auth::update_author_name(&db, username, &payload.author_name).await {
-            Ok(_) => Redirect::to("/account").into_response(),
-            Err(_) => Redirect::to("/account").into_response(), // Simple error handling for now
-        }
-    } else {
-        Redirect::to("/login").into_response()
-    }
 }
 
 pub async fn create_article(
@@ -419,6 +243,7 @@ pub async fn create_article(
         }
     }
 
+    // TODO move to library
     let category_display = match category.as_str() {
         "zahranici" => "zahraničí",
         "republika" => "republika",
@@ -427,7 +252,7 @@ pub async fn create_article(
         "veda" => "věda",
         _ => &category,
     }
-    .to_string();
+        .to_string();
 
     let mut related_snippets = String::new();
     let related_article_paths: Vec<&str> = related_articles_input
@@ -448,15 +273,7 @@ pub async fn create_article(
     let month_name = get_czech_month(now.month(), true);
     let formatted_date = format!("{}. {} {}", now.day(), month_name, now.year());
 
-    let day_name = match now.weekday() {
-        chrono::Weekday::Mon => "Pondělí",
-        chrono::Weekday::Tue => "Úterý",
-        chrono::Weekday::Wed => "Středa",
-        chrono::Weekday::Thu => "Čtvrtek",
-        chrono::Weekday::Fri => "Pátek",
-        chrono::Weekday::Sat => "Sobota",
-        chrono::Weekday::Sun => "Neděle",
-    };
+    let day_name = library::day_of_week(now.weekday());
     let month_name_genitive = get_czech_month_genitive(now.month());
     let current_date = format!(
         "{} {}. {} {}",
@@ -467,7 +284,7 @@ pub async fn create_article(
     );
 
     let nameday = {
-        let name = name_Ïdays::today_name_day();
+        let name = name_days::today_name_day();
         if name.is_empty() || name.contains("No nameday") || name.contains("Invalid") {
             "".to_string()
         } else {
@@ -475,6 +292,7 @@ pub async fn create_article(
         }
     };
 
+    // TODO move to external
     let weather = {
         let url = "https://api.open-meteo.com/v1/forecast?latitude=50.0755&longitude=14.4378&current_weather=true&timezone=Europe/Prague";
         // Simple synchronous fetch for simplicity in this context, or just use a default if it fails
@@ -515,6 +333,8 @@ pub async fn create_article(
     let safe_title = title
         .to_lowercase()
         .chars()
+
+        // TODO library
         .map(|c| match c {
             'a'..='z' | '0'..='9' => c,
             'á' => 'a',
@@ -547,8 +367,8 @@ pub async fn create_article(
         title: title.clone(),
         short_text: short_text_processed.clone(),
     }
-    .render()
-    .unwrap();
+        .render()
+        .unwrap();
 
     if is_main {
         if let Ok(mut index_content) = fs::read_to_string("index.html") {
@@ -760,86 +580,4 @@ pub async fn create_article(
     }
 
     Redirect::to(&format!("/{}.html", safe_title)).into_response()
-}
-
-#[derive(Deserialize)]
-pub struct SearchPayload {
-    pub q: String,
-}
-
-pub async fn handle_search(
-    State(db): State<Arc<db::Database>>,
-    Form(payload): Form<SearchPayload>,
-) -> Response {
-    let query = payload.q.trim();
-
-    // Validate and sanitize the search query
-    if query.chars().count() < 3 || query.chars().count() > 100 {
-        return (
-            StatusCode::BAD_REQUEST,
-            "Search query must be between 3 and 100 characters",
-        )
-            .into_response();
-    }
-
-    if let Err(e) = validation::validate_search_query(query) {
-        return (StatusCode::BAD_REQUEST, e).into_response();
-    }
-
-    let search_words: Vec<&str> = query
-        .split_whitespace()
-        .map(|w| w.trim())
-        .filter(|w| !w.is_empty())
-        .collect();
-
-    let articles = match db.get_all_articles().await {
-        Ok(a) => a,
-        Err(e) => {
-            error!("Failed to get articles from DB: {}", e);
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Database error").into_response();
-        }
-    };
-
-    let mut matched_results = Vec::new();
-
-    for article in articles {
-        let mut match_count = 0;
-        let article_text_lower = article.text.to_lowercase();
-        for word in &search_words {
-            if article_text_lower.contains(&word.to_lowercase()) {
-                match_count += 1;
-            }
-        }
-
-        if match_count > 0 {
-            // Use article url (article_file_name) to search /snippets/
-            let snippet_path = format!("snippets/{}.txt", article.article_file_name);
-            if let Ok(snippet_content) = fs::read_to_string(snippet_path) {
-                matched_results.push((match_count, snippet_content));
-            } else {
-                warn!(
-                    "Snippet not found for article: {}",
-                    article.article_file_name
-                );
-            }
-        }
-    }
-
-    // Sort by match count descending
-    matched_results.sort_by(|a, b| b.0.cmp(&a.0));
-
-    let snippets_html: String = matched_results
-        .into_iter()
-        .map(|(_, content)| content)
-        .collect::<Vec<String>>()
-        .join("\n");
-
-    let template = CategoryTemplate {
-        title: format!("Výsledky hledání: {}", query),
-    };
-
-    let mut html = template.render().unwrap();
-    html = html.replace("<!-- SNIPPETS -->", &snippets_html);
-
-    Html(html).into_response()
 }

@@ -1,3 +1,4 @@
+use bcrypt::{hash, DEFAULT_COST};
 use axiomatik_web::db;
 use tracing::{debug, error, info};
 
@@ -69,4 +70,26 @@ pub async fn print_from_db(args: &Vec<String>) {
             std::process::exit(1);
         }
     }
+}
+
+pub async fn create_editor_user(
+    db: &Database,
+    username: &str,
+    password: &str,
+) -> Result<(), String> {
+    if password.len() < 3 {
+        return Err("Heslo musí být delší".to_string());
+    }
+
+    let password_hash = hash(password, DEFAULT_COST).map_err(|e| e.to_string())?;
+    let user = User {
+        username: username.to_string(),
+        author_name: username.to_string().clone(),
+        password_hash,
+        needs_password_change: true,
+        role: Role::Editor,
+    };
+
+    db.create_user(user).await.map_err(|e| e.to_string())?;
+    Ok(())
 }
