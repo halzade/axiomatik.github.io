@@ -1,16 +1,14 @@
 #[cfg(test)]
 mod tests {
-    use axum::{
-        body::Body,
-        http::{header, Request, StatusCode},
-    };
-    use tower::ServiceExt;
+    use axiomatik_web::database;
+    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::test_framework::script_base::{serialize, FAKE_IMAGE_DATA};
+    use axum::http::{header, StatusCode};
+    use reqwest::Body;
 
     #[tokio::test]
     async fn test_shift_main_article_removes_exclusive_tag() {
-        let (app, db) = script_base::setup_app().await;
-        let original_index = std::fs::read_to_string("index.html").unwrap_or_default();
-
         // 1. Create user
         let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
         database::create_user(database::User {
@@ -25,18 +23,16 @@ mod tests {
 
         // 2. Login
         let login_params = [("username", "admin"), ("password", "password123")];
-        let login_resp = app
-            .clone()
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/login")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from(serialize(&login_params)))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let login_resp = script_base::one_shot(
+            axum_core::extract::Request::builder()
+                .method("POST")
+                .uri("/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(serialize(&login_params)))
+                .unwrap(),
+        )
+        .await;
+
         let cookie = login_resp
             .headers()
             .get(header::SET_COOKIE)
@@ -57,53 +53,30 @@ mod tests {
         std::fs::write("index.html", initial_index).unwrap();
 
         // 3. Create first article as MAIN and EXCLUSIVE
-        let boundary = "---------------------------123456789012345678901234567";
-        let body1 = format!(
-            "--{0}\r\n\
-        Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        test-Exclusive Article\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"is_exclusive\"\r\n\r\n\
-        on\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"is_main\"\r\n\r\n\
-        on\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"author\"\r\n\r\n\
-        Test Author\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"category\"\r\n\r\n\
-        republika\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"text\"\r\n\r\n\
-        First article text.\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"short_text\"\r\n\r\n\
-        First short text.\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"image\"; filename=\"test1.jpg\"\r\n\
-        Content-Type: image/jpeg\r\n\r\n\
-        fake-image-data-1\r\n\
-        --{0}--\r\n",
-            boundary
-        );
+        let body1 = ArticleBuilder::new()
+            .title("test-Exclusive Article")
+            .is_exclusive(true)
+            .is_main(true)
+            .author("Test Author")
+            .category("republika")
+            .text("First article text.")
+            .short_text("First short text.")
+            .image("test1.jpg", FAKE_IMAGE_DATA, "image/jpeg")
+            .build();
 
-        let response1 = app
-            .clone()
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/create")
-                    .header(
-                        header::CONTENT_TYPE,
-                        format!("multipart/form-data; boundary={}", boundary),
-                    )
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::from(body1))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response1 = script_base::one_shot(
+            axum_core::extract::Request::builder()
+                .method("POST")
+                .uri("/create")
+                .header(
+                    header::CONTENT_TYPE,
+                    format!("multipart/form-data; boundary={}", BOUNDARY),
+                )
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(body1))
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(response1.status(), StatusCode::SEE_OTHER);
 
@@ -114,49 +87,29 @@ mod tests {
         );
 
         // 4. Create second article as MAIN (not necessarily exclusive)
-        let body2 = format!(
-            "--{0}\r\n\
-        Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        test-New Main Article\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"is_main\"\r\n\r\n\
-        on\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"author\"\r\n\r\n\
-        Test Author\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"category\"\r\n\r\n\
-        republika\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"text\"\r\n\r\n\
-        Second article text.\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"short_text\"\r\n\r\n\
-        Second short text.\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"image\"; filename=\"test2.jpg\"\r\n\
-        Content-Type: image/jpeg\r\n\r\n\
-        fake-image-data-2\r\n\
-        --{0}--\r\n",
-            boundary
-        );
+        let body2 = ArticleBuilder::new()
+            .title("test-New Main Article")
+            .is_main(true)
+            .author("Test Author")
+            .category("republika")
+            .text("Second article text.")
+            .short_text("Second short text.")
+            .image("test2.jpg", FAKE_IMAGE_DATA, "image/jpeg")
+            .build()?;
 
-        let response2 = app
-            .clone()
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/create")
-                    .header(
-                        header::CONTENT_TYPE,
-                        format!("multipart/form-data; boundary={}", boundary),
-                    )
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::from(body2))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response2 = script_base::one_shot(
+            axum_core::extract::Request::builder()
+                .method("POST")
+                .uri("/create")
+                .header(
+                    header::CONTENT_TYPE,
+                    format!("multipart/form-data; boundary={}", BOUNDARY),
+                )
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(body2))
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(response2.status(), StatusCode::SEE_OTHER);
 

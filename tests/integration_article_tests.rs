@@ -1,16 +1,15 @@
 #[cfg(test)]
 mod tests {
-    use axum::{
-        body::Body,
-        http::{header, Request, StatusCode},
-    };
+    use axiomatik_web::database;
+    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::test_framework::script_base::{serialize, FAKE_AUDIO_DATA, FAKE_IMAGE_DATA};
+    use axum::http::{header, Request, StatusCode};
     use chrono::Datelike;
-    use tower::ServiceExt;
+    use reqwest::Body;
 
     #[tokio::test]
     async fn test_create_article() {
-        let (app, db) = script_base::setup_app().await;
-
         // 1. Create user who does NOT need password change
         let password_hash = bcrypt::hash("password123", bcrypt::DEFAULT_COST).unwrap();
         database::create_user(database::User {
@@ -25,18 +24,16 @@ mod tests {
 
         // 2. Login
         let login_params = [("username", "admin"), ("password", "password123")];
-        let login_resp = app
-            .clone()
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/login")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(Body::from(serialize(&login_params)))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let login_resp = script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/login")
+                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .body(Body::from(serialize(&login_params)))
+                .unwrap(),
+        )
+        .await;
+
         let cookie = login_resp
             .headers()
             .get(header::SET_COOKIE)
@@ -46,8 +43,6 @@ mod tests {
             .to_string();
 
         // 3. Create article (Multipart)
-        let boundary = "---------------------------123456789012345678901234567";
-
         // Create related article and category files for testing
         let related_article_content = "<html><body><!-- SNIPPETS --></body></html>";
         std::fs::write("related-test-article.html", related_article_content).unwrap();
@@ -61,56 +56,31 @@ mod tests {
         let category_content = "<html><body><!-- SNIPPETS --></body></html>";
         std::fs::write("test-category.html", category_content).unwrap();
 
-        let body = format!(
-            "--{0}\r\n\
-        Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        Test Article\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"author\"\r\n\r\n\
-        Test Author\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"category\"\r\n\r\n\
-        test-category\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"text\"\r\n\r\n\
-        This is a test article text.\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"short_text\"\r\n\r\n\
-        Short text.\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"related_articles\"\r\n\r\n\
-        related-test-article.html\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"image_description\"\r\n\r\n\
-        test description\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"image\"; filename=\"test.jpg\"\r\n\
-        Content-Type: image/jpeg\r\n\r\n\
-        fake-image-data\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"audio\"; filename=\"test.mp3\"\r\n\
-        Content-Type: audio/mpeg\r\n\r\n\
-        fake-audio-data\r\n\
-        --{0}--\r\n",
-            boundary
-        );
+        let body = ArticleBuilder::new()
+            .title("Test Article")
+            .author("Test Author")
+            .category("test-category")
+            .text("This is a test article text.")
+            .short_text("Short text.")
+            .related_articles("related-test-article.html")
+            .image_description("test description")
+            .image("test.jpg", FAKE_IMAGE_DATA, "image/jpeg")
+            .audio("test.mp3", FAKE_AUDIO_DATA, "audio/mpeg")
+            .build();
 
-        let response = app
-            .clone()
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/create")
-                    .header(
-                        header::CONTENT_TYPE,
-                        format!("multipart/form-data; boundary={}", boundary),
-                    )
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::from(body))
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let response = script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/create")
+                .header(
+                    header::CONTENT_TYPE,
+                    format!("multipart/form-data; boundary={}", BOUNDARY),
+                )
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(body))
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(response.status(), StatusCode::SEE_OTHER);
         assert_eq!(
@@ -122,29 +92,24 @@ mod tests {
         assert!(std::path::Path::new("test-article.html").exists());
 
         // 2. Request the article (to increment views)
-        let _ = app
-            .clone()
-            .oneshot(
-                Request::builder()
-                    .uri("/test-article.html")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let _ = script_base::one_shot(
+            Request::builder()
+                .uri("/test-article.html")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await;
 
         // 3. Check account page for views
-        let account_resp = app
-            .oneshot(
-                Request::builder()
-                    .method("GET")
-                    .uri("/account")
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let account_resp = script_base::one_shot(
+            Request::builder()
+                .method("GET")
+                .uri("/account")
+                .header(header::COOKIE, &cookie)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await;
 
         assert_eq!(account_resp.status(), StatusCode::OK);
         let body_bytes = axum::body::to_bytes(account_resp.into_body(), usize::MAX)

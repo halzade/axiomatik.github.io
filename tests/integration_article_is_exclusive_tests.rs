@@ -1,56 +1,38 @@
 #[cfg(test)]
 mod tests {
+    use axum_core::extract::Request;
+    use http::header;
+    use reqwest::Body;
     use std::fs;
-    use tower::ServiceExt;
+    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::test_framework::script_base::FAKE_IMAGE_DATA;
 
     #[tokio::test]
     async fn test_exclusive_main_article_finance() {
-        let boundary = "---------------------------123456789012345678901234567";
-        let body = format!(
-            "--{0}\r\n\
-        Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        test-Financni trhy v soku\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"author\"\r\n\r\n\
-        Financni Expert\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"category\"\r\n\r\n\
-        finance\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"text\"\r\n\r\n\
-        Dlouhy text o financich\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"short_text\"\r\n\r\n\
-        Kratky text o financich\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"is_main\"\r\n\r\n\
-        on\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"is_exclusive\"\r\n\r\n\
-        on\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"image\"; filename=\"test.jpg\"\r\n\
-        Content-Type: image/jpeg\r\n\r\n\
-        fake-image-data\r\n\
-        --{0}--\r\n",
-            boundary
-        );
+        let body = ArticleBuilder::new()
+            .title("test-Financni trhy v soku")
+            .author("Financni Expert")
+            .category("finance")
+            .text("Dlouhy text o financich")
+            .short_text("Kratky text o financich")
+            .is_main(true)
+            .is_exclusive(true)
+            .image("test.jpg", FAKE_IMAGE_DATA)
+            .build()
+            .unwrap();
 
-        let _ = app
-            .oneshot(
-                Request::builder()
+        script_base::one_shot(Request::builder()
                     .method("POST")
                     .uri("/create")
                     .header(
                         header::CONTENT_TYPE,
-                        format!("multipart/form-data; boundary={}", boundary),
+                        format!("multipart/form-data; boundary={}", BOUNDARY),
                     )
                     .header(header::COOKIE, &cookie)
                     .body(Body::from(body))
                     .unwrap(),
-            )
-            .await
-            .unwrap();
+            ).await;
 
         let updated_index = fs::read_to_string("index.html").unwrap();
 
@@ -70,7 +52,6 @@ mod tests {
         );
 
         // Cleanup
-        fs::write("index.html", original_index).unwrap();
         let _ = fs::remove_file("test-financni-trhy-v-soku.html");
         let _ = fs::remove_file("snippets/test-financni-trhy-v-soku.html.txt");
     }

@@ -1,4 +1,3 @@
-pub mod script_base;
 pub mod database;
 pub mod database_internal;
 pub mod database_tools;
@@ -19,3 +18,7 @@ pub mod logger;
 pub mod name_days;
 pub mod validation;
 pub mod form_new_article_data;
+pub mod test_framework {
+    pub mod script_base;
+    pub mod article_builder;
+}

@@ -115,7 +115,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
             let article_template = ArticleTemplate {
                 title: article_data.title.clone(),
                 author: article_data.author.clone(),
-                text: article_data.text_processed,
+                text: article_data.text_processed.clone(),
                 image_path: article_data.image_path.clone(),
                 image_description: article_data.image_description.clone(),
                 video_path: article_data.video_path.clone(),
@@ -123,7 +123,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                 category: article_data.category.clone(),
                 category_display: article_data.category_display.clone(),
                 related_snippets: related_article_snippets.clone(),
-                date: formated_date,
+                date: formated_date.clone(),
                 weather: formated_weather,
                 name_day: formated_name_day,
             };
@@ -138,7 +138,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
             fs::write(&file_path, html_content).unwrap();
 
             // category
-            
+
             let month_name = library::get_czech_month(now.month());
             let category_month_year_filename =
                 format!("archive-{}-{}-{}.html", article_data.category, month_name, now.year());
@@ -151,7 +151,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
             .render()
             .unwrap();
 
-            if is_main {
+            if article_data.is_main {
                 if let Ok(mut index_content) = fs::read_to_string("index.html") {
                     // 1. Get current contents
                     let mut main_article_content = String::new();
@@ -177,12 +177,13 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                     }
 
                     // 2. Prepare new MAIN_ARTICLE
-                    let title_with_exclusive = if is_exclusive {
-                        format!(r#"<span class="red">EXKLUZIVNĚ:</span> {}"#, title)
+                    let title_with_exclusive = if article_data.is_exclusive {
+                        format!(r#"<span class="red">EXKLUZIVNĚ:</span> {}"#, article_data.title)
                     } else {
-                        title.clone()
+                        article_data.title.clone()
                     };
 
+                    // TODO
                     let new_main_article = format!(
                         r#"
                 <div class="main-article-text">
@@ -200,10 +201,10 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                         file_path,
                         title_with_exclusive,
                         file_path,
-                        short_text_processed,
+                        article_data.short_text_processed.clone(),
                         file_path,
-                        image_path,
-                        image_description
+                        article_data.image_path.clone(),
+                        article_data.image_description.clone()
                     );
 
                     // 3. Update index_content
@@ -267,20 +268,20 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
             fs::write(snippet_file_path, &snippet).unwrap();
 
             // Store in DB
-            let article_db = db::Article {
-                author: author.clone(),
+            let article_db = database::Article {
+                author: article_data.author.clone(),
                 created_by,
-                date: formatted_date,
-                title: title.clone(),
-                text: text_raw,
-                short_text: short_text_raw,
+                date: formated_date.clone(),
+                title: article_data.title.clone(),
+                text: article_data.text_processed.clone(),
+                short_text: article_data.short_text_processed.clone(),
                 article_file_name: file_path.clone(),
-                image_url: image_path,
-                image_description: image_description.clone(),
-                video_url: video_path,
-                audio_url: audio_path,
-                category: category.clone(),
-                related_articles: related_articles_input.clone(),
+                image_url: article_data.image_path.clone(),
+                image_description: article_data.image_description.clone(),
+                video_url: article_data.video_path.clone(),
+                audio_url: article_data.audio_path.clone(),
+                category: article_data.category.clone(),
+                related_articles: article_data.related_articles.clone(),
                 views: 0,
             };
 
@@ -288,7 +289,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
 
             if !std::path::Path::new(&category_month_year_filename).exists() {
                 let cat_template = CategoryTemplate {
-                    title: format!("{} - {} {}", category_display, month_name, now.year()),
+                    title: format!("{} - {} {}", article_data.category_display, month_name, now.year()),
                 };
                 let mut base_html = cat_template.render().unwrap();
                 base_html = base_html.replace(
@@ -305,7 +306,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                 fs::write(&category_month_year_filename, content).unwrap();
             }
 
-            let main_cat_filename = format!("{}.html", category);
+            let main_cat_filename = format!("{}.html", article_data.category);
             if std::path::Path::new(&main_cat_filename).exists() {
                 let mut content = fs::read_to_string(&main_cat_filename).unwrap();
                 if content.contains("<!-- SNIPPETS -->") {
@@ -317,7 +318,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                 fs::write(&main_cat_filename, content).unwrap();
             }
 
-            for path in &related_article_paths {
+            for path in &article_data.related_article_paths {
                 if let Ok(mut content) = fs::read_to_string(path) {
                     if content.contains("<!-- SNIPPETS -->") {
                         content = content.replace(
@@ -329,7 +330,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                 }
             }
 
-            let (marker_start, marker_end) = match category.as_str() {
+            let (marker_start, marker_end) = match article_data.category.as_str() {
                 "republika" => ("<!-- Z_REPUBLIKY -->", "<!-- /Z_REPUBLIKY -->"),
                 "zahranici" => ("<!-- ZE_ZAHRANICI -->", "<!-- /ZE_ZAHRANICI -->"),
                 _ => ("", ""),
@@ -362,8 +363,7 @@ pub async fn create_article(jar: CookieJar, mut multipart: Multipart) -> Respons
                     }
                 }
             }
+            Redirect::to(&*file_path).into_response()
         }
     }
-
-    Redirect::to(file_path).into_response()
 }

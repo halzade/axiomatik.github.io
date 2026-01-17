@@ -1,17 +1,19 @@
-use crate::database::Role::Editor;
-use crate::database::User;
-use crate::{database, server};
 use axum::Router;
 use http::{header, Request, Response};
 
 use std::fs;
 use tower::ServiceExt;
 
+use crate::database::Role::Editor;
+use crate::database::User;
+use crate::{database, server};
 use std::sync::{Once, OnceLock};
-// use axum_core::body::Body;
 
 static INIT: Once = Once::new();
 static APP_ROUTER: OnceLock<Router> = OnceLock::new();
+
+pub const FAKE_IMAGE_DATA : Vec<u8> = Vec::new();
+pub const FAKE_AUDIO_DATA : Vec<u8> = Vec::new();
 
 async fn setup_before_tests() {
     INIT.call_once(|| {
@@ -21,7 +23,11 @@ async fn setup_before_tests() {
         let router = server::router();
         let _ = APP_ROUTER.set(router);
 
+        // TODO
         let _ = setup_test_environment_with_user_admin();
+
+        // TODO
+        let original_index = std::fs::read_to_string("index.html").unwrap_or_default();
     });
 }
 

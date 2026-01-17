@@ -26,8 +26,7 @@ pub fn midnight_worker() {
             interval.tick().await;
             info!("midnight event");
 
-            let now = chrono::Local::now();
-            content_management::update_all_header_info(now);
+            content_management::update_all_header_info(Local::now()).await;
         }
     });
 }

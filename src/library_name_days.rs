@@ -392,6 +392,7 @@ pub fn get_nameday(month: u32, day: u32) -> String {
             21 => "Natálie".to_string(),
             22 => "Šimon".to_string(),
             23 => "Vlasta".to_string(),
+            
             // TODO
             24 => "No nameday (Adam a Eva, Christmas Eve)".to_string(),
             25 => "No nameday (1st Christmas Holiday)".to_string(),
@@ -403,6 +404,6 @@ pub fn get_nameday(month: u32, day: u32) -> String {
             31 => "Silvestr".to_string(),
             _ => "".to_string(),
         },
-        _ => "Invalid month".to_string(),
+        _ => "".to_string(),
     }
 }

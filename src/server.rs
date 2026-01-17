@@ -1,3 +1,6 @@
+use crate::{
+    database, form_account, form_change_password, form_login, form_new_article, form_search,
+};
 use axum::body::Body;
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -9,7 +12,6 @@ use std::fs;
 use std::sync::Arc;
 use tower_http::services::ServeDir;
 use tracing::{debug, error};
-use crate::{database, form_account, form_change_password, form_login, form_new_article, form_search};
 
 // TODO
 // TODO
@@ -69,7 +71,6 @@ pub fn router() -> Router {
         .route("/search", get(form_search::handle_search))
         .merge(protected_routes)
         // serve static content
-        // TODO serve only html, css, js
         .fallback(handle_fallback)
         .with_state(status)
 }
@@ -110,6 +111,7 @@ async fn handle_fallback(req: Request<Body>) -> Response {
         path.trim_start_matches('/').to_string()
     };
 
+    // TODO
     if file_path.ends_with(".html") {
         if let Ok(content) = fs::read_to_string(&file_path) {
             return Html(content).into_response();

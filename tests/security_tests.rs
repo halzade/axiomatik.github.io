@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::script_base;
-    use axiomatik_web::script_base::serialize;
+    use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::test_framework::script_base::serialize;
     use axum::extract::Request;
     use http::{header, StatusCode};
     use reqwest::Body;
@@ -10,8 +10,7 @@ mod tests {
     async fn test_sql_injection_rejection_in_login() {
         let injection_payload = [("username", "admin' OR '1'='1"), ("password", "anything")];
 
-        let response = script_base::one_shot(
-            Request::builder()
+        let response = script_base::one_shot(Request::builder()
                 .method("POST")
                 .uri("/login")
                 .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")

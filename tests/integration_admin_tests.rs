@@ -23,19 +23,11 @@ mod tests {
 
         // Create editor user
         let result = create_editor_user(username, password).await;
-        assert!(
-            result.is_ok(),
-            "Editor user creation failed: {:?}",
-            result.err()
-        );
+        assert!(result.is_ok());
 
         // Verify user exists and can authenticate
         let auth_result = form_login::authenticate_user(username, password).await;
-        assert!(
-            auth_result.is_ok(),
-            "Authentication failed for created editor: {:?}",
-            auth_result.err()
-        );
+        assert!(auth_result.is_ok());
 
         let user = auth_result.unwrap();
         assert_eq!(user.username, username);

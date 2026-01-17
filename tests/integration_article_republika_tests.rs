@@ -1,12 +1,14 @@
 #[cfg(test)]
 mod tests {
     use axum::{
-        body::Body,
         http::{header, Request},
     };
 
     use std::fs;
+    use reqwest::Body;
     use tower::ServiceExt;
+    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::script_base;
 
     fn prepare_index_with_articles(
         index_content: &mut String,
@@ -37,7 +39,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_republika_article_creation_and_limit() {
-        let (app, _db, cookie, original_index) = script_base::setup_test_environment().await;
+        
         let mut test_index = original_index.clone();
         prepare_index_with_articles(
             &mut test_index,
@@ -47,42 +49,26 @@ mod tests {
         );
         fs::write("index.html", test_index).unwrap();
 
-        let boundary = "---------------------------123456789012345678901234567";
-        let body = format!(
-            "--{0}\r\n\
-        Content-Disposition: form-data; name=\"title\"\r\n\r\n\
-        test-Newest Republika\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"author\"\r\n\r\n\
-        Author\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"category\"\r\n\r\n\
-        republika\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"text\"\r\n\r\n\
-        Main text\r\n\
-        --{0}\r\n\
-        Content-Disposition: form-data; name=\"short_text\"\r\n\r\n\
-        Short text of newest article\r\n\
-        --{0}--\r\n",
-            boundary
-        );
+        let body = ArticleBuilder::new()
+            .title("test-Newest Republika")
+            .author("Author")
+            .category("republika")
+            .text("Main text")
+            .short_text("Short text of newest article")
+            .build()?;
 
-        let _ = app
-            .oneshot(
-                Request::builder()
+        script_base::one_shot(Request::builder()
                     .method("POST")
                     .uri("/create")
                     .header(
                         header::CONTENT_TYPE,
-                        format!("multipart/form-data; boundary={}", boundary),
+                        format!("multipart/form-data; boundary={}", BOUNDARY),
                     )
                     .header(header::COOKIE, &cookie)
                     .body(Body::from(body))
                     .unwrap(),
             )
-            .await
-            .unwrap();
+            .await;
 
         let updated_index = fs::read_to_string("index.html").unwrap();
         assert!(updated_index.contains("test-Newest Republika"));
@@ -97,7 +83,6 @@ mod tests {
         assert!(!section.contains("Article 10")); // Oldest should be gone
 
         // Cleanup
-        fs::write("index.html", original_index).unwrap();
         let _ = fs::remove_file("test-newest-republika.html");
         let _ = fs::remove_file("snippets/test-newest-republika.html.txt");
     }

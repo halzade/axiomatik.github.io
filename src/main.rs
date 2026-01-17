@@ -39,7 +39,7 @@ async fn main() {
      */
     let now = chrono::Local::now();
     info!("startup actions");
-    content_management::update_all_header_info(now);
+    content_management::update_all_header_info(now).await;
 
     /*
      * Start regular actions
