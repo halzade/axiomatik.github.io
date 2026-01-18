@@ -8,14 +8,10 @@ use tower::ServiceExt;
 use crate::database::Role::Editor;
 use crate::database::User;
 use crate::{database, logger, server};
-use tracing::info;
 
 use crate::test_framework::article_builder::BOUNDARY;
-use std::sync::Arc;
-use std::sync::{Once, OnceLock};
-use tokio::fs::OpenOptions;
-use tokio::sync::{Notify, OnceCell};
-use tokio::task::JoinHandle;
+use std::sync::OnceLock;
+use tokio::sync::OnceCell;
 
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 
@@ -32,7 +28,7 @@ pub async fn setup_before_tests_once() {
     let _ = std::fs::create_dir_all("uploads");
     let _ = std::fs::create_dir_all("snippets");
 
-    // Save original index.html if it exists, otherwise create a minimal one
+    // Save the original index.html if it exists, otherwise create a minimal one
     let original_index = std::fs::read_to_string("index.html").expect("Failed to read index.html");
 
     // TODO, recreate the index after all tests finished
@@ -40,14 +36,6 @@ pub async fn setup_before_tests_once() {
 
     let r = server::start_router().await;
     let _ = APP_ROUTER.set(r);
-}
-
-fn after_tests_clean_up() {
-    info!("All tests finished!");
-    if let Some(content) = ORIGINAL_INDEX.get() {
-        info!("rewrite index from original");
-        std::fs::write("index.html", content).unwrap();
-    }
 }
 
 pub async fn one_shot(request: Request<reqwest::Body>) -> Response<axum::body::Body> {
@@ -96,6 +84,12 @@ pub async fn setup_user_and_login(name: &str) -> String {
 
 pub fn boundary() -> String {
     format!("multipart/form-data; boundary={}", BOUNDARY)
+}
+
+pub async fn response_to_body(response: axum::response::Response) -> String {
+    let body_bytes = axum::body::to_bytes(response.into_body(), usize::MAX).await;
+    let body_str = String::from_utf8_lossy(&body_bytes.unwrap()).to_string();
+    body_str
 }
 
 fn new_user(name: &str) -> User {

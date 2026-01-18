@@ -28,7 +28,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "is_main" => {
                 let val = field.text().await.unwrap();
                 if let Err(e) = validate_input(&val) {
-                    tracing::error!("is_main validation failed: {}", e);
+                    error!("is_main validation failed: {}", e);
                     return None;
                 }
                 is_main_o = Some(val == "on");
@@ -37,7 +37,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "is_exclusive" => {
                 let val = field.text().await.unwrap();
                 if let Err(e) = validate_input(&val) {
-                    tracing::error!("is_exclusive validation failed: {}", e);
+                    error!("is_exclusive validation failed: {}", e);
                     return None;
                 }
                 is_exclusive_o = Some(val == "on");
@@ -46,7 +46,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "title" => {
                 let val = field.text().await.unwrap();
                 if let Err(e) = validate_input(&val) {
-                    tracing::error!("title validation failed: {}", e);
+                    error!("title validation failed: {}", e);
                     return None;
                 }
                 title_o = Some(val);
@@ -55,7 +55,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "author" => {
                 let val = field.text().await.unwrap();
                 if let Err(e) = validate_input(&val) {
-                    tracing::error!("author validation failed: {}", e);
+                    error!("author validation failed: {}", e);
                     return None;
                 }
                 author_o = Some(val);
@@ -64,7 +64,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "text" => {
                 let raw_text = field.text().await.unwrap();
                 if let Err(e) = validate_input(&raw_text) {
-                    tracing::error!("text validation failed: {}", e);
+                    error!("text validation failed: {}", e);
                     return None;
                 }
                 let normalized = raw_text.replace("\r\n", "\n");
@@ -94,7 +94,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "short_text" => {
                 let raw_text = field.text().await.unwrap();
                 if let Err(e) = validate_input(&raw_text) {
-                    tracing::error!("short_text validation failed: {}", e);
+                    error!("short_text validation failed: {}", e);
                     return None;
                 }
                 let normalized = raw_text.replace("\r\n", "\n");
@@ -110,7 +110,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "category" => {
                 let val = field.text().await.unwrap();
                 if let Err(e) = validate_input(&val) {
-                    tracing::error!("category validation failed: {}", e);
+                    error!("category validation failed: {}", e);
                     return None;
                 }
                 category_o = Some(val);
@@ -119,7 +119,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "related_articles" => {
                 let val = field.text().await.unwrap();
                 if let Err(e) = validate_input(&val) {
-                    tracing::error!("related_articles validation failed: {}", e);
+                    error!("related_articles validation failed: {}", e);
                     return None;
                 }
                 related_articles_o = Some(val);
@@ -128,7 +128,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "image_description" => {
                 let val = field.text().await.unwrap();
                 if let Err(e) = validate_input(&val) {
-                    tracing::error!("image_description validation failed: {}", e);
+                    error!("image_description validation failed: {}", e);
                     return None;
                 }
                 image_description_o = Some(val);
@@ -137,7 +137,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "image" => {
                 if let Some(file_name) = field.file_name() {
                     if let Err(e) = validate_input(&file_name) {
-                        tracing::error!("image filename validation failed: {}", e);
+                        error!("image filename validation failed: {}", e);
                         return None;
                     }
 
@@ -157,7 +157,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
                                 image_path_o = Some(new_name);
                             }
                             _ => {
-                                tracing::error!("image invalid extension: {:?}", extension);
+                                error!("image invalid extension: {:?}", extension);
                                 return None;
                             }
                         }
@@ -168,7 +168,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "video" => {
                 if let Some(file_name) = field.file_name() {
                     if let Err(e) = validate_input(&file_name) {
-                        tracing::error!("video filename validation failed: {}", e);
+                        error!("video filename validation failed: {}", e);
                         return None;
                     }
 
@@ -186,7 +186,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
                                 video_path_o = Some(new_name);
                             }
                             _ => {
-                                tracing::error!("video invalid extension: {:?}", extension);
+                                error!("video invalid extension: {:?}", extension);
                                 return None;
                             }
                         }
@@ -197,7 +197,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "audio" => {
                 if let Some(file_name) = field.file_name() {
                     if let Err(e) = validate_input(&file_name) {
-                        tracing::error!("audio filename validation failed: {}", e);
+                        error!("audio filename validation failed: {}", e);
                         return None;
                     }
 
@@ -215,7 +215,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
                                 audio_path_o = Some(new_name);
                             }
                             _ => {
-                                tracing::error!("audio invalid extension: {:?}", extension);
+                                error!("audio invalid extension: {:?}", extension);
                                 return None;
                             }
                         }
@@ -229,7 +229,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
     // TODO move to library
     let category_display = match &category_o {
         None => {
-            tracing::error!("Category is None");
+            error!("Category is None");
             return None;
         }
         Some(category) => match category.as_str() {
@@ -239,7 +239,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             "technologie" => "technologie",
             "veda" => "věda",
             cat => {
-                tracing::error!("Unknown category: {}", cat);
+                error!("Unknown category: {}", cat);
                 return None;
             }
         },

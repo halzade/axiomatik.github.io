@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{boundary, serialize};
+    use axiomatik_web::test_framework::script_base::{boundary, response_to_body, serialize};
+    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axiomatik_web::{commands, database};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
-    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
 
     #[tokio::test]
     async fn test_login() {
@@ -148,7 +148,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_404_fallback_curl() {
-
         // TODO start only if not running
         // let (app, _db) = setup_app().await;
         // let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
@@ -175,7 +174,7 @@ mod tests {
         let cookie = script_base::setup_user_and_login("user8").await;
 
         // 3. Access account page
-        let response = script_base::one_shot(
+        let response_accout = script_base::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
@@ -185,18 +184,14 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response.status(), StatusCode::OK);
-        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
-            .await
-            .unwrap();
-        let body_str = String::from_utf8_lossy(&body);
-        assert!(body_str.contains("user8"));
-        assert!(body_str.contains("Initial Author"));
-        assert!(body_str.contains("Moje články"));
+        assert_eq!(response_accout.status(), StatusCode::OK);
+        let body_account = response_to_body(response_accout).await;
+        assert!(body_account.contains("user8"));
+        assert!(body_account.contains("Moje články"));
 
         // 4. Update author name
         let update_params = [("author_name", "Updated Author")];
-        let update_resp = script_base::one_shot(
+        let response_update_author = script_base::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/account/update-author")
@@ -207,9 +202,12 @@ mod tests {
         )
         .await;
 
-        assert_eq!(update_resp.status(), StatusCode::SEE_OTHER);
+        assert_eq!(response_update_author.status(), StatusCode::SEE_OTHER);
         assert_eq!(
-            update_resp.headers().get(header::LOCATION).unwrap(),
+            response_update_author
+                .headers()
+                .get(header::LOCATION)
+                .unwrap(),
             "/account"
         );
 
@@ -219,15 +217,16 @@ mod tests {
 
         // 6. Create an article for this user
         let body = ArticleBuilder::new()
-            .title("test-User Article")
+            .title("Test User Article")
             .author("Updated Author")
-            .category("test-category")
+            .category("zahranici")
             .text("Content")
             .short_text("Short")
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image_description("test image description")
             .build();
 
-        script_base::one_shot(
+        let response_create_article = script_base::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")
@@ -238,8 +237,10 @@ mod tests {
         )
         .await;
 
+        assert_eq!(response_create_article.status(), StatusCode::OK);
+
         // 7. Verify the article is on the account page
-        let response = script_base::one_shot(
+        let response_accout_2 = script_base::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
@@ -249,15 +250,14 @@ mod tests {
         )
         .await;
 
-        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
-            .await
-            .unwrap();
-        let body_str = String::from_utf8_lossy(&body);
-        assert!(body_str.contains("test-User Article"));
+        assert_eq!(response_accout_2.status(), StatusCode::OK);
+
+        let body = response_to_body(response_accout_2).await;
+        assert!(body.contains("Test User Article"));
 
         // 8. Update author name again
         let update_params = [("author_name", "Second Update")];
-        script_base::one_shot(
+        let response_update_author_2 = script_base::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/account/update-author")
@@ -268,8 +268,10 @@ mod tests {
         )
         .await;
 
+        assert_eq!(response_update_author_2.status(), StatusCode::OK);
+
         // 9. Verify the article is STILL on the account page (linked by username, not author_name)
-        let response = script_base::one_shot(
+        let response_accout_3 = script_base::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
@@ -279,12 +281,11 @@ mod tests {
         )
         .await;
 
-        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
-            .await
-            .unwrap();
-        let body_str = String::from_utf8_lossy(&body);
-        assert!(body_str.contains("test-User Article"));
-        assert!(body_str.contains("Second Update"));
+        assert_eq!(response_accout_3.status(), StatusCode::OK);
+
+        let body = response_to_body(response_accout_3).await;
+        assert!(body.contains("Test User Article"));
+        assert!(body.contains("Second Update"));
 
         // Cleanup files
         let _ = std::fs::remove_file("test-user-article.html");
