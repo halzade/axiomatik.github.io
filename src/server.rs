@@ -38,6 +38,7 @@ pub async fn started() -> bool {
     APP_STATUS.lock().await.eq(&ApplicationStatus::Started)
 }
 
+// TODO move starting here from router()
 pub async fn start() {
     *APP_STATUS.lock().await = ApplicationStatus::Started
 }

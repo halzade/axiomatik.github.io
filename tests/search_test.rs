@@ -2,13 +2,14 @@
 mod tests {
     use axiomatik_web::database;
     use axiomatik_web::database::Article;
+    use axiomatik_web::test_framework::script_base;
     use axiomatik_web::validation::validate_search_query;
 
     #[test]
     fn test_validate_search_query_too_short() {
         // TODO
         // validate_search_query doesn't check length anymore, handle_search does.
-        assert!(validate_search_query("").is_err());
+        // assert!(validate_search_query("").is_err());
         assert!(validate_search_query("ab").is_err());
         assert!(validate_search_query(".").is_err());
         assert!(validate_search_query("0").is_err());
@@ -33,6 +34,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_db_search_logic() {
+        script_base::setup_before_tests_once().await;
+        
         let article1 = Article {
             author: "author".to_string(),
             created_by: "user".to_string(),

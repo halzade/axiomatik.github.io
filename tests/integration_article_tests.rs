@@ -3,16 +3,23 @@ mod tests {
     use axiomatik_web::library;
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{FAKE_AUDIO_DATA, FAKE_IMAGE_DATA, JPEG};
+
+    use axiomatik_web::test_framework::script_base_data::{
+        FAKE_AUDIO_DATA_MP3, FAKE_IMAGE_DATA_JPEG, JPEG, MP3,
+    };
     use axum::http::{header, Request, StatusCode};
     use chrono::Datelike;
     use reqwest::Body;
+    use tracing::info;
 
     #[tokio::test]
     async fn test_create_article() {
+        info!("Creating article");
+        let l = script_base::setup_before_tests_once().await;
+        info!("Creating article 1");
         // 1. Create a user who does NOT need password change
         let cookie = script_base::setup_user_and_login("user6").await;
-
+        info!("Creating article 2");
         // 3. Create article (Multipart)
         // Create related article and category files for testing
         let related_article_content = "<html><body><!-- SNIPPETS --></body></html>";
@@ -35,9 +42,14 @@ mod tests {
             .short_text("Short text.")
             .related_articles("related-test-article.html")
             .image_description("test description")
-            .image("test.jpg", FAKE_IMAGE_DATA, JPEG)
-            .audio("test.mp3", FAKE_AUDIO_DATA, "audio/mpeg")
+            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .audio("test.mp3", FAKE_AUDIO_DATA_MP3, MP3)
             .build();
+
+        match &body {
+            Ok(s) => println!("{}", s),
+            Err(e) => println!("formatting error: {:?}", e),
+        }
 
         let response = script_base::one_shot(
             Request::builder()
@@ -83,10 +95,7 @@ mod tests {
         .await;
 
         assert_eq!(account_resp.status(), StatusCode::OK);
-        let body_bytes = axum::body::to_bytes(account_resp.into_body(), usize::MAX)
-            .await
-            .unwrap();
-        
+
         // Verify audio player placement
         let article_content = std::fs::read_to_string("test-article.html").unwrap();
         let audio_pos = article_content.find("<audio").unwrap();

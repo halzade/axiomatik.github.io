@@ -1,3 +1,4 @@
+use std::convert::Into;
 use axum::Router;
 use http::{header, Request, Response};
 
@@ -6,39 +7,80 @@ use tower::ServiceExt;
 
 use crate::database::Role::Editor;
 use crate::database::User;
-use crate::{database, server};
-use ctor::{ctor, dtor};
+use crate::{database, logger, server};
 use std::sync::OnceLock;
 use tokio::sync::OnceCell;
-use tracing::info;
+use tracing::{info};
+
+static SETUP_ONCE: OnceCell<()> = OnceCell::const_new();
 
 static APP_ROUTER: OnceLock<Router> = OnceLock::new();
 static ORIGINAL_INDEX: OnceCell<String> = OnceCell::const_new();
 
-pub const FAKE_IMAGE_DATA: Vec<u8> = Vec::new();
-pub const FAKE_AUDIO_DATA: Vec<u8> = Vec::new();
-
-pub const JPEG: &str = "image/jpeg";
-
 const PASSWORD: &str = "password123";
 
-#[ctor]
-fn setup_before_tests() {
-    info!("setup_before_tests()");
+struct Cleanup;
 
-    info!("init database");
-    let _ = database::initialize_in_memory_database();
-
-    info!("init server");
-    let rt = tokio::runtime::Runtime::new().unwrap();
-    let router = rt.block_on(server::router());
-    let _ = APP_ROUTER.set(router);
-
-    let original_index = std::fs::read_to_string("index.html").unwrap();
-    ORIGINAL_INDEX.set(original_index).unwrap();
+impl Drop for Cleanup {
+    /*
+     * Method drop() is called with destructor
+     * Since Cleanup is static struct, it will be called when all tests finished
+     */
+    fn drop(&mut self) {
+        after_tests_clean_up();
+    }
 }
 
-#[dtor]
+pub async fn setup_before_tests_once() {
+    info!("setup_before_tests()");
+    SETUP_ONCE
+        .get_or_init(|| async {
+            info!("setup_before_tests() Executes");
+
+            info!("register clean up");
+            let _cleanup = Cleanup;
+
+            // as if in main.rs
+            server::start().await;
+            logger::config();
+
+            info!("init database");
+            database::initialize_in_memory_database().await;
+
+            info!("init server");
+            // let rt = tokio::runtime::Runtime::new().unwrap();
+            // let router = rt.block_on(server::router());
+
+            //
+            // TODO is app was already running in devel
+            let router = server::router().await;
+            // let config = configuration::get_config().expect("Failed to read configuration for tests.");
+            // let addr = format!("{}:{}", config.host, config.port);
+            // info!("listening on {}", addr);
+            // let listener = TcpListener::bind(&addr)
+            //   .await
+            //    .expect(&format!("Failed to bind to {}", addr));
+            /*
+             * Start Application
+             */
+            // let serve_r = axum::serve(listener, router).await;
+            // match serve_r {
+            //     Ok(serve) => {
+            //
+            //     }
+            //     Err(e) => {
+            //         error!("axum server exited: {:?}", e);
+            //     }
+            // }
+            //
+            APP_ROUTER.set(router).expect("error");
+
+            let original_index = std::fs::read_to_string("index.html").unwrap();
+            ORIGINAL_INDEX.set(original_index).unwrap();
+        })
+        .await;
+}
+
 fn after_tests_clean_up() {
     info!("All tests finished!");
     if let Some(content) = ORIGINAL_INDEX.get() {

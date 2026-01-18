@@ -9,7 +9,6 @@ use tracing::{error, info};
 
 #[tokio::main]
 async fn main() {
-    let config = configuration::get_config().expect("Failed to read configuration.");
     let args: Vec<String> = env::args().collect();
 
     /*
@@ -63,6 +62,7 @@ async fn main() {
      * Server
      */
     let router = server::router().await;
+    let config = configuration::get_config().expect("Failed to read configuration.");
     let addr = format!("{}:{}", config.host, config.port);
     info!("listening on {}", addr);
     let listener = TcpListener::bind(&addr)

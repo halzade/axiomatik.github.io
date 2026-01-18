@@ -2,12 +2,14 @@
 mod tests {
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{FAKE_IMAGE_DATA, JPEG};
     use axum::http::{header, StatusCode};
     use reqwest::Body;
+    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
 
     #[tokio::test]
     async fn test_shift_main_article_removes_exclusive_tag() {
+        script_base::setup_before_tests_once().await;
+        
         // 1. Create user
         let cookie = script_base::setup_user_and_login("user3").await;
 
@@ -20,7 +22,7 @@ mod tests {
             .category("republika")
             .text("First article text.")
             .short_text("First short text.")
-            .image("test1.jpg", FAKE_IMAGE_DATA, JPEG)
+            .image("test1.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .build();
 
         let response1 = script_base::one_shot(
@@ -53,7 +55,7 @@ mod tests {
             .category("republika")
             .text("Second article text.")
             .short_text("Second short text.")
-            .image("test2.jpg", FAKE_IMAGE_DATA, JPEG)
+            .image("test2.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .build();
 
         let response2 = script_base::one_shot(

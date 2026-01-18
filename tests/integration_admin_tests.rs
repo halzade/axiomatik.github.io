@@ -3,9 +3,12 @@ mod tests {
     use axiomatik_web::commands::create_editor_user;
     use axiomatik_web::database::Role::Editor;
     use axiomatik_web::{database_tools, form_login};
+    use axiomatik_web::test_framework::script_base;
 
     #[tokio::test]
     async fn test_print_from_db() {
+        script_base::setup_before_tests_once().await;
+        
         // Create a user to have something to query
         let username = "testuser";
         let password = "testpassword";
@@ -18,6 +21,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_editor_user() {
+        script_base::setup_before_tests_once().await;
+        
         let username = "editor1";
         let password = "password123";
 

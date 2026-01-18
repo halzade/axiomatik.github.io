@@ -2,7 +2,7 @@
 mod tests {
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{FAKE_IMAGE_DATA, JPEG};
+    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axum_core::extract::Request;
     use http::header;
     use reqwest::Body;
@@ -10,11 +10,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_veda_article_is_main_rotation() {
+        script_base::setup_before_tests_once().await;
+
         // Ensure index.html has known content in the sections
         let mut initial_index = script_base::original_index();
 
         let cookie = script_base::setup_user_and_login("user4").await;
 
+        // TODO
         // Inject some identifiable content into MAIN, SECOND, THIRD
         let main_content = r#"
         <div class="main-article-text">
@@ -63,7 +66,7 @@ mod tests {
             .text("Main text of veda article")
             .short_text("Short text of veda article")
             .is_main(true)
-            .image("test.jpg", FAKE_IMAGE_DATA, JPEG)
+            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .build()
             .unwrap();
 

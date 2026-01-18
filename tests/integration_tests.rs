@@ -2,13 +2,16 @@
 mod tests {
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{serialize, FAKE_IMAGE_DATA, JPEG};
+    use axiomatik_web::test_framework::script_base::{serialize};
     use axiomatik_web::{commands, database};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
+    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
 
     #[tokio::test]
     async fn test_login() {
+        script_base::setup_before_tests_once().await;
+
         // 1. Create a user via auth module (simulating command)
         commands::create_editor_user("admin", "password123")
             .await
@@ -37,6 +40,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_change_password() {
+        script_base::setup_before_tests_once().await;
+
         // Create user who needs password change
         let password_hash = bcrypt::hash("pass1234", bcrypt::DEFAULT_COST).unwrap();
         database::create_user(database::User {
@@ -102,6 +107,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_serve_static_html() {
+        script_base::setup_before_tests_once().await;
+
         let response = script_base::one_shot(
             Request::builder()
                 .method("GET")
@@ -116,6 +123,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_404_fallback() {
+        script_base::setup_before_tests_once().await;
+
         let response = script_base::one_shot(
             Request::builder()
                 .method("GET")
@@ -139,6 +148,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_404_fallback_curl() {
+
         // TODO start only if not running
         // let (app, _db) = setup_app().await;
         // let listener = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
@@ -159,6 +169,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_account_page() {
+        script_base::setup_before_tests_once().await;
+
         // 1. Create user
         let cookie = script_base::setup_user_and_login("user8").await;
 
@@ -212,7 +224,7 @@ mod tests {
             .category("test-category")
             .text("Content")
             .short_text("Short")
-            .image("test.jpg", FAKE_IMAGE_DATA, JPEG)
+            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .build();
 
         script_base::one_shot(

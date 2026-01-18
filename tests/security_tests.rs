@@ -8,6 +8,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_sql_injection_rejection_in_login() {
+        script_base::setup_before_tests_once().await;
+        
         let injection_payload = [("username", "admin' OR '1'='1"), ("password", "anything")];
 
         let response = script_base::one_shot(
@@ -26,6 +28,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_malicious_keyword_rejection() {
+        script_base::setup_before_tests_once().await;
+        
         let malicious_payload = [
             ("username", "admin; drOp daTaBasE user;"),
             ("password", "password"),

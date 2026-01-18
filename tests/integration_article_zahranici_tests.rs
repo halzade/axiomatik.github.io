@@ -8,6 +8,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_zahranici_article_creation_and_limit() {
+        script_base::setup_before_tests_once().await;
+        
         let cookie = script_base::setup_user_and_login("user7").await;
 
         let body = ArticleBuilder::new()

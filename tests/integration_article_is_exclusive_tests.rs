@@ -6,10 +6,11 @@ mod tests {
     use std::fs;
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{FAKE_IMAGE_DATA, JPEG};
+    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
 
     #[tokio::test]
     async fn test_exclusive_main_article_finance() {
+        script_base::setup_before_tests_once().await;
 
         let cookie = script_base::setup_user_and_login("user2").await;
 
@@ -21,7 +22,7 @@ mod tests {
             .short_text("Kratky text o financich")
             .is_main(true)
             .is_exclusive(true)
-            .image("test.jpg", FAKE_IMAGE_DATA, JPEG)
+            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .build()
             .unwrap();
 

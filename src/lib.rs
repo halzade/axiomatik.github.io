@@ -20,5 +20,6 @@ pub mod validation;
 pub mod form_new_article_data;
 pub mod test_framework {
     pub mod script_base;
+    pub mod script_base_data;
     pub mod article_builder;
 }

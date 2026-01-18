@@ -9,6 +9,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_validation_login_username() {
+        script_base::setup_before_tests_once().await;
+        
         // Create user with clean name
         commands::create_editor_user("admin", "password123")
             .await
@@ -31,6 +33,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_validation_login_password() {
+        script_base::setup_before_tests_once().await;
+        
         // Create user with clean name
         commands::create_editor_user("admin", "password123")
             .await
@@ -53,6 +57,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_validation_create_article() {
+        script_base::setup_before_tests_once().await;
+        
         // 1. Create and login user
         let cookie = script_base::setup_user_and_login("user9").await;
 

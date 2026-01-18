@@ -41,6 +41,7 @@ pub fn get_czech_month(month: u32) -> &'static str {
     CZECH_MONTHS[idx]
 }
 
+// TODO
 fn get_czech_month_capital(month: u32) -> &'static str {
     let idx = (month - 1) as usize;
     CZECH_MONTHS_CAPITAL[idx]

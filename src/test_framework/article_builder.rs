@@ -3,7 +3,7 @@ use std::fmt::Write;
 pub const BOUNDARY: &str = "---------------------------123456789012345678901234567";
 
 #[derive(Default)]
-pub struct ArticleBuilder {
+pub struct ArticleBuilder<'a> {
     title_o: Option<String>,
     author_o: Option<String>,
     category_o: Option<String>,
@@ -13,11 +13,11 @@ pub struct ArticleBuilder {
     image_description_o: Option<String>,
     is_main_o: Option<bool>,
     is_exclusive_o: Option<bool>,
-    image_o: Option<(String, Vec<u8>, String)>,
-    audio_o: Option<(String, Vec<u8>, String)>,
+    image_o: Option<(String, &'a [u8], String)>,
+    audio_o: Option<(String, &'a [u8], String)>,
 }
 
-impl ArticleBuilder {
+impl<'a> ArticleBuilder<'a> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -67,11 +67,21 @@ impl ArticleBuilder {
         self
     }
 
-    pub fn image(mut self, filename: impl Into<String>, data: Vec<u8>, content_type: &str) -> Self {
+    pub fn image(
+        mut self,
+        filename: impl Into<String>,
+        data: &'a [u8],
+        content_type: &str,
+    ) -> Self {
         self.image_o = Some((filename.into(), data, content_type.into()));
         self
     }
-    pub fn audio(mut self, filename: impl Into<String>, data: Vec<u8>, content_type: &str) -> Self {
+    pub fn audio(
+        mut self,
+        filename: impl Into<String>,
+        data: &'a [u8],
+        content_type: &str,
+    ) -> Self {
         self.audio_o = Some((filename.into(), data, content_type.into()));
         self
     }
