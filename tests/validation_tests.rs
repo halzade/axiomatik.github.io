@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::commands;
-    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::{boundary, serialize};
     use axum::http::{header, Request, StatusCode};
@@ -10,11 +9,6 @@ mod tests {
     #[tokio::test]
     async fn test_validation_login_username() {
         script_base::setup_before_tests_once().await;
-
-        // Create user with clean name
-        commands::create_editor_user("admin2", "password123")
-            .await
-            .unwrap();
 
         // BEL
         let login_params = [("username", "adm\x07in"), ("password", "password123")];
@@ -34,11 +28,6 @@ mod tests {
     #[tokio::test]
     async fn test_validation_login_password() {
         script_base::setup_before_tests_once().await;
-
-        // Create user with clean name
-        commands::create_editor_user("admin3", "password123")
-            .await
-            .unwrap();
 
         // DEL
         let login_params = [("username", "admin"), ("password", "passw\x7ford123")];

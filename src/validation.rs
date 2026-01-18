@@ -37,3 +37,36 @@ pub fn validate_input_simple(input: &str) -> Result<(), &'static str> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_input() {
+        assert!(validate_input("").is_ok());
+        assert!(validate_input("Hello\nWorld\r\t").is_ok());
+        assert!(validate_input("Příliš žluťoučký kůň úpěl ďábelské ódy").is_ok()); // Non-ASCII UTF-8 is allowed
+        assert!(validate_input("Hello \x01 World").is_err()); // ASCII control character
+        assert!(validate_input("Hello \x7F World").is_err()); // ASCII DEL
+    }
+
+    #[test]
+    fn test_validate_search_query() {
+        assert!(validate_search_query("").is_ok());
+        assert!(validate_search_query("Hello World").is_ok());
+        assert!(validate_search_query("Hello123").is_ok());
+        assert!(validate_search_query("Příliš").is_ok()); // Non-ASCII alphanumeric is allowed
+        assert!(validate_search_query("Hello!").is_err()); // Special character
+        assert!(validate_search_query("Hello\nWorld").is_err()); // Whitespace other than space
+    }
+
+    #[test]
+    fn test_validate_input_simple() {
+        assert!(validate_input_simple("").is_ok());
+        assert!(validate_input_simple("Hello_World123").is_ok());
+        assert!(validate_input_simple("Hello World").is_err()); // Space is not allowed
+        assert!(validate_input_simple("Příliš").is_err()); // Non-ASCII is not allowed
+        assert!(validate_input_simple("Hello-World").is_err()); // Hyphen is not allowed
+    }
+}

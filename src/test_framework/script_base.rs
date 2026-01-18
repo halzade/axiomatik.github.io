@@ -10,13 +10,9 @@ use crate::database::User;
 use crate::{database, logger, server};
 
 use crate::test_framework::article_builder::BOUNDARY;
-use std::sync::OnceLock;
 use tokio::sync::OnceCell;
 
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
-
-static ORIGINAL_INDEX: OnceLock<String> = OnceLock::new();
-
 const PASSWORD: &str = "password123";
 
 pub async fn setup_before_tests_once() {
@@ -27,12 +23,6 @@ pub async fn setup_before_tests_once() {
     // Create required directories
     let _ = std::fs::create_dir_all("uploads");
     let _ = std::fs::create_dir_all("snippets");
-
-    // Save the original index.html if it exists, otherwise create a minimal one
-    let original_index = std::fs::read_to_string("index.html").expect("Failed to read index.html");
-
-    // TODO, recreate the index after all tests finished
-    let _ = ORIGINAL_INDEX.set(original_index);
 
     let r = server::start_router().await;
     let _ = APP_ROUTER.set(r);
@@ -47,10 +37,6 @@ pub fn serialize(params: &[(&str, &str)]) -> String {
     let mut serializer = url::form_urlencoded::Serializer::new(String::new());
     serializer.extend_pairs(params);
     serializer.finish()
-}
-
-pub fn original_index() -> String {
-    ORIGINAL_INDEX.get().unwrap().to_string()
 }
 
 pub async fn setup_user_and_login(name: &str) -> String {

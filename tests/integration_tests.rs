@@ -222,6 +222,7 @@ mod tests {
             .category("zahranici")
             .text("Content")
             .short_text("Short")
+            .related_articles("related-test-article.html")
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .image_description("test image description")
             .build();
@@ -237,7 +238,7 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response_create_article.status(), StatusCode::OK);
+        assert_eq!(response_create_article.status(), StatusCode::SEE_OTHER);
 
         // 7. Verify the article is on the account page
         let response_accout_2 = script_base::one_shot(
@@ -268,7 +269,7 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response_update_author_2.status(), StatusCode::OK);
+        assert_eq!(response_update_author_2.status(), StatusCode::SEE_OTHER);
 
         // 9. Verify the article is STILL on the account page (linked by username, not author_name)
         let response_accout_3 = script_base::one_shot(

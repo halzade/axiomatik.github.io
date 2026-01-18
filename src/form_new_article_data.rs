@@ -2,7 +2,7 @@ use crate::form_new_article::ArticleData;
 use crate::validation::validate_input;
 use axum::extract::Multipart;
 use std::fs;
-use tracing::error;
+use tracing::{debug, error, info};
 use uuid::Uuid;
 
 pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
@@ -22,7 +22,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
     while let Ok(Some(field)) = multipart.next_field().await {
         let field_name = field.name().unwrap_or_default().to_string();
         let content_type = field.content_type().map(|c| c.to_string());
-        tracing::info!("Processing field: {}, content_type: {:?}", field_name, content_type);
+        debug!("Processing field: {}, content_type: {:?}", field_name, content_type);
 
         match field_name.as_str() {
             "is_main" => {
