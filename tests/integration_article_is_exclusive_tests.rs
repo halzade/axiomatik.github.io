@@ -1,12 +1,13 @@
 #[cfg(test)]
 mod tests {
+    use axiomatik_web::test_framework::article_builder::ArticleBuilder;
+    use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::test_framework::script_base::boundary;
+    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axum_core::extract::Request;
     use http::header;
     use reqwest::Body;
     use std::fs;
-    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
-    use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
 
     #[tokio::test]
     async fn test_exclusive_main_article_finance() {
@@ -26,17 +27,16 @@ mod tests {
             .build()
             .unwrap();
 
-        script_base::one_shot(Request::builder()
-                    .method("POST")
-                    .uri("/create")
-                    .header(
-                        header::CONTENT_TYPE,
-                        format!("multipart/form-data; boundary={}", BOUNDARY),
-                    )
-                    .header(header::COOKIE, &cookie)
-                    .body(Body::from(body))
-                    .unwrap(),
-            ).await;
+        script_base::one_shot(
+            Request::builder()
+                .method("POST")
+                .uri("/create")
+                .header(header::CONTENT_TYPE, boundary())
+                .header(header::COOKIE, &cookie)
+                .body(Body::from(body))
+                .unwrap(),
+        )
+        .await;
 
         let updated_index = fs::read_to_string("index.html").unwrap();
 

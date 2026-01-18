@@ -4,6 +4,7 @@ mod tests {
     use axiomatik_web::test_framework::script_base;
     use axum::http::{header, StatusCode};
     use reqwest::Body;
+    use axiomatik_web::test_framework::script_base::boundary;
     use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
 
     #[tokio::test]
@@ -29,10 +30,7 @@ mod tests {
             axum_core::extract::Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(
-                    header::CONTENT_TYPE,
-                    format!("multipart/form-data; boundary={}", BOUNDARY),
-                )
+                .header(header::CONTENT_TYPE, boundary())
                 .header(header::COOKIE, &cookie)
                 .body(Body::from(body1.unwrap()))
                 .unwrap(),
@@ -62,10 +60,7 @@ mod tests {
             axum_core::extract::Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(
-                    header::CONTENT_TYPE,
-                    format!("multipart/form-data; boundary={}", BOUNDARY),
-                )
+                .header(header::CONTENT_TYPE, boundary())
                 .header(header::COOKIE, &cookie)
                 .body(Body::from(body2.unwrap()))
                 .unwrap(),

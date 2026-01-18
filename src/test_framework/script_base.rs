@@ -15,6 +15,7 @@ use std::sync::{Once, OnceLock};
 use tokio::fs::OpenOptions;
 use tokio::sync::{Notify, OnceCell};
 use tokio::task::JoinHandle;
+use crate::test_framework::article_builder::BOUNDARY;
 
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 
@@ -86,6 +87,10 @@ pub async fn setup_user_and_login(name: &str) -> String {
         .to_string();
 
     cookie
+}
+
+pub fn boundary() -> String {
+    format!("multipart/form-data; boundary={}", BOUNDARY)
 }
 
 fn new_user(name: &str) -> User {

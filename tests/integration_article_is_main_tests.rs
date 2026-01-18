@@ -7,6 +7,7 @@ mod tests {
     use http::header;
     use reqwest::Body;
     use std::fs;
+    use axiomatik_web::test_framework::script_base::boundary;
 
     #[tokio::test]
     async fn test_veda_article_is_main_rotation() {
@@ -74,10 +75,7 @@ mod tests {
             Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(
-                    header::CONTENT_TYPE,
-                    format!("multipart/form-data; boundary={}", BOUNDARY),
-                )
+                .header(header::CONTENT_TYPE, boundary())
                 .header(header::COOKIE, &cookie)
                 .body(Body::from(body))
                 .unwrap(),

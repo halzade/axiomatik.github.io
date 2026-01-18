@@ -10,6 +10,7 @@ mod tests {
     use axum::http::{header, Request, StatusCode};
     use chrono::Datelike;
     use reqwest::Body;
+    use axiomatik_web::test_framework::script_base::boundary;
 
     #[tokio::test]
     async fn test_create_article() {
@@ -48,10 +49,7 @@ mod tests {
             Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(
-                    header::CONTENT_TYPE,
-                    format!("multipart/form-data; boundary={}", BOUNDARY),
-                )
+                .header(header::CONTENT_TYPE, boundary())
                 .header(header::COOKIE, &cookie)
                 .body(Body::from(body.unwrap()))
                 .unwrap(),

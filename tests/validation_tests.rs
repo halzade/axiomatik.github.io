@@ -3,7 +3,7 @@ mod tests {
     use axiomatik_web::commands;
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::serialize;
+    use axiomatik_web::test_framework::script_base::{boundary, serialize};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
 
@@ -75,10 +75,7 @@ mod tests {
             Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(
-                    header::CONTENT_TYPE,
-                    format!("multipart/form-data; boundary={}", BOUNDARY),
-                )
+                .header(header::CONTENT_TYPE, boundary())
                 .header(header::COOKIE, &cookie)
                 .body(Body::from(body.unwrap()))
                 .unwrap(),

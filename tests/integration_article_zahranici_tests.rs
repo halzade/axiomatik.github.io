@@ -5,6 +5,7 @@ mod tests {
     use axum::http::{header, Request};
     use reqwest::Body;
     use std::fs;
+    use axiomatik_web::test_framework::script_base::boundary;
 
     #[tokio::test]
     async fn test_zahranici_article_creation_and_limit() {
@@ -25,10 +26,7 @@ mod tests {
             Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(
-                    header::CONTENT_TYPE,
-                    format!("multipart/form-data; boundary={}", BOUNDARY),
-                )
+                .header(header::CONTENT_TYPE, boundary())
                 .header(header::COOKIE, &cookie)
                 .body(Body::from(body))
                 .unwrap(),
