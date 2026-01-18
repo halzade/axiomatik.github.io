@@ -57,13 +57,13 @@ impl<'a> ArticleBuilder<'a> {
         self
     }
 
-    pub fn is_main(mut self, is_main: bool) -> Self {
-        self.is_main_o = Some(is_main);
+    pub fn is_main(mut self) -> Self {
+        self.is_main_o = Some(true);
         self
     }
 
-    pub fn is_exclusive(mut self, is_exclusive: bool) -> Self {
-        self.is_exclusive_o = Some(is_exclusive);
+    pub fn is_exclusive(mut self) -> Self {
+        self.is_exclusive_o = Some(true);
         self
     }
 
@@ -120,11 +120,11 @@ impl<'a> ArticleBuilder<'a> {
         if let Some(v) = self.image_description_o {
             text_part!("image_description", v);
         }
-        if let Some(v) = self.is_main_o {
-            text_part!("is_main", v);
+        if let Some(_) = self.is_main_o {
+            text_part!("is_main", "on");
         }
-        if let Some(v) = self.is_exclusive_o {
-            text_part!("is_exclusive", v);
+        if let Some(_) = self.is_exclusive_o {
+            text_part!("is_exclusive", "on");
         }
 
         // image

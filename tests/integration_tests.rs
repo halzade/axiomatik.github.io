@@ -13,7 +13,7 @@ mod tests {
         script_base::setup_before_tests_once().await;
 
         // 1. Create a user via auth module (simulating command)
-        commands::create_editor_user("admin", "password123")
+        commands::create_editor_user("admin1", "password123")
             .await
             .unwrap();
 

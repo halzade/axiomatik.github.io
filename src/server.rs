@@ -10,9 +10,10 @@ use axum_extra::extract::CookieJar;
 use http::{Request, StatusCode};
 use std::fs;
 use std::sync::LazyLock;
+use tokio::signal;
 use tokio::sync::Mutex;
 use tower_http::services::ServeDir;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 // TODO
 // TODO
@@ -34,17 +35,27 @@ impl ApplicationStatus {
     }
 }
 
-pub async fn started() -> bool {
+pub async fn is_started() -> bool {
     APP_STATUS.lock().await.eq(&ApplicationStatus::Started)
 }
 
-// TODO move starting here from router()
-pub async fn start() {
+async fn start() {
     *APP_STATUS.lock().await = ApplicationStatus::Started
 }
 
-pub async fn router() -> Router {
+pub async fn start_router() -> Router {
+    info!("start_router()");
+
     let status = *APP_STATUS.lock().await;
+
+    if is_started().await {
+        info!("Application already started");
+        info!("Shutting down gracefully...");
+        signal::ctrl_c().await.ok();
+    }
+
+    start().await;
+
     /*
      * Protected routes
      */
@@ -73,7 +84,7 @@ pub async fn router() -> Router {
     /*
      * Unprotected routes
      */
-    Router::new()
+    let ret = Router::new()
         .route("/", get(|| async { Redirect::to("/index.html") }))
         .route(
             "/login",
@@ -83,7 +94,9 @@ pub async fn router() -> Router {
         .merge(protected_routes)
         // serve static content
         .fallback(handle_fallback)
-        .with_state(status)
+        .with_state(status);
+    info!("start_router() finished");
+    ret
 }
 
 // TODO

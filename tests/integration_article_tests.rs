@@ -10,16 +10,14 @@ mod tests {
     use axum::http::{header, Request, StatusCode};
     use chrono::Datelike;
     use reqwest::Body;
-    use tracing::info;
 
     #[tokio::test]
     async fn test_create_article() {
-        info!("Creating article");
-        let _l = script_base::setup_before_tests_once().await;
-        info!("Creating article 1");
+        script_base::setup_before_tests_once().await;
+
         // 1. Create a user who does NOT need password change
         let cookie = script_base::setup_user_and_login("user6").await;
-        info!("Creating article 2");
+
         // 3. Create article (Multipart)
         // Create related article and category files for testing
         let related_article_content = "<html><body><!-- SNIPPETS --></body></html>";

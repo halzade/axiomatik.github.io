@@ -25,12 +25,12 @@ async fn main() {
     }
 
     // TODO write test
-    if server::started().await {
+    if server::is_started().await {
         info!("Application already started");
         info!("Shutting down gracefully...");
         signal::ctrl_c().await.ok();
     }
-    server::start().await;
+
     /*
      * Init Application Infrastructure
      */
@@ -61,7 +61,7 @@ async fn main() {
     /*
      * Server
      */
-    let router = server::router().await;
+    let router = server::start_router().await;
     let config = configuration::get_config().expect("Failed to read configuration.");
     let addr = format!("{}:{}", config.host, config.port);
     info!("listening on {}", addr);

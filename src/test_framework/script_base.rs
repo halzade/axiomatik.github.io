@@ -8,63 +8,32 @@ use tower::ServiceExt;
 use crate::database::Role::Editor;
 use crate::database::User;
 use crate::{database, logger, server};
-use std::sync::OnceLock;
-use tokio::sync::OnceCell;
 use tracing::info;
 
-static SETUP_ONCE: OnceCell<()> = OnceCell::const_new();
+use std::sync::Arc;
+use std::sync::{Once, OnceLock};
+use tokio::fs::OpenOptions;
+use tokio::sync::{Notify, OnceCell};
+use tokio::task::JoinHandle;
 
-static APP_ROUTER: OnceLock<Router> = OnceLock::new();
-static ORIGINAL_INDEX: OnceCell<String> = OnceCell::const_new();
+static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
+
+static ORIGINAL_INDEX: OnceLock<String> = OnceLock::new();
 
 const PASSWORD: &str = "password123";
 
-struct Cleanup;
-
-impl Drop for Cleanup {
-    /*
-     * Method drop() is called with destructor
-     * Since Cleanup is static struct, it will be called when all tests finished
-     */
-    fn drop(&mut self) {
-        after_tests_clean_up();
-    }
-}
-
 pub async fn setup_before_tests_once() {
-    info!("setup_before_tests()");
-    SETUP_ONCE
-        .get_or_init(|| async {
-            info!("setup_before_tests() Executes");
+    logger::config();
 
-            info!("register clean up");
-            let _cleanup = Cleanup;
+    database::initialize_in_memory_database().await;
 
-            // as if in main.rs
-            server::start().await;
-            logger::config();
+    // Save original index.html
+    // let original_index =
+    // std::fs::read_to_string("index.html").expect("Failed to read index.html");
+    // ORIGINAL_INDEX.set(original_index).expect("ORIGINAL_INDEX already set");
 
-            info!("init database");
-            database::initialize_in_memory_database().await;
-
-            info!("start router");
-            // TODO is app was already running in devel
-            tokio::spawn(async {
-                info!("start router spawn");
-                let router = server::router().await;
-
-                info!("start router spawn done");
-                APP_ROUTER.set(router).expect("error");
-                info!("start router finished");
-            });
-            info!("start router done");
-
-            let original_index = std::fs::read_to_string("index.html").unwrap();
-            ORIGINAL_INDEX.set(original_index).unwrap();
-
-            println!("initialization finished");
-        })
-        .await;
+    let r = server::start_router().await;
+    APP_ROUTER.set(r).unwrap();
 }
 
 fn after_tests_clean_up() {

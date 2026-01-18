@@ -10,7 +10,7 @@ mod tests {
         script_base::setup_before_tests_once().await;
         
         // Create a user to have something to query
-        let username = "testuser";
+        let username = "user10";
         let password = "testpassword";
         create_editor_user(username, password).await.unwrap();
 
@@ -23,7 +23,7 @@ mod tests {
     async fn test_create_editor_user() {
         script_base::setup_before_tests_once().await;
         
-        let username = "editor1";
+        let username = "user11";
         let password = "password123";
 
         // Create editor user

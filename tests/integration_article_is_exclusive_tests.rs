@@ -20,8 +20,8 @@ mod tests {
             .category("finance")
             .text("Dlouhy text o financich")
             .short_text("Kratky text o financich")
-            .is_main(true)
-            .is_exclusive(true)
+            .is_main()
+            .is_exclusive()
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .build()
             .unwrap();
