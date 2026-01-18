@@ -15,17 +15,32 @@ use tokio::sync::OnceCell;
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";
 
+static SETUP_ONCE: OnceCell<()> = OnceCell::const_new();
+
 pub async fn setup_before_tests_once() {
-    logger::config();
+    println!("any times 1");
+    if SETUP_ONCE.get().is_some() {
+        println!("any times 2");
+        return;
+    }
 
-    database::initialize_in_memory_database().await;
+    SETUP_ONCE
+        .get_or_init(|| async {
+            println!("ONLY ONCE");
+            
+            logger::config();
+            database::initialize_in_memory_database().await;
 
-    // Create required directories
-    let _ = std::fs::create_dir_all("uploads");
-    let _ = std::fs::create_dir_all("snippets");
+            // Create required directories
+            let _ = std::fs::create_dir_all("uploads");
+            let _ = std::fs::create_dir_all("snippets");
 
-    let r = server::start_router().await;
-    let _ = APP_ROUTER.set(r);
+            let r = server::start_router().await;
+            let _ = APP_ROUTER.set(r);
+        })
+        .await;
+    
+    println!("any times 3");
 }
 
 pub async fn one_shot(request: Request<reqwest::Body>) -> Response<axum::body::Body> {
