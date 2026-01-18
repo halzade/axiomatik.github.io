@@ -2,7 +2,7 @@ use crate::form_new_article::ArticleData;
 use crate::validation::validate_input;
 use axum::extract::Multipart;
 use std::fs;
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 use uuid::Uuid;
 
 pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {

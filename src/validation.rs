@@ -38,9 +38,23 @@ pub fn validate_input_simple(input: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
+pub fn validate_required(input: &str) -> Result<(), &'static str> {
+    if input.is_empty() {
+        Err("Field is required")
+    } else {
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_validate_required() {
+        assert!(validate_required("").is_err());
+        assert!(validate_required("x").is_ok());
+    }
 
     #[test]
     fn test_validate_input() {

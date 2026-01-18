@@ -2,20 +2,20 @@
 mod tests {
     use axum::http::{header, Request};
 
-    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::test_framework::script_base::boundary;
     use reqwest::Body;
     use std::fs;
-    use axiomatik_web::test_framework::script_base::boundary;
 
     #[tokio::test]
     async fn test_republika_article_creation_and_limit() {
         script_base::setup_before_tests_once().await;
-        
+
         let cookie = script_base::setup_user_and_login("user5").await;
 
         let body = ArticleBuilder::new()
-            .title("test-Newest Republika")
+            .title("Test Newest Republika")
             .author("Author")
             .category("republika")
             .text("Main text")
@@ -34,7 +34,7 @@ mod tests {
         .await;
 
         let updated_index = fs::read_to_string("index.html").unwrap();
-        assert!(updated_index.contains("test-Newest Republika"));
+        assert!(updated_index.contains("Test Newest Republika"));
 
         // Count articles in Z_REPUBLIKY section
         let start =

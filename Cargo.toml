@@ -14,18 +14,13 @@ chrono = "0.4.42"
 axum-extra = { version = "0.12.5", features = ["cookie"] }
 serde = { version = "1.0.228", features = ["derive"] }
 surrealdb = { version = "2.4.0", features = ["kv-rocksdb", "kv-mem", "protocol-ws", "rustls"] }
-bcrypt = "0.17.1"
+bcrypt = "0.18.0"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 config = "0.15"
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.13.1", features = ["json"] }
 serde_json = "1.0"
 http = "1.4.0"
 url = "2.5.7"
-router = "0.6.0"
 axum-core = "0.5.6"
 anyhow = "1.0.100"
-ctor = "0.6.3"
-
-[dev-dependencies]
-tower = "0.5.2"
