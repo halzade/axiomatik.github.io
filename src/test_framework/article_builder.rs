@@ -120,11 +120,19 @@ impl<'a> ArticleBuilder<'a> {
         if let Some(v) = self.image_description_o {
             text_part!("image_description", v);
         }
-        if let Some(_) = self.is_main_o {
-            text_part!("is_main", "on");
+        if let Some(v) = self.is_main_o {
+            text_part!("is_main", if v { "on" } else { "off" });
+        } else {
+
+            // TODO this is probably wrong
+            text_part!("is_main", "off");
         }
-        if let Some(_) = self.is_exclusive_o {
-            text_part!("is_exclusive", "on");
+        if let Some(v) = self.is_exclusive_o {
+            text_part!("is_exclusive", if v { "on" } else { "off" });
+        } else {
+
+            // TODO this is probably wrong
+            text_part!("is_exclusive", "off");
         }
 
         // image

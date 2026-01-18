@@ -82,18 +82,19 @@ pub async fn has_users() -> bool {
         } else {
             error!("Database not available");
             false
-        }
+        };
     }
     error!("Database error");
     false
 }
 
 pub async fn create_article(article: Article) -> Option<Article> {
-    let sdb_r = db_write().await;
-    match sdb_r {
-        Ok(sdb) => sdb.create("article").content(article).await.unwrap(),
-        _ => None,
-    }
+    let sdb_wg = db_write().await.ok()?;
+    let article_r: Result<Option<Article>, _> = sdb_wg.create("article").content(article).await;
+    article_r.unwrap_or_else(|e| {
+        error!("Failed to create article: {}", e);
+        None
+    })
 }
 
 pub async fn get_articles_by_username(username: &str) -> Option<Vec<Article>> {
@@ -103,7 +104,13 @@ pub async fn get_articles_by_username(username: &str) -> Option<Vec<Article>> {
             .bind(("username", username.to_string()))
             .await;
         if let Ok(mut response) = response_r {
-            return response.take(0).unwrap();
+            return match response.take(0) {
+                Ok(articles) => Some(articles),
+                Err(e) => {
+                    error!("Failed to deserialize articles: {}", e);
+                    None
+                }
+            }
         }
     }
     None

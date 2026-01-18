@@ -10,12 +10,12 @@ use crate::database::User;
 use crate::{database, logger, server};
 use tracing::info;
 
+use crate::test_framework::article_builder::BOUNDARY;
 use std::sync::Arc;
 use std::sync::{Once, OnceLock};
 use tokio::fs::OpenOptions;
 use tokio::sync::{Notify, OnceCell};
 use tokio::task::JoinHandle;
-use crate::test_framework::article_builder::BOUNDARY;
 
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 
@@ -28,13 +28,18 @@ pub async fn setup_before_tests_once() {
 
     database::initialize_in_memory_database().await;
 
-    // Save original index.html
-    // let original_index =
-    // std::fs::read_to_string("index.html").expect("Failed to read index.html");
-    // ORIGINAL_INDEX.set(original_index).expect("ORIGINAL_INDEX already set");
+    // Create required directories
+    let _ = std::fs::create_dir_all("uploads");
+    let _ = std::fs::create_dir_all("snippets");
+
+    // Save original index.html if it exists, otherwise create a minimal one
+    let original_index = std::fs::read_to_string("index.html").expect("Failed to read index.html");
+
+    // TODO, recreate the index after all tests finished
+    let _ = ORIGINAL_INDEX.set(original_index);
 
     let r = server::start_router().await;
-    APP_ROUTER.set(r).unwrap();
+    let _ = APP_ROUTER.set(r);
 }
 
 fn after_tests_clean_up() {

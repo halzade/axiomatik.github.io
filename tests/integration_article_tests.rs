@@ -104,10 +104,10 @@ mod tests {
 
         // Cleanup
         let _ = std::fs::remove_file("test-article.html");
-        let _ = std::fs::remove_file("snippets/test-article.html.txt");
         let _ = std::fs::remove_file("related-test-article.html");
-        let _ = std::fs::remove_file("snippets/related-test-article.html.txt");
         let _ = std::fs::remove_file("test-category.html");
+        let _ = std::fs::remove_file("snippets/test-article.html.txt");
+        let _ = std::fs::remove_file("snippets/related-test-article.html.txt");
 
         // Cleanup uploads
         if let Ok(entries) = std::fs::read_dir("uploads") {
