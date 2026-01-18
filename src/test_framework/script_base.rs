@@ -1,6 +1,6 @@
-use std::convert::Into;
 use axum::Router;
 use http::{header, Request, Response};
+use std::convert::Into;
 
 use std::string::ToString;
 use tower::ServiceExt;
@@ -10,7 +10,7 @@ use crate::database::User;
 use crate::{database, logger, server};
 use std::sync::OnceLock;
 use tokio::sync::OnceCell;
-use tracing::{info};
+use tracing::info;
 
 static SETUP_ONCE: OnceCell<()> = OnceCell::const_new();
 
@@ -47,36 +47,22 @@ pub async fn setup_before_tests_once() {
             info!("init database");
             database::initialize_in_memory_database().await;
 
-            info!("init server");
-            // let rt = tokio::runtime::Runtime::new().unwrap();
-            // let router = rt.block_on(server::router());
-
-            //
+            info!("start router");
             // TODO is app was already running in devel
-            let router = server::router().await;
-            // let config = configuration::get_config().expect("Failed to read configuration for tests.");
-            // let addr = format!("{}:{}", config.host, config.port);
-            // info!("listening on {}", addr);
-            // let listener = TcpListener::bind(&addr)
-            //   .await
-            //    .expect(&format!("Failed to bind to {}", addr));
-            /*
-             * Start Application
-             */
-            // let serve_r = axum::serve(listener, router).await;
-            // match serve_r {
-            //     Ok(serve) => {
-            //
-            //     }
-            //     Err(e) => {
-            //         error!("axum server exited: {:?}", e);
-            //     }
-            // }
-            //
-            APP_ROUTER.set(router).expect("error");
+            tokio::spawn(async {
+                info!("start router spawn");
+                let router = server::router().await;
+
+                info!("start router spawn done");
+                APP_ROUTER.set(router).expect("error");
+                info!("start router finished");
+            });
+            info!("start router done");
 
             let original_index = std::fs::read_to_string("index.html").unwrap();
             ORIGINAL_INDEX.set(original_index).unwrap();
+
+            println!("initialization finished");
         })
         .await;
 }

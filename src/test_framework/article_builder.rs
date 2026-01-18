@@ -1,4 +1,4 @@
-use std::fmt::Write;
+use std::io::Write;
 
 pub const BOUNDARY: &str = "---------------------------123456789012345678901234567";
 
@@ -86,76 +86,70 @@ impl<'a> ArticleBuilder<'a> {
         self
     }
 
-    pub fn build(self) -> Result<String, std::fmt::Error> {
-        let mut body = String::new();
+    pub fn build(self) -> std::io::Result<Vec<u8>> {
+        let mut body: Vec<u8> = Vec::new();
 
-        if let Some(title) = self.title_o {
-            write!(body, "{}", line("title", title))?;
+        macro_rules! text_part {
+            ($name:expr, $val:expr) => {
+                write!(
+                    body,
+                    "--{}\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n",
+                    BOUNDARY, $name, $val
+                )?;
+            };
         }
 
-        if let Some(author) = self.author_o {
-            write!(body, "{}", line("author", author))?;
+        if let Some(v) = self.title_o {
+            text_part!("title", v);
+        }
+        if let Some(v) = self.author_o {
+            text_part!("author", v);
+        }
+        if let Some(v) = self.category_o {
+            text_part!("category", v);
+        }
+        if let Some(v) = self.text_o {
+            text_part!("text", v);
+        }
+        if let Some(v) = self.short_text_o {
+            text_part!("short_text", v);
+        }
+        if let Some(v) = self.related_articles_o {
+            text_part!("related_articles", v);
+        }
+        if let Some(v) = self.image_description_o {
+            text_part!("image_description", v);
+        }
+        if let Some(v) = self.is_main_o {
+            text_part!("is_main", v);
+        }
+        if let Some(v) = self.is_exclusive_o {
+            text_part!("is_exclusive", v);
         }
 
-        if let Some(category) = self.category_o {
-            write!(body, "{}", line("category", category))?;
-        }
-
-        if let Some(text) = self.text_o {
-            write!(body, "{}", line("text", text))?;
-        }
-
-        if let Some(short_text) = self.short_text_o {
-            write!(body, "{}", line("short_text", short_text))?;
-        }
-
-        if let Some(related_articles) = self.related_articles_o {
-            write!(body, "{}", line("related_articles", related_articles))?;
-        }
-
-        if let Some(image_description) = self.image_description_o {
-            write!(body, "{}", line("image_description", image_description))?;
-        }
-
-        if let Some(is_main) = self.is_main_o {
-            write!(body, "{}", line("is_main", is_main))?;
-        }
-
-        if let Some(is_exclusive) = self.is_exclusive_o {
-            write!(body, "{}", line("is_exclusive", is_exclusive))?;
-        }
-
+        // image
         if let Some((filename, data, content_type)) = self.image_o {
-            write!(body, "{}", line_file("image", &filename, &content_type))?;
-
-            body.push_str(&String::from_utf8_lossy(&data));
-            writeln!(body, "\r\n")?;
+            write!(
+                body,
+                "--{}\r\nContent-Disposition: form-data; name=\"image\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n",
+                BOUNDARY, filename, content_type
+            )?;
+            body.extend_from_slice(data);
+            body.extend_from_slice(b"\r\n");
         }
 
+        // audio
         if let Some((filename, data, content_type)) = self.audio_o {
-            write!(body, "{}", line_file("audio", &filename, &content_type))?;
-
-            body.push_str(&String::from_utf8_lossy(&data));
-            writeln!(body, "\r\n")?;
+            write!(
+                body,
+                "--{}\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n",
+                BOUNDARY, filename, content_type
+            )?;
+            body.extend_from_slice(data);
+            body.extend_from_slice(b"\r\n");
         }
 
         write!(body, "--{}--\r\n", BOUNDARY)?;
         Ok(body)
     }
-}
-
-fn line(name: &str, value: impl ToString) -> String {
-    format!(
-        "--{}\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n",
-        BOUNDARY,
-        name,
-        value.to_string()
-    )
-}
-
-fn line_file(name: &str, filename: &str, content_type: &str) -> String {
-    format!(
-        "--{}\r\nContent-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n",
-        BOUNDARY, name, filename, content_type
-    )
 }

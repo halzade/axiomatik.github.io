@@ -15,7 +15,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_article() {
         info!("Creating article");
-        let l = script_base::setup_before_tests_once().await;
+        let _l = script_base::setup_before_tests_once().await;
         info!("Creating article 1");
         // 1. Create a user who does NOT need password change
         let cookie = script_base::setup_user_and_login("user6").await;
@@ -45,11 +45,6 @@ mod tests {
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .audio("test.mp3", FAKE_AUDIO_DATA_MP3, MP3)
             .build();
-
-        match &body {
-            Ok(s) => println!("{}", s),
-            Err(e) => println!("formatting error: {:?}", e),
-        }
 
         let response = script_base::one_shot(
             Request::builder()
