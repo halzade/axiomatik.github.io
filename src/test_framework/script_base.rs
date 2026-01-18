@@ -11,6 +11,8 @@ use crate::{database, logger, server};
 
 use crate::test_framework::article_builder::BOUNDARY;
 use tokio::sync::OnceCell;
+use tracing::log::debug;
+use tracing::trace;
 
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";
@@ -18,16 +20,16 @@ const PASSWORD: &str = "password123";
 static SETUP_ONCE: OnceCell<()> = OnceCell::const_new();
 
 pub async fn setup_before_tests_once() {
-    println!("any times 1");
+    trace!("many times 1");
     if SETUP_ONCE.get().is_some() {
-        println!("any times 2");
+        trace!("many times 2");
         return;
     }
 
     SETUP_ONCE
         .get_or_init(|| async {
-            println!("ONLY ONCE");
-            
+            debug!("only once");
+
             logger::config();
             database::initialize_in_memory_database().await;
 
@@ -39,8 +41,8 @@ pub async fn setup_before_tests_once() {
             let _ = APP_ROUTER.set(r);
         })
         .await;
-    
-    println!("any times 3");
+
+    trace!("many times 3");
 }
 
 pub async fn one_shot(request: Request<reqwest::Body>) -> Response<axum::body::Body> {

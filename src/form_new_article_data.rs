@@ -6,18 +6,30 @@ use tracing::{debug, error};
 use uuid::Uuid;
 
 pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
+
+    // required
     let mut title_o = None;
     let mut author_o = None;
     let mut text_processed_o = None;
     let mut short_text_processed_o = None;
-    let mut category_o = None;
-    let mut related_articles_o = None;
+
+    // required
     let mut image_path_o = None;
     let mut image_description_o = None;
+
+    // not required
     let mut video_path_o = None;
     let mut audio_path_o = None;
+
+    // not required
     let mut is_main_o = None;
     let mut is_exclusive_o = None;
+
+    // required
+    let mut category_o = None;
+
+    // not required
+    let mut related_articles_o = None;
 
     while let Ok(Some(field)) = multipart.next_field().await {
         let field_name = field.name().unwrap_or_default().to_string();
@@ -118,10 +130,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
             "related_articles" => {
                 let val = field.text().await.unwrap();
-                if let Err(e) = validate_input(&val) {
-                    error!("related_articles validation failed: {}", e);
-                    return None;
-                }
+                validate_input(&val).ok()?;
                 related_articles_o = Some(val);
             }
 
