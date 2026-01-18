@@ -1,9 +1,11 @@
 use crate::database_internal;
 use crate::database_internal::DatabaseSurreal;
+use anyhow::Error;
 use serde::{Deserialize, Serialize};
 use surrealdb::engine::any::Any;
 use surrealdb::{Response, Surreal};
 use tokio::sync::{OnceCell, RwLockReadGuard, RwLockWriteGuard};
+use tracing::error;
 
 static DATABASE: OnceCell<DatabaseSurreal> = OnceCell::const_new();
 
@@ -40,70 +42,92 @@ pub struct Article {
 }
 
 pub async fn update_user(user: User) -> Option<User> {
-    db_write()
-        .await
-        .update(("user", user.username.clone()))
-        .content(user)
-        .await
-        .unwrap()
-}
-
-pub async fn create_user(user: User) -> Option<User> {
-    db_write()
-        .await
-        .create(("user", user.username.clone()))
-        .content(user)
-        .await
-        .unwrap()
-}
-
-pub async fn delete_user(user_name: &str) {
-    let _: Result<Option<User>, _> = db_write().await.delete(("user", user_name)).await;
-}
-
-pub async fn has_users() -> bool {
-    let response = db_read().await.query("SELECT count() FROM user").await.ok();
-
-    if let Some(mut response) = response {
-        let count: Option<i64> = response.take(0).unwrap_or_default();
-        count.unwrap_or(0) > 0
-    } else {
-        false
+    let sdb_r = db_write().await;
+    match sdb_r {
+        Ok(sdb) => sdb
+            .update(("user", user.username.clone()))
+            .content(user)
+            .await
+            .unwrap(),
+        Err(_) => None,
     }
 }
 
+pub async fn create_user(user: User) -> Option<User> {
+    let sdb_r = db_write().await;
+    match sdb_r {
+        Ok(sdb) => sdb
+            .create(("user", user.username.clone()))
+            .content(user)
+            .await
+            .unwrap(),
+        Err(_) => None,
+    }
+}
+pub async fn delete_user(user_name: &str) {
+    if let Ok(sdb) = db_write().await {
+        let _: Result<Option<surrealdb::sql::Value>, surrealdb::Error> =
+            sdb.delete(("user", user_name)).await;
+    } else {
+        error!("Database not available");
+    }
+}
+
+pub async fn has_users() -> bool {
+    if let Ok(sdb) = db_read().await {
+        let response_r = sdb.query("SELECT count() FROM user").await;
+        return if let Ok(mut response) = response_r {
+            let count: Option<i64> = response.take(0).unwrap_or_default();
+            count.unwrap_or(0) > 0
+        } else {
+            error!("Database not available");
+            false
+        }
+    }
+    error!("Database error");
+    false
+}
+
 pub async fn create_article(article: Article) -> Option<Article> {
-    db_write()
-        .await
-        .create("article")
-        .content(article)
-        .await
-        .unwrap()
+    let sdb_r = db_write().await;
+    match sdb_r {
+        Ok(sdb) => sdb.create("article").content(article).await.unwrap(),
+        _ => None,
+    }
 }
 
-pub async fn get_articles_by_username(username: &str) -> Vec<Article> {
-    // TODO
-    db_read()
-        .await
-        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
-        .bind(("username", username.to_string()))
-        .await
-        .unwrap()
-        .take(0)
-        .unwrap()
+pub async fn get_articles_by_username(username: &str) -> Option<Vec<Article>> {
+    if let Ok(sdb) = db_read().await {
+        let response_r = sdb
+            .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
+            .bind(("username", username.to_string()))
+            .await;
+        if let Ok(mut response) = response_r {
+            return response.take(0).unwrap();
+        }
+    }
+    None
 }
 
-pub async fn get_all_articles() -> Vec<Article> {
-    // TODO don't need all article data
-    db_read().await.select("article").await.unwrap()
+// TODO limit to like a 1000 lates articles or something like that
+pub async fn get_all_articles() -> Option<Vec<Article>> {
+    let sdb_r = db_read().await;
+    match sdb_r {
+        Ok(sdb) => Some(sdb.select("article").await.unwrap()),
+        _ => None,
+    }
 }
 
 pub async fn get_user(user_name: &str) -> Option<User> {
-    db_read().await.select(("user", user_name)).await.unwrap()
+    if let Ok(sdb) = db_read().await {
+        return sdb.select(("user", user_name)).await.unwrap();
+    }
+    None
 }
 
 pub async fn query(query: String) -> Response {
-    db_read().await.query(query).await.unwrap()
+    let sdb = db_read().await.expect("Database not initialized");
+    sdb.query(query).await.expect("Query failed")
 }
 
 /*
@@ -118,10 +142,16 @@ pub async fn initialize_in_memory_database() {
     DATABASE.get_or_init(database_internal::init_mem_db).await;
 }
 
-async fn db_read<'lt>() -> RwLockReadGuard<'lt, Surreal<Any>> {
-    DATABASE.get().unwrap().db.read().await
+async fn db_read<'lt>() -> Result<RwLockReadGuard<'lt, Surreal<Any>>, Error> {
+    let sdb = DATABASE
+        .get()
+        .ok_or_else(|| anyhow::anyhow!("Database not initialized"))?;
+    Ok(sdb.db.read().await)
 }
 
-async fn db_write<'lt>() -> RwLockWriteGuard<'lt, Surreal<Any>> {
-    DATABASE.get().unwrap().db.write().await
+async fn db_write<'lt>() -> Result<RwLockWriteGuard<'lt, Surreal<Any>>, Error> {
+    let sdb = DATABASE
+        .get()
+        .ok_or_else(|| anyhow::anyhow!("Database not initialized"))?;
+    Ok(sdb.db.write().await)
 }

@@ -33,7 +33,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_db_search_logic() {
-        
         let article1 = Article {
             author: "author".to_string(),
             created_by: "user".to_string(),
@@ -71,30 +70,38 @@ mod tests {
         database::create_article(article1).await.unwrap();
         database::create_article(article2).await.unwrap();
 
-        let articles = database::get_all_articles().await;
-        let query = "word match";
-        let search_words: Vec<&str> = query.split_whitespace().collect();
+        let articles_o = database::get_all_articles().await;
 
-        let mut results = Vec::new();
-        for article in articles {
-            let mut match_count = 0;
-            let text_lower = article.text.to_lowercase();
-            for word in &search_words {
-                if text_lower.contains(&word.to_lowercase()) {
-                    match_count += 1;
-                }
+        match articles_o {
+            None => {
+                panic!("Test: no Articles found");
             }
-            if match_count > 0 {
-                results.push((match_count, article.article_file_name));
+            Some(articles) => {
+                let query = "word match";
+                let search_words: Vec<&str> = query.split_whitespace().collect();
+
+                let mut results = Vec::new();
+                for article in articles {
+                    let mut match_count = 0;
+                    let text_lower = article.text.to_lowercase();
+                    for word in &search_words {
+                        if text_lower.contains(&word.to_lowercase()) {
+                            match_count += 1;
+                        }
+                    }
+                    if match_count > 0 {
+                        results.push((match_count, article.article_file_name));
+                    }
+                }
+
+                results.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+
+                assert_eq!(results.len(), 2);
+                assert_eq!(results[0].0, 2);
+                assert_eq!(results[0].1, "article1");
+                assert_eq!(results[1].0, 2);
+                assert_eq!(results[1].1, "article2");
             }
         }
-
-        results.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
-
-        assert_eq!(results.len(), 2);
-        assert_eq!(results[0].0, 2);
-        assert_eq!(results[0].1, "article1");
-        assert_eq!(results[1].0, 2);
-        assert_eq!(results[1].1, "article2");
     }
 }

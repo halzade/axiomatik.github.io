@@ -1,10 +1,11 @@
 use axiomatik_web::commands::{create_user, delete_user, print_from_db};
+use axiomatik_web::{configuration, content_management, content_worker, database, logger, server};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
 use tokio::net::TcpListener;
+use tokio::signal;
 use tracing::{error, info};
-use axiomatik_web::{configuration, content_management, content_worker, database, logger, server};
 
 #[tokio::main]
 async fn main() {
@@ -24,8 +25,13 @@ async fn main() {
         print_from_db(&args).await;
     }
 
-    // TODO terminate if application already running
-
+    // TODO write test
+    if server::started().await {
+        info!("Application already started");
+        info!("Shutting down gracefully...");
+        signal::ctrl_c().await.ok();
+    }
+    server::start().await;
     /*
      * Init Application Infrastructure
      */
@@ -56,7 +62,7 @@ async fn main() {
     /*
      * Server
      */
-    let router = server::router();
+    let router = server::router().await;
     let addr = format!("{}:{}", config.host, config.port);
     info!("listening on {}", addr);
     let listener = TcpListener::bind(&addr)

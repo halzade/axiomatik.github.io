@@ -9,7 +9,8 @@ use axum::{middleware, Router};
 use axum_extra::extract::CookieJar;
 use http::{Request, StatusCode};
 use std::fs;
-use std::sync::Arc;
+use std::sync::LazyLock;
+use tokio::sync::Mutex;
 use tower_http::services::ServeDir;
 use tracing::{debug, error};
 
@@ -18,22 +19,31 @@ use tracing::{debug, error};
 // TODO
 pub const AUTH_COOKIE: &str = "axiomatik_auth";
 
-#[derive(Clone)]
-struct AppState {
-    state: ApplicationStatus,
-}
+pub static APP_STATUS: LazyLock<Mutex<ApplicationStatus>> =
+    LazyLock::new(|| Mutex::new(ApplicationStatus::new()));
 
-#[derive(Clone, Copy)]
-enum ApplicationStatus {
+#[derive(Clone, Copy, PartialEq)]
+pub enum ApplicationStatus {
     Started,
     Off,
 }
 
-pub fn router() -> Router {
-    let status = Arc::new(AppState {
-        state: ApplicationStatus::Started,
-    });
+impl ApplicationStatus {
+    pub fn new() -> Self {
+        Self::Off
+    }
+}
 
+pub async fn started() -> bool {
+    APP_STATUS.lock().await.eq(&ApplicationStatus::Started)
+}
+
+pub async fn start() {
+    *APP_STATUS.lock().await = ApplicationStatus::Started
+}
+
+pub async fn router() -> Router {
+    let status = *APP_STATUS.lock().await;
     /*
      * Protected routes
      */

@@ -7,11 +7,11 @@ use tower::ServiceExt;
 use crate::database::Role::Editor;
 use crate::database::User;
 use crate::{database, server};
-use ctor::dtor;
-use std::sync::{Once, OnceLock};
+use ctor::{ctor, dtor};
+use std::sync::OnceLock;
 use tokio::sync::OnceCell;
+use tracing::info;
 
-static INIT: Once = Once::new();
 static APP_ROUTER: OnceLock<Router> = OnceLock::new();
 static ORIGINAL_INDEX: OnceCell<String> = OnceCell::const_new();
 
@@ -22,23 +22,27 @@ pub const JPEG: &str = "image/jpeg";
 
 const PASSWORD: &str = "password123";
 
-async fn setup_before_tests() {
-    INIT.call_once(|| {
-        // runs once before any test body that calls setup()
-        println!("setup_before_tests()");
-        let _ = database::initialize_in_memory_database();
-        let router = server::router();
-        let _ = APP_ROUTER.set(router);
+#[ctor]
+fn setup_before_tests() {
+    info!("setup_before_tests()");
 
-        let original_index = std::fs::read_to_string("index.html").unwrap();
-        ORIGINAL_INDEX.set(original_index).unwrap();
-    });
+    info!("init database");
+    let _ = database::initialize_in_memory_database();
+
+    info!("init server");
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let router = rt.block_on(server::router());
+    let _ = APP_ROUTER.set(router);
+
+    let original_index = std::fs::read_to_string("index.html").unwrap();
+    ORIGINAL_INDEX.set(original_index).unwrap();
 }
 
 #[dtor]
 fn after_tests_clean_up() {
-    println!("All tests finished!");
+    info!("All tests finished!");
     if let Some(content) = ORIGINAL_INDEX.get() {
+        info!("rewrite index from original");
         std::fs::write("index.html", content).unwrap();
     }
 }
