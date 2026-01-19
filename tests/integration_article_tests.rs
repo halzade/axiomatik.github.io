@@ -35,8 +35,8 @@ mod tests {
             .text("This is a test article text.")
             .short_text("Short text.")
             .related_articles("related-test-article.html")
-            .image_description("test description")
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image_description("test description")
             .audio("test.mp3", FAKE_AUDIO_DATA_MP3, MP3)
             .build();
 

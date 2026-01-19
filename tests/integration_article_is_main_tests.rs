@@ -23,6 +23,7 @@ mod tests {
             .short_text("Short text of veda article")
             .is_main()
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image_description("test description")
             .build()
             .unwrap();
 

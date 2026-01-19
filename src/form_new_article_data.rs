@@ -1,5 +1,5 @@
 use crate::form_new_article::ArticleData;
-use crate::validation::validate_input;
+use crate::validation::{validate_input, validate_required};
 use axum::extract::Multipart;
 use std::fs;
 use tracing::{debug, error};
@@ -39,46 +39,34 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
         match field_name.as_str() {
             "is_main" => {
                 let val = field.text().await.unwrap();
-                if let Err(e) = validate_input(&val) {
-                    error!("is_main validation failed: {}", e);
-                    return None;
-                }
+                validate_input(&val).ok()?;
                 is_main_o = Some(val == "on");
             }
 
             "is_exclusive" => {
                 let val = field.text().await.unwrap();
-                if let Err(e) = validate_input(&val) {
-                    error!("is_exclusive validation failed: {}", e);
-                    return None;
-                }
+                validate_input(&val).ok()?;
                 is_exclusive_o = Some(val == "on");
             }
 
             "title" => {
                 let val = field.text().await.unwrap();
-                if let Err(e) = validate_input(&val) {
-                    error!("title validation failed: {}", e);
-                    return None;
-                }
+                validate_required(&val).ok()?;
+                validate_input(&val).ok()?;
                 title_o = Some(val);
             }
 
             "author" => {
                 let val = field.text().await.unwrap();
-                if let Err(e) = validate_input(&val) {
-                    error!("author validation failed: {}", e);
-                    return None;
-                }
+                validate_required(&val).ok()?;
+                validate_input(&val).ok()?;
                 author_o = Some(val);
             }
 
             "text" => {
                 let raw_text = field.text().await.unwrap();
-                if let Err(e) = validate_input(&raw_text) {
-                    error!("text validation failed: {}", e);
-                    return None;
-                }
+                validate_required(&raw_text).ok()?;
+                validate_input(&raw_text).ok()?;
                 let normalized = raw_text.replace("\r\n", "\n");
                 let processed = normalized
                     .split("\n\n\n")
@@ -105,10 +93,8 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
             "short_text" => {
                 let raw_text = field.text().await.unwrap();
-                if let Err(e) = validate_input(&raw_text) {
-                    error!("short_text validation failed: {}", e);
-                    return None;
-                }
+                validate_required(&raw_text).ok()?;
+                validate_input(&raw_text).ok()?;
                 let normalized = raw_text.replace("\r\n", "\n");
                 let normalized_text = normalized
                     .split("\n\n")
@@ -121,10 +107,8 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
             "category" => {
                 let val = field.text().await.unwrap();
-                if let Err(e) = validate_input(&val) {
-                    error!("category validation failed: {}", e);
-                    return None;
-                }
+                validate_required(&val).ok()?;
+                validate_input(&val).ok()?;
                 category_o = Some(val);
             }
 
@@ -136,19 +120,14 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
             "image_description" => {
                 let val = field.text().await.unwrap();
-                if let Err(e) = validate_input(&val) {
-                    error!("image_description validation failed: {}", e);
-                    return None;
-                }
+                validate_required(&val).ok()?;
+                validate_input(&val).ok()?;
                 image_description_o = Some(val);
             }
 
             "image" => {
                 if let Some(file_name) = field.file_name() {
-                    if let Err(e) = validate_input(&file_name) {
-                        error!("image filename validation failed: {}", e);
-                        return None;
-                    }
+                    validate_input(&file_name).ok()?;
 
                     if !file_name.is_empty() {
                         let extension = std::path::Path::new(file_name)
@@ -176,10 +155,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
             "video" => {
                 if let Some(file_name) = field.file_name() {
-                    if let Err(e) = validate_input(&file_name) {
-                        error!("video filename validation failed: {}", e);
-                        return None;
-                    }
+                    validate_input(&file_name).ok()?;
 
                     if !file_name.is_empty() {
                         let extension = std::path::Path::new(file_name)
@@ -205,10 +181,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
             "audio" => {
                 if let Some(file_name) = field.file_name() {
-                    if let Err(e) = validate_input(&file_name) {
-                        error!("audio filename validation failed: {}", e);
-                        return None;
-                    }
+                    validate_input(&file_name).ok()?;
 
                     if !file_name.is_empty() {
                         let extension = std::path::Path::new(file_name)

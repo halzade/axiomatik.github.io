@@ -2,6 +2,7 @@
 mod tests {
     use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
     use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axum::http::{header, Request};
     use reqwest::Body;
     use std::fs;
@@ -19,6 +20,8 @@ mod tests {
             .category("zahranici")
             .text("Main text")
             .short_text("Short text of newest article")
+            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image_description("test description")
             .build()
             .unwrap();
 

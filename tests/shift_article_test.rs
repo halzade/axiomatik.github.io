@@ -24,6 +24,7 @@ mod tests {
             .text("First article text.")
             .short_text("First short text.")
             .image("test1.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image_description("test description")
             .build();
 
         let response1 = script_base::one_shot(
@@ -54,6 +55,7 @@ mod tests {
             .text("Second article text.")
             .short_text("Second short text.")
             .image("test2.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image_description("test description")
             .build();
 
         let response2 = script_base::one_shot(

@@ -24,6 +24,7 @@ mod tests {
             .is_main()
             .is_exclusive()
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image_description("anything")
             .build()
             .unwrap();
 

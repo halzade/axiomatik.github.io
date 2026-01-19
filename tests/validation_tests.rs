@@ -3,6 +3,7 @@ mod tests {
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::{boundary, serialize};
+    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
 
@@ -58,6 +59,8 @@ mod tests {
             .category("republika")
             .text("Content")
             .short_text("Sho\x07rt")
+            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image_description("test description")
             .build();
 
         let response = script_base::one_shot(

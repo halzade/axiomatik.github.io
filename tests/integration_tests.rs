@@ -222,9 +222,9 @@ mod tests {
             .category("zahranici")
             .text("Content")
             .short_text("Short")
-            .related_articles("related-test-article.html")
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .image_description("test image description")
+            .related_articles("related-test-article.html")
             .build();
 
         let response_create_article = script_base::one_shot(
