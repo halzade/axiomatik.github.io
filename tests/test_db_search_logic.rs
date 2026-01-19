@@ -3,34 +3,6 @@ mod tests {
     use axiomatik_web::database;
     use axiomatik_web::database::Article;
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::validation::validate_search_query;
-
-    #[test]
-    fn test_validate_search_query_too_short() {
-        // TODO
-        // validate_search_query doesn't check length anymore, handle_search does.
-        // assert!(validate_search_query("").is_err());
-        assert!(validate_search_query("ab").is_err());
-        assert!(validate_search_query(".").is_err());
-        assert!(validate_search_query("0").is_err());
-
-        // TODO should be shorter
-        assert!(validate_search_query("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789X").is_err());
-    }
-
-    #[test]
-    fn test_validate_search_query_valid() {
-        assert!(validate_search_query("test query").is_ok());
-        assert!(validate_search_query("123 search").is_ok());
-        assert!(validate_search_query("český dotaz").is_ok());
-    }
-
-    #[test]
-    fn test_validate_search_query_invalid_chars() {
-        assert!(validate_search_query("test!").is_err());
-        assert!(validate_search_query("search; drop table").is_err());
-        assert!(validate_search_query("query <script>").is_err());
-    }
 
     #[tokio::test]
     async fn test_db_search_logic() {

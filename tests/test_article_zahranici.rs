@@ -1,17 +1,17 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::test_framework::script_base::boundary;
     use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axum::http::{header, Request};
     use reqwest::Body;
     use std::fs;
-    use axiomatik_web::test_framework::script_base::boundary;
 
     #[tokio::test]
     async fn test_zahranici_article_creation_and_limit() {
         script_base::setup_before_tests_once().await;
-        
+
         let cookie = script_base::setup_user_and_login("user7").await;
 
         let body = ArticleBuilder::new()

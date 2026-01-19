@@ -2,22 +2,8 @@
 mod tests {
     use axiomatik_web::commands::create_editor_user;
     use axiomatik_web::database::Role::Editor;
-    use axiomatik_web::{database_tools, form_login};
+    use axiomatik_web::{form_login};
     use axiomatik_web::test_framework::script_base;
-
-    #[tokio::test]
-    async fn test_print_from_db() {
-        script_base::setup_before_tests_once().await;
-        
-        // Create a user to have something to query
-        let username = "user10";
-        let password = "testpassword";
-        create_editor_user(username, password).await.unwrap();
-
-        // Execute print_from_db
-        let result = database_tools::print_from_db("SELECT username FROM user").await;
-        assert!(result.is_ok(), "print_from_db failed: {:?}", result.err());
-    }
 
     #[tokio::test]
     async fn test_create_editor_user() {

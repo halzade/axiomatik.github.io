@@ -20,12 +20,12 @@ const PASSWORD: &str = "password123";
 static SETUP_ONCE: OnceCell<()> = OnceCell::const_new();
 
 pub async fn setup_before_tests_once() {
-    trace!("many times 1");
+    debug!("many times 1");
     if SETUP_ONCE.get().is_some() {
-        trace!("many times 2");
+        debug!("many times 2");
         return;
     }
-
+    debug!("many times 1.5");
     SETUP_ONCE
         .get_or_init(|| async {
             debug!("only once");
@@ -39,10 +39,12 @@ pub async fn setup_before_tests_once() {
 
             let r = server::start_router().await;
             let _ = APP_ROUTER.set(r);
+
+            debug!("only once done");
         })
         .await;
 
-    trace!("many times 3");
+    debug!("many times 3");
 }
 
 pub async fn one_shot(request: Request<reqwest::Body>) -> Response<axum::body::Body> {
