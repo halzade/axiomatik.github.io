@@ -13,6 +13,9 @@ pub fn validate_input(input: &str) -> Result<(), &'static str> {
 }
 
 pub fn validate_search_query(input: &str) -> Result<(), &'static str> {
+    if (input.len() < 3) || (input.len() > 100) {
+        return Err("Input to short or too long");
+    }
     for c in input.chars() {
         if c.is_ascii() {
             // No system characters (0-31, 127) and no special characters

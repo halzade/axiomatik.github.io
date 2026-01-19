@@ -12,7 +12,6 @@ use crate::{database, logger, server};
 use crate::test_framework::article_builder::BOUNDARY;
 use tokio::sync::OnceCell;
 use tracing::log::debug;
-use tracing::trace;
 
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";

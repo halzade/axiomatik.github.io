@@ -4,7 +4,7 @@ mod tests {
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::boundary;
     use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
-    use axum::http::{header, Request};
+    use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs;
 
@@ -25,7 +25,7 @@ mod tests {
             .build()
             .unwrap();
 
-        script_base::one_shot(
+        let response = script_base::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")
@@ -35,6 +35,8 @@ mod tests {
                 .unwrap(),
         )
         .await;
+
+        assert_eq!(response.status(), StatusCode::SEE_OTHER);
 
         let updated_index = fs::read_to_string("index.html").unwrap();
         assert!(updated_index.contains("test-Newest Zahranici"));

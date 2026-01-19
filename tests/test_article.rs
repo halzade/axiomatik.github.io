@@ -61,13 +61,14 @@ mod tests {
         assert!(std::path::Path::new("test-article.html").exists());
 
         // 2. Request the article (to increment views)
-        let _ = script_base::one_shot(
+        let response_article = script_base::one_shot(
             Request::builder()
                 .uri("/test-article.html")
                 .body(Body::default())
                 .unwrap(),
         )
         .await;
+        assert_eq!(response_article.status(), StatusCode::OK);
 
         // 3. Check the account page for views
         let account_resp = script_base::one_shot(

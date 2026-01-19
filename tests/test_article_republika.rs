@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use axum::http::{header, Request};
+    use axum::http::{header, Request, StatusCode};
 
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
@@ -25,7 +25,7 @@ mod tests {
             .image_description("test description")
             .build();
 
-        script_base::one_shot(
+        let response = script_base::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")
@@ -35,6 +35,8 @@ mod tests {
                 .unwrap(),
         )
         .await;
+
+        assert_eq!(response.status(), StatusCode::SEE_OTHER);
 
         let updated_index = fs::read_to_string("index.html").unwrap();
         assert!(updated_index.contains("Test Newest Republika"));

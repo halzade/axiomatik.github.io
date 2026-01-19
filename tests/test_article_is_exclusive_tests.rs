@@ -4,8 +4,8 @@ mod tests {
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::boundary;
     use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
+    use axum::http::{header, StatusCode};
     use axum_core::extract::Request;
-    use http::header;
     use reqwest::Body;
     use std::fs;
 
@@ -28,7 +28,7 @@ mod tests {
             .build()
             .unwrap();
 
-        script_base::one_shot(
+        let response = script_base::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")
@@ -39,9 +39,11 @@ mod tests {
         )
         .await;
 
+        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+
         let updated_index = fs::read_to_string("index.html").unwrap();
 
-        // Check MAIN_ARTICLE section
+        // Check the MAIN_ARTICLE section
         let main_start = updated_index
             .find("<!-- MAIN_ARTICLE -->")
             .expect("MAIN_ARTICLE marker not found");
