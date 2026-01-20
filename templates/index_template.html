@@ -39,42 +39,19 @@
     </nav>
     <main class="content">
         <div class="top-sections">
-            <section class="main-article">
-                <div class="main-article-text">
-                    <a href="{{ main_article_url }}"><h1>{{ main_article_title }}</h1></a>
-                    <a href="{{ main_article_url }}"><p>{{ main_article_short_text }}</p></a>
-                </div>
-                <a href="{{ main_article_url }}"><img src="uploads/{{ main_article_image }}" alt="{{ main_article_title }}"></a>
-            </section>
+            {{ main_article }}
             <section class="right-articles">
                 <div class="first-article">
-                    <a href="{{ second_article_url }}"><h2>{{ second_article_title }}</h2></a>
-                    <a href="{{ second_article_url }}"><p>{{ second_article_short_text }}</p></a>
+                    {{ second_article }}
                 </div>
                 <div class="second-article">
-                    <a href="{{ third_article_url }}"><h2>{{ third_article_title }}</h2></a>
-                    <a href="{{ third_article_url }}"><p>{{ third_article_short_text }}</p></a>
+                    {{ third_article }}
                 </div>
             </section>
         </div>
         <div class="split-layout">
-            <div class="split-column">
-                <header class="category-header">
-                    <h1> Z naší republiky</h1>
-                </header>
-
-                <section class="article-grid">
-                    {{ z_republiky|safe }}
-                </section>
-            </div>
-            <div class="split-column">
-                <header class="category-header">
-                    <h1> Ze zahraničí</h1>
-                </header>
-                <section class="article-grid">
-                    {{ ze_zahranici|safe }}
-                </section>
-            </div>
+            {{ z_republiky }}
+            {{ ze_zahranici }}
         </div>
     </main>
     <br/>

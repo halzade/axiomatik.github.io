@@ -31,21 +31,59 @@ pub struct IndexTemplate {
     pub weather: String,
     pub name_day: String,
 
+    // TODO use template instead
     pub main_article_url: String,
     pub main_article_title: String,
     pub main_article_short_text: String,
     pub main_article_image: String,
 
+    // TODO use template instead
     pub second_article_url: String,
     pub second_article_title: String,
     pub second_article_short_text: String,
 
+    // TODO use template instead
     pub third_article_url: String,
     pub third_article_title: String,
     pub third_article_short_text: String,
 
+    // TODO use template instead
     pub z_republiky: String,
+
+    // TODO use template instead
     pub ze_zahranici: String,
+}
+
+#[derive(Template)]
+#[template(path = "index_category.html")]
+pub struct IndexCategoryTemplate {
+    pub category_name: String,
+    pub articles: String,
+}
+
+#[derive(Template)]
+#[template(path = "index_category_article.html")]
+pub struct IndexCategoryArticleTemplate {
+    pub url: String,
+    pub title: String,
+    pub short_text: String,
+}
+
+#[derive(Template)]
+#[template(path = "index_article_top_main.html")]
+pub struct IndexArticleTopMainTemplate {
+    pub url: String,
+    pub title: String,
+    pub short_text: String,
+    pub image_path: String,
+}
+
+#[derive(Template)]
+#[template(path = "index_article_top.html")]
+pub struct IndexArticleTopTemplate {
+    pub url: String,
+    pub title: String,
+    pub short_text: String,
 }
 
 pub async fn render_new_index(data: Option<IndexData>) {
@@ -115,27 +153,43 @@ pub async fn render_new_index(data: Option<IndexData>) {
 
             let mut z_republiky_html = String::new();
             for a in z_republiky_articles {
-                z_republiky_html.push_str(&format!(
-                    r#"<article class="article-snippet">
-                <a href="{}"><h3>{}</h3></a>
-                <p>{}</p>
-            </article>"#,
-                    a.article_file_name, a.title, a.short_text
-                ));
+                z_republiky_html.push_str(
+                    &IndexCategoryArticleTemplate {
+                        url: a.article_file_name.clone(),
+                        title: a.title.clone(),
+                        short_text: a.short_text.clone(),
+                    }
+                    .render()
+                    .unwrap(),
+                );
             }
-            d.z_republiky = z_republiky_html;
 
             let mut ze_zahranici_html = String::new();
             for a in ze_zahranici_articles {
-                ze_zahranici_html.push_str(&format!(
-                    r#"<article class="article-snippet">
-                <a href="{}"><h3>{}</h3></a>
-                <p>{}</p>
-            </article>"#,
-                    a.article_file_name, a.title, a.short_text
-                ));
+                ze_zahranici_html.push_str(
+                    &IndexCategoryArticleTemplate {
+                        url: a.article_file_name.clone(),
+                        title: a.title.clone(),
+                        short_text: a.short_text.clone(),
+                    }
+                    .render()
+                    .unwrap(),
+                );
             }
-            d.ze_zahranici = ze_zahranici_html;
+
+            d.z_republiky = IndexCategoryTemplate {
+                category_name: "Z naší republiky".to_string(),
+                articles: z_republiky_html,
+            }
+            .render()
+            .unwrap();
+
+            d.ze_zahranici = IndexCategoryTemplate {
+                category_name: "Ze zahraničí".to_string(),
+                articles: ze_zahranici_html,
+            }
+            .render()
+            .unwrap();
         }
         d
     } else {
@@ -183,24 +237,28 @@ pub async fn render_new_index(data: Option<IndexData>) {
 
         let mut z_republiky_html = String::new();
         for a in z_republiky_articles {
-            z_republiky_html.push_str(&format!(
-                r#"<article class="article-snippet">
-                <a href="{}"><h3>{}</h3></a>
-                <p>{}</p>
-            </article>"#,
-                a.article_file_name, a.title, a.short_text
-            ));
+            z_republiky_html.push_str(
+                &IndexCategoryArticleTemplate {
+                    url: a.article_file_name.clone(),
+                    title: a.title.clone(),
+                    short_text: a.short_text.clone(),
+                }
+                .render()
+                .unwrap(),
+            );
         }
 
         let mut ze_zahranici_html = String::new();
         for a in ze_zahranici_articles {
-            ze_zahranici_html.push_str(&format!(
-                r#"<article class="article-snippet">
-                <a href="{}"><h3>{}</h3></a>
-                <p>{}</p>
-            </article>"#,
-                a.article_file_name, a.title, a.short_text
-            ));
+            ze_zahranici_html.push_str(
+                &IndexCategoryArticleTemplate {
+                    url: a.article_file_name.clone(),
+                    title: a.title.clone(),
+                    short_text: a.short_text.clone(),
+                }
+                .render()
+                .unwrap(),
+            );
         }
 
         IndexData {
@@ -231,8 +289,18 @@ pub async fn render_new_index(data: Option<IndexData>) {
             third_article_short_text: third_article
                 .map(|a| a.short_text.clone())
                 .unwrap_or_default(),
-            z_republiky: z_republiky_html,
-            ze_zahranici: ze_zahranici_html,
+            z_republiky: IndexCategoryTemplate {
+                category_name: "Z naší republiky".to_string(),
+                articles: z_republiky_html,
+            }
+            .render()
+            .unwrap(),
+            ze_zahranici: IndexCategoryTemplate {
+                category_name: "Ze zahraničí".to_string(),
+                articles: ze_zahranici_html,
+            }
+            .render()
+            .unwrap(),
         }
     };
 
@@ -241,18 +309,37 @@ pub async fn render_new_index(data: Option<IndexData>) {
         weather: index_data.weather,
         name_day: index_data.name_day,
 
-        main_article_url: index_data.main_article_url,
-        main_article_title: index_data.main_article_title,
-        main_article_short_text: index_data.main_article_short_text,
-        main_article_image: index_data.main_article_image,
+        main_article_url: IndexArticleTopMainTemplate {
+            url: index_data.main_article_url,
+            title: index_data.main_article_title,
+            short_text: index_data.main_article_short_text,
+            image_path: index_data.main_article_image,
+        }
+        .render()
+        .unwrap(),
+        main_article_title: "".to_string(),
+        main_article_short_text: "".to_string(),
+        main_article_image: "".to_string(),
 
-        second_article_url: index_data.second_article_url,
-        second_article_title: index_data.second_article_title,
-        second_article_short_text: index_data.second_article_short_text,
+        second_article_url: IndexArticleTopTemplate {
+            url: index_data.second_article_url,
+            title: index_data.second_article_title,
+            short_text: index_data.second_article_short_text,
+        }
+        .render()
+        .unwrap(),
+        second_article_title: "".to_string(),
+        second_article_short_text: "".to_string(),
 
-        third_article_url: index_data.third_article_url,
-        third_article_title: index_data.third_article_title,
-        third_article_short_text: index_data.third_article_short_text,
+        third_article_url: IndexArticleTopTemplate {
+            url: index_data.third_article_url,
+            title: index_data.third_article_title,
+            short_text: index_data.third_article_short_text,
+        }
+        .render()
+        .unwrap(),
+        third_article_title: "".to_string(),
+        third_article_short_text: "".to_string(),
 
         z_republiky: index_data.z_republiky,
         ze_zahranici: index_data.ze_zahranici,
