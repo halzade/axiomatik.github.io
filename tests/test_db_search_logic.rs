@@ -22,6 +22,7 @@ mod tests {
             audio_url: None,
             category: "cat".to_string(),
             related_articles: "".to_string(),
+            is_main: false,
             views: 0,
         };
 
@@ -39,6 +40,7 @@ mod tests {
             audio_url: None,
             category: "cat".to_string(),
             related_articles: "".to_string(),
+            is_main: false,
             views: 0,
         };
 

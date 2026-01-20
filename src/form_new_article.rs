@@ -1,6 +1,6 @@
 use crate::form_new_article_data::article_data;
 use crate::server::AUTH_COOKIE;
-use crate::{database, external, library, name_days};
+use crate::{database, external, library, name_days, form_index};
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -129,8 +129,8 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 category_display: article_data.category_display.clone(),
                 related_snippets: related_article_snippets.clone(),
                 date: formated_date.clone(),
-                weather: formated_weather,
-                name_day: formated_name_day,
+                weather: formated_weather.clone(),
+                name_day: formated_name_day.clone(),
             };
 
             let html_content = article_template.render().unwrap();
@@ -143,7 +143,6 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             fs::write(&file_path, html_content).unwrap();
 
             // category
-
             let month_name = library::get_czech_month(now.month());
             let category_month_year_filename = format!(
                 "archive-{}-{}-{}.html",
@@ -159,122 +158,6 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             }
             .render()
             .unwrap();
-
-            if article_data.is_main {
-                if let Ok(mut index_content) = fs::read_to_string("index.html") {
-                    // 1. Get current contents
-                    let mut main_article_content = String::new();
-                    if let (Some(start), Some(end)) = (
-                        index_content.find("<!-- MAIN_ARTICLE -->"),
-                        index_content.find("<!-- /MAIN_ARTICLE -->"),
-                    ) {
-                        main_article_content = index_content
-                            [start + "<!-- MAIN_ARTICLE -->".len()..end]
-                            .trim()
-                            .to_string();
-                    }
-
-                    let mut second_article_content = String::new();
-                    if let (Some(start), Some(end)) = (
-                        index_content.find("<!-- SECOND_ARTICLE -->"),
-                        index_content.find("<!-- /SECOND_ARTICLE -->"),
-                    ) {
-                        second_article_content = index_content
-                            [start + "<!-- SECOND_ARTICLE -->".len()..end]
-                            .trim()
-                            .to_string();
-                    }
-
-                    // 2. Prepare a new MAIN_ARTICLE
-                    let title_with_exclusive = if article_data.is_exclusive {
-                        format!(
-                            r#"<span class="red">EXKLUZIVNĚ:</span> {}"#,
-                            article_data.title
-                        )
-                    } else {
-                        article_data.title.clone()
-                    };
-
-                    // TODO
-                    let new_main_article = format!(
-                        r#"
-                <div class="main-article-text">
-                    <a href="{}"><h1>{}</h1></a>
-                    <a href="{}">
-                        <p>
-                            {}
-                        </p>
-                    </a>
-                </div>
-                <a href="{}">
-                    <img src="uploads/{}" alt="{}">
-                </a>
-                "#,
-                        file_path,
-                        title_with_exclusive,
-                        file_path,
-                        article_data.short_text_processed.clone(),
-                        file_path,
-                        article_data.image_path.clone(),
-                        article_data.image_description.clone()
-                    );
-
-                    // 3. Update index_content
-                    // Update THIRD_ARTICLE with old SECOND_ARTICLE
-                    if let (Some(start), Some(end)) = (
-                        index_content.find("<!-- THIRD_ARTICLE -->"),
-                        index_content.find("<!-- /THIRD_ARTICLE -->"),
-                    ) {
-                        let shifted_third = second_article_content
-                            .replace("class=\"first-article\"", "class=\"second-article\"")
-                            .replace("class='first-article'", "class='second-article'");
-
-                        index_content.replace_range(
-                            start + "<!-- THIRD_ARTICLE -->".len()..end,
-                            &format!("\n                {}\n                ", shifted_third),
-                        );
-                    }
-
-                    // Update SECOND_ARTICLE with old MAIN_ARTICLE
-                    if let (Some(start), Some(end)) = (
-                        index_content.find("<!-- SECOND_ARTICLE -->"),
-                        index_content.find("<!-- /SECOND_ARTICLE -->"),
-                    ) {
-                        let shifted_second = main_article_content
-                            .replace("class=\"main-article-text\"", "class=\"first-article\"")
-                            .replace("class='main-article-text'", "class='first-article'")
-                            .replace("<h1>", "<h2>")
-                            .replace("</h1>", "</h2>")
-                            .replace(r#"<span class="red">EXKLUZIVNĚ:</span>"#, "")
-                            // If there was an image in MAIN_ARTICLE, it was outside the div.
-                            // We need to decide if we keep it or strip it for SECOND/THIRD articles.
-                            // Looking at index.html, SECOND_ARTICLE and THIRD_ARTICLE don't seem to have images.
-                            // However, shifting the WHOLE content might include the <img> tag if it was there.
-                            .split("<a href=")
-                            .filter(|s| !s.contains("<img")) // Simple way to strip an image if it's in its own <a> tag
-                            .collect::<Vec<&str>>()
-                            .join("<a href=");
-
-                        index_content.replace_range(
-                            start + "<!-- SECOND_ARTICLE -->".len()..end,
-                            &format!("\n                {}\n                ", shifted_second),
-                        );
-                    }
-
-                    // Update MAIN_ARTICLE
-                    if let (Some(start), Some(end)) = (
-                        index_content.find("<!-- MAIN_ARTICLE -->"),
-                        index_content.find("<!-- /MAIN_ARTICLE -->"),
-                    ) {
-                        index_content.replace_range(
-                            start + "<!-- MAIN_ARTICLE -->".len()..end,
-                            &new_main_article,
-                        );
-                    }
-
-                    fs::write("index.html", index_content).unwrap();
-                }
-            }
 
             let snippet_file_path = format!("snippets/{}.txt", file_path);
             fs::write(snippet_file_path, &snippet).unwrap();
@@ -294,6 +177,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 audio_url: article_data.audio_path.clone(),
                 category: article_data.category.clone(),
                 related_articles: article_data.related_articles.clone(),
+                is_main: article_data.is_main,
                 views: 0,
             };
 
@@ -347,39 +231,26 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 }
             }
 
-            let (marker_start, marker_end) = match article_data.category.as_str() {
-                "republika" => ("<!-- Z_REPUBLIKY -->", "<!-- /Z_REPUBLIKY -->"),
-                "zahranici" => ("<!-- ZE_ZAHRANICI -->", "<!-- /ZE_ZAHRANICI -->"),
-                _ => ("", ""),
+            let index_data = form_index::IndexData {
+                date: formated_date,
+                weather: formated_weather,
+                name_day: formated_name_day,
+                main_article_url: "".to_string(),
+                main_article_title: "".to_string(),
+                main_article_short_text: "".to_string(),
+                main_article_image: "".to_string(),
+                second_article_url: "".to_string(),
+                second_article_title: "".to_string(),
+                second_article_short_text: "".to_string(),
+                third_article_url: "".to_string(),
+                third_article_title: "".to_string(),
+                third_article_short_text: "".to_string(),
+                z_republiky: "".to_string(),
+                ze_zahranici: "".to_string(),
             };
 
-            if !marker_start.is_empty() {
-                if let Ok(mut index_content) = fs::read_to_string("index.html") {
-                    if let (Some(start), Some(end)) = (
-                        index_content.find(marker_start),
-                        index_content.find(marker_end),
-                    ) {
-                        let section_content = &index_content[start + marker_start.len()..end];
-                        let mut articles: Vec<String> = section_content
-                            .split("</article>")
-                            .filter(|s| s.contains("<article"))
-                            .map(|s| format!("{}</article>", s))
-                            .collect();
+            form_index::render_new_index(Some(index_data)).await;
 
-                        articles.insert(0, format!("\n{}", snippet.trim()));
-
-                        if articles.len() > 10 {
-                            articles.truncate(10);
-                        }
-
-                        let new_section_content =
-                            format!("{}\n                    ", articles.join(""));
-                        index_content
-                            .replace_range(start + marker_start.len()..end, &new_section_content);
-                        fs::write("index.html", index_content).unwrap();
-                    }
-                }
-            }
             Redirect::to(&*file_path).into_response()
         }
     }

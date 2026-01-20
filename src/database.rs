@@ -38,6 +38,7 @@ pub struct Article {
     pub audio_url: Option<String>,
     pub category: String,
     pub related_articles: String,
+    pub is_main: bool,
     pub views: i64,
 }
 
