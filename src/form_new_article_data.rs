@@ -1,13 +1,12 @@
 use crate::form_new_article::ArticleData;
 use crate::validation::{
-    extract_text_field, save_file_field, ALLOWED_EXTENSIONS_AUDIO, ALLOWED_EXTENSIONS_IMAGE,
-    ALLOWED_EXTENSIONS_VIDEO,
+    extract_text_field, save_file_field, ALLOWED_EXTENSIONS_AUDIO,
+    ALLOWED_EXTENSIONS_IMAGE, ALLOWED_EXTENSIONS_VIDEO,
 };
 use axum::extract::Multipart;
 use tracing::{debug, error};
 
 pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
-
     // required
     let mut title_o = None;
     let mut author_o = None;
@@ -29,7 +28,10 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
     while let Ok(Some(field)) = multipart.next_field().await {
         let field_name = field.name().unwrap_or_default().to_string();
         let content_type = field.content_type().map(|c| c.to_string());
-        debug!("Processing field: {}, content_type: {:?}", field_name, content_type);
+        debug!(
+            "Processing field: {}, content_type: {:?}",
+            field_name, content_type
+        );
 
         match field_name.as_str() {
             "is_main" => {
@@ -101,19 +103,22 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             }
 
             "image" => {
-                if let Some(path) = save_file_field(field, "image", ALLOWED_EXTENSIONS_IMAGE).await {
+                if let Some(path) = save_file_field(field, "image", ALLOWED_EXTENSIONS_IMAGE).await
+                {
                     image_path_o = Some(path);
                 }
             }
 
             "video" => {
-                if let Some(path) = save_file_field(field, "video", ALLOWED_EXTENSIONS_VIDEO).await {
+                if let Some(path) = save_file_field(field, "video", ALLOWED_EXTENSIONS_VIDEO).await
+                {
                     video_path_o = Some(path);
                 }
             }
 
             "audio" => {
-                if let Some(path) = save_file_field(field, "audio", ALLOWED_EXTENSIONS_AUDIO).await {
+                if let Some(path) = save_file_field(field, "audio", ALLOWED_EXTENSIONS_AUDIO).await
+                {
                     audio_path_o = Some(path);
                 }
             }
@@ -158,8 +163,29 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
         })
     })();
     if res.is_none() {
-        error!("ArticleData construction failed: is_main={:?}, is_exclusive={:?}, author={:?}, title={:?}, text={:?}, short_text={:?}, image_path={:?}, image_description={:?}, category={:?}, related_articles={:?}",
-            is_main_o, is_exclusive_o, author_o, title_o, text_processed_o.is_some(), short_text_processed_o.is_some(), image_path_o, image_description_o, category_o, related_articles_o);
+        error!(
+            "ArticleData construction failed: \
+        is_main={:?}, \
+        is_exclusive={:?}, \
+        author={:?}, \
+        title={:?}, \
+        text={:?}, \
+        short_text={:?}, \
+        image_path={:?}, \
+        image_description={:?}, \
+        category={:?}, \
+        related_articles={:?}",
+            is_main_o,
+            is_exclusive_o,
+            author_o,
+            title_o,
+            text_processed_o,
+            short_text_processed_o,
+            image_path_o,
+            image_description_o,
+            category_o,
+            related_articles_o
+        );
     }
     res
 }

@@ -22,54 +22,54 @@ impl<'a> ArticleBuilder<'a> {
         Self::default()
     }
 
-    pub fn title(mut self, title: impl Into<String>) -> Self {
+    pub fn title(mut self, title: &str) -> Self {
         self.title_o = Some(title.into());
         self
     }
 
-    pub fn author(mut self, author: impl Into<String>) -> Self {
+    pub fn author(mut self, author: &str) -> Self {
         self.author_o = Some(author.into());
         self
     }
 
-    pub fn category(mut self, category: impl Into<String>) -> Self {
+    pub fn category(mut self, category: &str) -> Self {
         self.category_o = Some(category.into());
         self
     }
 
-    pub fn text(mut self, text: impl Into<String>) -> Self {
+    pub fn text(mut self, text: &str) -> Self {
         self.text_o = Some(text.into());
         self
     }
 
-    pub fn short_text(mut self, short_text: impl Into<String>) -> Self {
+    pub fn short_text(mut self, short_text: &str) -> Self {
         self.short_text_o = Some(short_text.into());
         self
     }
 
-    pub fn related_articles(mut self, related_articles: impl Into<String>) -> Self {
+    pub fn related_articles(mut self, related_articles: &str) -> Self {
         self.related_articles_o = Some(related_articles.into());
         self
     }
 
-    pub fn image_description(mut self, image_description: impl Into<String>) -> Self {
+    pub fn image_description(mut self, image_description: &str) -> Self {
         self.image_description_o = Some(image_description.into());
         self
     }
 
-    pub fn is_main(mut self) -> Self {
+    pub fn main(mut self) -> Self {
         self.is_main_o = Some(true);
         self
     }
 
-    pub fn is_exclusive(mut self) -> Self {
+    pub fn exclusive(mut self) -> Self {
         self.is_exclusive_o = Some(true);
         self
     }
 
     pub fn image(
         mut self,
-        filename: impl Into<String>,
+        filename: &str,
         data: &'a [u8],
         content_type: &str,
     ) -> Self {
@@ -78,7 +78,7 @@ impl<'a> ArticleBuilder<'a> {
     }
     pub fn audio(
         mut self,
-        filename: impl Into<String>,
+        filename: &str,
         data: &'a [u8],
         content_type: &str,
     ) -> Self {

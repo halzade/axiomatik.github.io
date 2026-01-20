@@ -21,7 +21,7 @@ mod tests {
             .category("veda")
             .text("Main text of veda article")
             .short_text("Short text of veda article")
-            .is_main()
+            .main()
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
             .image_description("test description")
             .build()

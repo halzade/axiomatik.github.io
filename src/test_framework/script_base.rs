@@ -16,8 +16,6 @@ use tracing::log::debug;
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";
 
-static SETUP_ONCE: OnceCell<()> = OnceCell::const_new();
-
 pub async fn setup_before_tests_once() {
     debug!("only once");
 
@@ -57,7 +55,7 @@ pub async fn setup_user_and_login(name: &str) -> String {
             )))
             .unwrap(),
     )
-        .await;
+    .await;
 
     let cookie = login_resp
         .headers()
