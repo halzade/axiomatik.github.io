@@ -1,10 +1,10 @@
 use crate::form_new_article::ArticleData;
-use crate::validation::{validate_input, validate_required};
+use crate::validation::{
+    extract_text_field, save_file_field, ALLOWED_EXTENSIONS_AUDIO, ALLOWED_EXTENSIONS_IMAGE,
+    ALLOWED_EXTENSIONS_VIDEO,
+};
 use axum::extract::Multipart;
-use std::fs;
 use tracing::{debug, error};
-use uuid::Uuid;
-use anyhow::{Context, Result};
 
 pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
@@ -33,35 +33,25 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
         match field_name.as_str() {
             "is_main" => {
-                let val = field.text().await.unwrap();
-                validate_input(&val).ok()?;
+                let val = extract_text_field(field, "is_main", false).await?;
                 is_main_o = Some(val == "on");
             }
 
             "is_exclusive" => {
-                let val = field.text().await.unwrap();
-                validate_input(&val).ok()?;
+                let val = extract_text_field(field, "is_exclusive", false).await?;
                 is_exclusive_o = Some(val == "on");
             }
 
             "title" => {
-                let val = field.text().await.unwrap();
-                validate_required(&val).ok()?;
-                validate_input(&val).ok()?;
-                title_o = Some(val);
+                title_o = extract_text_field(field, "title", true).await;
             }
 
             "author" => {
-                let val = field.text().await.unwrap();
-                validate_required(&val).ok()?;
-                validate_input(&val).ok()?;
-                author_o = Some(val);
+                author_o = extract_text_field(field, "author", true).await;
             }
 
             "text" => {
-                let raw_text = field.text().await.unwrap();
-                validate_required(&raw_text).ok()?;
-                validate_input(&raw_text).ok()?;
+                let raw_text = extract_text_field(field, "text", true).await?;
                 let normalized = raw_text.replace("\r\n", "\n");
                 let processed = normalized
                     .split("\n\n\n")
@@ -87,9 +77,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             }
 
             "short_text" => {
-                let raw_text = field.text().await.unwrap();
-                validate_required(&raw_text).ok()?;
-                validate_input(&raw_text).ok()?;
+                let raw_text = extract_text_field(field, "short_text", true).await?;
                 let normalized = raw_text.replace("\r\n", "\n");
                 let normalized_text = normalized
                     .split("\n\n")
@@ -101,102 +89,32 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             }
 
             "category" => {
-                let val = field.text().await.unwrap();
-                validate_required(&val).ok()?;
-                validate_input(&val).ok()?;
-                category_o = Some(val);
+                category_o = extract_text_field(field, "category", true).await;
             }
 
             "related_articles" => {
-                let val = field.text().await.unwrap();
-                validate_input(&val).ok()?;
-                related_articles_o = Some(val);
+                related_articles_o = extract_text_field(field, "related_articles", false).await;
             }
 
             "image_description" => {
-                let val = field.text().await.unwrap();
-                validate_required(&val).ok()?;
-                validate_input(&val).ok()?;
-                image_description_o = Some(val);
+                image_description_o = extract_text_field(field, "image_description", true).await;
             }
 
             "image" => {
-                if let Some(file_name) = field.file_name() {
-                    validate_input(&file_name).ok()?;
-
-                    if !file_name.is_empty() {
-                        let extension = std::path::Path::new(file_name)
-                            .extension()
-                            .and_then(|s| s.to_str())
-                            .map(|s| s.to_lowercase());
-
-                        match extension {
-                            Some(ext) if ["jpg", "jpeg", "png", "webp"].contains(&ext.as_str()) => {
-                                let new_name = format!("{}.{}", Uuid::new_v4(), ext);
-
-                                // TODO verify data
-                                let data = field.bytes().await.unwrap();
-                                fs::write(format!("uploads/{}", new_name), data).unwrap();
-                                image_path_o = Some(new_name);
-                            }
-                            _ => {
-                                error!("image invalid extension: {:?}", extension);
-                                return None;
-                            }
-                        }
-                    }
+                if let Some(path) = save_file_field(field, "image", ALLOWED_EXTENSIONS_IMAGE).await {
+                    image_path_o = Some(path);
                 }
             }
 
             "video" => {
-                if let Some(file_name) = field.file_name() {
-                    validate_input(&file_name).ok()?;
-
-                    if !file_name.is_empty() {
-                        let extension = std::path::Path::new(file_name)
-                            .extension()
-                            .and_then(|s| s.to_str())
-                            .map(|s| s.to_lowercase());
-
-                        match extension {
-                            Some(ext) if ["avi", "mp4", "webm", "mov"].contains(&ext.as_str()) => {
-                                let new_name = format!("{}.{}", Uuid::new_v4(), ext);
-                                let data = field.bytes().await.unwrap();
-                                fs::write(format!("uploads/{}", new_name), data).unwrap();
-                                video_path_o = Some(new_name);
-                            }
-                            _ => {
-                                error!("video invalid extension: {:?}", extension);
-                                return None;
-                            }
-                        }
-                    }
+                if let Some(path) = save_file_field(field, "video", ALLOWED_EXTENSIONS_VIDEO).await {
+                    video_path_o = Some(path);
                 }
             }
 
             "audio" => {
-                if let Some(file_name) = field.file_name() {
-                    validate_input(&file_name).ok()?;
-
-                    if !file_name.is_empty() {
-                        let extension = std::path::Path::new(file_name)
-                            .extension()
-                            .and_then(|s| s.to_str())
-                            .map(|s| s.to_lowercase());
-
-                        match extension {
-                            Some(ext) if ["mp3", "wav", "ogg", "m4a"].contains(&ext.as_str()) => {
-                                let new_name = format!("{}.{}", Uuid::new_v4(), ext);
-                                let data = field.bytes().await.unwrap();
-                                fs::write(format!("uploads/{}", new_name), data).unwrap();
-                                audio_path_o = Some(new_name);
-                            }
-                            _ => {
-                                error!("audio invalid extension: {:?}", extension);
-                                return None;
-                            }
-                        }
-                    }
+                if let Some(path) = save_file_field(field, "audio", ALLOWED_EXTENSIONS_AUDIO).await {
+                    audio_path_o = Some(path);
                 }
             }
             _ => (),
