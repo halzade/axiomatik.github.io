@@ -39,19 +39,19 @@
     </nav>
     <main class="content">
         <div class="top-sections">
-            {{ main_article }}
+            {{ main_article|safe }}
             <section class="right-articles">
                 <div class="first-article">
-                    {{ second_article }}
+                    {{ second_article|safe }}
                 </div>
                 <div class="second-article">
-                    {{ third_article }}
+                    {{ third_article|safe }}
                 </div>
             </section>
         </div>
         <div class="split-layout">
-            {{ z_republiky }}
-            {{ ze_zahranici }}
+            {{ z_republiky|safe }}
+            {{ ze_zahranici|safe }}
         </div>
     </main>
     <br/>

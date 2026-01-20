@@ -5,7 +5,7 @@
 
                 <section class="article-grid">
                     {% for article in articles %}
-                        {{ article }}
+                        {{ article|safe }}
                     {% endfor %}
                 </section>
 </div>
