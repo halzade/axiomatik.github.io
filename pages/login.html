@@ -9,9 +9,10 @@
     <link rel="stylesheet" href="../css/webapp-dark.css" media="(prefers-color-scheme: dark)">
 </head>
 <body>
-    <div class="all">
-        <main class="content" data-error="{{ error }}">
+    <div>
+        <main data-error="{{ error }}">
             <h1>Přihlášení</h1>
+            <br/>
             <form action="/login" method="post">
                 <div id="login-error" style="display: none; color: #dc3545; margin-bottom: 20px;">
                     Neplatné jméno nebo heslo
