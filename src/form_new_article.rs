@@ -91,7 +91,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
     };
 
     // TODO article already exists
-    // TODO double click
+    // TODO double click on create button
 
     /*
      * Read request data
