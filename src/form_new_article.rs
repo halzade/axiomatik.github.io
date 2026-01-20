@@ -235,18 +235,30 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 date: formated_date,
                 weather: formated_weather,
                 name_day: formated_name_day,
-                main_article_url: "".to_string(),
-                main_article_title: "".to_string(),
-                main_article_short_text: "".to_string(),
-                main_article_image: "".to_string(),
-                second_article_url: "".to_string(),
-                second_article_title: "".to_string(),
-                second_article_short_text: "".to_string(),
-                third_article_url: "".to_string(),
-                third_article_title: "".to_string(),
-                third_article_short_text: "".to_string(),
-                z_republiky: "".to_string(),
-                ze_zahranici: "".to_string(),
+                main_article: form_index::IndexArticleTopMainData {
+                    url: "".to_string(),
+                    title: "".to_string(),
+                    short_text: "".to_string(),
+                    image_path: "".to_string(),
+                },
+                second_article: form_index::IndexArticleTopData {
+                    url: "".to_string(),
+                    title: "".to_string(),
+                    short_text: "".to_string(),
+                },
+                third_article: form_index::IndexArticleTopData {
+                    url: "".to_string(),
+                    title: "".to_string(),
+                    short_text: "".to_string(),
+                },
+                z_republiky: form_index::IndexCategoryData {
+                    category_name: "".to_string(),
+                    articles: vec![],
+                },
+                ze_zahranici: form_index::IndexCategoryData {
+                    category_name: "".to_string(),
+                    articles: vec![],
+                },
             };
 
             form_index::render_new_index(Some(index_data)).await;

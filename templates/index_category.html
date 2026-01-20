@@ -1,8 +1,11 @@
 <div class="split-column">
-    <header class="category-header">
-        <h1> > {{ category_name }}</h1>
-    </header>
-    <section class="article-grid">
-        {{ articles|safe }}
-    </section>
+                <header class="category-header">
+                    <h1> > {{ category_name }}</h1>
+                </header>
+
+                <section class="article-grid">
+                    {% for article in articles %}
+                        {{ article }}
+                    {% endfor %}
+                </section>
 </div>
