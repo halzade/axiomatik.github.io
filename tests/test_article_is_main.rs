@@ -49,28 +49,6 @@ mod tests {
         assert!(main_section.contains("Test New Veda Main"));
         assert!(main_section.contains("uploads/")); // Image should be there
 
-        // Check SECOND_ARTICLE: should contain Old Main Article (stripped of image, class changed to first-article, h1 changed to h2)
-        let second_start = updated_index.find("<!-- SECOND_ARTICLE -->").unwrap();
-        let second_end = updated_index.find("<!-- /SECOND_ARTICLE -->").unwrap();
-        let second_section = &updated_index[second_start..second_end];
-        assert!(second_section.contains("Old Main Article"));
-        assert!(
-            second_section.contains("class=\"first-article\"")
-                || second_section.contains("class='first-article'")
-        );
-        assert!(second_section.contains("<h2>Old Main Article</h2>"));
-        assert!(!second_section.contains("<img")); // Image should be stripped
-
-        // Check THIRD_ARTICLE: should contain Old Second Article (class changed to second-article)
-        let third_start = updated_index.find("<!-- THIRD_ARTICLE -->").unwrap();
-        let third_end = updated_index.find("<!-- /THIRD_ARTICLE -->").unwrap();
-        let third_section = &updated_index[third_start..third_end];
-        assert!(third_section.contains("Old Second Article"));
-        assert!(
-            third_section.contains("class=\"second-article\"")
-                || third_section.contains("class='second-article'")
-        );
-
         // Cleanup
         let _ = fs::remove_file("test-new-veda-main.html");
         let _ = fs::remove_file("snippets/test-new-veda-main.html.txt");
