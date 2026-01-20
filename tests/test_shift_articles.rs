@@ -1,16 +1,16 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::test_framework::article_builder::{ArticleBuilder, BOUNDARY};
+    use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
-    use axum::http::{header, StatusCode};
-    use reqwest::Body;
     use axiomatik_web::test_framework::script_base::boundary;
     use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
+    use axum::http::{header, StatusCode};
+    use reqwest::Body;
 
     #[tokio::test]
     async fn test_shift_main_article_removes_exclusive_tag() {
         script_base::setup_before_tests_once().await;
-        
+
         // 1. Create user
         let cookie = script_base::setup_user_and_login("user3").await;
 

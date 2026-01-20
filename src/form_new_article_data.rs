@@ -151,21 +151,54 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
         },
     };
 
+    // TODO this should be part of validation
     let res = (|| {
+        let author = author_o.as_ref().cloned().or_else(|| {
+            error!("ArticleData construction failed: author is None");
+            None
+        })?;
+        let title = title_o.as_ref().cloned().or_else(|| {
+            error!("ArticleData construction failed: title is None");
+            None
+        })?;
+        let text_processed = text_processed_o.as_ref().cloned().or_else(|| {
+            error!("ArticleData construction failed: text_processed is None");
+            None
+        })?;
+        let short_text_processed = short_text_processed_o.as_ref().cloned().or_else(|| {
+            error!("ArticleData construction failed: short_text_processed is None");
+            None
+        })?;
+        let image_path = image_path_o.as_ref().cloned().or_else(|| {
+            error!("ArticleData construction failed: image_path is None");
+            None
+        })?;
+        let image_description = image_description_o.as_ref().cloned().or_else(|| {
+            error!("ArticleData construction failed: image_description is None");
+            None
+        })?;
+        let category = category_o.as_ref().cloned().or_else(|| {
+            error!("ArticleData construction failed: category is None");
+            None
+        })?;
+        
+        // TODO should not be treated differently then other non required fields
+        let related_articles = related_articles_o.as_ref().cloned().unwrap_or_default();
+
         Some(ArticleData {
             is_main: is_main_o.unwrap_or(false),
             is_exclusive: is_exclusive_o.unwrap_or(false),
-            author: author_o.as_ref()?.clone(),
-            title: title_o.as_ref()?.clone(),
-            text_processed: text_processed_o.as_ref()?.clone(),
-            short_text_processed: short_text_processed_o.as_ref()?.clone(),
-            image_path: image_path_o.as_ref()?.clone(),
-            image_description: image_description_o.as_ref()?.clone(),
+            author,
+            title,
+            text_processed,
+            short_text_processed,
+            image_path,
+            image_description,
             video_path: video_path_o.clone(),
             audio_path: audio_path_o.clone(),
-            category: category_o.as_ref()?.clone(),
+            category,
             category_display: category_display.to_string(),
-            related_articles: related_articles_o.as_ref()?.clone(),
+            related_articles,
         })
     })();
     if res.is_none() {

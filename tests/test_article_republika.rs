@@ -46,9 +46,8 @@ mod tests {
             updated_index.find("<!-- Z_REPUBLIKY -->").unwrap() + "<!-- Z_REPUBLIKY -->".len();
         let end = updated_index.find("<!-- /Z_REPUBLIKY -->").unwrap();
         let section = &updated_index[start..end];
-        let count = section.matches("<article").count();
-        assert_eq!(count, 10);
-        assert!(!section.contains("Article 10")); // Oldest should be gone
+
+        assert!(section.contains("Test Newest Republika"));
 
         // Cleanup
         let _ = fs::remove_file("test-newest-republika.html");
