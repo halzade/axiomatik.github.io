@@ -35,12 +35,12 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
         match field_name.as_str() {
             "is_main" => {
-                let val = extract_text_field(field, "is_main", false).await?;
+                let val = extract_text_field(field, "is_main", false).await.unwrap_or_default();
                 is_main_o = Some(val == "on");
             }
 
             "is_exclusive" => {
-                let val = extract_text_field(field, "is_exclusive", false).await?;
+                let val = extract_text_field(field, "is_exclusive", false).await.unwrap_or_default();
                 is_exclusive_o = Some(val == "on");
             }
 
@@ -53,7 +53,10 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             }
 
             "text" => {
-                let raw_text = extract_text_field(field, "text", true).await?;
+                let raw_text = match extract_text_field(field, "text", true).await {
+                    Some(t) => t,
+                    None => return None,
+                };
                 let normalized = raw_text.replace("\r\n", "\n");
                 let processed = normalized
                     .split("\n\n\n")
@@ -79,7 +82,10 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             }
 
             "short_text" => {
-                let raw_text = extract_text_field(field, "short_text", true).await?;
+                let raw_text = match extract_text_field(field, "short_text", true).await {
+                    Some(t) => t,
+                    None => return None,
+                };
                 let normalized = raw_text.replace("\r\n", "\n");
                 let normalized_text = normalized
                     .split("\n\n")
@@ -147,8 +153,8 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
     let res = (|| {
         Some(ArticleData {
-            is_main: is_main_o?,
-            is_exclusive: is_exclusive_o?,
+            is_main: is_main_o.unwrap_or(false),
+            is_exclusive: is_exclusive_o.unwrap_or(false),
             author: author_o.as_ref()?.clone(),
             title: title_o.as_ref()?.clone(),
             text_processed: text_processed_o.as_ref()?.clone(),
@@ -164,17 +170,19 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
     })();
     if res.is_none() {
         error!(
-            "ArticleData construction failed: \
-        is_main={:?}, \
-        is_exclusive={:?}, \
-        author={:?}, \
-        title={:?}, \
-        text={:?}, \
-        short_text={:?}, \
-        image_path={:?}, \
-        image_description={:?}, \
-        category={:?}, \
-        related_articles={:?}",
+            "ArticleData construction failed:\n\
+             is_main={:?}\n\
+             is_exclusive={:?}\n\
+             author={:?}\n\
+             title={:?}\n\
+             text={:?}\n\
+             short_text={:?}\n\
+             image_path={:?}\n\
+             image_description={:?}\n\
+             video_path={:?}\n\
+             audio_path={:?}\n\
+             category={:?}\n\
+             related_articles={:?}",
             is_main_o,
             is_exclusive_o,
             author_o,
@@ -183,6 +191,8 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             short_text_processed_o,
             image_path_o,
             image_description_o,
+            video_path_o,
+            audio_path_o,
             category_o,
             related_articles_o
         );

@@ -2,7 +2,6 @@
 mod tests {
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
-
     use axiomatik_web::test_framework::script_base::boundary;
     use axiomatik_web::test_framework::script_base_data::{
         FAKE_AUDIO_DATA_MP3, FAKE_IMAGE_DATA_JPEG, JPEG, MP3,
@@ -85,10 +84,10 @@ mod tests {
 
         // Verify audio player placement
         let article_content = std::fs::read_to_string("test-article.html").unwrap();
-        let audio_pos = article_content.find("<audio").unwrap();
+        let audio_pos = article_content.find("<audio").expect("Audio player not found");
         let text_pos = article_content
             .find("This is a test article text.")
-            .unwrap();
+            .expect("Article text not found");
         assert!(
             audio_pos < text_pos,
             "Audio player should be before article text"
