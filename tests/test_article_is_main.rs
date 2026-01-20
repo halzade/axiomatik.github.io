@@ -16,7 +16,7 @@ mod tests {
         let cookie = script_base::setup_user_and_login("user4").await;
 
         let body = ArticleBuilder::new()
-            .title("test-New Veda Main")
+            .title("Test New Veda Main")
             .author("Author Veda")
             .category("veda")
             .text("Main text of veda article")
@@ -42,11 +42,11 @@ mod tests {
 
         let updated_index = fs::read_to_string("index.html").unwrap();
 
-        // Check MAIN_ARTICLE: should contain test-New Veda Main
+        // Check MAIN_ARTICLE: should contain Test New Veda Main
         let main_start = updated_index.find("<!-- MAIN_ARTICLE -->").unwrap();
         let main_end = updated_index.find("<!-- /MAIN_ARTICLE -->").unwrap();
         let main_section = &updated_index[main_start..main_end];
-        assert!(main_section.contains("test-New Veda Main"));
+        assert!(main_section.contains("Test New Veda Main"));
         assert!(main_section.contains("uploads/")); // Image should be there
 
         // Check SECOND_ARTICLE: should contain Old Main Article (stripped of image, class changed to first-article, h1 changed to h2)

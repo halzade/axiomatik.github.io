@@ -19,31 +19,15 @@ const PASSWORD: &str = "password123";
 static SETUP_ONCE: OnceCell<()> = OnceCell::const_new();
 
 pub async fn setup_before_tests_once() {
-    debug!("many times 1");
-    if SETUP_ONCE.get().is_some() {
-        debug!("many times 2");
-        return;
-    }
-    debug!("many times 1.5");
-    SETUP_ONCE
-        .get_or_init(|| async {
-            debug!("only once");
+    debug!("only once");
 
-            logger::config();
-            database::initialize_in_memory_database().await;
+    logger::config();
+    database::initialize_in_memory_database().await;
 
-            // Create required directories
-            let _ = std::fs::create_dir_all("uploads");
-            let _ = std::fs::create_dir_all("snippets");
+    let r = server::start_router().await;
+    let _ = APP_ROUTER.set(r);
 
-            let r = server::start_router().await;
-            let _ = APP_ROUTER.set(r);
-
-            debug!("only once done");
-        })
-        .await;
-
-    debug!("many times 3");
+    debug!("test initialized");
 }
 
 pub async fn one_shot(request: Request<reqwest::Body>) -> Response<axum::body::Body> {
@@ -73,7 +57,7 @@ pub async fn setup_user_and_login(name: &str) -> String {
             )))
             .unwrap(),
     )
-    .await;
+        .await;
 
     let cookie = login_resp
         .headers()

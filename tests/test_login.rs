@@ -16,7 +16,7 @@ mod tests {
             .unwrap();
 
         // 2. Try login
-        let login_params = [("username", "admin"), ("password", "password123")];
+        let login_params = [("username", "admin1"), ("password", "password123")];
         let login_body = serialize(&login_params);
         let response = script_base::one_shot(
             Request::builder()

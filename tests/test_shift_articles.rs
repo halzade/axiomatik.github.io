@@ -48,7 +48,7 @@ mod tests {
 
         // 4. Create the second article as MAIN (not necessarily exclusive)
         let body2 = ArticleBuilder::new()
-            .title("test-New Main Article")
+            .title("Test New Main Article")
             .is_main()
             .author("Test Author")
             .category("republika")
@@ -78,7 +78,7 @@ mod tests {
         let main_start = index_after2.find("<!-- MAIN_ARTICLE -->").unwrap();
         let main_end = index_after2.find("<!-- /MAIN_ARTICLE -->").unwrap();
         let main_content = &index_after2[main_start..main_end];
-        assert!(main_content.contains("test-New Main Article"));
+        assert!(main_content.contains("Test New Main Article"));
 
         // Check SECOND_ARTICLE
         let second_start = index_after2.find("<!-- SECOND_ARTICLE -->").unwrap();

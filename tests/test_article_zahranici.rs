@@ -15,7 +15,7 @@ mod tests {
         let cookie = script_base::setup_user_and_login("user7").await;
 
         let body = ArticleBuilder::new()
-            .title("test-Newest Zahranici")
+            .title("Test Newest Zahranici")
             .author("Author")
             .category("zahranici")
             .text("Main text")
@@ -39,7 +39,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::SEE_OTHER);
 
         let updated_index = fs::read_to_string("index.html").unwrap();
-        assert!(updated_index.contains("test-Newest Zahranici"));
+        assert!(updated_index.contains("Test Newest Zahranici"));
 
         // Count articles in ZE_ZAHRANICI section
         let start =

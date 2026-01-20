@@ -4,6 +4,7 @@ use axum::extract::Multipart;
 use std::fs;
 use tracing::{debug, error};
 use uuid::Uuid;
+use anyhow::{Context, Result};
 
 pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
@@ -12,21 +13,15 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
     let mut author_o = None;
     let mut text_processed_o = None;
     let mut short_text_processed_o = None;
-
-    // required
     let mut image_path_o = None;
     let mut image_description_o = None;
+    let mut category_o = None;
 
     // not required
     let mut video_path_o = None;
     let mut audio_path_o = None;
-
-    // not required
     let mut is_main_o = None;
     let mut is_exclusive_o = None;
-
-    // required
-    let mut category_o = None;
 
     // not required
     let mut related_articles_o = None;

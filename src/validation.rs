@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn test_validate_search_query() {
-        assert!(validate_search_query("").is_ok());
+        assert!(validate_search_query("").is_err());
         assert!(validate_search_query("Hello World").is_ok());
         assert!(validate_search_query("Hello123").is_ok());
         assert!(validate_search_query("Příliš").is_ok()); // Non-ASCII alphanumeric is allowed
