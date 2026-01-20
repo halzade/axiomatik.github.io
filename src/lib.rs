@@ -8,6 +8,7 @@ pub mod database_tools;
 pub mod external;
 pub mod form_account;
 pub mod form_change_password;
+pub mod form_index;
 pub mod form_login;
 pub mod form_new_article;
 pub mod form_new_article_data;
