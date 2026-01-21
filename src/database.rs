@@ -39,6 +39,7 @@ pub struct Article {
     pub category: String,
     pub related_articles: String,
     pub is_main: bool,
+    pub is_exclusive: bool,
     pub views: i64,
 }
 

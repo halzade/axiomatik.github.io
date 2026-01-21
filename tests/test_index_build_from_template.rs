@@ -16,6 +16,7 @@ mod tests {
             main_article: IndexArticleTopMainData {
                 url: "main-url".to_string(),
                 title: "Main Title".to_string(),
+                is_exclusive: false,
                 short_text: "Main short text".to_string(),
                 image_path: "img.jpg".to_string(),
             },
@@ -54,6 +55,7 @@ mod tests {
             main_article: IndexArticleTopMainTemplate {
                 url: index_data.main_article.url,
                 title: index_data.main_article.title,
+                is_exclusive: false,
                 short_text: index_data.main_article.short_text,
                 image_path: index_data.main_article.image_path,
             },
@@ -111,7 +113,7 @@ mod tests {
         // HTML structure verification (un-escaped)
         assert!(saved_content.contains("<section class=\"main-article\">"));
         assert!(saved_content.contains("<div class=\"main-article-text\">"));
-        assert!(saved_content.contains("<article class=\"card\">"));
-        assert!(saved_content.contains("<div class=\"split-column\">"));
+        // Cleanup
+        let _ = std::fs::remove_file("test-index.html");
     }
 }

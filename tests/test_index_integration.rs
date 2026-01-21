@@ -1,0 +1,188 @@
+use axiomatik_web::test_framework::article_builder::ArticleBuilder;
+use axiomatik_web::test_framework::script_base;
+use axiomatik_web::test_framework::script_base::boundary;
+use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
+use axum::http::{header, StatusCode};
+use axum_core::extract::Request;
+use reqwest::Body;
+use std::fs;
+
+#[tokio::test]
+async fn test_index_main_article() {
+    script_base::setup_before_tests_once().await;
+    let cookie = script_base::setup_user_and_login("user_main").await;
+
+    let body = ArticleBuilder::new()
+        .title("Regular Main Article")
+        .author("Author")
+        .category("republika")
+        .text("Text")
+        .short_text("Short")
+        .main()
+        .image("img.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+        .image_description("desc")
+        .build()
+        .unwrap();
+
+    let resp = script_base::one_shot(
+        Request::builder()
+            .method("POST")
+            .uri("/create")
+            .header(header::CONTENT_TYPE, boundary())
+            .header(header::COOKIE, &cookie)
+            .body(Body::from(body))
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(resp.status(), StatusCode::SEE_OTHER);
+
+    let index_html = fs::read_to_string("index.html").unwrap();
+    assert!(index_html.contains("Regular Main Article"));
+    assert!(!index_html.contains("<span class=\"red\">EXKLUZIVNĚ:</span>"));
+}
+
+#[tokio::test]
+async fn test_index_main_article_exclusive() {
+    script_base::setup_before_tests_once().await;
+    let cookie = script_base::setup_user_and_login("user_exclusive").await;
+
+    let body = ArticleBuilder::new()
+        .title("Exclusive Main Article")
+        .author("Author")
+        .category("republika")
+        .text("Text")
+        .short_text("Short")
+        .main()
+        .exclusive()
+        .image("img_ex.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+        .image_description("desc")
+        .build()
+        .unwrap();
+
+    let resp = script_base::one_shot(
+        Request::builder()
+            .method("POST")
+            .uri("/create")
+            .header(header::CONTENT_TYPE, boundary())
+            .header(header::COOKIE, &cookie)
+            .body(Body::from(body))
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(resp.status(), StatusCode::SEE_OTHER);
+
+    let index_html = fs::read_to_string("index.html").unwrap();
+    assert!(index_html.contains("Exclusive Main Article"));
+    assert!(index_html.contains("<span class=\"red\">EXKLUZIVNĚ:</span>"));
+}
+
+#[tokio::test]
+async fn test_index_article_republika() {
+    script_base::setup_before_tests_once().await;
+    let cookie = script_base::setup_user_and_login("user_rep").await;
+
+    let body = ArticleBuilder::new()
+        .title("New Republika Article")
+        .author("Author")
+        .category("republika")
+        .text("Text")
+        .short_text("Short")
+        .image("img_rep.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+        .image_description("desc")
+        .build()
+        .unwrap();
+
+    let resp = script_base::one_shot(
+        Request::builder()
+            .method("POST")
+            .uri("/create")
+            .header(header::CONTENT_TYPE, boundary())
+            .header(header::COOKIE, &cookie)
+            .body(Body::from(body))
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(resp.status(), StatusCode::SEE_OTHER);
+
+    let index_html = fs::read_to_string("index.html").unwrap();
+    // Republika section header
+    assert!(index_html.contains("> Z naší republiky"));
+    assert!(index_html.contains("New Republika Article"));
+}
+
+#[tokio::test]
+async fn test_index_article_zahranici() {
+    script_base::setup_before_tests_once().await;
+    let cookie = script_base::setup_user_and_login("user_zah").await;
+
+    let body = ArticleBuilder::new()
+        .title("New Zahranici Article")
+        .author("Author")
+        .category("zahranici")
+        .text("Text")
+        .short_text("Short")
+        .image("img_zah.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+        .image_description("desc")
+        .build()
+        .unwrap();
+
+    let resp = script_base::one_shot(
+        Request::builder()
+            .method("POST")
+            .uri("/create")
+            .header(header::CONTENT_TYPE, boundary())
+            .header(header::COOKIE, &cookie)
+            .body(Body::from(body))
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(resp.status(), StatusCode::SEE_OTHER);
+
+    let index_html = fs::read_to_string("index.html").unwrap();
+    // Zahranici section header
+    assert!(index_html.contains("> Ze zahraničí"));
+    assert!(index_html.contains("New Zahranici Article"));
+}
+
+#[tokio::test]
+async fn test_index_article_veda() {
+    script_base::setup_before_tests_once().await;
+    let cookie = script_base::setup_user_and_login("user_veda").await;
+
+    let body = ArticleBuilder::new()
+        .title("New Veda Article")
+        .author("Author")
+        .category("veda")
+        .text("Text")
+        .short_text("Short")
+        .image("img_veda.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+        .image_description("desc")
+        .build()
+        .unwrap();
+
+    let resp = script_base::one_shot(
+        Request::builder()
+            .method("POST")
+            .uri("/create")
+            .header(header::CONTENT_TYPE, boundary())
+            .header(header::COOKIE, &cookie)
+            .body(Body::from(body))
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(resp.status(), StatusCode::SEE_OTHER);
+
+    let index_html = fs::read_to_string("index.html").unwrap();
+    
+    // Find section starts
+    let rep_start = index_html.find("> Z naší republiky").unwrap();
+    let zah_start = index_html.find("> Ze zahraničí").unwrap();
+    
+    // Check it's NOT in these sections
+    // In our template, Republika comes before Zahranici
+    let rep_section = &index_html[rep_start..zah_start];
+    let zah_section = &index_html[zah_start..];
+    
+    assert!(!rep_section.contains("New Veda Article"));
+    assert!(!zah_section.contains("New Veda Article"));
+}

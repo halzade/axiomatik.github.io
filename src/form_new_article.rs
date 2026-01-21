@@ -178,6 +178,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 category: article_data.category.clone(),
                 related_articles: article_data.related_articles.clone(),
                 is_main: article_data.is_main,
+                is_exclusive: article_data.is_exclusive,
                 views: 0,
             };
 
@@ -238,6 +239,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 main_article: form_index::IndexArticleTopMainData {
                     url: "".to_string(),
                     title: "".to_string(),
+                    is_exclusive: false,
                     short_text: "".to_string(),
                     image_path: "".to_string(),
                 },

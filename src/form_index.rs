@@ -5,6 +5,7 @@ use std::fs;
 pub struct IndexArticleTopMainData {
     pub url: String,
     pub title: String,
+    pub is_exclusive: bool,
     pub short_text: String,
     pub image_path: String,
 }
@@ -74,6 +75,7 @@ pub struct IndexCategoryArticleTemplate {
 pub struct IndexArticleTopMainTemplate {
     pub url: String,
     pub title: String,
+    pub is_exclusive: bool,
     pub short_text: String,
     pub image_path: String,
 }
@@ -107,6 +109,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     .map(|a| a.article_file_name.clone())
                     .unwrap_or_default(),
                 title: main_article.map(|a| a.title.clone()).unwrap_or_default(),
+                is_exclusive: main_article.map(|a| a.is_exclusive).unwrap_or_default(),
                 short_text: main_article
                     .map(|a| a.short_text.clone())
                     .unwrap_or_default(),
@@ -255,6 +258,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     .map(|a| a.article_file_name.clone())
                     .unwrap_or_default(),
                 title: main_article.map(|a| a.title.clone()).unwrap_or_default(),
+                is_exclusive: main_article.map(|a| a.is_exclusive).unwrap_or_default(),
                 short_text: main_article
                     .map(|a| a.short_text.clone())
                     .unwrap_or_default(),
@@ -299,6 +303,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
         main_article: IndexArticleTopMainTemplate {
             url: index_data.main_article.url,
             title: index_data.main_article.title,
+            is_exclusive: index_data.main_article.is_exclusive,
             short_text: index_data.main_article.short_text,
             image_path: index_data.main_article.image_path,
         },

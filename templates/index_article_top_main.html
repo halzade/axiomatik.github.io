@@ -1,6 +1,8 @@
 <section class="main-article">
     <div class="main-article-text">
-        <a href="{{ url }}"><h1>{{ title }}</h1></a>
+        <a href="{{ url }}"><h1>
+            {% if is_exclusive %}<span class="red">EXKLUZIVNĚ:</span>{% endif %}
+            {{ title }}</h1></a>
         <a href="{{ url }}"><p>{{ short_text }}</p></a>
     </div>
     <a href="{{ url }}"><img src="uploads/{{ image_path }}" alt="{{ title }}"></a>
