@@ -44,14 +44,6 @@ pub struct ArticleTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "snippet_template.html")]
-pub struct SnippetTemplate {
-    pub url: String,
-    pub title: String,
-    pub short_text: String,
-}
-
-#[derive(Template)]
 #[template(path = "../pages/form.html")]
 pub struct FormTemplate {
     pub author_name: String,
@@ -61,6 +53,17 @@ pub struct FormTemplate {
 #[template(path = "category_template.html")]
 pub struct CategoryTemplate {
     pub title: String,
+    pub date: String,
+    pub weather: String,
+    pub name_day: String,
+}
+
+#[derive(Template)]
+#[template(path = "index_category_article.html")]
+pub struct SnippetTemplate {
+    pub url: String,
+    pub title: String,
+    pub short_text: String,
 }
 
 pub async fn show_form(jar: CookieJar) -> Response {
@@ -192,6 +195,9 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                         month_name,
                         now.year()
                     ),
+                    date: formated_date.clone(),
+                    weather: formated_weather.clone(),
+                    name_day: formated_name_day.clone(),
                 };
                 let mut base_html = cat_template.render().unwrap();
                 base_html = base_html.replace(

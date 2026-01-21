@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXO.cz — {{ title }}</title>
+    <title>NEXO.cz — Ze zahraničí</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/styles-dark.css" media="(prefers-color-scheme: dark)">
 </head>
@@ -38,11 +38,18 @@
 
     <main class="content category-page">
         <header class="category-header">
-            <h1>{{ title }}</h1>
+            <h1>Ze zahraničí</h1>
+            <p>
+                Témata, která hýbou světem.<br>
+                Zpravodajství, analýzy i souvislosti z mezinárodní politiky, ekonomiky i kultury.<br>
+                Klíčové globální dění, diplomatické vztahy i příběhy lidí, které formují mezinárodní scénu.<br>
+            </p>
         </header>
 
         <section class="article-grid">
-            <!-- SNIPPETS -->
+            {% for article in articles %}
+                {{ article|safe }}
+            {% endfor %}
         </section>
     </main>
     <footer>

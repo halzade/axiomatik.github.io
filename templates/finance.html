@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXO.cz — {{ title }}</title>
+    <title>NEXO.cz — Finance a kapitálové trhy</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/styles-dark.css" media="(prefers-color-scheme: dark)">
 </head>
@@ -38,11 +38,18 @@
 
     <main class="content category-page">
         <header class="category-header">
-            <h1>{{ title }}</h1>
+            <h1>Ze světa financí</h1>
+            <p>
+                Dění ve světě peněz, investic a ekonomiky.<br>
+                Vývoj kapitálových trhů, podnikatelského prostředí; i rozhodnutí centrálních bank.<br>
+                Spolehlivý a srozumitelný přehled hospodářského dění.
+            </p>
         </header>
 
         <section class="article-grid">
-            <!-- SNIPPETS -->
+            {% for article in articles %}
+                {{ article|safe }}
+            {% endfor %}
         </section>
     </main>
     <footer>

@@ -23,6 +23,7 @@ mod tests {
             category: "cat".to_string(),
             related_articles: "".to_string(),
             is_main: false,
+            is_exclusive: false,
             views: 0,
         };
 
@@ -41,6 +42,7 @@ mod tests {
             category: "cat".to_string(),
             related_articles: "".to_string(),
             is_main: false,
+            is_exclusive: false,
             views: 0,
         };
 

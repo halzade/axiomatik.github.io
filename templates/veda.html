@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXO.cz — {{ title }}</title>
+    <title>NEXO.cz — Věda a výzkum</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/styles-dark.css" media="(prefers-color-scheme: dark)">
 </head>
@@ -38,11 +38,18 @@
 
     <main class="content category-page">
         <header class="category-header">
-            <h1>{{ title }}</h1>
+            <h1>Věda a výzkum</h1>
+            <p>
+                Objevy z naší domácí i vědecké scény světové.<br>
+                Průlomové studie, technologické inovace, vesmírné mise,<br>
+                medicínské pokroky i zajímavosti z přírodních a společenských věd.
+            </p>
         </header>
 
         <section class="article-grid">
-            <!-- SNIPPETS -->
+            {% for article in articles %}
+                {{ article|safe }}
+            {% endfor %}
         </section>
     </main>
     <footer>
