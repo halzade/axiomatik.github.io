@@ -21,7 +21,7 @@ pub fn get_config() -> Result<ApplicationSettings, ConfigError> {
         ))
         .build()?;
 
-    settings.try_deserialize::<ApplicationSettings>()
+    settings.get::<ApplicationSettings>("application")
 }
 
 fn my_env_is() -> String {
