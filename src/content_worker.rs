@@ -3,6 +3,8 @@ use std::time::Duration;
 use tokio::time;
 use tokio::time::{interval, Instant};
 use tracing::{info, trace};
+use std::sync::Arc;
+use crate::data::ApplicationData;
 
 pub fn heart_beat() {
     info!("start heart beat");
@@ -15,9 +17,9 @@ pub fn heart_beat() {
     });
 }
 
-pub fn midnight_worker() {
+pub fn midnight_worker(ad: Arc<ApplicationData>) {
     info!("schedule midnight worker");
-    tokio::spawn(async {
+    tokio::spawn(async move {
         let start = next_midnight_instant();
         let mut interval = time::interval_at(start, Duration::from_secs(24 * 60 * 60));
 
@@ -25,19 +27,20 @@ pub fn midnight_worker() {
             interval.tick().await;
             info!("midnight event");
 
-            // TODO
+            ad.update_date();
+            ad.update_name_day();
         }
     });
 }
 
-pub fn weather_worker() {
-    tokio::spawn(async {
+pub fn weather_worker(ad: Arc<ApplicationData>) {
+    tokio::spawn(async move {
         // Every 60 minutes
         let mut interval = interval(Duration::from_secs(60 * 60));
         loop {
             interval.tick().await;
-            
-            // TODO
+
+            ad.update_weather().await;
         }
     });
 }

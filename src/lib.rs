@@ -1,6 +1,7 @@
 pub mod commands;
 pub mod configuration;
 pub mod content_worker;
+pub mod data;
 pub mod database;
 pub mod database_internal;
 pub mod database_tools;
