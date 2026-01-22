@@ -1,4 +1,4 @@
-use crate::{database, external, library, name_days, validation};
+use crate::{data, database, external, library, name_days, validation};
 use askama::Template;
 use axum::response::{Html, IntoResponse, Response};
 use axum::Form;
@@ -46,11 +46,6 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
 
     let articles_o = database::get_all_articles().await;
 
-    let now = chrono::Local::now();
-    let formated_date = library::formatted_article_date(now);
-    let formated_name_day = name_days::formatted_today_name_date(now);
-    let formated_weather = external::fetch_weather().await;
-
     match articles_o {
         None => {
             info!("No articles found");
@@ -58,9 +53,9 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
             // Sort by match count descending
             let template = SearchTemplate {
                 title: format!("Výsledky hledání: {}", query),
-                date: formated_date,
-                weather: formated_weather,
-                name_day: formated_name_day,
+                date: data::date(),
+                weather: data::weather(),
+                name_day: data::name_day(),
                 articles: "".to_string(),
             };
 
@@ -106,9 +101,9 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
 
             let template = SearchTemplate {
                 title: format!("Výsledky hledání: {}", query),
-                date: formated_date,
-                weather: formated_weather,
-                name_day: formated_name_day,
+                date: data::date(),
+                weather: data::weather(),
+                name_day: data::name_day(),
                 articles: snippets_html,
             };
 

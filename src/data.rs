@@ -1,6 +1,20 @@
 use crate::{external, library, name_days};
 use chrono::Local;
-use std::sync::RwLock;
+use std::sync::{LazyLock, RwLock};
+
+pub static GLOBAL_DATA: LazyLock<ApplicationData> = LazyLock::new(|| init_trivial());
+
+pub fn date() -> String {
+    GLOBAL_DATA.date()
+}
+
+pub fn name_day() -> String {
+    GLOBAL_DATA.name_day()
+}
+
+pub fn weather() -> String {
+    GLOBAL_DATA.weather()
+}
 
 pub struct ApplicationData {
     date: RwLock<String>,
@@ -35,21 +49,6 @@ impl ApplicationData {
         let w = external::fetch_weather().await;
         *self.weather.write().unwrap() = w;
     }
-}
-
-pub async fn init() -> ApplicationData {
-    let ad = ApplicationData {
-        date: RwLock::new("".to_string()),
-        name_day: RwLock::new("".to_string()),
-        weather: RwLock::new("".to_string()),
-    };
-
-    // TODO start these in parallel
-    ad.update_date();
-    ad.update_name_day();
-    ad.update_weather().await;
-
-    ad
 }
 
 pub fn init_trivial() -> ApplicationData {

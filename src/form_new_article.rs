@@ -1,11 +1,10 @@
-use crate::form_new_article_data::article_data;
 use crate::server::AUTH_COOKIE;
-use crate::{database, external, form_index, library, name_days};
+use crate::{data, database, external, form_index, library, name_days};
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum_extra::extract::CookieJar;
-use chrono::Datelike;
+use chrono::{Datelike, Local};
 use http::StatusCode;
 use std::fs;
 
@@ -98,15 +97,20 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
     // TODO article already exists
     // TODO double click on create button
 
-    /*
-     * Read request data
-     */
-    let article_data_o = article_data(multipart).await;
+            /*
+             * Read request data
+             */
+            let article_data_o = crate::form_new_article_data::article_data(multipart).await;
 
-    match article_data_o {
-        None => StatusCode::BAD_REQUEST.into_response(),
-        Some(article_data) => {
-            let related_articles_vec = &article_data
+            match article_data_o {
+                None => StatusCode::BAD_REQUEST.into_response(),
+                Some(article_data) => {
+                    let now = Local::now();
+                    let formatted_date = data::date();
+                    let formatted_weather = data::weather();
+                    let formatted_name_day = data::name_day();
+
+                    let related_articles_vec = &article_data
                 .related_articles
                 .lines()
                 .map(str::trim)
@@ -115,12 +119,6 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 .collect();
 
             let related_article_snippets = library::read_related_articles(&related_articles_vec);
-
-            let now = chrono::Local::now();
-
-            let formated_date = library::formatted_article_date(now);
-            let formated_name_day = name_days::formatted_today_name_date(now);
-            let formated_weather = external::fetch_weather().await;
 
             let article_template = ArticleTemplate {
                 title: article_data.title.clone(),
@@ -133,9 +131,9 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 category: article_data.category.clone(),
                 category_display: article_data.category_display.clone(),
                 related_snippets: related_article_snippets.clone(),
-                date: formated_date.clone(),
-                weather: formated_weather.clone(),
-                name_day: formated_name_day.clone(),
+                date: formatted_date.clone(),
+                weather: formatted_weather.clone(),
+                name_day: formatted_name_day.clone(),
                 // TODO
                 related_articles: "".to_string(),
             };
@@ -173,7 +171,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             let article_db = database::Article {
                 author: article_data.author.clone(),
                 created_by,
-                date: formated_date.clone(),
+                date: formatted_date.clone(),
                 title: article_data.title.clone(),
                 text: article_data.text_processed.clone(),
                 short_text: article_data.short_text_processed.clone(),
@@ -199,9 +197,9 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                         month_name,
                         now.year()
                     ),
-                    date: formated_date.clone(),
-                    weather: formated_weather.clone(),
-                    name_day: formated_name_day.clone(),
+                    date: formatted_date.clone(),
+                    weather: formatted_weather.clone(),
+                    name_day: formatted_name_day.clone(),
                     articles: "".to_string(),
                 };
                 let mut base_html = cat_template.render().unwrap();
@@ -232,9 +230,9 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             }
 
             let index_data = form_index::IndexData {
-                date: formated_date,
-                weather: formated_weather,
-                name_day: formated_name_day,
+                date: formatted_date,
+                weather: formatted_weather,
+                name_day: formatted_name_day,
                 main_article: form_index::IndexArticleTopMainData {
                     url: "".to_string(),
                     title: "".to_string(),

@@ -1,12 +1,8 @@
 use axiomatik_web::commands::{create_user, delete_user, print_from_db};
-use axiomatik_web::{
-    configuration, content_worker, data, database, external, library, logger, name_days, server,
-};
-use chrono::Local;
+use axiomatik_web::{configuration, content_worker, data, database, logger, server};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
-use std::sync::{Arc, RwLock};
 use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::{error, info};
@@ -46,15 +42,14 @@ async fn main() {
      * Trigger actions at startup
      */
     info!("startup actions data");
-    let ad = Arc::new(data::init().await);
 
     /*
      * Start regular actions
      */
     info!("startup actions workers");
     content_worker::heart_beat();
-    content_worker::midnight_worker(ad.clone());
-    content_worker::weather_worker(ad.clone());
+    content_worker::midnight_worker();
+    content_worker::weather_worker();
 
     /*
      * Database

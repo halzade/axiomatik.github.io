@@ -1,4 +1,4 @@
-use crate::{database, external, library, name_days};
+use crate::{data, database, external, library, name_days};
 use askama::Template;
 use std::fs;
 
@@ -191,12 +191,6 @@ pub async fn render_new_index(data: Option<IndexData>) {
         }
         d
     } else {
-        let now = chrono::Local::now();
-
-        let date = library::formatted_article_date(now);
-        let name_day = name_days::formatted_today_name_date(now);
-        let weather = external::fetch_weather().await;
-
         let articles = database::get_all_articles().await.unwrap_or_default();
         let mut main_articles: Vec<_> = articles.iter().filter(|a| a.is_main).collect();
         // Sort by date descending
@@ -251,9 +245,9 @@ pub async fn render_new_index(data: Option<IndexData>) {
         }
 
         IndexData {
-            date,
-            weather,
-            name_day,
+            date: data::date(),
+            weather: data::weather(),
+            name_day: data::name_day(),
             main_article: IndexArticleTopMainData {
                 url: main_article
                     .map(|a| a.article_file_name.clone())

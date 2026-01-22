@@ -107,6 +107,7 @@ pub fn formatted_article_date(now: DateTime<Local>) -> String {
     )
 }
 
+// TODO remove everything snippet
 pub fn read_related_articles(related_articles: &Vec<String>) -> String {
     let mut related_article_snippets = String::new();
     for path in related_articles {

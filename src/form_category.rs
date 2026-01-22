@@ -1,5 +1,5 @@
 use crate::form_index::IndexCategoryArticleTemplate;
-use crate::{database, library};
+use crate::{data, database, library};
 use askama::Template;
 
 pub struct CategoryArticleData {
@@ -85,9 +85,9 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             .collect();
 
         CategoryData {
-            date: "".to_string(),    // These should ideally be passed or fetched
-            weather: "".to_string(), // but for now we follow the pattern
-            name_day: "".to_string(),
+            date: data::date(),
+            weather: data::weather(),
+            name_day: data::name_day(),
             articles: articles_data,
         }
     };

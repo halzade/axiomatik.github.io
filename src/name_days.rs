@@ -5,7 +5,7 @@ use tracing::error;
 
 const LEEP_YEAR_NAME_DAY: &'static str = "Cleverest Punk";
 
-pub fn formatted_today_name_date(now: DateTime<Local>) -> String {
+pub fn formatted_today_name_day(now: DateTime<Local>) -> String {
     let name = today_name_day(now);
     if name.is_empty() {
         error!("empty name day");
