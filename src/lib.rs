@@ -1,6 +1,5 @@
 pub mod commands;
 pub mod configuration;
-pub mod content_management;
 pub mod content_worker;
 pub mod database;
 pub mod database_internal;

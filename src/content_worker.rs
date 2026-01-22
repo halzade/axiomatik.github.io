@@ -1,4 +1,3 @@
-use crate::content_management;
 use chrono::Local;
 use std::time::Duration;
 use tokio::time;
@@ -26,7 +25,7 @@ pub fn midnight_worker() {
             interval.tick().await;
             info!("midnight event");
 
-            content_management::update_all_header_info(Local::now()).await;
+            // TODO
         }
     });
 }
@@ -37,7 +36,8 @@ pub fn weather_worker() {
         let mut interval = interval(Duration::from_secs(60 * 60));
         loop {
             interval.tick().await;
-            content_management::update_index_weather().await;
+            
+            // TODO
         }
     });
 }

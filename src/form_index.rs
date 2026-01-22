@@ -46,6 +46,7 @@ pub struct IndexTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub title: String,
 
     pub main_article: IndexArticleTopMainTemplate,
     pub second_article: IndexArticleTopTemplate,
@@ -56,14 +57,14 @@ pub struct IndexTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "index_category.html")]
+#[template(path = "index_category_template.html")]
 pub struct IndexCategoryTemplate {
     pub category_name: String,
     pub articles: Vec<IndexCategoryArticleTemplate>,
 }
 
 #[derive(Template)]
-#[template(path = "index_category_article.html")]
+#[template(path = "index_category_article_template.html")]
 pub struct IndexCategoryArticleTemplate {
     pub url: String,
     pub title: String,
@@ -71,7 +72,7 @@ pub struct IndexCategoryArticleTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "index_article_top_main.html")]
+#[template(path = "index_article_top_main_template.html")]
 pub struct IndexArticleTopMainTemplate {
     pub url: String,
     pub title: String,
@@ -81,7 +82,7 @@ pub struct IndexArticleTopMainTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "index_article_top.html")]
+#[template(path = "index_article_top_template.html")]
 pub struct IndexArticleTopTemplate {
     pub url: String,
     pub title: String,
@@ -299,6 +300,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
         date: index_data.date,
         weather: index_data.weather,
         name_day: index_data.name_day,
+        title: "NEXO.cz".to_string(),
 
         main_article: IndexArticleTopMainTemplate {
             url: index_data.main_article.url,

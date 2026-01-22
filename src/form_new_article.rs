@@ -1,6 +1,6 @@
 use crate::form_new_article_data::article_data;
 use crate::server::AUTH_COOKIE;
-use crate::{database, external, library, name_days, form_index};
+use crate::{database, external, form_index, library, name_days};
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -39,6 +39,7 @@ pub struct ArticleTemplate {
     pub category: String,
     pub category_display: String,
     pub related_snippets: String,
+    pub related_articles: String,
     pub weather: String,
     pub name_day: String,
 }
@@ -56,10 +57,11 @@ pub struct CategoryTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub articles: String,
 }
 
 #[derive(Template)]
-#[template(path = "index_category_article.html")]
+#[template(path = "index_category_article_template.html")]
 pub struct SnippetTemplate {
     pub url: String,
     pub title: String,
@@ -134,6 +136,8 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 date: formated_date.clone(),
                 weather: formated_weather.clone(),
                 name_day: formated_name_day.clone(),
+                // TODO
+                related_articles: "".to_string(),
             };
 
             let html_content = article_template.render().unwrap();
@@ -198,41 +202,30 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                     date: formated_date.clone(),
                     weather: formated_weather.clone(),
                     name_day: formated_name_day.clone(),
+                    articles: "".to_string(),
                 };
                 let mut base_html = cat_template.render().unwrap();
-                base_html = base_html.replace(
-                    "<!-- SNIPPETS -->",
-                    &format!("<!-- SNIPPETS -->\n{}", snippet),
-                );
+                base_html = base_html.replace("", &format!("\n{}", snippet));
                 fs::write(&category_month_year_filename, base_html).unwrap();
             } else {
                 let mut content = fs::read_to_string(&category_month_year_filename).unwrap();
-                content = content.replace(
-                    "<!-- SNIPPETS -->",
-                    &format!("<!-- SNIPPETS -->\n{}", snippet),
-                );
+                content = content.replace("", &format!("\n{}", snippet));
                 fs::write(&category_month_year_filename, content).unwrap();
             }
 
             let main_cat_filename = format!("{}.html", article_data.category);
             if std::path::Path::new(&main_cat_filename).exists() {
                 let mut content = fs::read_to_string(&main_cat_filename).unwrap();
-                if content.contains("<!-- SNIPPETS -->") {
-                    content = content.replace(
-                        "<!-- SNIPPETS -->",
-                        &format!("<!-- SNIPPETS -->\n{}", snippet),
-                    );
+                if content.contains("") {
+                    content = content.replace("", &format!("\n{}", snippet));
                 }
                 fs::write(&main_cat_filename, content).unwrap();
             }
 
             for path in related_articles_vec {
                 if let Ok(mut content) = fs::read_to_string(path) {
-                    if content.contains("<!-- SNIPPETS -->") {
-                        content = content.replace(
-                            "<!-- SNIPPETS -->",
-                            &format!("<!-- SNIPPETS -->\n{}", snippet),
-                        );
+                    if content.contains("") {
+                        content = content.replace("", &format!("\n{}", snippet));
                         fs::write(path, content).unwrap();
                     }
                 }

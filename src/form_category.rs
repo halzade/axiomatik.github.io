@@ -1,6 +1,6 @@
-use askama::Template;
 use crate::form_index::IndexCategoryArticleTemplate;
 use crate::{database, library};
+use askama::Template;
 
 pub struct CategoryArticleData {
     pub url: String,
@@ -16,7 +16,7 @@ pub struct CategoryData {
 }
 
 #[derive(Template)]
-#[template(path = "finance.html")]
+#[template(path = "category_finance_template.html")]
 pub struct FinanceTemplate {
     pub date: String,
     pub weather: String,
@@ -25,7 +25,7 @@ pub struct FinanceTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "republika.html")]
+#[template(path = "category_republika_template.html")]
 pub struct RepublikaTemplate {
     pub date: String,
     pub weather: String,
@@ -34,7 +34,7 @@ pub struct RepublikaTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "technologie.html")]
+#[template(path = "category_technologie_template.html")]
 pub struct TechnologieTemplate {
     pub date: String,
     pub weather: String,
@@ -43,7 +43,7 @@ pub struct TechnologieTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "veda.html")]
+#[template(path = "category_veda_template.html")]
 pub struct VedaTemplate {
     pub date: String,
     pub weather: String,
@@ -52,7 +52,7 @@ pub struct VedaTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "zahranici.html")]
+#[template(path = "category_zahranici_template.html")]
 pub struct ZahraniciTemplate {
     pub date: String,
     pub weather: String,
@@ -65,10 +65,8 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
         d
     } else {
         let articles = database::get_all_articles().await.unwrap_or_default();
-        let mut category_articles: Vec<_> = articles
-            .iter()
-            .filter(|a| a.category == category)
-            .collect();
+        let mut category_articles: Vec<_> =
+            articles.iter().filter(|a| a.category == category).collect();
 
         // Sort by date descending
         category_articles.sort_by(|a, b| {
@@ -87,8 +85,8 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             .collect();
 
         CategoryData {
-            date: "".to_string(),     // These should ideally be passed or fetched
-            weather: "".to_string(),  // but for now we follow the pattern
+            date: "".to_string(),    // These should ideally be passed or fetched
+            weather: "".to_string(), // but for now we follow the pattern
             name_day: "".to_string(),
             articles: articles_data,
         }

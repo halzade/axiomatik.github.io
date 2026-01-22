@@ -1,5 +1,5 @@
 use axiomatik_web::commands::{create_user, delete_user, print_from_db};
-use axiomatik_web::{configuration, content_management, content_worker, database, logger, server};
+use axiomatik_web::{configuration, content_worker, database, logger, server};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
@@ -37,14 +37,13 @@ async fn main() {
     info!("Application starting...");
     logger::config();
     create_dir_all("uploads").unwrap();
-    create_dir_all("snippets").unwrap();
 
     /*
      * Trigger actions at startup
      */
     let now = chrono::Local::now();
     info!("startup actions");
-    content_management::update_all_header_info(now).await;
+    // TODO content_management::update_all_header_info(now).await;
 
     /*
      * Start regular actions

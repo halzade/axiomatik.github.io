@@ -52,6 +52,8 @@ mod tests {
             date: index_data.date,
             weather: index_data.weather,
             name_day: index_data.name_day,
+            // TODO
+            title: "".to_string(),
             main_article: IndexArticleTopMainTemplate {
                 url: index_data.main_article.url,
                 title: index_data.main_article.title,

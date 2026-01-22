@@ -72,8 +72,7 @@
         <section class="related-section" {% if related_snippets.is_empty() %} style="display: none;" {% endif %}>
             <h2>související články</h2>
             <div class="article-grid">
-                {{ related_snippets|safe }}
-                <!-- SNIPPETS -->
+                {{ related_articles|safe }}
             </div>
         </section>
     </main>

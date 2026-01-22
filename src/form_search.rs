@@ -1,4 +1,4 @@
-use crate::{database, validation, library, name_days, external};
+use crate::{database, external, library, name_days, validation};
 use askama::Template;
 use axum::response::{Html, IntoResponse, Response};
 use axum::Form;
@@ -12,14 +12,14 @@ pub struct SearchPayload {
     pub q: String,
 }
 
-// TODO it's own category
 #[derive(Template)]
-#[template(path = "category_template.html")]
+#[template(path = "search_template.html")]
 pub struct SearchTemplate {
     pub title: String,
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub articles: String,
 }
 
 pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
@@ -61,10 +61,11 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
                 date: formated_date,
                 weather: formated_weather,
                 name_day: formated_name_day,
+                articles: "".to_string(),
             };
 
             let mut html = template.render().unwrap();
-            html = html.replace("<!-- SNIPPETS -->", &"");
+            html = html.replace("", &"");
 
             Html(html).into_response()
         }
@@ -108,10 +109,13 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
                 date: formated_date,
                 weather: formated_weather,
                 name_day: formated_name_day,
+                articles: snippets_html,
             };
 
             let mut html = template.render().unwrap();
-            html = html.replace("<!-- SNIPPETS -->", &snippets_html);
+
+            // TODO tf ?
+            html = html.replace("", &"");
 
             Html(html).into_response()
         }

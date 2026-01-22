@@ -127,6 +127,29 @@ pub async fn get_all_articles() -> Option<Vec<Article>> {
     }
 }
 
+// TODO
+pub async fn get_article_by_filename(filename: &str) -> Option<Article> {
+    if let Ok(sdb) = db_read().await {
+        let response_r = sdb
+            .query("SELECT * FROM article WHERE article_file_name = $filename")
+            .bind(("filename", filename.to_string()))
+            .await;
+        if let Ok(mut response) = response_r {
+            return match response.take(0) {
+                Ok(articles) => {
+                    let articles: Vec<Article> = articles;
+                    articles.into_iter().next()
+                }
+                Err(e) => {
+                    error!("Failed to deserialize article: {}", e);
+                    None
+                }
+            };
+        }
+    }
+    None
+}
+
 pub async fn get_user(user_name: &str) -> Option<User> {
     if let Ok(sdb) = db_read().await {
         return sdb.select(("user", user_name)).await.unwrap();

@@ -16,9 +16,12 @@ mod tests {
         // 1. Create a user who does NOT need password change
         let cookie = script_base::setup_user_and_login("user6").await;
 
+        // TODO 2
+
         // 3. Create article (Multipart)
         // Create related article and category files for testing
-        let related_article_content = "<html><body><!-- SNIPPETS --></body></html>";
+        // TODO
+        let related_article_content = "<html><body></body></html>";
         std::fs::write("related-test-article.html", related_article_content).unwrap();
         std::fs::create_dir_all("snippets").unwrap();
         std::fs::write(
