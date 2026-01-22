@@ -7,7 +7,7 @@ use tower::ServiceExt;
 
 use crate::database::Role::Editor;
 use crate::database::User;
-use crate::{database, logger, server};
+use crate::{data, database, logger, server};
 
 use crate::test_framework::article_builder::BOUNDARY;
 use tokio::sync::OnceCell;
@@ -20,6 +20,7 @@ pub async fn setup_before_tests_once() {
     debug!("only once");
 
     logger::config();
+    data::init_trivial();
     database::initialize_in_memory_database().await;
 
     let r = server::start_router().await;

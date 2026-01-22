@@ -6,6 +6,7 @@ mod tests {
 
     #[test]
     fn test_veda_build_from_template() {
+        axiomatik_web::data::init_trivial();
         let template = VedaTemplate {
             date: "Wednesday, January 21, 2026".to_string(),
             weather: "5°C | Prague".to_string(),
