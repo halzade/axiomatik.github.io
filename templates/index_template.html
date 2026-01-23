@@ -38,7 +38,9 @@
         <h2>Nejsledovanější</h2>
         <div class="most-articles">
             <div class="arrow red-arrow-left"></div>
-            {{ articles_most|safe }}
+            {% for article in articles_most_read %}
+                {{ article|safe }}
+            {% endfor %}
             <div class="arrow red-arrow-right"></div>
         </div>
         <div class="little"></div>

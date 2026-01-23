@@ -1,4 +1,4 @@
-use crate::{data, database, external, library, name_days};
+use crate::{data, database, library};
 use askama::Template;
 use std::fs;
 
@@ -36,6 +36,8 @@ pub struct IndexData {
     pub second_article: IndexArticleTopData,
     pub third_article: IndexArticleTopData,
 
+    pub articles_most_read: Vec<IndexArticleMostRead>,
+
     pub z_republiky: IndexCategoryData,
     pub ze_zahranici: IndexCategoryData,
 }
@@ -48,6 +50,7 @@ pub struct IndexTemplate {
     pub name_day: String,
     pub title: String,
 
+    pub articles_most_read: Vec<IndexArticleMostRead>,
     pub main_article: IndexArticleTopMainTemplate,
     pub second_article: IndexArticleTopTemplate,
     pub third_article: IndexArticleTopTemplate,
@@ -71,11 +74,21 @@ pub struct IndexCategoryArticleTemplate {
     pub short_text: String,
 }
 
+#[derive(Template, Clone)]
+#[template(path = "index_article_most_read.html")]
+pub struct IndexArticleMostRead {
+    pub image_url_50: String,
+    pub title: String,
+    pub text: String,
+}
+
 #[derive(Template)]
 #[template(path = "index_article_top_main_template.html")]
 pub struct IndexArticleTopMainTemplate {
     pub url: String,
     pub title: String,
+    pub category_url: String,
+    pub category_name: String,
     pub is_exclusive: bool,
     pub short_text: String,
     pub image_path: String,
@@ -244,6 +257,16 @@ pub async fn render_new_index(data: Option<IndexData>) {
             });
         }
 
+        // TODO
+        let mut most_read_data = Vec::new();
+        for i in 1..=5 {
+            most_read_data.push(IndexArticleMostRead {
+                image_url_50: "images/placeholder_50.png".to_string(),
+                title: format!("Dummy Article {}", i),
+                text: "This is a dummy most read article.".to_string(),
+            });
+        }
+
         IndexData {
             date: data::date(),
             weather: data::weather(),
@@ -279,6 +302,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     .map(|a| a.short_text.clone())
                     .unwrap_or_default(),
             },
+            articles_most_read: most_read_data,
             z_republiky: IndexCategoryData {
                 category_name: "Z naší republiky".to_string(),
                 articles: z_republiky_data,
@@ -295,10 +319,13 @@ pub async fn render_new_index(data: Option<IndexData>) {
         weather: index_data.weather,
         name_day: index_data.name_day,
         title: "NEXO.cz".to_string(),
+        articles_most_read: index_data.articles_most_read,
 
         main_article: IndexArticleTopMainTemplate {
             url: index_data.main_article.url,
             title: index_data.main_article.title,
+            category_url: "".to_string(),
+            category_name: "".to_string(),
             is_exclusive: index_data.main_article.is_exclusive,
             short_text: index_data.main_article.short_text,
             image_path: index_data.main_article.image_path,
