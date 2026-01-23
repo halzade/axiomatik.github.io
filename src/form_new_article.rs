@@ -1,5 +1,5 @@
 use crate::server::AUTH_COOKIE;
-use crate::{data, database, external, form_index, library, name_days};
+use crate::{data, database, form_index, library};
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -250,6 +250,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                     title: "".to_string(),
                     short_text: "".to_string(),
                 },
+                articles_most_read: vec![],
                 z_republiky: form_index::IndexCategoryData {
                     category_name: "".to_string(),
                     articles: vec![],

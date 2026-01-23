@@ -22,10 +22,6 @@ body {
     white-space: nowrap;
 }
 
-form {
-    min-width: 420px;
-}
-
 h1, h2, h3, h4, h5, h6 {
     font-family: "Playfair Display", serif;
     margin-block-start: 0 !important;
@@ -64,9 +60,8 @@ h2 {
 .content {
     /*max-width: 1200px;*/
     margin: 20px auto;
-    padding: 0 20px;
     overflow: auto;
-    padding-bottom: 125px;
+    padding: 0 20px 125px;
     max-width: 2990px;
 }
 
@@ -104,10 +99,11 @@ h2 {
 
 .topbar .right {
     width: 380px;
+    text-align: right;
 }
 
 .topbar .right form {
-    min-width: 380px;
+    min-width: 350px;
 }
 
 .logo:hover,
@@ -174,10 +170,7 @@ article a:hover {
     margin-top: 10px;
     margin-left: 3px;
     margin-bottom: 2px;
-    padding-left: 8px;
-    padding-top: 1px;
-    padding-right: 8px;
-    padding-bottom: 1px;
+    padding: 1px 8px;
     background: black;
     color: white;
     font-size: 13px;
@@ -229,7 +222,7 @@ article a:hover {
 }
 
 .most {
-    margin-top: -45px;
+    margin-top: -30px;
     margin-bottom: 0;
 }
 
@@ -245,6 +238,7 @@ article a:hover {
 }
 
 .most-articles {
+    margin-top: 5px;
     vertical-align: middle;
 }
 
@@ -252,6 +246,9 @@ article a:hover {
     display: inline-block;
 }
 
+.most-articles table {
+    min-width: 280px;
+}
 
 .arrow {
     width: 18px;
@@ -300,6 +297,15 @@ article a:hover {
     display: block;
 }
 
+.card.first {
+    display: flex;
+    gap: 20px;
+}
+
+.article-right {
+    flex: 1;
+}
+
 .card a, .card img {
     display: inline-block;
 }
@@ -307,7 +313,6 @@ article a:hover {
 .article-page .breadcrumb {
     font-size: 12px;
     margin-bottom: 18px;
-    opacity: 0.7;
 }
 
 .article-page .breadcrumb a {
@@ -385,14 +390,13 @@ p {
 }
 
 blockquote {
-    margin: 28px 0;
     padding: 18px 24px;
     background: #FFFFFF;
     border-left: 4px solid #E0E0E0;
     font-style: italic;
     font-size: 1.15rem;
     line-height: 1.55;
-    margin-top: 0;
+    margin: 0 0 28px;
 }
 
 .related-section {

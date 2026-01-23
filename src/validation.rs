@@ -1,6 +1,7 @@
 use axum::extract::multipart::Field;
+use image::{DynamicImage, GenericImageView};
 use std::fs;
-use tracing::error;
+use tracing::{debug, error};
 use uuid::Uuid;
 
 pub const ALLOWED_EXTENSIONS_IMAGE: &[&str] = &["jpg", "jpeg", "png", "webp"];
@@ -87,6 +88,15 @@ pub async fn save_file_field(
     name: &str,
     allowed_extensions: &[&str],
 ) -> Option<String> {
+    save_file_field_with_name(field, name, allowed_extensions, None).await
+}
+
+pub async fn save_file_field_with_name(
+    field: Field<'_>,
+    name: &str,
+    allowed_extensions: &[&str],
+    custom_name: Option<String>,
+) -> Option<String> {
     if let Some(file_name) = field.file_name() {
         if let Err(e) = validate_input(file_name) {
             error!("Validation failed for file name '{}': {}", name, e);
@@ -101,7 +111,10 @@ pub async fn save_file_field(
 
             return match extension {
                 Some(ext) if allowed_extensions.contains(&ext.as_str()) => {
-                    let new_name = format!("{}.{}", Uuid::new_v4(), ext);
+                    let new_name = match custom_name {
+                        Some(cn) => format!("{}.{}", cn, ext),
+                        None => format!("{}.{}", Uuid::new_v4(), ext),
+                    };
                     let data = match field.bytes().await {
                         Ok(bytes) => bytes,
                         Err(e) => {
@@ -109,6 +122,42 @@ pub async fn save_file_field(
                             return None;
                         }
                     };
+
+                    if name == "image" {
+                        let img = match image::load_from_memory(&data) {
+                            Ok(img) => img,
+                            Err(e) => {
+                                error!("Failed to load image for field '{}': {}", name, e);
+                                return None;
+                            }
+                        };
+
+                        let (width, height) = img.dimensions();
+                        if width < 820 {
+                            error!("Image width {} is less than 820px", width);
+                            return None;
+                        }
+
+                        // Save 820xheight
+                        let img_820 =
+                            img.resize(820, height, image::imageops::FilterType::Lanczos3);
+                        let name_820 =
+                            format!("{}_image_820.{}", new_name.split('.').next().unwrap(), ext);
+                        if let Err(e) = img_820.save(format!("uploads/{}", name_820)) {
+                            error!("Failed to save image 820: {}", e);
+                            return None;
+                        }
+
+                        // Save 50x50
+                        save_resized_image(&img, 50, 50, &new_name, "image_50", &ext);
+                        // Save 288x211
+                        save_resized_image(&img, 288, 211, &new_name, "image_288", &ext);
+                        // Save 440x300
+                        save_resized_image(&img, 440, 300, &new_name, "image_440", &ext);
+
+                        return Some(name_820);
+                    }
+
                     if let Err(e) = fs::write(format!("uploads/{}", new_name), data) {
                         error!("Failed to write file for field '{}': {}", name, e);
                         return None;
@@ -123,6 +172,26 @@ pub async fn save_file_field(
         }
     }
     None
+}
+
+fn save_resized_image(
+    img: &DynamicImage,
+    w: u32,
+    h: u32,
+    base_name: &str,
+    suffix: &str,
+    ext: &str,
+) {
+    let resized = img.resize_to_fill(w, h, image::imageops::FilterType::Lanczos3);
+    let name = format!(
+        "{}_{}.{}",
+        base_name.split('.').next().unwrap(),
+        suffix,
+        ext
+    );
+    if let Err(e) = resized.save(format!("uploads/{}", name)) {
+        error!("Failed to save image {}: {}", suffix, e);
+    }
 }
 
 #[cfg(test)]
@@ -169,7 +238,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_extract_text_field() {
-
         logger::config();
         let body = ArticleBuilder::new().title("My Title").build().unwrap();
         let mut multipart = create_multipart_from_body(body).await;
@@ -181,7 +249,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_extract_text_field_required_fail() {
-
         logger::config();
         let body = ArticleBuilder::new().title("").build().unwrap();
         let mut multipart = create_multipart_from_body(body).await;
@@ -213,7 +280,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_save_file_field_invalid_extension() {
-
         logger::config();
         let body = ArticleBuilder::new()
             .image("test.exe", b"fake_data", "application/x-msdownload")

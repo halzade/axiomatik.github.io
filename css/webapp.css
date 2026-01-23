@@ -12,6 +12,7 @@ h1 {
 
 form {
     max-width: 600px;
+    min-width: 420px;
     width: 100%;
     background: #ffffff;
     padding: 30px;

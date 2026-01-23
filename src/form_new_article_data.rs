@@ -1,7 +1,7 @@
 use crate::form_new_article::ArticleData;
 use crate::validation::{
-    extract_text_field, save_file_field, ALLOWED_EXTENSIONS_AUDIO,
-    ALLOWED_EXTENSIONS_IMAGE, ALLOWED_EXTENSIONS_VIDEO,
+    extract_text_field, save_file_field, save_file_field_with_name,
+    ALLOWED_EXTENSIONS_AUDIO, ALLOWED_EXTENSIONS_IMAGE, ALLOWED_EXTENSIONS_VIDEO,
 };
 use axum::extract::Multipart;
 use tracing::{debug, error};
@@ -35,12 +35,16 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
         match field_name.as_str() {
             "is_main" => {
-                let val = extract_text_field(field, "is_main", false).await.unwrap_or_default();
+                let val = extract_text_field(field, "is_main", false)
+                    .await
+                    .unwrap_or_default();
                 is_main_o = Some(val == "on");
             }
 
             "is_exclusive" => {
-                let val = extract_text_field(field, "is_exclusive", false).await.unwrap_or_default();
+                let val = extract_text_field(field, "is_exclusive", false)
+                    .await
+                    .unwrap_or_default();
                 is_exclusive_o = Some(val == "on");
             }
 
@@ -108,8 +112,21 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
                 image_description_o = extract_text_field(field, "image_description", true).await;
             }
 
+            // TODO
             "image" => {
-                if let Some(path) = save_file_field(field, "image", ALLOWED_EXTENSIONS_IMAGE).await
+                let article_file_name = if let Some(ref title) = title_o {
+                    Some(crate::library::save_article_file_name(title))
+                } else {
+                    None
+                };
+
+                if let Some(path) = save_file_field_with_name(
+                    field,
+                    "image",
+                    ALLOWED_EXTENSIONS_IMAGE,
+                    article_file_name,
+                )
+                .await
                 {
                     image_path_o = Some(path);
                 }
@@ -181,7 +198,7 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             error!("ArticleData construction failed: category is None");
             None
         })?;
-        
+
         // TODO should not be treated differently then other non required fields
         let related_articles = related_articles_o.as_ref().cloned().unwrap_or_default();
 

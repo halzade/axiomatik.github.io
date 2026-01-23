@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="all">
-    <header class="topbar">
+    <header class="w8 topbar">
         <div class="topbar-content">
             <div class="left">
                 {{ date }}<br/>
@@ -22,22 +22,28 @@
             </div>
             <div class="right search">
                 <form action="/search" method="get" class="search-form">
-                    <button type="submit">
-                        <div class="search-icon" aria-label="Hledat"></div>
-                    </button>
-                    &nbsp<input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
+                    <button type="submit" class="search-button" aria-label="Hledat"><span class="search-icon"></span></button>&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
                 </form>
             </div>
         </div>
     </header>
-    <nav class="main-nav">
-        <a href="republika.html">republika</a>
-        <a href="zahranici.html">zahraničí</a>
-        <a href="technologie.html">technologie</a>
-        <a href="finance.html">finance</a>
-        <a href="veda.html">věda</a>
+    <nav class="w8 main-nav">
+        <a href="republika.html">REPUBLIKA</a>
+        <a href="zahranici.html">ZAHRANIČÍ</a>
+        <a href="technologie.html">TECHNOLOGIE</a>
+        <a href="finance.html">FINANCE</a>
+        <a href="veda.html">VĚDA</a>
     </nav>
-    <main class="content">
+    <div class="w8 most">
+        <h2>Nejsledovanější</h2>
+        <div class="most-articles">
+            <div class="arrow red-arrow-left"></div>
+            {{ articles_most|safe }}
+            <div class="arrow red-arrow-right"></div>
+        </div>
+        <div class="little"></div>
+    </div>
+    <main class="w8 content">
         <div class="top-sections">
             {{ main_article|safe }}
             <section class="right-articles">
@@ -56,7 +62,7 @@
     </main>
     <br/>
     <br/>
-    <footer>
+    <footer class="w8">
         <p>NEXO © 2026 </p>
     </footer>
 </div>
