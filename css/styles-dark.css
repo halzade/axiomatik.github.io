@@ -1,6 +1,6 @@
 body {
-    background: #333;
-    color: #e8e8e8;
+    background: #111111;
+    color: #f6f4ef;
 }
 
 a.logo, a.logo:hover {
@@ -8,7 +8,6 @@ a.logo, a.logo:hover {
 }
 
 .topbar {
-    background: black;
     border-bottom: 1px solid silver;
 }
 
@@ -17,7 +16,7 @@ a {
 }
 
 .article a, .main-article a, .article-grid a {
-    color: white;
+    color: #f6f4ef;
 }
 
 .main-nav a {
@@ -33,9 +32,7 @@ blockquote {
 }
 
 footer {
-    background: black;
     border-top: 1px solid silver;
-    border-bottom: 1px solid silver;
     color: #e8e8e8;
 }
 
@@ -64,7 +61,11 @@ button:hover, input[type="file"]::file-selector-button:hover {
     background-image: url("../images/weather-icon-17-light.png");
 }
 
-.main-article-text h1, article a h2, article a h3, .first-article a h2, .second-article a h2 {
+h1, h2, h3, h4, h5, h6 {
+    color: white;
+}
+
+a h1, a h2, a h3, a h4, a h5, a h6 {
     color: white;
 }
 

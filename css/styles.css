@@ -1,18 +1,25 @@
 html, body {
     height: 100%;
+    width: 100%;
+}
+
+.w8 {
+    width: 80%;
+    margin-left: 10%;
 }
 
 body {
     margin: 0;
     font-family: "Open Sans", serif;
-    /*background: #f6f4ef;*/
     background: #FFFFFF;
     color: #333333;
-    height: 100%;
-    width: 100%;
     line-height: 1.4;
     display: block;
     padding: 0;
+}
+
+.nowrap {
+    white-space: nowrap;
 }
 
 form {
@@ -21,6 +28,15 @@ form {
 
 h1, h2, h3, h4, h5, h6 {
     font-family: "Playfair Display", serif;
+    margin-block-start: 0 !important;
+    margin-block-end: 0 !important;
+    margin-bottom: 0 !important;
+    display: inline-block;
+}
+
+h2 {
+    font-size: 25px;
+    margin-bottom: 10px;
 }
 
 .container {
@@ -60,8 +76,6 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     align-items: flex-end;
     vertical-align: bottom;
-    /*background: #f2dfce;*/
-    background: #FFFFFF;
     padding: 12px 24px;
     border-bottom: 3px solid #E0E0E0;
     z-index: 10;
@@ -79,16 +93,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .topbar .left {
-    width: 320px;
+    width: 380px;
     text-align: left;
 }
 
 .topbar .center {
-    width: auto;
+    width: 200px;
+    text-align: center;
 }
 
 .topbar .right {
-    width: 320px;
+    width: 380px;
+}
+
+.topbar .right form {
+    min-width: 380px;
 }
 
 .logo:hover,
@@ -122,13 +141,6 @@ a {
 
 a h1, a h2, a h3, a h4, a h5, a h6 {
     color: #333333;
-}
-
-h1 {
-    margin-block-start: 0 !important;
-    margin-block-end: 0 !important;
-    margin-bottom: 0 !important;
-    display: inline-block;
 }
 
 
@@ -221,11 +233,6 @@ article a:hover {
     margin-bottom: 0;
 }
 
-h2, h3 {
-    margin-top: 10px;
-    margin-bottom: 5px;
-}
-
 .most table {
     display: inline-block;
 }
@@ -278,15 +285,6 @@ h2, h3 {
     box-sizing: border-box;
 }
 
-.top-sections h1, .top-sections h2 {
-    margin-top: 0;
-}
-
-.main-article-text h1 {
-    font-size: 25px;
-    margin-bottom: 10px;
-}
-
 .main-article-text p, .category-header p {
     font-size: 15px;
     color: #444;
@@ -300,11 +298,6 @@ h2, h3 {
 .card, .article-grid article {
     padding: 20px;
     display: block;
-}
-
-.card h2, .article-grid article {
-    font-size: 12px;
-    margin-bottom: 10px;
 }
 
 .card a, .card img {
@@ -378,12 +371,6 @@ p {
     flex: 1;
 }
 
-@media (max-width: 768px) {
-    .split-layout {
-        flex-direction: column;
-    }
-}
-
 .category-header {
     background: black;
     padding-left: 10px;
@@ -439,9 +426,7 @@ footer {
     padding-top: 30px;
     padding-bottom: 10px;
     text-align: center;
-    background: #FFFFFF;
     border-top: 1px solid #E0E0E0;
-    border-bottom: 1px solid #E0E0E0;
     height: 50px;
     width: 100%;
     vertical-align: bottom;
@@ -468,8 +453,6 @@ div.all {
     width: 100%;
     position: relative;
     min-height: 100%;
-    padding-left: 40px;
-    padding-right: 40px;
 }
 
 .search button, .search input {

@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="all">
-    <header class="topbar">
+    <header class="w8 topbar">
         <div class="topbar-content">
             <div class="left">
                 Středa 21. ledna 2026<br/>
@@ -22,19 +22,19 @@
             </div>
             <div class="right search">
                 <form action="/search" method="get" class="search-form">
-                    <button type="submit"><div class="search-icon" aria-label="Hledat"></div></button>&nbsp<input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
+                    <button type="submit" class="search-button" aria-label="Hledat"><span class="search-icon"></span></button>&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
                 </form>
             </div>
         </div>
     </header>
-    <nav class="main-nav">
+    <nav class="w8 main-nav">
         <a href="republika.html">REPUBLIKA</a>
         <a href="zahranici.html">ZAHRANIČÍ</a>
         <a href="technologie.html">TECHNOLOGIE</a>
         <a href="finance.html">FINANCE</a>
         <a href="veda.html">VĚDA</a>
     </nav>
-    <div class="most">
+    <div class="w8 most">
         <h2>Nejsledovanější</h2>
         <div class="most-articles">
             <div class="arrow red-arrow-left"></div>
@@ -44,7 +44,7 @@
                         <div class="most-image"></div>
                     </td>
                     <td>
-                        <h3>Další článke</h3><br/>
+                        <h3>Další články</h3><br/>
                         <p>Text dalšího článku.</p>
                     </td>
                 </tr>
@@ -55,7 +55,7 @@
                         <div class="most-image"></div>
                     </td>
                     <td>
-                        <h3>Další článke</h3><br/>
+                        <h3>Další články</h3><br/>
                         <p>Text dalšího článku.</p>
                     </td>
                 </tr>
@@ -66,7 +66,7 @@
                         <div class="most-image"></div>
                     </td>
                     <td>
-                        <h3>Další článke</h3><br/>
+                        <h3>Další články</h3><br/>
                         <p>Text dalšího článku.</p>
                     </td>
                 </tr>
@@ -75,19 +75,23 @@
         </div>
         <div class="little"></div>
     </div>
-    <main class="content">
+    <main class="w8 content">
         <div class="top-sections">
             <section class="main-article">
                 <div class="main-article-text">
-                    <a href="jeden-tisic-dnu.html"><h1>
-                        <span class="red">EXKLUZIVNĚ:</span>
-                        Jeden tisíc dnů</h1></a>
+                    <a href="jeden-tisic-dnu.html">
+                        <h2>
+                            <span class="red">EXKLUZIVNĚ:</span>
+                            Jeden tisíc dnů lorem ipsum
+                        </h2>
+                    </a>
                     <a class="category" href="republika.html">Republika</a>
                     <a href="jeden-tisic-dnu.html">
                         <p>
                             Německé volby roku 2029 otřesou celou Evropou
                         </p>
-                        <p> Jen tak málo nás dělí od Německého fašismu za Českými hranicemi.<br>
+                        <p>
+                            Jen tak málo nás dělí od Německého fašismu za Českými hranicemi.<br>
                             Již dnes, by pro politickou stranu AfD hlasovala většina
                             Německých voličů,<br>
                             zatímco situace v Říši se nezlepšuje...
@@ -95,7 +99,6 @@
                     </a>
                 </div>
                 <a href="jeden-tisic-dnu.html"><img src="images/fasces-white.jpg" alt="Německé volby 2029"></a>
-
             </section>
             <section class="right-articles">
                 <div class="first-article">
@@ -112,54 +115,56 @@
         <div class="split-layout">
             <div class="split-column">
                 <header class="category-header">
-                    <div class="white-arrow"></div>&nbsp;&nbsp;<h1>Z NAší REPUBLIKY</h1>
+                    <div class="white-arrow"></div>&nbsp;&nbsp;<h2>Z NAší REPUBLIKY</h2>
                 </header>
                 <section class="article-grid">
                     <article class="card first">
-                        <a href=""><img src="images/placeholder.png" alt="image_description"></a>
-                        <a href=""><h2>Univerzita Karlova končí</h2></a><br/>
-                        <a class="category" href="republika.html">Republika</a><br/>
-                        <a href="">
-                            <p>
-                                Lorem Ipsum Dolor
-                            </p>
-                        </a>
+                        <a href="#"><img src="images/placeholder.png" alt="image_description"></a>
+                        <div class="aricle-right">
+                            <a href="#"><h2>Univerzita Karlova končí</h2></a><br/>
+                            <a class="category" href="republika.html">Republika</a><br/>
+                            <a href="#">
+                                <p>
+                                    Lorem Ipsum Dolor
+                                </p>
+                            </a>
+                        </div>
                     </article>
                     <article class="card">
-                        <a href=""><h2>Univerzita Karlova končí</h2></a>
-                        <a href=""><p>...</p></a>
-                    </article>
-
-                    <article class="card">
-                        <a href=""><h2>Ruská kontrarevoluce už není co bývala</h2></a>
-                        <a href=""><p>...</p></a>
+                        <a href="#"><h2>Univerzita Karlova končí</h2></a>
+                        <a href="#"><p>...</p></a>
                     </article>
 
                     <article class="card">
-                        <a href=""><h2>ECB pro Českou Lípu</h2></a>
-                        <a href=""><p>...</p></a>
+                        <a href="#"><h2>Ruská kontrarevoluce už není co bývala</h2></a>
+                        <a href="#"><p>...</p></a>
                     </article>
 
                     <article class="card">
-                        <a href=""><h2>Prezident bude asi Slovák</h2></a>
-                        <a href=""><p>...</p></a>
+                        <a href="#"><h2>ECB pro Českou Lípu</h2></a>
+                        <a href="#"><p>...</p></a>
                     </article>
 
                     <article class="card">
-                        <a href=""><h2>Nejdůležitější událost sametové Revoluce se stala v Jižinách</h2></a>
-                        <a href=""><p>...</p></a>
+                        <a href="#"><h2>Prezident bude asi Slovák</h2></a>
+                        <a href="#"><p>...</p></a>
+                    </article>
+
+                    <article class="card">
+                        <a href="#"><h2>Nejdůležitější událost sametové Revoluce se stala v Jižinách</h2></a>
+                        <a href="#"><p>...</p></a>
                     </article>
                 </section>
             </div>
             <div class="split-column">
                 <header class="category-header">
-                    <div class="white-arrow"></div>&nbsp;&nbsp;<h1>ZE ZAHRANIČí</h1>
+                    <div class="white-arrow"></div>&nbsp;&nbsp;<h2>ZE ZAHRANIČí</h2>
                 </header>
 
                 <section class="article-grid">
                     <article class="card">
-                        <a href=""><h2>Němci jsou noví Židi</h2></a>
-                        <a href=""><p>...</p></a>
+                        <a href="#"><h2>Němci jsou noví Židi</h2></a>
+                        <a href="#"><p>...</p></a>
                     </article>
                 </section>
             </div>
@@ -167,7 +172,7 @@
     </main>
     <br/>
     <br/>
-    <footer>
+    <footer class="w8">
         <p>NEXO © 2026 </p>
     </footer>
 </div>
