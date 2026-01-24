@@ -10,69 +10,109 @@
 </head>
 <body>
 <div class="all">
-    <header class="topbar">
+    <header class="w8 topbar">
         <div class="topbar-content">
             <div class="left">
                 {{ date }}<br/>
                 <div class="weather"></div>
                 {{ weather }}<br/>
-                {{ name_day }}
+                Svátek má {{ name_day }}
             </div>
             <div class="center">
                 <a href="index.html" class="logo">NE<span class="b">X</span>O</a>
             </div>
-            <div class="right">
-
+            <div class="right search">
+                <form action="/search" method="get" class="search-form">
+                    <button type="submit" class="search-button" aria-label="Hledat"><span class="search-icon"></span></button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
+                </form>
             </div>
         </div>
     </header>
-    <nav class="main-nav">
-        <a href="republika.html">republika</a>
-        <a href="zahranici.html">zahraničí</a>
-        <a href="technologie.html">technologie</a>
-        <a href="finance.html">finance</a>
-        <a href="veda.html">věda</a>
+    <nav class="w8 main-nav">
+        <a href="republika.html">REPUBLIKA</a>
+        <a href="zahranici.html">ZAHRANIČÍ</a>
+        <a href="technologie.html">TECHNOLOGIE</a>
+        <a href="finance.html">FINANCE</a>
+        <a href="veda.html">VĚDA</a>
     </nav>
-    <main class="content">
+    <div class="w8 most">
+        <h2>Nejsledovanější</h2>
+        <div class="most-articles">
+            <div class="arrow red-arrow-left"></div>
+            {% for article in articles_most_read %}
+                {{ article|safe }}
+            {% endfor %}
+            <div class="arrow red-arrow-right right-click-arrow"></div>
+        </div>
+    </div>
+    <div class="little"></div>
+    <main class="w8 content">
         <nav class="breadcrumb">
-            <a href="/">domů</a> /
-            <a href="{{ category }}.html">{{ category_display }}</a> /
+            <a href="index.html">domů</a> /
+            <a href="{{ category }}.html">{{ category_display|lower }}</a> /
             {{ title }}
         </nav>
+
         <article class="article">
             <h1 class="article-title">{{ title }}</h1>
             <div class="article-meta">
                 <span>{{ author }} • {{ date }}</span>
             </div>
+
             <figure class="article-figure">
                 <img src="uploads/{{ image_path }}" alt="{{ title }}">
-                <figcaption>{{ image_description }}</figcaption>
+                <figcaption>
+                    {{ image_description }}
+                </figcaption>
             </figure>
-
             {% if audio_path.is_some() %}
             <div class="container">
                 <audio controls style="width: 100%;">
-                    <source src="/uploads/{{ audio_path.as_ref().unwrap() }}" type="audio/mpeg">
+                    <source src="uploads/{{ audio_path.as_ref().unwrap() }}" type="audio/mpeg">
                     Váš prohlížeč nepodporuje zvukový prvek (audio).
                 </audio>
             </div>
             {% endif %}
 
-            {{ text|safe }}
+            <div class="container">
+                {{ text|safe }}
+            </div>
+
             {% if video_path.is_some() %}
             <div class="container">
                 <div class="video-holder">
                     <video muted playsinline controls class="video">
-                        <source src="/uploads/{{ video_path.as_ref().unwrap() }}" type="video/mp4">
+                        <source src="uploads/{{ video_path.as_ref().unwrap() }}" type="video/mp4">
                     </video>
                 </div>
             </div>
             {% endif %}
         </article>
-        <section class="related-section" {% if related_articles.is_empty() %} style="display: none;" {% endif %}>
-            <h2>související články</h2>
-            <div class="article-grid">
-                {{ related_articles|safe }}
+        <section class="related-section">
+            <h2>Související články</h2>
+
+            <div class="split-layout border-bottom">
+                <div class="split-column r20">
+                    <section class="article-grid text">
+                        {% for article in related_articles %}
+                            {% if loop.index0 % 2 == 0 %}
+                                {{ article|safe }}
+                            {% endif %}
+                        {% endfor %}
+                    </section>
+                </div>
+                <div class="split-column">
+                    <section class="article-grid text">
+                        {% for article in related_articles %}
+                            {% if loop.index0 % 2 != 0 %}
+                                {{ article|safe }}
+                            {% endif %}
+                        {% endfor %}
+                        <div class="right">
+                            <a class="button" href="index.html">K přehledu zpráv</a>
+                        </div>
+                    </section>
+                </div>
             </div>
         </section>
     </main>

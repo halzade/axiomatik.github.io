@@ -37,9 +37,10 @@ pub struct ArticleTemplate {
     pub audio_path: Option<String>,
     pub category: String,
     pub category_display: String,
-    pub related_articles: String,
+    pub related_articles: Vec<form_index::IndexCategoryArticleTemplate>,
     pub weather: String,
     pub name_day: String,
+    pub articles_most_read: Vec<form_index::IndexArticleMostRead>,
 }
 
 #[derive(Template)]
@@ -113,7 +114,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             let formatted_weather = data::weather();
             let formatted_name_day = data::name_day();
 
-            let related_articles_vec = &article_data
+            let related_articles_vec: Vec<String> = article_data
                 .related_articles
                 .lines()
                 .map(str::trim)
@@ -121,7 +122,14 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 .map(String::from)
                 .collect();
 
-            let related_articles = library::read_related_articles(&related_articles_vec);
+            let mut most_read_data = Vec::new();
+            for i in 1..=5 {
+                most_read_data.push(form_index::IndexArticleMostRead {
+                    image_url_50: "images/placeholder_50.png".to_string(),
+                    title: format!("Dummy Article {}", i),
+                    text: "This is a dummy most read article.".to_string(),
+                });
+            }
 
             let article_template = ArticleTemplate {
                 title: article_data.title.clone(),
@@ -136,7 +144,8 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 date: formatted_date.clone(),
                 weather: formatted_weather.clone(),
                 name_day: formatted_name_day.clone(),
-                related_articles,
+                related_articles: vec![], // TODO
+                articles_most_read: most_read_data,
             };
 
             let html_content = article_template.render().unwrap();
@@ -222,7 +231,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 fs::write(&main_cat_filename, content).unwrap();
             }
 
-            for path in related_articles_vec {
+            for path in &related_articles_vec {
                 if let Ok(mut content) = fs::read_to_string(path) {
                     if content.contains("") {
                         content = content.replace("", &format!("\n{}", snippet));
