@@ -1,4 +1,4 @@
-use crate::form_index::IndexCategoryArticleTemplate;
+use crate::form_index::{IndexArticleMostRead, IndexCategoryArticleTemplate};
 use crate::{data, database, library};
 use askama::Template;
 
@@ -24,6 +24,7 @@ pub struct FinanceTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub articles_most_read: Vec<IndexArticleMostRead>,
     pub articles: Vec<IndexCategoryArticleTemplate>,
 }
 
@@ -33,6 +34,7 @@ pub struct RepublikaTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub articles_most_read: Vec<IndexArticleMostRead>,
     pub articles: Vec<IndexCategoryArticleTemplate>,
 }
 
@@ -42,6 +44,7 @@ pub struct TechnologieTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub articles_most_read: Vec<IndexArticleMostRead>,
     pub articles: Vec<IndexCategoryArticleTemplate>,
 }
 
@@ -51,6 +54,7 @@ pub struct VedaTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub articles_most_read: Vec<IndexArticleMostRead>,
     pub articles: Vec<IndexCategoryArticleTemplate>,
 }
 
@@ -60,6 +64,7 @@ pub struct ZahraniciTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub articles_most_read: Vec<IndexArticleMostRead>,
     pub articles: Vec<IndexCategoryArticleTemplate>,
 }
 
@@ -106,18 +111,29 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             url: a.url,
             title: a.title,
             short_text: a.short_text,
-            is_first: i == 0,
+            is_first: i < 2, // First two articles are "first"
             image_path: a.image_path,
             category_name: category_data.category_name.clone(),
             category_url: category_data.category_url.clone(),
         })
         .collect();
 
+    // TODO: fetch actual most read articles
+    let mut most_read_data = Vec::new();
+    for i in 1..=5 {
+        most_read_data.push(IndexArticleMostRead {
+            image_url_50: "images/placeholder_50.png".to_string(),
+            title: format!("Dummy Article {}", i),
+            text: "This is a dummy most read article.".to_string(),
+        });
+    }
+
     let rendered = match category {
         "finance" => FinanceTemplate {
             date: category_data.date,
             weather: category_data.weather,
             name_day: category_data.name_day,
+            articles_most_read: most_read_data,
             articles: articles_template,
         }
         .render()
@@ -126,6 +142,7 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             date: category_data.date,
             weather: category_data.weather,
             name_day: category_data.name_day,
+            articles_most_read: most_read_data,
             articles: articles_template,
         }
         .render()
@@ -134,6 +151,7 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             date: category_data.date,
             weather: category_data.weather,
             name_day: category_data.name_day,
+            articles_most_read: most_read_data,
             articles: articles_template,
         }
         .render()
@@ -142,6 +160,7 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             date: category_data.date,
             weather: category_data.weather,
             name_day: category_data.name_day,
+            articles_most_read: most_read_data,
             articles: articles_template,
         }
         .render()
@@ -150,6 +169,7 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             date: category_data.date,
             weather: category_data.weather,
             name_day: category_data.name_day,
+            articles_most_read: most_read_data,
             articles: articles_template,
         }
         .render()

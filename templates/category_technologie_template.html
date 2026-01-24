@@ -9,34 +9,43 @@
 </head>
 <body>
 <div class="all">
-    <header class="topbar">
+    <header class="w8 topbar">
         <div class="topbar-content">
             <div class="left">
                 {{ date }}<br/>
                 <div class="weather"></div>
                 {{ weather }}<br/>
-                {{ name_day }}
+                Svátek má {{ name_day }}
             </div>
             <div class="center">
                 <a href="index.html" class="logo">NE<span class="b">X</span>O</a>
             </div>
             <div class="right search">
                 <form action="/search" method="get" class="search-form">
-                    <input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
-                    <button type="submit"><div class="search-icon" aria-label="Hledat"></div></button>
+                    <button type="submit" class="search-button" aria-label="Hledat"><span class="search-icon"></span></button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
                 </form>
             </div>
         </div>
     </header>
-    <nav class="main-nav">
-        <a href="republika.html">republika</a>
-        <a href="zahranici.html">zahraničí</a>
-        <a href="technologie.html">technologie</a>
-        <a href="finance.html">finance</a>
-        <a href="veda.html">věda</a>
+    <nav class="w8 main-nav">
+        <a href="republika.html">REPUBLIKA</a>
+        <a href="zahranici.html">ZAHRANIČÍ</a>
+        <a href="technologie.html">TECHNOLOGIE</a>
+        <a href="finance.html">FINANCE</a>
+        <a href="veda.html">VĚDA</a>
     </nav>
-
-    <main class="content category-page">
+    <div class="w8 most">
+        <h2>Nejsledovanější</h2>
+        <div class="most-articles">
+            <div class="arrow red-arrow-left"></div>
+            {% for article in articles_most_read %}
+                {{ article|safe }}
+            {% endfor %}
+            <div class="arrow red-arrow-right right-click-arrow"></div>
+        </div>
+    </div>
+    <div class="little"></div>
+    <main class="w8 content category-page">
         <header class="category-header">
             <h1>Ze světa technologií</h1>
             <p>
@@ -46,11 +55,29 @@
             </p>
         </header>
 
-        <section class="article-grid">
-            {% for article in articles %}
-                {{ article|safe }}
-            {% endfor %}
-        </section>
+        <div class="split-layout border-bottom">
+            <div class="split-column r20">
+                <section class="article-grid text">
+                    {% for article in articles %}
+                        {% if loop.index0 < 2 %}
+                            {{ article|safe }}
+                        {% endif %}
+                    {% endfor %}
+                </section>
+            </div>
+            <div class="split-column">
+                <section class="article-grid text">
+                    {% for article in articles %}
+                        {% if loop.index0 >= 2 %}
+                            {{ article|safe }}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="right">
+                        <a class="button" href="index.html">K přehledu zpráv</a>
+                    </div>
+                </section>
+            </div>
+        </div>
     </main>
     <footer>
         <p>NEXO © 2026</p>

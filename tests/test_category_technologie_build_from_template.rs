@@ -11,6 +11,7 @@ mod tests {
             date: "Wednesday, January 21, 2026".to_string(),
             weather: "5°C | Prague".to_string(),
             name_day: "Bohdana".to_string(),
+            articles_most_read: vec![],
             articles: vec![IndexCategoryArticleTemplate {
                 url: "tech-1.html".to_string(),
                 title: "Technology Article 1".to_string(),
