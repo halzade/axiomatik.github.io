@@ -72,9 +72,17 @@ a h1, a h2, a h3, a h4, a h5, a h6 {
     background-image: url('../images/search-50-white.png');
 }
 
+.category {
+    background: #f6f4ef;
+}
+
 .black {
-    background: white;
+    background: red;
     color: black;
+}
+
+.main-article-text p, .category-header p, .text p, article p {
+    color: #f6f4ef;
 }
 
 .always-white, .always-white:focus, .always-white:visited {

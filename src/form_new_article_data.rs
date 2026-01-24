@@ -1,6 +1,6 @@
 use crate::form_new_article::ArticleData;
 use crate::validation::{
-    extract_text_field, save_file_field, save_file_field_with_name,
+    extract_text_field, save_file_field_with_name,
     ALLOWED_EXTENSIONS_AUDIO, ALLOWED_EXTENSIONS_IMAGE, ALLOWED_EXTENSIONS_VIDEO,
 };
 use axum::extract::Multipart;

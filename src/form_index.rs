@@ -52,7 +52,6 @@ pub struct IndexTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
-    pub title: String,
 
     pub articles_most_read: Vec<IndexArticleMostRead>,
     pub main_article: IndexArticleTopMainTemplate,
@@ -343,14 +342,13 @@ pub async fn render_new_index(data: Option<IndexData>) {
         date: index_data.date,
         weather: index_data.weather,
         name_day: index_data.name_day,
-        title: "NEXO.cz".to_string(),
         articles_most_read: index_data.articles_most_read,
 
         main_article: IndexArticleTopMainTemplate {
             url: index_data.main_article.url,
             title: index_data.main_article.title,
-            category_url: "".to_string(),
-            category_name: "".to_string(),
+            category_url: "republika.html".to_string(),
+            category_name: "Republika".to_string(),
             is_exclusive: index_data.main_article.is_exclusive,
             short_text: index_data.main_article.short_text,
             image_path: index_data.main_article.image_path,
@@ -409,5 +407,5 @@ pub async fn render_new_index(data: Option<IndexData>) {
     };
 
     let html_content = index_template.render().unwrap();
-    fs::write("index.html", html_content).unwrap();
+    fs::write("test-index.html", html_content).unwrap();
 }

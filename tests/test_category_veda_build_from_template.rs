@@ -15,6 +15,10 @@ mod tests {
                 url: "veda-1.html".to_string(),
                 title: "Veda Article 1".to_string(),
                 short_text: "Short text for veda 1".to_string(),
+                is_first: true,
+                image_path: "veda.jpg".to_string(),
+                category_name: "Věda".to_string(),
+                category_url: "veda.html".to_string(),
             }],
         };
 

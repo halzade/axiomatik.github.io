@@ -64,7 +64,6 @@ mod tests {
             date: index_data.date,
             weather: index_data.weather,
             name_day: index_data.name_day,
-            title: "NEXO.cz".to_string(),
 
             articles_most_read: vec![],
 
@@ -143,6 +142,7 @@ mod tests {
         // HTML structure verification (un-escaped)
         assert!(saved_content.contains("<section class=\"main-article\">"));
         assert!(saved_content.contains("<div class=\"main-article-text\">"));
+
         // Cleanup
         let _ = std::fs::remove_file("test-index.html");
     }

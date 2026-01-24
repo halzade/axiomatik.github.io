@@ -15,6 +15,10 @@ mod tests {
                 url: "finance-1.html".to_string(),
                 title: "Finance Article 1".to_string(),
                 short_text: "Short text for finance 1".to_string(),
+                is_first: true,
+                image_path: "finance.jpg".to_string(),
+                category_name: "Finance".to_string(),
+                category_url: "finance.html".to_string(),
             }],
         };
 
