@@ -45,7 +45,6 @@ button, input[type="file"]::file-selector-button {
     background-color: black;
     color: red;
     border: 1px solid red;
-    padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
     font-family: inherit;
