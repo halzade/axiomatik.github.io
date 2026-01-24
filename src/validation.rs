@@ -1,7 +1,7 @@
 use axum::extract::multipart::Field;
 use image::{DynamicImage, GenericImageView};
 use std::fs;
-use tracing::{debug, error};
+use tracing::{error};
 use uuid::Uuid;
 
 pub const ALLOWED_EXTENSIONS_IMAGE: &[&str] = &["jpg", "jpeg", "png", "webp"];
