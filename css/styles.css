@@ -175,7 +175,7 @@ article a:hover {
 
 
 .breadcrumb a {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .main-nav {
@@ -184,7 +184,7 @@ article a:hover {
 }
 
 .main-nav a:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .main-article-text a.category, .main-nav a, .split-column a.category {

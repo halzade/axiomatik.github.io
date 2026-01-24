@@ -46,6 +46,36 @@ pub struct IndexData {
     pub ze_zahranici: IndexCategoryData,
 }
 
+pub struct NewsData {
+    pub date: String,
+    pub weather: String,
+    pub name_day: String,
+
+    pub articles_most_read: Vec<IndexArticleMostRead>,
+
+    pub z_republiky: IndexCategoryData,
+    pub ze_zahranici: IndexCategoryData,
+    pub technologie: IndexCategoryData,
+    pub veda: IndexCategoryData,
+    pub finance: IndexCategoryData,
+}
+
+#[derive(Template)]
+#[template(path = "news_template.html")]
+pub struct NewsTemplate {
+    pub date: String,
+    pub weather: String,
+    pub name_day: String,
+
+    pub articles_most_read: Vec<IndexArticleMostRead>,
+
+    pub z_republiky: IndexCategoryTemplate,
+    pub ze_zahranici: IndexCategoryTemplate,
+    pub technologie: IndexCategoryTemplate,
+    pub veda: IndexCategoryTemplate,
+    pub finance: IndexCategoryTemplate,
+}
+
 #[derive(Template)]
 #[template(path = "index_template.html")]
 pub struct IndexTemplate {

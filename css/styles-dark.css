@@ -1,5 +1,5 @@
 body {
-    background: #111111;
+    background: #252749;
     color: #f6f4ef;
 }
 
@@ -7,8 +7,13 @@ a.logo, a.logo:hover {
     color: white !important;
 }
 
+.logo .b {
+    /*color: #037afa;*/
+    color: red;
+}
+
 .topbar {
-    border-bottom: 1px solid silver;
+    border-bottom: 3px solid f6f4ef;
 }
 
 a {
@@ -20,7 +25,8 @@ a {
 }
 
 .main-nav a {
-    color: red;
+    color: black;
+    background: #f6f4ef;
 }
 
 .main-article-text p, .category-header p {
@@ -75,9 +81,9 @@ a h1, a h2, a h3, a h4, a h5, a h6 {
     background: #f6f4ef;
 }
 
-.black {
-    background: red;
-    color: black;
+.black, .black h2 {
+    background: #f6f4ef;
+    color: black !important;
 }
 
 .main-article-text p, .category-header p, .text p, article p {
