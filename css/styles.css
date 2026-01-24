@@ -43,6 +43,11 @@ h1, h2, h3, h4, h5, h6 {
     border-right: 3px solid #E0E0E0;
 }
 
+.border-bottom {
+    border-bottom: 3px solid #E0E0E0;
+    padding-bottom: 20px;
+}
+
 h2 {
     font-size: 25px;
     margin-bottom: 10px;
@@ -259,6 +264,7 @@ article a:hover {
 .most-articles {
     margin-top: 7px;
     vertical-align: middle;
+    position: relative;
 }
 
 .most-articles * {
@@ -393,6 +399,9 @@ p {
 
 .split-column {
     flex: 1;
+}
+
+.r20 {
     padding-right: 20px;
 }
 
@@ -457,7 +466,6 @@ footer {
     padding-top: 30px;
     padding-bottom: 10px;
     text-align: center;
-    border-top: 1px solid #E0E0E0;
     height: 50px;
     width: 100%;
     vertical-align: bottom;
@@ -540,4 +548,10 @@ a.button {
     padding: 1px 4px;
     text-decoration: none;
     display: inline-block;
+}
+
+.right-click-arrow {
+    position: absolute;
+    right: 0;
+    bottom: 34px;
 }
