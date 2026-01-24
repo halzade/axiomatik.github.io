@@ -1,4 +1,19 @@
+{% if is_first %}
+<article class="card first">
+    <a href="{{ url }}"><img src="uploads/{{ image_path }}" alt="{{ title }}"></a>
+    <div class="article-right">
+        <a href="{{ url }}"><h2>{{ title }}</h2></a><br/>
+        <a class="category always-white" href="{{ category_url }}">{{ category_name }}</a><br/>
+        <a href="{{ url }}">
+            <p>{{ short_text }}</p>
+        </a>
+    </div>
+</article>
+{% else %}
 <article class="card">
     <a href="{{ url }}"><h2>{{ title }}</h2></a>
-    <a href="{{ url }}"><p>{{ short_text }}</p></a>
+    <a href="{{ url }}">
+        <p>{{ short_text }}</p>
+    </a>
 </article>
+{% endif %}

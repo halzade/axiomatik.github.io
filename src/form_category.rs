@@ -6,12 +6,15 @@ pub struct CategoryArticleData {
     pub url: String,
     pub title: String,
     pub short_text: String,
+    pub image_path: String,
 }
 
 pub struct CategoryData {
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub category_name: String,
+    pub category_url: String,
     pub articles: Vec<CategoryArticleData>,
 }
 
@@ -81,6 +84,7 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
                 url: a.article_file_name.clone(),
                 title: a.title.clone(),
                 short_text: a.short_text.clone(),
+                image_path: a.image_url.clone(),
             })
             .collect();
 
@@ -88,6 +92,8 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             date: data::date(),
             weather: data::weather(),
             name_day: data::name_day(),
+            category_name: category.to_string(),
+            category_url: format!("{}.html", category),
             articles: articles_data,
         }
     };
@@ -95,10 +101,15 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
     let articles_template: Vec<IndexCategoryArticleTemplate> = category_data
         .articles
         .into_iter()
-        .map(|a| IndexCategoryArticleTemplate {
+        .enumerate()
+        .map(|(i, a)| IndexCategoryArticleTemplate {
             url: a.url,
             title: a.title,
             short_text: a.short_text,
+            is_first: i == 0,
+            image_path: a.image_path,
+            category_name: category_data.category_name.clone(),
+            category_url: category_data.category_url.clone(),
         })
         .collect();
 

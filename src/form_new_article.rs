@@ -64,6 +64,10 @@ pub struct CategoryArticleTemplate {
     pub url: String,
     pub title: String,
     pub short_text: String,
+    pub is_first: bool,
+    pub image_path: String,
+    pub category_name: String,
+    pub category_url: String,
 }
 
 pub async fn show_form(jar: CookieJar) -> Response {
@@ -157,6 +161,10 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 url: file_path.clone(),
                 title: article_data.title.clone(),
                 short_text: article_data.short_text_processed.clone(),
+                is_first: false,
+                image_path: article_data.image_path.clone(),
+                category_name: article_data.category_display.clone(),
+                category_url: format!("{}.html", article_data.category),
             }
             .render()
             .unwrap();
@@ -247,10 +255,12 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 articles_most_read: vec![],
                 z_republiky: form_index::IndexCategoryData {
                     category_name: "".to_string(),
+                    category_url: "".to_string(),
                     articles: vec![],
                 },
                 ze_zahranici: form_index::IndexCategoryData {
                     category_name: "".to_string(),
+                    category_url: "".to_string(),
                     articles: vec![],
                 },
             };

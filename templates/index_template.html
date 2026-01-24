@@ -15,14 +15,14 @@
                 {{ date }}<br/>
                 <div class="weather"></div>
                 {{ weather }}<br/>
-                {{ name_day }}
+                Svátek má {{ name_day }}
             </div>
             <div class="center">
                 <a href="index.html" class="logo">NE<span class="b">X</span>O</a>
             </div>
             <div class="right search">
                 <form action="/search" method="get" class="search-form">
-                    <button type="submit" class="search-button" aria-label="Hledat"><span class="search-icon"></span></button>&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
+                    <button type="submit" class="search-button" aria-label="Hledat"><span class="search-icon"></span></button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
                 </form>
             </div>
         </div>
@@ -41,29 +41,31 @@
             {% for article in articles_most_read %}
                 {{ article|safe }}
             {% endfor %}
-            <div class="arrow red-arrow-right"></div>
+            <div class="arrow red-arrow-right right-click-arrow"></div>
         </div>
-        <div class="little"></div>
     </div>
+    <div class="little"></div>
     <main class="w8 content">
         <div class="top-sections">
             {{ main_article|safe }}
             <section class="right-articles">
-                <div class="first-article">
+                <div class="first-article border-right text">
                     {{ second_article|safe }}
                 </div>
-                <div class="second-article">
+
+                <div class="second-article relative text">
                     {{ third_article|safe }}
+                    <div class="right bottom">
+                        <a class="button" href="">Více zpráv</a>
+                    </div>
                 </div>
             </section>
         </div>
-        <div class="split-layout">
+        <div class="split-layout border-bottom">
             {{ z_republiky|safe }}
             {{ ze_zahranici|safe }}
         </div>
     </main>
-    <br/>
-    <br/>
     <footer class="w8">
         <p>NEXO © 2026 </p>
     </footer>

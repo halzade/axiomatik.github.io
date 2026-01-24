@@ -36,18 +36,26 @@ mod tests {
             articles_most_read: vec![],
             z_republiky: IndexCategoryData {
                 category_name: "Z naší republiky".to_string(),
+                category_url: "republika.html".to_string(),
                 articles: vec![IndexCategoryArticleData {
                     url: "rep-1".to_string(),
                     title: "Rep 1".to_string(),
                     short_text: "Rep 1 text".to_string(),
+                    image_path: "rep1.jpg".to_string(),
+                    category_name: "Republika".to_string(),
+                    category_url: "republika.html".to_string(),
                 }],
             },
             ze_zahranici: IndexCategoryData {
                 category_name: "Ze zahraničí".to_string(),
+                category_url: "zahranici.html".to_string(),
                 articles: vec![IndexCategoryArticleData {
                     url: "for-1".to_string(),
                     title: "For 1".to_string(),
                     short_text: "For 1 text".to_string(),
+                    image_path: "for1.jpg".to_string(),
+                    category_name: "Zahraničí".to_string(),
+                    category_url: "zahranici.html".to_string(),
                 }],
             },
         };
@@ -56,19 +64,15 @@ mod tests {
             date: index_data.date,
             weather: index_data.weather,
             name_day: index_data.name_day,
+            title: "NEXO.cz".to_string(),
 
-            // TODO
-            title: "".to_string(),
-
-            // TODO
             articles_most_read: vec![],
 
-            // TODO
             main_article: IndexArticleTopMainTemplate {
                 url: index_data.main_article.url,
                 title: index_data.main_article.title,
-                category_url: "".to_string(),
-                category_name: "".to_string(),
+                category_url: "republika.html".to_string(),
+                category_name: "Republika".to_string(),
                 is_exclusive: false,
                 short_text: index_data.main_article.short_text,
                 image_path: index_data.main_article.image_path,
@@ -85,27 +89,39 @@ mod tests {
             },
             z_republiky: IndexCategoryTemplate {
                 category_name: index_data.z_republiky.category_name,
+                category_url: index_data.z_republiky.category_url,
                 articles: index_data
                     .z_republiky
                     .articles
                     .into_iter()
-                    .map(|a| IndexCategoryArticleTemplate {
+                    .enumerate()
+                    .map(|(i, a)| IndexCategoryArticleTemplate {
                         url: a.url,
                         title: a.title,
                         short_text: a.short_text,
+                        is_first: i == 0,
+                        image_path: a.image_path,
+                        category_name: a.category_name,
+                        category_url: a.category_url,
                     })
                     .collect(),
             },
             ze_zahranici: IndexCategoryTemplate {
                 category_name: index_data.ze_zahranici.category_name,
+                category_url: index_data.ze_zahranici.category_url,
                 articles: index_data
                     .ze_zahranici
                     .articles
                     .into_iter()
-                    .map(|a| IndexCategoryArticleTemplate {
+                    .enumerate()
+                    .map(|(i, a)| IndexCategoryArticleTemplate {
                         url: a.url,
                         title: a.title,
                         short_text: a.short_text,
+                        is_first: i == 0,
+                        image_path: a.image_path,
+                        category_name: a.category_name,
+                        category_url: a.category_url,
                     })
                     .collect(),
             },

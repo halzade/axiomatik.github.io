@@ -20,10 +20,14 @@ pub struct IndexCategoryArticleData {
     pub url: String,
     pub title: String,
     pub short_text: String,
+    pub image_path: String,
+    pub category_name: String,
+    pub category_url: String,
 }
 
 pub struct IndexCategoryData {
     pub category_name: String,
+    pub category_url: String,
     pub articles: Vec<IndexCategoryArticleData>,
 }
 
@@ -63,6 +67,7 @@ pub struct IndexTemplate {
 #[template(path = "index_category_template.html")]
 pub struct IndexCategoryTemplate {
     pub category_name: String,
+    pub category_url: String,
     pub articles: Vec<IndexCategoryArticleTemplate>,
 }
 
@@ -72,6 +77,10 @@ pub struct IndexCategoryArticleTemplate {
     pub url: String,
     pub title: String,
     pub short_text: String,
+    pub is_first: bool,
+    pub image_path: String,
+    pub category_name: String,
+    pub category_url: String,
 }
 
 #[derive(Template, Clone)]
@@ -180,6 +189,9 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     url: a.article_file_name.clone(),
                     title: a.title.clone(),
                     short_text: a.short_text.clone(),
+                    image_path: a.image_url.clone(),
+                    category_name: "Republika".to_string(),
+                    category_url: "republika.html".to_string(),
                 });
             }
 
@@ -189,16 +201,21 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     url: a.article_file_name.clone(),
                     title: a.title.clone(),
                     short_text: a.short_text.clone(),
+                    image_path: a.image_url.clone(),
+                    category_name: "Zahraničí".to_string(),
+                    category_url: "zahranici.html".to_string(),
                 });
             }
 
             d.z_republiky = IndexCategoryData {
                 category_name: "Z naší republiky".to_string(),
+                category_url: "republika.html".to_string(),
                 articles: z_republiky_data,
             };
 
             d.ze_zahranici = IndexCategoryData {
                 category_name: "Ze zahraničí".to_string(),
+                category_url: "zahranici.html".to_string(),
                 articles: ze_zahranici_data,
             };
         }
@@ -245,6 +262,9 @@ pub async fn render_new_index(data: Option<IndexData>) {
                 url: a.article_file_name.clone(),
                 title: a.title.clone(),
                 short_text: a.short_text.clone(),
+                image_path: a.image_url.clone(),
+                category_name: "Republika".to_string(),
+                category_url: "republika.html".to_string(),
             });
         }
 
@@ -254,6 +274,9 @@ pub async fn render_new_index(data: Option<IndexData>) {
                 url: a.article_file_name.clone(),
                 title: a.title.clone(),
                 short_text: a.short_text.clone(),
+                image_path: a.image_url.clone(),
+                category_name: "Zahraničí".to_string(),
+                category_url: "zahranici.html".to_string(),
             });
         }
 
@@ -305,10 +328,12 @@ pub async fn render_new_index(data: Option<IndexData>) {
             articles_most_read: most_read_data,
             z_republiky: IndexCategoryData {
                 category_name: "Z naší republiky".to_string(),
+                category_url: "republika.html".to_string(),
                 articles: z_republiky_data,
             },
             ze_zahranici: IndexCategoryData {
                 category_name: "Ze zahraničí".to_string(),
+                category_url: "zahranici.html".to_string(),
                 articles: ze_zahranici_data,
             },
         }
@@ -345,27 +370,39 @@ pub async fn render_new_index(data: Option<IndexData>) {
 
         z_republiky: IndexCategoryTemplate {
             category_name: index_data.z_republiky.category_name,
+            category_url: index_data.z_republiky.category_url,
             articles: index_data
                 .z_republiky
                 .articles
                 .into_iter()
-                .map(|a| IndexCategoryArticleTemplate {
+                .enumerate()
+                .map(|(i, a)| IndexCategoryArticleTemplate {
                     url: a.url,
                     title: a.title,
                     short_text: a.short_text,
+                    is_first: i == 0,
+                    image_path: a.image_path,
+                    category_name: a.category_name,
+                    category_url: a.category_url,
                 })
                 .collect(),
         },
         ze_zahranici: IndexCategoryTemplate {
             category_name: index_data.ze_zahranici.category_name,
+            category_url: index_data.ze_zahranici.category_url,
             articles: index_data
                 .ze_zahranici
                 .articles
                 .into_iter()
-                .map(|a| IndexCategoryArticleTemplate {
+                .enumerate()
+                .map(|(i, a)| IndexCategoryArticleTemplate {
                     url: a.url,
                     title: a.title,
                     short_text: a.short_text,
+                    is_first: i == 0,
+                    image_path: a.image_path,
+                    category_name: a.category_name,
+                    category_url: a.category_url,
                 })
                 .collect(),
         },

@@ -1,13 +1,15 @@
 <section class="main-article">
     <div class="main-article-text">
         <a href="{{ url }}">
-            <h1>
-            {% if is_exclusive %}<span class="red">EXKLUZIVNĚ:</span>{% endif %}
-            {{ title }}
-            </h1>
+            <h2>
+                {% if is_exclusive %}<span class="red">EXKLUZIVNĚ:</span>{% endif %}
+                {{ title }}
+            </h2>
         </a>
-        <a class="category" href="{{ category_url }}"><p>{{ category_name }}</p></a>
-        <a class="text" href="{{ url }}"><p>{{ short_text }}</p></a>
+        <a class="category" href="{{ category_url }}">{{ category_name }}</a>
+        <a href="{{ url }}">
+            <p>{{ short_text }}</p>
+        </a>
     </div>
     <a href="{{ url }}"><img src="uploads/{{ image_path }}" alt="{{ title }}"></a>
 </section>

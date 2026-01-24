@@ -1,11 +1,14 @@
-<div class="split-column">
-                <header class="category-header">
-                    <h1> > {{ category_name }}</h1>
+<div class="split-column r20 border-right">
+                <header class="category-header black">
+                    <div class="white-arrow"></div>&nbsp;&nbsp;<h2>{{ category_name|upper }}</h2>
                 </header>
 
-                <section class="article-grid">
+                <section class="article-grid text">
                     {% for article in articles %}
                         {{ article|safe }}
                     {% endfor %}
                 </section>
+                <div class="right">
+                    <a class="button" href="{{ category_url }}">Více zpráv</a>
+                </div>
 </div>
