@@ -141,19 +141,19 @@ pub async fn save_file_field_with_name(
                         // Save 820xheight
                         let img_820 =
                             img.resize(820, height, image::imageops::FilterType::Lanczos3);
-                        let name_820 =
-                            format!("{}_image_820.{}", new_name.split('.').next().unwrap(), ext);
+                        let base_name = new_name.split('.').next().unwrap();
+                        let name_820 = format!("{}_image_820.{}", base_name, ext);
                         if let Err(e) = img_820.save(format!("uploads/{}", name_820)) {
                             error!("Failed to save image 820: {}", e);
                             return None;
                         }
 
                         // Save 50x50
-                        save_resized_image(&img, 50, 50, &new_name, "image_50", &ext);
+                        save_resized_image(&img, 50, 50, base_name, "image_50", &ext);
                         // Save 288x211
-                        save_resized_image(&img, 288, 211, &new_name, "image_288", &ext);
+                        save_resized_image(&img, 288, 211, base_name, "image_288", &ext);
                         // Save 440x300
-                        save_resized_image(&img, 440, 300, &new_name, "image_440", &ext);
+                        save_resized_image(&img, 440, 300, base_name, "image_440", &ext);
 
                         return Some(name_820);
                     }
@@ -183,12 +183,7 @@ fn save_resized_image(
     ext: &str,
 ) {
     let resized = img.resize_to_fill(w, h, image::imageops::FilterType::Lanczos3);
-    let name = format!(
-        "{}_{}.{}",
-        base_name.split('.').next().unwrap(),
-        suffix,
-        ext
-    );
+    let name = format!("{}_{}.{}", base_name, suffix, ext);
     if let Err(e) = resized.save(format!("uploads/{}", name)) {
         error!("Failed to save image {}: {}", suffix, e);
     }

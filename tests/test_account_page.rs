@@ -132,6 +132,9 @@ mod tests {
 
         // Cleanup files
         let _ = std::fs::remove_file("test-user-article.html");
-        let _ = std::fs::remove_file("snippets/test-user-article.html.txt");
+        let _ = std::fs::remove_file("uploads/test-user-article_image_820.jpg");
+        let _ = std::fs::remove_file("uploads/test-user-article_image_50.jpg");
+        let _ = std::fs::remove_file("uploads/test-user-article_image_288.jpg");
+        let _ = std::fs::remove_file("uploads/test-user-article_image_440.jpg");
     }
 }

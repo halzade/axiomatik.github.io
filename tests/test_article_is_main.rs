@@ -51,6 +51,9 @@ mod tests {
 
         // Cleanup
         let _ = fs::remove_file("test-new-veda-main.html");
-        let _ = fs::remove_file("snippets/test-new-veda-main.html.txt");
+        let _ = fs::remove_file("uploads/test-new-veda-main_image_820.jpg");
+        let _ = fs::remove_file("uploads/test-new-veda-main_image_50.jpg");
+        let _ = fs::remove_file("uploads/test-new-veda-main_image_288.jpg");
+        let _ = fs::remove_file("uploads/test-new-veda-main_image_440.jpg");
     }
 }

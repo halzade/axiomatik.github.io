@@ -133,14 +133,38 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
             }
 
             "video" => {
-                if let Some(path) = save_file_field(field, "video", ALLOWED_EXTENSIONS_VIDEO).await
+                let article_file_name = if let Some(ref title) = title_o {
+                    Some(format!("{}_video", crate::library::save_article_file_name(title)))
+                } else {
+                    None
+                };
+
+                if let Some(path) = save_file_field_with_name(
+                    field,
+                    "video",
+                    ALLOWED_EXTENSIONS_VIDEO,
+                    article_file_name,
+                )
+                .await
                 {
                     video_path_o = Some(path);
                 }
             }
 
             "audio" => {
-                if let Some(path) = save_file_field(field, "audio", ALLOWED_EXTENSIONS_AUDIO).await
+                let article_file_name = if let Some(ref title) = title_o {
+                    Some(format!("{}_audio", crate::library::save_article_file_name(title)))
+                } else {
+                    None
+                };
+
+                if let Some(path) = save_file_field_with_name(
+                    field,
+                    "audio",
+                    ALLOWED_EXTENSIONS_AUDIO,
+                    article_file_name,
+                )
+                .await
                 {
                     audio_path_o = Some(path);
                 }

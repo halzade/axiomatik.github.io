@@ -19,8 +19,8 @@ mod tests {
             .title("test-Financni trhy v soku")
             .author("Financni Expert")
             .category("finance")
-            .text("Dlouhy text o financich")
-            .short_text("Kratky text o financich")
+            .text("Dlouhý text o financich")
+            .short_text("Krátký text o financich")
             .main()
             .exclusive()
             .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
@@ -60,6 +60,9 @@ mod tests {
 
         // Cleanup
         let _ = fs::remove_file("test-financni-trhy-v-soku.html");
-        let _ = fs::remove_file("snippets/test-financni-trhy-v-soku.html.txt");
+        let _ = fs::remove_file("uploads/test-financni-trhy-v-soku_image_820.jpg");
+        let _ = fs::remove_file("uploads/test-financni-trhy-v-soku_image_50.jpg");
+        let _ = fs::remove_file("uploads/test-financni-trhy-v-soku_image_288.jpg");
+        let _ = fs::remove_file("uploads/test-financni-trhy-v-soku_image_440.jpg");
     }
 }

@@ -23,12 +23,6 @@ mod tests {
         // TODO
         let related_article_content = "<html><body></body></html>";
         std::fs::write("related-test-article.html", related_article_content).unwrap();
-        std::fs::create_dir_all("snippets").unwrap();
-        std::fs::write(
-            "snippets/related-test-article.html.txt",
-            "<div>Related Snippet</div>",
-        )
-        .unwrap();
 
         let body = ArticleBuilder::new()
             .title("Test Article")
@@ -99,7 +93,10 @@ mod tests {
         // Cleanup
         let _ = std::fs::remove_file("test-article.html");
         let _ = std::fs::remove_file("related-test-article.html");
-        let _ = std::fs::remove_file("snippets/test-article.html.txt");
-        let _ = std::fs::remove_file("snippets/related-test-article.html.txt");
+        let _ = std::fs::remove_file("uploads/test-article_image_820.jpg");
+        let _ = std::fs::remove_file("uploads/test-article_image_50.jpg");
+        let _ = std::fs::remove_file("uploads/test-article_image_288.jpg");
+        let _ = std::fs::remove_file("uploads/test-article_image_440.jpg");
+        let _ = std::fs::remove_file("uploads/test-article_audio.mp3");
     }
 }

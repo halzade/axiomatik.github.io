@@ -109,13 +109,10 @@ pub fn formatted_article_date(now: DateTime<Local>) -> String {
 
 // TODO remove everything snippet
 pub fn read_related_articles(related_articles: &Vec<String>) -> String {
-    let mut related_article_snippets = String::new();
+    let mut related_articles_s = String::new();
     for path in related_articles {
-        let snippet_path = format!("snippets/{}.txt", path);
-        if let Ok(snippet_html) = fs::read_to_string(&snippet_path) {
-            related_article_snippets.push_str(&snippet_html);
-            related_article_snippets.push('\n');
-        }
+        
+        // TODO read articles from DB
     }
-    related_article_snippets
+    related_articles_s
 }

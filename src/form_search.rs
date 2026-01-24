@@ -77,23 +77,16 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
                 }
 
                 if match_count > 0 {
-                    // Use the article url (article_file_name) to search /snippets/
-                    let snippet_path = format!("snippets/{}.txt", article.article_file_name);
-                    if let Ok(snippet_content) = fs::read_to_string(snippet_path) {
-                        matched_results.push((match_count, snippet_content));
-                    } else {
-                        warn!(
-                            "Snippet not found for article: {}",
-                            article.article_file_name
-                        );
-                    }
+
+                    // TODO
                 }
             }
 
             // Sort by match count descending
             matched_results.sort_by(|a, b| b.0.cmp(&a.0));
 
-            let snippets_html: String = matched_results
+            // TODO into a method?
+            let articles_html: String = matched_results
                 .into_iter()
                 .map(|(_, content)| content)
                 .collect::<Vec<String>>()
@@ -104,7 +97,7 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
                 date: data::date(),
                 weather: data::weather(),
                 name_day: data::name_day(),
-                articles: snippets_html,
+                articles: articles_html,
             };
 
             let mut html = template.render().unwrap();

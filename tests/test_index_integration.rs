@@ -39,6 +39,13 @@ async fn test_index_main_article() {
     let index_html = fs::read_to_string("index.html").unwrap();
     assert!(index_html.contains("Regular Main Article"));
     assert!(!index_html.contains("<span class=\"red\">EXKLUZIVNĚ:</span>"));
+
+    // Cleanup
+    let _ = fs::remove_file("regular-main-article.html");
+    let _ = fs::remove_file("uploads/regular-main-article_image_820.jpg");
+    let _ = fs::remove_file("uploads/regular-main-article_image_50.jpg");
+    let _ = fs::remove_file("uploads/regular-main-article_image_288.jpg");
+    let _ = fs::remove_file("uploads/regular-main-article_image_440.jpg");
 }
 
 #[tokio::test]
@@ -74,6 +81,13 @@ async fn test_index_main_article_exclusive() {
     let index_html = fs::read_to_string("index.html").unwrap();
     assert!(index_html.contains("Exclusive Main Article"));
     assert!(index_html.contains("<span class=\"red\">EXKLUZIVNĚ:</span>"));
+
+    // Cleanup
+    let _ = fs::remove_file("exclusive-main-article.html");
+    let _ = fs::remove_file("uploads/exclusive-main-article_image_820.jpg");
+    let _ = fs::remove_file("uploads/exclusive-main-article_image_50.jpg");
+    let _ = fs::remove_file("uploads/exclusive-main-article_image_288.jpg");
+    let _ = fs::remove_file("uploads/exclusive-main-article_image_440.jpg");
 }
 
 #[tokio::test]
@@ -108,6 +122,13 @@ async fn test_index_article_republika() {
     // Republika section header
     assert!(index_html.contains("> Z naší republiky"));
     assert!(index_html.contains("New Republika Article"));
+
+    // Cleanup
+    let _ = fs::remove_file("new-republika-article.html");
+    let _ = fs::remove_file("uploads/new-republika-article_image_820.jpg");
+    let _ = fs::remove_file("uploads/new-republika-article_image_50.jpg");
+    let _ = fs::remove_file("uploads/new-republika-article_image_288.jpg");
+    let _ = fs::remove_file("uploads/new-republika-article_image_440.jpg");
 }
 
 #[tokio::test]
@@ -142,6 +163,13 @@ async fn test_index_article_zahranici() {
     // Zahranici section header
     assert!(index_html.contains("> Ze zahraničí"));
     assert!(index_html.contains("New Zahranici Article"));
+
+    // Cleanup
+    let _ = fs::remove_file("new-zahranici-article.html");
+    let _ = fs::remove_file("uploads/new-zahranici-article_image_820.jpg");
+    let _ = fs::remove_file("uploads/new-zahranici-article_image_50.jpg");
+    let _ = fs::remove_file("uploads/new-zahranici-article_image_288.jpg");
+    let _ = fs::remove_file("uploads/new-zahranici-article_image_440.jpg");
 }
 
 #[tokio::test]
@@ -185,4 +213,11 @@ async fn test_index_article_veda() {
     
     assert!(!rep_section.contains("New Veda Article"));
     assert!(!zah_section.contains("New Veda Article"));
+
+    // Cleanup
+    let _ = fs::remove_file("new-veda-article.html");
+    let _ = fs::remove_file("uploads/new-veda-article_image_820.jpg");
+    let _ = fs::remove_file("uploads/new-veda-article_image_50.jpg");
+    let _ = fs::remove_file("uploads/new-veda-article_image_288.jpg");
+    let _ = fs::remove_file("uploads/new-veda-article_image_440.jpg");
 }

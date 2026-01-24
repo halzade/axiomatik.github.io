@@ -51,6 +51,9 @@ mod tests {
 
         // Cleanup
         let _ = fs::remove_file("test-newest-republika.html");
-        let _ = fs::remove_file("snippets/test-newest-republika.html.txt");
+        let _ = fs::remove_file("uploads/test-newest-republika_image_820.jpg");
+        let _ = fs::remove_file("uploads/test-newest-republika_image_50.jpg");
+        let _ = fs::remove_file("uploads/test-newest-republika_image_288.jpg");
+        let _ = fs::remove_file("uploads/test-newest-republika_image_440.jpg");
     }
 }

@@ -69,7 +69,7 @@
             </div>
             {% endif %}
         </article>
-        <section class="related-section" {% if related_snippets.is_empty() %} style="display: none;" {% endif %}>
+        <section class="related-section" {% if related_articles.is_empty() %} style="display: none;" {% endif %}>
             <h2>související články</h2>
             <div class="article-grid">
                 {{ related_articles|safe }}

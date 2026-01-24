@@ -51,6 +51,9 @@ mod tests {
 
         // Cleanup
         let _ = fs::remove_file("test-newest-zahranici.html");
-        let _ = fs::remove_file("snippets/test-newest-zahranici.html.txt");
+        let _ = fs::remove_file("uploads/test-newest-zahranici_image_820.jpg");
+        let _ = fs::remove_file("uploads/test-newest-zahranici_image_50.jpg");
+        let _ = fs::remove_file("uploads/test-newest-zahranici_image_288.jpg");
+        let _ = fs::remove_file("uploads/test-newest-zahranici_image_440.jpg");
     }
 }

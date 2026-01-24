@@ -37,7 +37,6 @@ pub struct ArticleTemplate {
     pub audio_path: Option<String>,
     pub category: String,
     pub category_display: String,
-    pub related_snippets: String,
     pub related_articles: String,
     pub weather: String,
     pub name_day: String,
@@ -61,7 +60,7 @@ pub struct CategoryTemplate {
 
 #[derive(Template)]
 #[template(path = "index_category_article_template.html")]
-pub struct SnippetTemplate {
+pub struct CategoryArticleTemplate {
     pub url: String,
     pub title: String,
     pub short_text: String,
@@ -97,20 +96,20 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
     // TODO article already exists
     // TODO double click on create button
 
-            /*
-             * Read request data
-             */
-            let article_data_o = crate::form_new_article_data::article_data(multipart).await;
+    /*
+     * Read request data
+     */
+    let article_data_o = crate::form_new_article_data::article_data(multipart).await;
 
-            match article_data_o {
-                None => StatusCode::BAD_REQUEST.into_response(),
-                Some(article_data) => {
-                    let now = Local::now();
-                    let formatted_date = data::date();
-                    let formatted_weather = data::weather();
-                    let formatted_name_day = data::name_day();
+    match article_data_o {
+        None => StatusCode::BAD_REQUEST.into_response(),
+        Some(article_data) => {
+            let now = Local::now();
+            let formatted_date = data::date();
+            let formatted_weather = data::weather();
+            let formatted_name_day = data::name_day();
 
-                    let related_articles_vec = &article_data
+            let related_articles_vec = &article_data
                 .related_articles
                 .lines()
                 .map(str::trim)
@@ -118,7 +117,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 .map(String::from)
                 .collect();
 
-            let related_article_snippets = library::read_related_articles(&related_articles_vec);
+            let related_articles = library::read_related_articles(&related_articles_vec);
 
             let article_template = ArticleTemplate {
                 title: article_data.title.clone(),
@@ -130,12 +129,10 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 audio_path: article_data.audio_path.clone(),
                 category: article_data.category.clone(),
                 category_display: article_data.category_display.clone(),
-                related_snippets: related_article_snippets.clone(),
                 date: formatted_date.clone(),
                 weather: formatted_weather.clone(),
                 name_day: formatted_name_day.clone(),
-                // TODO
-                related_articles: "".to_string(),
+                related_articles,
             };
 
             let html_content = article_template.render().unwrap();
@@ -156,16 +153,13 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 now.year()
             );
 
-            let snippet = SnippetTemplate {
+            let snippet = CategoryArticleTemplate {
                 url: file_path.clone(),
                 title: article_data.title.clone(),
                 short_text: article_data.short_text_processed.clone(),
             }
             .render()
             .unwrap();
-
-            let snippet_file_path = format!("snippets/{}.txt", file_path);
-            fs::write(snippet_file_path, &snippet).unwrap();
 
             // Store in DB
             let article_db = database::Article {

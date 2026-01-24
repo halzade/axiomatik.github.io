@@ -94,7 +94,13 @@ mod tests {
         // Cleanup
         let _ = std::fs::remove_file("test-exclusive-article.html");
         let _ = std::fs::remove_file("test-new-main-article.html");
-        let _ = std::fs::remove_file("snippets/test-exclusive-article.html.txt");
-        let _ = std::fs::remove_file("snippets/test-new-main-article.html.txt");
+        let _ = std::fs::remove_file("uploads/test-exclusive-article_image_820.jpg");
+        let _ = std::fs::remove_file("uploads/test-exclusive-article_image_50.jpg");
+        let _ = std::fs::remove_file("uploads/test-exclusive-article_image_288.jpg");
+        let _ = std::fs::remove_file("uploads/test-exclusive-article_image_440.jpg");
+        let _ = std::fs::remove_file("uploads/test-new-main-article_image_820.jpg");
+        let _ = std::fs::remove_file("uploads/test-new-main-article_image_50.jpg");
+        let _ = std::fs::remove_file("uploads/test-new-main-article_image_288.jpg");
+        let _ = std::fs::remove_file("uploads/test-new-main-article_image_440.jpg");
     }
 }
