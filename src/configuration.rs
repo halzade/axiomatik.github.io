@@ -8,6 +8,9 @@ pub struct ApplicationSettings {
     pub port: u16,
 }
 
+/*
+ * Read configuration from ~/configuration/abc.toml
+ */
 pub fn get_config() -> Result<ApplicationSettings, ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");

@@ -22,6 +22,15 @@ body {
     white-space: nowrap;
 }
 
+.black {
+    background: black;
+    color: white;
+}
+
+.always-white, .always-white:focus, .always-white:visited {
+    color: white;
+}
+
 h1, h2, h3, h4, h5, h6 {
     font-family: "Playfair Display", serif;
     margin-block-start: 0 !important;
@@ -30,9 +39,18 @@ h1, h2, h3, h4, h5, h6 {
     display: inline-block;
 }
 
+.border-right {
+    border-right: 3px solid #E0E0E0;
+}
+
 h2 {
     font-size: 25px;
     margin-bottom: 10px;
+}
+
+.most h2 {
+    font-size: 20px;
+    font-family: "Open Sans", serif;
 }
 
 .container {
@@ -58,7 +76,6 @@ h2 {
 }
 
 .content {
-    /*max-width: 1200px;*/
     margin: 20px auto;
     overflow: auto;
     padding: 0 20px 125px;
@@ -68,14 +85,15 @@ h2 {
 .topbar {
     top: 0;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: flex-end;
     vertical-align: bottom;
-    padding: 12px 24px;
+    padding-bottom: 12px;
     border-bottom: 3px solid #E0E0E0;
     z-index: 10;
     min-height: 80px;
     max-width: 2990px;
+    width: 80%;
 }
 
 .topbar-content {
@@ -88,22 +106,21 @@ h2 {
 }
 
 .topbar .left {
-    width: 380px;
+    width: 280px;
     text-align: left;
 }
 
 .topbar .center {
-    width: 200px;
+    top: 0;
+    display: inline-block;
+    width: 280px;
     text-align: center;
 }
 
 .topbar .right {
-    width: 380px;
+    width: 280px;
     text-align: right;
-}
-
-.topbar .right form {
-    min-width: 350px;
+    margin-bottom: 7px;
 }
 
 .logo:hover,
@@ -113,13 +130,14 @@ h2 {
 }
 
 a.logo, a.logo:hover {
-    font-size: 80px;
+    font-size: 90px;
     font-weight: bold;
     letter-spacing: 1px;
     text-decoration: none;
     color: #333333;
     display: inline-block;
     line-height: 70px;
+    margin-top: 20px;
 }
 
 .logo .b {
@@ -142,7 +160,7 @@ a h1, a h2, a h3, a h4, a h5, a h6 {
 
 article a:visited {
     text-decoration: none;
-    color: #6c757c !important;
+    color: #6c757c;
 }
 
 article a:hover {
@@ -156,7 +174,7 @@ article a:hover {
 }
 
 .main-nav {
-    padding-top: 10px;
+    padding-top: 2px;
     text-align: center;
 }
 
@@ -164,12 +182,12 @@ article a:hover {
     text-decoration: underline;
 }
 
-.main-article-text a.category, .main-nav a {
+.main-article-text a.category, .main-nav a, .split-column a.category {
     text-decoration: none;
     display: inline-block;
     margin-top: 10px;
     margin-left: 3px;
-    margin-bottom: 2px;
+    margin-bottom: 12px;
     padding: 1px 8px;
     background: black;
     color: white;
@@ -181,9 +199,9 @@ article a:hover {
     display: flex;
     gap: 0;
     margin-bottom: 40px;
-    border-bottom: solid thin #E0E0E0;
-    padding-top: 30px;
-    padding-bottom: 30px;
+    border-bottom: solid 3px #E0E0E0;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
 .weather {
@@ -207,7 +225,7 @@ article a:hover {
 }
 
 .main-article-text {
-    width: 46.875%; /* (30 / 64) * 100 */
+    width: 46%; /* (30 / 64) * 100 */
     padding-right: 20px;
     box-sizing: border-box;
 }
@@ -222,8 +240,10 @@ article a:hover {
 }
 
 .most {
-    margin-top: -30px;
+    margin-top: -34px;
     margin-bottom: 0;
+    height: 115px;
+    overflow: hidden;
 }
 
 .most table {
@@ -237,7 +257,7 @@ article a:hover {
 }
 
 .most-articles {
-    margin-top: 5px;
+    margin-top: 7px;
     vertical-align: middle;
 }
 
@@ -281,7 +301,7 @@ article a:hover {
     box-sizing: border-box;
 }
 
-.main-article-text p, .category-header p {
+.main-article-text p, .category-header p, .text p, article p {
     font-size: 15px;
     color: #444;
 }
@@ -373,10 +393,15 @@ p {
 
 .split-column {
     flex: 1;
+    padding-right: 20px;
+}
+
+.split-column article {
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
 .category-header {
-    background: black;
     padding-left: 10px;
     padding-top: 1px;
     padding-bottom: 1px;
@@ -386,6 +411,9 @@ p {
     background-image: url("../images/little_arrow.png");
     background-repeat: repeat-x;
     height: 11px;
+    display: block;
+    width: 80%;
+    margin-left: 10%;
 }
 
 blockquote {
@@ -467,6 +495,7 @@ div.all {
     height: 40px;
     width: 40px;
     border: none !important;
+    cursor: pointer;
 }
 
 .search input {
@@ -487,4 +516,28 @@ div.all {
     background-repeat: no-repeat;
     vertical-align: middle;
     margin-bottom: 7px;
+}
+
+div.right {
+    text-align: right;
+}
+
+
+div.relative {
+    position: relative;
+}
+
+div.bottom {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+a.button {
+    color: white;
+    border-radius: 4px;
+    background-color: #037afa;
+    padding: 1px 4px;
+    text-decoration: none;
+    display: inline-block;
 }

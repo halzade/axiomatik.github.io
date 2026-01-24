@@ -31,6 +31,9 @@ mod tests {
                 title: "Third Title".to_string(),
                 short_text: "Third short text".to_string(),
             },
+
+            // TODO
+            articles_most_read: vec![],
             z_republiky: IndexCategoryData {
                 category_name: "Z naší republiky".to_string(),
                 articles: vec![IndexCategoryArticleData {
@@ -53,11 +56,19 @@ mod tests {
             date: index_data.date,
             weather: index_data.weather,
             name_day: index_data.name_day,
+
             // TODO
             title: "".to_string(),
+
+            // TODO
+            articles_most_read: vec![],
+
+            // TODO
             main_article: IndexArticleTopMainTemplate {
                 url: index_data.main_article.url,
                 title: index_data.main_article.title,
+                category_url: "".to_string(),
+                category_name: "".to_string(),
                 is_exclusive: false,
                 short_text: index_data.main_article.short_text,
                 image_path: index_data.main_article.image_path,

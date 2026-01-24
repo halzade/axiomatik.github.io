@@ -1,11 +1,10 @@
-use crate::{data, database, external, library, name_days, validation};
+use crate::{data, database, library, validation};
 use askama::Template;
 use axum::response::{Html, IntoResponse, Response};
 use axum::Form;
 use http::StatusCode;
 use serde::Deserialize;
-use std::fs;
-use tracing::{info, warn};
+use tracing::info;
 
 #[derive(Deserialize)]
 pub struct SearchPayload {
@@ -20,6 +19,14 @@ pub struct SearchTemplate {
     pub weather: String,
     pub name_day: String,
     pub articles: String,
+}
+
+#[derive(Template)]
+#[template(path = "index_category_article_template.html")]
+pub struct CategoryArticleTemplate {
+    pub url: String,
+    pub title: String,
+    pub short_text: String,
 }
 
 pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
@@ -38,9 +45,9 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
         return (StatusCode::BAD_REQUEST, e).into_response();
     }
 
-    let search_words: Vec<&str> = query
+    let search_words: Vec<String> = query
         .split_whitespace()
-        .map(|w| w.trim())
+        .map(|w| w.trim().to_lowercase())
         .filter(|w| !w.is_empty())
         .collect();
 
@@ -48,9 +55,8 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
 
     match articles_o {
         None => {
-            info!("No articles found");
+            info!("No articles found in database");
 
-            // Sort by match count descending
             let template = SearchTemplate {
                 title: format!("Výsledky hledání: {}", query),
                 date: data::date(),
@@ -59,26 +65,39 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
                 articles: "".to_string(),
             };
 
-            let mut html = template.render().unwrap();
-            html = html.replace("", &"");
-
-            Html(html).into_response()
+            Html(template.render().unwrap()).into_response()
         }
         Some(articles) => {
-            let mut matched_results = Vec::new();
+            let mut matched_results: Vec<(i32, String)> = Vec::new();
 
             for article in articles {
                 let mut match_count = 0;
-                let article_text_lower = article.text.to_lowercase();
+                let title_lower = article.title.to_lowercase();
+                let text_lower = article.text.to_lowercase();
+                let short_text_lower = article.short_text.to_lowercase();
+
                 for word in &search_words {
-                    if article_text_lower.contains(&word.to_lowercase()) {
+                    if title_lower.contains(word) {
+                        match_count += 10; // Higher weight for title match
+                    }
+                    if short_text_lower.contains(word) {
+                        match_count += 5;
+                    }
+                    if text_lower.contains(word) {
                         match_count += 1;
                     }
                 }
 
                 if match_count > 0 {
+                    let article_html = CategoryArticleTemplate {
+                        url: article.article_file_name.clone(),
+                        title: article.title.clone(),
+                        short_text: article.short_text.clone(),
+                    }
+                    .render()
+                    .unwrap();
 
-                    // TODO
+                    matched_results.push((match_count, article_html));
                 }
             }
 
@@ -100,12 +119,7 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
                 articles: articles_html,
             };
 
-            let mut html = template.render().unwrap();
-
-            // TODO tf ?
-            html = html.replace("", &"");
-
-            Html(html).into_response()
+            Html(template.render().unwrap()).into_response()
         }
     }
 }

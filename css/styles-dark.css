@@ -72,3 +72,12 @@ a h1, a h2, a h3, a h4, a h5, a h6 {
 .search-icon {
     background-image: url('../images/search-50-white.png');
 }
+
+.black {
+    background: white;
+    color: black;
+}
+
+.always-white, .always-white:focus, .always-white:visited {
+    color: black;
+}
