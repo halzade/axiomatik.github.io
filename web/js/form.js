@@ -57,26 +57,10 @@ form.addEventListener('submit', async function(e) {
     }
 
     try {
-        const response = await fetch(form.action, {
+        await fetch(form.action, {
             method: 'POST',
             body: formData
         });
-
-        if (response.redirected) {
-            window.location.href = response.url;
-        } else if (response.ok) {
-            if (response.headers.get('Location')) {
-                 window.location.href = response.headers.get('Location');
-            } else {
-                 // The server might respond with the new path in the body or we can try to guess it from title
-                 // But typically Axum redirects with SEE_OTHER
-                 const text = await response.text();
-                 // If it didn't redirect, maybe it's fine or we should just go home
-                 window.location.href = "/";
-            }
-        } else {
-            alert("Při ukládání došlo k chybě. Kód: " + response.status);
-        }
     } catch (err) {
         console.error(err);
         alert("Při odesílání formuláře došlo k chybě.");
