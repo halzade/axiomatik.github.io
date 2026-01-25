@@ -67,6 +67,7 @@ pub struct CategoryArticleTemplate {
     pub short_text: String,
     pub is_first: bool,
     pub image_path: String,
+    pub image_description: String,
     pub category_name: String,
     pub category_url: String,
 }
@@ -166,12 +167,13 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 now.year()
             );
 
-            let snippet = CategoryArticleTemplate {
+            let mut snippet = CategoryArticleTemplate {
                 url: file_path.clone(),
                 title: article_data.title.clone(),
                 short_text: article_data.short_text_processed.clone(),
                 is_first: false,
                 image_path: article_data.image_path.clone(),
+                image_description: article_data.image_description.clone(),
                 category_name: article_data.category_display.clone(),
                 category_url: format!("{}.html", article_data.category),
             }
@@ -250,6 +252,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                     is_exclusive: false,
                     short_text: "".to_string(),
                     image_path: "".to_string(),
+                    image_description: "".to_string(),
                 },
                 second_article: form_index::IndexArticleTopData {
                     url: "".to_string(),

@@ -29,6 +29,7 @@ pub struct CategoryArticleTemplate {
     pub short_text: String,
     pub is_first: bool,
     pub image_path: String,
+    pub image_description: String,
     pub category_name: String,
     pub category_url: String,
 }
@@ -99,6 +100,7 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
                         short_text: article.short_text.clone(),
                         is_first: false,
                         image_path: article.image_url.clone(),
+                        image_description: article.image_description.clone(),
                         category_name: article.category.clone(), // or display name if available
                         category_url: format!("{}.html", article.category),
                     }

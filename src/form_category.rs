@@ -7,6 +7,7 @@ pub struct CategoryArticleData {
     pub title: String,
     pub short_text: String,
     pub image_path: String,
+    pub image_description: String,
 }
 
 pub struct CategoryData {
@@ -90,6 +91,7 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
                 title: a.title.clone(),
                 short_text: a.short_text.clone(),
                 image_path: a.image_url.clone(),
+                image_description: a.image_description.clone(),
             })
             .collect();
 
@@ -113,6 +115,7 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             short_text: a.short_text,
             is_first: i < 2, // First two articles are "first"
             image_path: a.image_path,
+            image_description: a.image_description,
             category_name: category_data.category_name.clone(),
             category_url: category_data.category_url.clone(),
         })

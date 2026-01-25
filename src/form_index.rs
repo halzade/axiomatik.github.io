@@ -8,6 +8,7 @@ pub struct IndexArticleTopMainData {
     pub is_exclusive: bool,
     pub short_text: String,
     pub image_path: String,
+    pub image_description: String,
 }
 
 pub struct IndexArticleTopData {
@@ -21,6 +22,7 @@ pub struct IndexCategoryArticleData {
     pub title: String,
     pub short_text: String,
     pub image_path: String,
+    pub image_description: String,
     pub category_name: String,
     pub category_url: String,
 }
@@ -108,6 +110,7 @@ pub struct IndexCategoryArticleTemplate {
     pub short_text: String,
     pub is_first: bool,
     pub image_path: String,
+    pub image_description: String,
     pub category_name: String,
     pub category_url: String,
 }
@@ -130,6 +133,7 @@ pub struct IndexArticleTopMainTemplate {
     pub is_exclusive: bool,
     pub short_text: String,
     pub image_path: String,
+    pub image_description: String,
 }
 
 #[derive(Template)]
@@ -167,6 +171,9 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     .unwrap_or_default(),
                 image_path: main_article
                     .map(|a| a.image_url.clone())
+                    .unwrap_or_default(),
+                image_description: main_article
+                    .map(|a| a.image_description.clone())
                     .unwrap_or_default(),
             };
 
@@ -219,6 +226,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     title: a.title.clone(),
                     short_text: a.short_text.clone(),
                     image_path: a.image_url.clone(),
+                    image_description: a.image_description.clone(),
                     category_name: "Republika".to_string(),
                     category_url: "republika.html".to_string(),
                 });
@@ -231,6 +239,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     title: a.title.clone(),
                     short_text: a.short_text.clone(),
                     image_path: a.image_url.clone(),
+                    image_description: a.image_description.clone(),
                     category_name: "Zahraničí".to_string(),
                     category_url: "zahranici.html".to_string(),
                 });
@@ -292,6 +301,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
                 title: a.title.clone(),
                 short_text: a.short_text.clone(),
                 image_path: a.image_url.clone(),
+                image_description: a.image_description.clone(),
                 category_name: "Republika".to_string(),
                 category_url: "republika.html".to_string(),
             });
@@ -304,6 +314,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
                 title: a.title.clone(),
                 short_text: a.short_text.clone(),
                 image_path: a.image_url.clone(),
+                image_description: a.image_description.clone(),
                 category_name: "Zahraničí".to_string(),
                 category_url: "zahranici.html".to_string(),
             });
@@ -334,6 +345,9 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     .unwrap_or_default(),
                 image_path: main_article
                     .map(|a| a.image_url.clone())
+                    .unwrap_or_default(),
+                image_description: main_article
+                    .map(|a| a.image_description.clone())
                     .unwrap_or_default(),
             },
             second_article: IndexArticleTopData {
@@ -382,6 +396,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
             is_exclusive: index_data.main_article.is_exclusive,
             short_text: index_data.main_article.short_text,
             image_path: index_data.main_article.image_path,
+            image_description: index_data.main_article.image_description,
         },
 
         second_article: IndexArticleTopTemplate {
@@ -410,6 +425,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     short_text: a.short_text,
                     is_first: i == 0,
                     image_path: a.image_path,
+                    image_description: a.image_description,
                     category_name: a.category_name,
                     category_url: a.category_url,
                 })
@@ -429,6 +445,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
                     short_text: a.short_text,
                     is_first: i == 0,
                     image_path: a.image_path,
+                    image_description: a.image_description,
                     category_name: a.category_name,
                     category_url: a.category_url,
                 })

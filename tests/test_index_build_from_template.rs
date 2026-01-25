@@ -20,6 +20,7 @@ mod tests {
                 is_exclusive: false,
                 short_text: "Main short text".to_string(),
                 image_path: "img.jpg".to_string(),
+                image_description: "image_description".to_string(),
             },
             second_article: IndexArticleTopData {
                 url: "second-url".to_string(),
@@ -42,6 +43,7 @@ mod tests {
                     title: "Rep 1".to_string(),
                     short_text: "Rep 1 text".to_string(),
                     image_path: "rep1.jpg".to_string(),
+                    image_description: "image_description".to_string(),
                     category_name: "Republika".to_string(),
                     category_url: "republika.html".to_string(),
                 }],
@@ -54,6 +56,7 @@ mod tests {
                     title: "For 1".to_string(),
                     short_text: "For 1 text".to_string(),
                     image_path: "for1.jpg".to_string(),
+                    image_description: "image_description".to_string(),
                     category_name: "Zahraničí".to_string(),
                     category_url: "zahranici.html".to_string(),
                 }],
@@ -75,6 +78,7 @@ mod tests {
                 is_exclusive: false,
                 short_text: index_data.main_article.short_text,
                 image_path: index_data.main_article.image_path,
+                image_description: index_data.main_article.image_description,
             },
             second_article: IndexArticleTopTemplate {
                 url: index_data.second_article.url,
@@ -100,6 +104,7 @@ mod tests {
                         short_text: a.short_text,
                         is_first: i == 0,
                         image_path: a.image_path,
+                        image_description: a.image_description,
                         category_name: a.category_name,
                         category_url: a.category_url,
                     })
@@ -119,6 +124,7 @@ mod tests {
                         short_text: a.short_text,
                         is_first: i == 0,
                         image_path: a.image_path,
+                        image_description: a.image_description,
                         category_name: a.category_name,
                         category_url: a.category_url,
                     })
