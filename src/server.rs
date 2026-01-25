@@ -15,9 +15,6 @@ use tokio::sync::Mutex;
 use tower_http::services::ServeDir;
 use tracing::{debug, error, info};
 
-// TODO
-// TODO
-// TODO
 pub const AUTH_COOKIE: &str = "axiomatik_auth";
 
 pub static APP_STATUS: LazyLock<Mutex<ApplicationStatus>> =
@@ -91,15 +88,20 @@ pub async fn start_router() -> Router {
             get(form_login::show_login).post(form_login::handle_login),
         )
         .route("/search", get(form_search::handle_search))
-        .merge(protected_routes)
         // serve static content
-        .fallback(handle_fallback)
+        .nest_service("/", ServeDir::new("web"))
+        .nest_service("/css", ServeDir::new("css"))
+        .nest_service("/js", ServeDir::new("js"))
+        .nest_service("/uploads", ServeDir::new("uploads"))
+        // web app
+        .merge(protected_routes)
+        // non existent content
+        .fallback(show_404)
         .with_state(status);
     info!("start_router() finished");
     ret
 }
 
-// TODO
 async fn auth_middleware(jar: CookieJar, req: Request<Body>, next: Next) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let user_o = database::get_user(cookie.value()).await;
@@ -127,40 +129,14 @@ async fn auth_middleware(jar: CookieJar, req: Request<Body>, next: Next) -> Resp
     Redirect::to("/login").into_response()
 }
 
-async fn handle_fallback(req: Request<Body>) -> Response {
-    let path = req.uri().path();
-    let file_path = if path == "/" || path.is_empty() {
-        "index.html".to_string()
-    } else {
-        path.trim_start_matches('/').to_string()
-    };
-
-    // TODO
-    if file_path.ends_with(".html") {
-        if let Ok(content) = fs::read_to_string(&file_path) {
-            return Html(content).into_response();
-        }
-    }
-
-    // Default to serving from ServeDir
-    // TODO serve only css and js
-    let service = ServeDir::new(".");
-    match tower::ServiceExt::oneshot(service, req).await {
-        Ok(res) => {
-            if res.status() == StatusCode::NOT_FOUND {
-                show_404().await.into_response()
-            } else {
-                res.into_response()
-            }
-        }
-        Err(_) => show_404().await.into_response(),
-    }
-}
-
 async fn show_404() -> impl IntoResponse {
     debug!("show_404 called");
-    (
-        StatusCode::NOT_FOUND,
-        Html(fs::read_to_string("404.html").unwrap_or_else(|_| "404 Not Found".to_string())),
-    )
+
+    match fs::read_to_string("404.html") {
+        Ok(content) => (StatusCode::NOT_FOUND, Html(content)),
+        Err(err) => {
+            debug!("Failed to read 404.html: {err}");
+            (StatusCode::NOT_FOUND, Html("404 Not Found".to_string()))
+        }
+    }
 }

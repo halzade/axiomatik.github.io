@@ -167,7 +167,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 now.year()
             );
 
-            let mut category_article = CategoryArticleTemplate {
+            let category_article = CategoryArticleTemplate {
                 url: file_path.clone(),
                 title: article_data.title.clone(),
                 short_text: article_data.short_text_processed.clone(),

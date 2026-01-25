@@ -52,7 +52,7 @@ pub async fn handle_login(jar: CookieJar, Form(payload): Form<LoginPayload>) -> 
             if user.needs_password_change {
                 (jar, Redirect::to("/change-password")).into_response()
             } else {
-                (jar, Redirect::to("/form")).into_response()
+                (jar, Redirect::to("/account")).into_response()
             }
         }
         Err(e) => {

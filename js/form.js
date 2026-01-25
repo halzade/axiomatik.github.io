@@ -28,11 +28,8 @@ form.addEventListener('submit', async function(e) {
             try {
                 const img = await loadImage(file);
                 if (img.width < 820) {
-                    showError(fileInput, `Obrázek musí mít šířku alespoň 820 px. Aktuální šířka: ${img.width} px.`);
+                    showError(fileInput, `Obrázek musí mít šířku alespoň 820 px. Aktuální šířka je: ${img.width} px.`);
                     isValid = false;
-                } else if (img.width > 820) {
-                    // Scale it
-                    finalImageData = await scaleImage(img, 820);
                 } else {
                     // It is exactly 820px, we don't need to scale, but we'll use the original file
                     finalImageData = file;
@@ -113,23 +110,5 @@ function loadImage(file) {
         };
         reader.onerror = reject;
         reader.readAsDataURL(file);
-    });
-}
-
-// TODO this seems very useless
-function scaleImage(img, targetWidth) {
-    return new Promise((resolve) => {
-        const canvas = document.createElement('canvas');
-        const scaleFactor = targetWidth / img.width;
-        canvas.width = targetWidth;
-        canvas.height = img.height * scaleFactor;
-
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        // TODO if not jpg
-        canvas.toBlob(blob => {
-            resolve(blob);
-        }, 'image/jpeg', 0.9);
     });
 }
