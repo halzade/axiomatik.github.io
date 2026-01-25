@@ -90,14 +90,15 @@ pub async fn start_router() -> Router {
         .route("/search", get(form_search::handle_search))
         // serve static content
         .nest_service("/", ServeDir::new("web"))
-        .nest_service("/css", ServeDir::new("css"))
-        .nest_service("/js", ServeDir::new("js"))
-        .nest_service("/uploads", ServeDir::new("uploads"))
+        .nest_service("/css", ServeDir::new("web/css"))
+        .nest_service("/js", ServeDir::new("web/js"))
+        .nest_service("/uploads", ServeDir::new("web/uploads"))
         // web app
         .merge(protected_routes)
         // non existent content
         .fallback(show_404)
         .with_state(status);
+
     info!("start_router() finished");
     ret
 }

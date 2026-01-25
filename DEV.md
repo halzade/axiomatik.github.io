@@ -1,22 +1,25 @@
 
-`cargo install cargo-watch`
+    cargo install cargo-watch
 
 ### Start application in dev mod
 
-`cargo watch -x run`
+    cargo watch -x run
 
 ### Create Editor User
-`cargo run -- create-user lukas dev`
+
+    cargo run -- create-user lukas dev
 
 ### Delete User
-`cargo run -- delete-user lukas`
+
+    cargo run -- delete-user lukas
 
 ### Print from Database
-`cargo run -- print-from-db "select * from user"`
+    
+    cargo run -- print-from-db "select * from user"
 
 ### other commands
 
-`ps aux | grep axiomatik`
+    ps aux | grep axiomatik
 
 
 ### Notes

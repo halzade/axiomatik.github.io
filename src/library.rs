@@ -104,13 +104,3 @@ pub fn formatted_article_date(now: DateTime<Local>) -> String {
         now.year()
     )
 }
-
-// TODO remove everything snippet
-pub fn read_related_articles(related_articles: &Vec<String>) -> String {
-    let mut related_articles_s = String::new();
-    for path in related_articles {
-        
-        // TODO read articles from DB
-    }
-    related_articles_s
-}
