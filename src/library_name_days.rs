@@ -1,4 +1,4 @@
-pub fn get_nameday(month: u32, day: u32) -> String {
+pub fn get_name_day(month: u32, day: u32) -> String {
     match month {
         1 => match day {
             1 => "_Nový rok".to_string(),

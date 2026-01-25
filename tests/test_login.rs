@@ -34,5 +34,10 @@ mod tests {
             "/change-password"
         );
         assert!(response.headers().get(header::SET_COOKIE).is_some());
+        let cookie_header = response.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap();
+        assert!(cookie_header.contains("HttpOnly"));
+        assert!(cookie_header.contains("Secure"));
+        assert!(cookie_header.contains("SameSite=Strict"));
+        assert!(cookie_header.contains("Path=/"));
     }
 }

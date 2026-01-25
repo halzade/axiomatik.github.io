@@ -167,7 +167,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 now.year()
             );
 
-            let mut snippet = CategoryArticleTemplate {
+            let mut category_article = CategoryArticleTemplate {
                 url: file_path.clone(),
                 title: article_data.title.clone(),
                 short_text: article_data.short_text_processed.clone(),
@@ -216,11 +216,11 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                     articles: "".to_string(),
                 };
                 let mut base_html = cat_template.render().unwrap();
-                base_html = base_html.replace("", &format!("\n{}", snippet));
+                base_html = base_html.replace("", &format!("\n{}", category_article));
                 fs::write(&category_month_year_filename, base_html).unwrap();
             } else {
                 let mut content = fs::read_to_string(&category_month_year_filename).unwrap();
-                content = content.replace("", &format!("\n{}", snippet));
+                content = content.replace("", &format!("\n{}", category_article));
                 fs::write(&category_month_year_filename, content).unwrap();
             }
 
@@ -228,7 +228,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             if std::path::Path::new(&main_cat_filename).exists() {
                 let mut content = fs::read_to_string(&main_cat_filename).unwrap();
                 if content.contains("") {
-                    content = content.replace("", &format!("\n{}", snippet));
+                    content = content.replace("", &format!("\n{}", category_article));
                 }
                 fs::write(&main_cat_filename, content).unwrap();
             }
@@ -236,7 +236,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             for path in &related_articles_vec {
                 if let Ok(mut content) = fs::read_to_string(path) {
                     if content.contains("") {
-                        content = content.replace("", &format!("\n{}", snippet));
+                        content = content.replace("", &format!("\n{}", category_article));
                         fs::write(path, content).unwrap();
                     }
                 }

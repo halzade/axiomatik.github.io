@@ -28,9 +28,8 @@ async fn main() {
         print_from_db(&args).await;
     }
 
-    // TODO write test
     if server::is_started().await {
-        info!("Application already started");
+        info!("But the Application has already started");
         info!("Shutting down gracefully...");
         signal::ctrl_c().await.ok();
     }

@@ -15,7 +15,7 @@
                 {{ date }}<br/>
                 <div class="weather"></div>
                 {{ weather }}<br/>
-                Svátek má {{ name_day }}
+                {{ name_day }}
             </div>
             <div class="center">
                 <a href="index.html" class="logo">NE<span class="b">X</span>O</a>
@@ -39,7 +39,7 @@
         <div class="most-articles">
             <div class="arrow red-arrow-left"></div>
             {% for article in articles_most_read %}
-                {{ article|safe }}
+            {{ article|safe }}
             {% endfor %}
             <div class="arrow red-arrow-right right-click-arrow"></div>
         </div>

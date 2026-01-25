@@ -2,7 +2,7 @@
 mod tests {
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::boundary;
+    use axiomatik_web::test_framework::script_base::content_type_with_boundary;
     use axum::http::{header, Request, StatusCode};
     use image::GenericImageView;
     use reqwest::Body;
@@ -38,7 +38,7 @@ mod tests {
             Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(header::CONTENT_TYPE, boundary())
+                .header(header::CONTENT_TYPE, content_type_with_boundary())
                 .header(header::COOKIE, &cookie)
                 .body(Body::from(body))
                 .unwrap(),

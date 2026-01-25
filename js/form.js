@@ -116,6 +116,7 @@ function loadImage(file) {
     });
 }
 
+// TODO this seems very useless
 function scaleImage(img, targetWidth) {
     return new Promise((resolve) => {
         const canvas = document.createElement('canvas');
@@ -126,7 +127,7 @@ function scaleImage(img, targetWidth) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        // TODO
+        // TODO if not jpg
         canvas.toBlob(blob => {
             resolve(blob);
         }, 'image/jpeg', 0.9);

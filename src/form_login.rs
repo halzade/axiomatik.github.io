@@ -5,7 +5,7 @@ use crate::validation::validate_input_simple;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
-use axum_extra::extract::cookie::Cookie;
+use axum_extra::extract::cookie::{Cookie, SameSite};
 use axum_extra::extract::CookieJar;
 use bcrypt::verify;
 use http::StatusCode;
@@ -40,7 +40,14 @@ pub async fn handle_login(jar: CookieJar, Form(payload): Form<LoginPayload>) -> 
         Ok(user) => {
             info!(user = %user.username, "User logged in successfully");
 
-            let jar = jar.add(Cookie::new(AUTH_COOKIE, user.username));
+            let jar = jar.add(
+                Cookie::build((AUTH_COOKIE, user.username))
+                    .http_only(true)
+                    .secure(true)
+                    .same_site(SameSite::Strict)
+                    .path("/")
+                    .build(),
+            );
 
             if user.needs_password_change {
                 (jar, Redirect::to("/change-password")).into_response()

@@ -555,3 +555,7 @@ a.button {
     right: 0;
     bottom: 34px;
 }
+
+.move-right {
+    margin-left: 20px;
+}

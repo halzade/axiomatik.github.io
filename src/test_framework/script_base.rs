@@ -69,7 +69,7 @@ pub async fn setup_user_and_login(name: &str) -> String {
     cookie
 }
 
-pub fn boundary() -> String {
+pub fn content_type_with_boundary() -> String {
     format!("multipart/form-data; boundary={}", BOUNDARY)
 }
 

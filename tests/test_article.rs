@@ -2,27 +2,20 @@
 mod tests {
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::boundary;
+    use axiomatik_web::test_framework::script_base::content_type_with_boundary;
     use axiomatik_web::test_framework::script_base_data::{
         FAKE_AUDIO_DATA_MP3, FAKE_IMAGE_DATA_JPEG, JPEG, MP3,
     };
     use axum::http::{header, Request, StatusCode};
+    use header::{CONTENT_TYPE, COOKIE};
     use reqwest::Body;
+    use std::fs::read_to_string;
 
     #[tokio::test]
     async fn test_create_article() {
         script_base::setup_before_tests_once().await;
 
-        // 1. Create a user who does NOT need password change
         let cookie = script_base::setup_user_and_login("user6").await;
-
-        // TODO 2
-
-        // 3. Create article (Multipart)
-        // Create related article and category files for testing
-        // TODO
-        let related_article_content = "<html><body></body></html>";
-        std::fs::write("related-test-article.html", related_article_content).unwrap();
 
         let body = ArticleBuilder::new()
             .title("Test Article")
@@ -40,8 +33,8 @@ mod tests {
             Request::builder()
                 .method("POST")
                 .uri("/create")
-                .header(header::CONTENT_TYPE, boundary())
-                .header(header::COOKIE, &cookie)
+                .header(CONTENT_TYPE, content_type_with_boundary())
+                .header(COOKIE, &cookie)
                 .body(Body::from(body.unwrap()))
                 .unwrap(),
         )
@@ -56,7 +49,7 @@ mod tests {
         // Verify files were created
         assert!(std::path::Path::new("test-article.html").exists());
 
-        // 2. Request the article (to increment views)
+        // Request the article
         let response_article = script_base::one_shot(
             Request::builder()
                 .uri("/test-article.html")
@@ -66,12 +59,12 @@ mod tests {
         .await;
         assert_eq!(response_article.status(), StatusCode::OK);
 
-        // 3. Check the account page for views
+        // Check the account page for views
         let account_resp = script_base::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
-                .header(header::COOKIE, &cookie)
+                .header(COOKIE, &cookie)
                 .body(Body::default())
                 .unwrap(),
         )
@@ -80,8 +73,10 @@ mod tests {
         assert_eq!(account_resp.status(), StatusCode::OK);
 
         // Verify audio player placement
-        let article_content = std::fs::read_to_string("test-article.html").unwrap();
-        let audio_pos = article_content.find("<audio").expect("Audio player not found");
+        let article_content = read_to_string("test-article.html").unwrap();
+        let audio_pos = article_content
+            .find("<audio")
+            .expect("Audio player not found");
         let text_pos = article_content
             .find("This is a test article text.")
             .expect("Article text not found");
@@ -92,7 +87,6 @@ mod tests {
 
         // Cleanup
         let _ = std::fs::remove_file("test-article.html");
-        let _ = std::fs::remove_file("related-test-article.html");
         let _ = std::fs::remove_file("uploads/test-article_image_820.jpg");
         let _ = std::fs::remove_file("uploads/test-article_image_50.jpg");
         let _ = std::fs::remove_file("uploads/test-article_image_288.jpg");

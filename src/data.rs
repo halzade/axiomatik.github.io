@@ -54,9 +54,7 @@ impl ApplicationData {
 pub fn init_trivial() -> ApplicationData {
     ApplicationData {
         date: RwLock::new("Pondělí 1. Ledna 2024".to_string()),
-
-        // TODO
-        name_day: RwLock::new("Svátek má Nový rok".to_string()),
+        name_day: RwLock::new("Je Nový rok, státní svátek".to_string()),
         weather: RwLock::new("0°C | Praha".to_string()),
     }
 }

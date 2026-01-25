@@ -12,8 +12,11 @@ pub fn formatted_today_name_day(now: DateTime<Local>) -> String {
         "".to_string()
     } else {
         if name.contains("_") {
+            // dny, kdy svátek není
             return name.replace("_", "");
         }
+
+        // normální svátek
         format!("Svátek má {}", name)
     }
 }
@@ -23,11 +26,10 @@ fn today_name_day(now: DateTime<Local>) -> String {
     let month = now.month();
     let day = now.day();
 
-    // TODO this looks suspicious
     if month == 2 && day == 29 && !is_leap_year(year) {
         return LEEP_YEAR_NAME_DAY.to_string();
     }
-    library_name_days::get_nameday(month, day)
+    library_name_days::get_name_day(month, day)
 }
 
 fn is_leap_year(year: i32) -> bool {

@@ -1,6 +1,6 @@
 use axiomatik_web::test_framework::article_builder::ArticleBuilder;
 use axiomatik_web::test_framework::script_base;
-use axiomatik_web::test_framework::script_base::boundary;
+use axiomatik_web::test_framework::script_base::content_type_with_boundary;
 use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
 use axum::http::{header, StatusCode};
 use axum_core::extract::Request;
@@ -28,7 +28,7 @@ async fn test_index_main_article() {
         Request::builder()
             .method("POST")
             .uri("/create")
-            .header(header::CONTENT_TYPE, boundary())
+            .header(header::CONTENT_TYPE, content_type_with_boundary())
             .header(header::COOKIE, &cookie)
             .body(Body::from(body))
             .unwrap(),
@@ -70,7 +70,7 @@ async fn test_index_main_article_exclusive() {
         Request::builder()
             .method("POST")
             .uri("/create")
-            .header(header::CONTENT_TYPE, boundary())
+            .header(header::CONTENT_TYPE, content_type_with_boundary())
             .header(header::COOKIE, &cookie)
             .body(Body::from(body))
             .unwrap(),
@@ -110,7 +110,7 @@ async fn test_index_article_republika() {
         Request::builder()
             .method("POST")
             .uri("/create")
-            .header(header::CONTENT_TYPE, boundary())
+            .header(header::CONTENT_TYPE, content_type_with_boundary())
             .header(header::COOKIE, &cookie)
             .body(Body::from(body))
             .unwrap(),
@@ -151,7 +151,7 @@ async fn test_index_article_zahranici() {
         Request::builder()
             .method("POST")
             .uri("/create")
-            .header(header::CONTENT_TYPE, boundary())
+            .header(header::CONTENT_TYPE, content_type_with_boundary())
             .header(header::COOKIE, &cookie)
             .body(Body::from(body))
             .unwrap(),
@@ -192,7 +192,7 @@ async fn test_index_article_veda() {
         Request::builder()
             .method("POST")
             .uri("/create")
-            .header(header::CONTENT_TYPE, boundary())
+            .header(header::CONTENT_TYPE, content_type_with_boundary())
             .header(header::COOKIE, &cookie)
             .body(Body::from(body))
             .unwrap(),
