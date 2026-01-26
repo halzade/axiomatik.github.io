@@ -13,6 +13,8 @@ use crate::test_framework::article_builder::BOUNDARY;
 use tokio::sync::OnceCell;
 use tracing::log::debug;
 
+pub const CLEANUP: &str = "Failed to cleanup";
+
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";
 
@@ -77,6 +79,10 @@ pub async fn response_to_body(response: axum::response::Response) -> String {
     let body_bytes = axum::body::to_bytes(response.into_body(), usize::MAX).await;
     let body_str = String::from_utf8_lossy(&body_bytes.unwrap()).to_string();
     body_str
+}
+
+pub fn get_test_image_data() -> Vec<u8> {
+    std::fs::read("tests/data/image_1024.png").expect("Test image not found at tests/data/image_1024.png")
 }
 
 fn new_user(name: &str) -> User {

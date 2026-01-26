@@ -1,22 +1,25 @@
 #[cfg(test)]
 mod tests {
+    use axiomatik_web::database;
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{content_type_with_boundary, response_to_body, serialize};
-    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
-    use axiomatik_web::{database};
+    use axiomatik_web::test_framework::script_base::{
+        content_type_with_boundary, response_to_body, serialize, CLEANUP,
+    };
+    use axiomatik_web::test_framework::script_base_data::PNG;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
+    use std::fs::remove_file;
 
     #[tokio::test]
     async fn test_account_page() {
         script_base::setup_before_tests_once().await;
 
-        // 1. Create user
+        // Create user
         let cookie = script_base::setup_user_and_login("user8").await;
 
-        // 3. Access account page
-        let response_accout = script_base::one_shot(
+        // Access account page
+        let response_account = script_base::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
@@ -26,12 +29,12 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response_accout.status(), StatusCode::OK);
-        let body_account = response_to_body(response_accout).await;
+        assert_eq!(response_account.status(), StatusCode::OK);
+        let body_account = response_to_body(response_account).await;
         assert!(body_account.contains("user8"));
         assert!(body_account.contains("Moje články"));
 
-        // 4. Update author name
+        // Update author name
         let update_params = [("author_name", "Updated Author")];
         let response_update_author = script_base::one_shot(
             Request::builder()
@@ -53,18 +56,19 @@ mod tests {
             "/account"
         );
 
-        // 5. Verify update in DB
+        // Verify update in DB
         let user = database::get_user("user8").await.unwrap();
         assert_eq!(user.author_name, "Updated Author");
 
-        // 6. Create an article for this user
+        // Create an article with this user
+        let image_data = script_base::get_test_image_data();
         let body = ArticleBuilder::new()
             .title("Test User Article")
             .author("Updated Author")
             .category("zahranici")
             .text("Content")
             .short_text("Short")
-            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image("test.png", &image_data, PNG)
             .image_description("test image description")
             .related_articles("related-test-article.html")
             .build();
@@ -83,7 +87,7 @@ mod tests {
         assert_eq!(response_create_article.status(), StatusCode::SEE_OTHER);
 
         // 7. Verify the article is on the account page
-        let response_accout_2 = script_base::one_shot(
+        let response_account_2 = script_base::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
@@ -93,12 +97,12 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response_accout_2.status(), StatusCode::OK);
+        assert_eq!(response_account_2.status(), StatusCode::OK);
 
-        let body = response_to_body(response_accout_2).await;
+        let body = response_to_body(response_account_2).await;
         assert!(body.contains("Test User Article"));
 
-        // 8. Update author name again
+        // Update author name again
         let update_params = [("author_name", "Second Update")];
         let response_update_author_2 = script_base::one_shot(
             Request::builder()
@@ -113,8 +117,8 @@ mod tests {
 
         assert_eq!(response_update_author_2.status(), StatusCode::SEE_OTHER);
 
-        // 9. Verify the article is STILL on the account page (linked by username, not author_name)
-        let response_accout_3 = script_base::one_shot(
+        // Verify the article is STILL on the account page (linked by username, not author_name)
+        let response_account_3 = script_base::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
@@ -124,17 +128,17 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response_accout_3.status(), StatusCode::OK);
+        assert_eq!(response_account_3.status(), StatusCode::OK);
 
-        let body = response_to_body(response_accout_3).await;
+        let body = response_to_body(response_account_3).await;
         assert!(body.contains("Test User Article"));
         assert!(body.contains("Second Update"));
 
         // Cleanup files
-        let _ = std::fs::remove_file("test-user-article.html");
-        let _ = std::fs::remove_file("uploads/test-user-article_image_820.jpg");
-        let _ = std::fs::remove_file("uploads/test-user-article_image_50.jpg");
-        let _ = std::fs::remove_file("uploads/test-user-article_image_288.jpg");
-        let _ = std::fs::remove_file("uploads/test-user-article_image_440.jpg");
+        remove_file("web/test-user-article.html").expect(CLEANUP);
+        remove_file("web/uploads/test-user-article_image_820.png").expect(CLEANUP);
+        remove_file("web/uploads/test-user-article_image_50.png").expect(CLEANUP);
+        remove_file("web/uploads/test-user-article_image_288.png").expect(CLEANUP);
+        remove_file("web/uploads/test-user-article_image_440.png").expect(CLEANUP);
     }
 }

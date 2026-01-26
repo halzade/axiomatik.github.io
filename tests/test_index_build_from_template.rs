@@ -150,6 +150,6 @@ mod tests {
         assert!(saved_content.contains("<div class=\"main-article-text\">"));
 
         // Cleanup
-        let _ = std::fs::remove_file("test-index.html");
+        let _ = std::fs::remove_file("web/test-index.html");
     }
 }

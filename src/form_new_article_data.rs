@@ -1,33 +1,38 @@
 use crate::form_new_article::ArticleData;
-use crate::validation::{
-    extract_text_field, save_file_field_with_name,
-    ALLOWED_EXTENSIONS_AUDIO, ALLOWED_EXTENSIONS_IMAGE, ALLOWED_EXTENSIONS_VIDEO,
+use crate::test_framework::utils::{
+    extract_audio_data, extract_image_data, extract_required_string, extract_required_text,
+    extract_video_data,
 };
+use anyhow::{anyhow, Error};
 use axum::extract::Multipart;
 use tracing::{debug, error};
 
-pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
+pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error> {
     // required
     let mut title_o = None;
+    let mut base_file_name_o = None;
     let mut author_o = None;
     let mut text_processed_o = None;
     let mut short_text_processed_o = None;
-    let mut image_path_o = None;
+    let mut image_data_o = None;
     let mut image_description_o = None;
     let mut category_o = None;
 
     // not required
-    let mut video_path_o = None;
-    let mut audio_path_o = None;
+    let mut video_data_o = None;
+    let mut audio_data_o = None;
     let mut is_main_o = None;
     let mut is_exclusive_o = None;
-
-    // not required
     let mut related_articles_o = None;
 
+    let mut has_video = false;
+    let mut has_audio = false;
+
     while let Ok(Some(field)) = multipart.next_field().await {
+        // TODO don't default
         let field_name = field.name().unwrap_or_default().to_string();
         let content_type = field.content_type().map(|c| c.to_string());
+
         debug!(
             "Processing field: {}, content_type: {:?}",
             field_name, content_type
@@ -35,241 +40,172 @@ pub async fn article_data(mut multipart: Multipart) -> Option<ArticleData> {
 
         match field_name.as_str() {
             "is_main" => {
-                let val = extract_text_field(field, "is_main", false)
-                    .await
-                    .unwrap_or_default();
-                is_main_o = Some(val == "on");
+                // if present, then required
+                let extracted = extract_required_string(field, "is_main").await?;
+                is_main_o = Some(extracted == "on");
             }
 
             "is_exclusive" => {
-                let val = extract_text_field(field, "is_exclusive", false)
-                    .await
-                    .unwrap_or_default();
-                is_exclusive_o = Some(val == "on");
+                // if present, then required
+                let extracted = extract_required_string(field, "is_exclusive").await?;
+                is_exclusive_o = Some(extracted == "on");
             }
 
             "title" => {
-                title_o = extract_text_field(field, "title", true).await;
+                let extracted = extract_required_string(field, "title").await?;
+                title_o = Some(extracted.clone());
+                base_file_name_o = Some(extracted);
             }
 
             "author" => {
-                author_o = extract_text_field(field, "author", true).await;
+                // TODO use data from DB instead
+                let extracted = extract_required_string(field, "author").await?;
+                author_o = Some(extracted);
             }
 
             "text" => {
-                let raw_text = match extract_text_field(field, "text", true).await {
-                    Some(t) => t,
-                    None => return None,
-                };
-                let normalized = raw_text.replace("\r\n", "\n");
-                let processed = normalized
-                    .split("\n\n\n")
-                    .filter(|block| !block.trim().is_empty())
-                    .map(|block| {
-                        let inner_html = block
-                            .split("\n\n")
-                            .filter(|s| !s.trim().is_empty())
-                            .map(|s| {
-                                if s.starts_with("   ") {
-                                    format!("<blockquote>{}</blockquote>", s.trim())
-                                } else {
-                                    format!("<p>{}</p>", s.trim().replace("\n", " "))
-                                }
-                            })
-                            .collect::<Vec<String>>()
-                            .join("");
-                        format!("<div class=\"container\">{}</div>", inner_html)
-                    })
-                    .collect::<Vec<String>>()
-                    .join("");
-                text_processed_o = Some(processed);
+                let raw_text = extract_required_text(field, "text").await?;
+                text_processed_o = Some(process_text(&raw_text));
             }
 
             "short_text" => {
-                let raw_text = match extract_text_field(field, "short_text", true).await {
-                    Some(t) => t,
-                    None => return None,
-                };
-                let normalized = raw_text.replace("\r\n", "\n");
-                let normalized_text = normalized
-                    .split("\n\n")
-                    .filter(|s| !s.trim().is_empty())
-                    .map(|s| s.trim().replace("\n", "<br>\n"))
-                    .collect::<Vec<String>>()
-                    .join("</p><p>");
-                short_text_processed_o = Some(normalized_text);
+                let raw_text = extract_required_text(field, "short_text").await?;
+                short_text_processed_o = Some(process_short_text(&raw_text));
             }
 
             "category" => {
-                category_o = extract_text_field(field, "category", true).await;
+                let extracted = extract_required_string(field, "category").await?;
+                category_o = Some(extracted);
             }
 
             "related_articles" => {
-                related_articles_o = extract_text_field(field, "related_articles", false).await;
+                let extracted = extract_required_string(field, "related_articles").await?;
+                related_articles_o = Some(extracted);
             }
 
             "image_description" => {
-                image_description_o = extract_text_field(field, "image_description", true).await;
+                let extracted = extract_required_string(field, "image_description").await?;
+                image_description_o = Some(extracted);
             }
 
-            // TODO
             "image" => {
-                let article_file_name = if let Some(ref title) = title_o {
-                    Some(crate::library::save_article_file_name(title))
-                } else {
-                    None
-                };
-
-                if let Some(path) = save_file_field_with_name(
-                    field,
-                    "image",
-                    ALLOWED_EXTENSIONS_IMAGE,
-                    article_file_name,
-                )
-                .await
-                {
-                    image_path_o = Some(path);
-                }
+                image_data_o = extract_image_data(field).await;
             }
 
             "video" => {
-                let article_file_name = if let Some(ref title) = title_o {
-                    Some(format!("{}_video", crate::library::save_article_file_name(title)))
-                } else {
-                    None
-                };
-
-                if let Some(path) = save_file_field_with_name(
-                    field,
-                    "video",
-                    ALLOWED_EXTENSIONS_VIDEO,
-                    article_file_name,
-                )
-                .await
-                {
-                    video_path_o = Some(path);
-                }
+                video_data_o = extract_video_data(field).await;
+                has_video = true;
             }
 
             "audio" => {
-                let article_file_name = if let Some(ref title) = title_o {
-                    Some(format!("{}_audio", crate::library::save_article_file_name(title)))
-                } else {
-                    None
-                };
-
-                if let Some(path) = save_file_field_with_name(
-                    field,
-                    "audio",
-                    ALLOWED_EXTENSIONS_AUDIO,
-                    article_file_name,
-                )
-                .await
-                {
-                    audio_path_o = Some(path);
-                }
+                audio_data_o = extract_audio_data(field).await;
+                has_audio = true;
             }
-            _ => (),
+            _ => {
+                error!("Unknown field: {}", field_name);
+            }
         }
     }
 
-    // TODO move to library
-    let category_display = match &category_o {
-        None => {
-            error!("Category is None");
-            return None;
-        }
-        Some(category) => match category.as_str() {
-            "zahranici" => "zahraničí",
-            "republika" => "republika",
-            "finance" => "finance",
-            "technologie" => "technologie",
-            "veda" => "věda",
-            cat => {
-                error!("Unknown category: {}", cat);
-                return None;
-            }
-        },
+    let category_display = process_category(&category_o.clone().unwrap())?;
+
+    let base_file_name = base_file_name_o.unwrap();
+
+    // TODO extensions
+    let video_path = if let Some((_, ref extension)) = video_data_o {
+        Some(format!("upload/{}-video.{}", &base_file_name, extension))
+    } else {
+        None
     };
 
-    // TODO this should be part of validation
-    let res = (|| {
-        let author = author_o.as_ref().cloned().or_else(|| {
-            error!("ArticleData construction failed: author is None");
-            None
-        })?;
-        let title = title_o.as_ref().cloned().or_else(|| {
-            error!("ArticleData construction failed: title is None");
-            None
-        })?;
-        let text_processed = text_processed_o.as_ref().cloned().or_else(|| {
-            error!("ArticleData construction failed: text_processed is None");
-            None
-        })?;
-        let short_text_processed = short_text_processed_o.as_ref().cloned().or_else(|| {
-            error!("ArticleData construction failed: short_text_processed is None");
-            None
-        })?;
-        let image_path = image_path_o.as_ref().cloned().or_else(|| {
-            error!("ArticleData construction failed: image_path is None");
-            None
-        })?;
-        let image_description = image_description_o.as_ref().cloned().or_else(|| {
-            error!("ArticleData construction failed: image_description is None");
-            None
-        })?;
-        let category = category_o.as_ref().cloned().or_else(|| {
-            error!("ArticleData construction failed: category is None");
-            None
-        })?;
+    // TODO extensions
+    let audio_path = if let Some((_, ref extension)) = audio_data_o {
+        Some(format!("upload/{}-audio.{}", &base_file_name, extension))
+    } else {
+        None
+    };
 
-        // TODO should not be treated differently then other non required fields
-        let related_articles = related_articles_o.as_ref().cloned().unwrap_or_default();
-
-        Some(ArticleData {
-            is_main: is_main_o.unwrap_or(false),
-            is_exclusive: is_exclusive_o.unwrap_or(false),
-            author,
-            title,
-            text_processed,
-            short_text_processed,
-            image_path,
-            image_description,
-            video_path: video_path_o.clone(),
-            audio_path: audio_path_o.clone(),
-            category,
-            category_display: category_display.to_string(),
-            related_articles,
-        })
-    })();
-    if res.is_none() {
-        error!(
-            "ArticleData construction failed:\n\
-             is_main={:?}\n\
-             is_exclusive={:?}\n\
-             author={:?}\n\
-             title={:?}\n\
-             text={:?}\n\
-             short_text={:?}\n\
-             image_path={:?}\n\
-             image_description={:?}\n\
-             video_path={:?}\n\
-             audio_path={:?}\n\
-             category={:?}\n\
-             related_articles={:?}",
-            is_main_o,
-            is_exclusive_o,
-            author_o,
-            title_o,
-            text_processed_o,
-            short_text_processed_o,
-            image_path_o,
-            image_description_o,
-            video_path_o,
-            audio_path_o,
-            category_o,
-            related_articles_o
-        );
+    let image_data_bu8;
+    let image_extension;
+    let image_path;
+    match image_data_o {
+        Some(image_data) => {
+            image_data_bu8 = image_data.0;
+            image_extension = image_data.1;
+            image_path = format!("uploads/{}-image.{}", &base_file_name, image_extension);
+        }
+        None => {
+            error!("Image was required");
+            return Err(anyhow!("Image was required"));
+        }
     }
-    res
+
+    Ok(ArticleData {
+        is_main: is_main_o.unwrap_or(false),
+        is_exclusive: is_exclusive_o.unwrap_or(false),
+        author: author_o.unwrap(),
+        title: title_o.unwrap(),
+        text_processed: text_processed_o.unwrap(),
+        short_text_processed: short_text_processed_o.unwrap(),
+        image_data: image_data_bu8,
+        image_description: image_description_o.unwrap(),
+        video_data: video_data_o.map(|(d, _)| d).unwrap_or_default(),
+        audio_data: audio_data_o.map(|(d, _)| d).unwrap_or_default(),
+        category: category_o.unwrap(),
+        category_display: category_display.to_string(),
+        related_articles: related_articles_o.unwrap(),
+        image_path,
+        video_path,
+        audio_path,
+    })
+}
+
+fn process_category(raw_category: &str) -> Result<String, Error> {
+    match raw_category {
+        "zahranici" => Ok("zahraničí".into()),
+        "republika" => Ok("republika".into()),
+        "finance" => Ok("finance".into()),
+        "technologie" => Ok("technologie".into()),
+        "veda" => Ok("věda".into()),
+        cat => {
+            error!("Unknown category: {}", cat);
+            Err(anyhow!(format!("Unknown category: {}", cat)))
+        }
+    }
+}
+
+// TODO
+fn process_short_text(raw_text: &str) -> String {
+    raw_text
+        .replace("\r\n", "\n")
+        .split("\n\n")
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.trim().replace("\n", "<br>\n"))
+        .collect::<Vec<String>>()
+        .join("</p><p>")
+}
+
+// TODO
+fn process_text(raw_text: &str) -> String {
+    raw_text
+        .replace("\r\n", "\n")
+        .split("\n\n\n")
+        .filter(|block| !block.trim().is_empty())
+        .map(|block| {
+            let inner_html = block
+                .split("\n\n")
+                .filter(|s| !s.trim().is_empty())
+                .map(|s| {
+                    if s.starts_with("   ") {
+                        format!("<blockquote>{}</blockquote>", s.trim())
+                    } else {
+                        format!("<p>{}</p>", s.trim().replace("\n", " "))
+                    }
+                })
+                .collect::<Vec<String>>()
+                .join("");
+            format!("<div class=\"container\">{}</div>", inner_html)
+        })
+        .collect::<Vec<String>>()
+        .join("")
 }

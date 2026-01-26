@@ -3,18 +3,19 @@ mod tests {
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::content_type_with_boundary;
-    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axum::http::{header, StatusCode};
     use reqwest::Body;
+    use axiomatik_web::test_framework::script_base_data::PNG;
 
     #[tokio::test]
     async fn test_shift_main_article_removes_exclusive_tag() {
         script_base::setup_before_tests_once().await;
 
-        // 1. Create user
+        // Create user
         let cookie = script_base::setup_user_and_login("user3").await;
 
-        // 3. Create the first article as MAIN and EXCLUSIVE
+        let image_data = script_base::get_test_image_data();
+        // Create the first article as MAIN and EXCLUSIVE
         let body1 = ArticleBuilder::new()
             .title("test-Exclusive Article")
             .exclusive()
@@ -23,7 +24,7 @@ mod tests {
             .category("republika")
             .text("First article text.")
             .short_text("First short text.")
-            .image("test1.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image("test1.jpg", &image_data, PNG)
             .image_description("test description")
             .build();
 
@@ -46,6 +47,8 @@ mod tests {
             index_after1.contains(r#"<span class="red">EXKLUZIVNĚ:</span> test-Exclusive Article"#)
         );
 
+        let image_data = script_base::get_test_image_data();
+        
         // 4. Create the second article as MAIN (not necessarily exclusive)
         let body2 = ArticleBuilder::new()
             .title("Test New Main Article")
@@ -54,7 +57,7 @@ mod tests {
             .category("republika")
             .text("Second article text.")
             .short_text("Second short text.")
-            .image("test2.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image("test2.jpg", &image_data, PNG)
             .image_description("test description")
             .build();
 
@@ -92,15 +95,15 @@ mod tests {
         );
 
         // Cleanup
-        let _ = std::fs::remove_file("test-exclusive-article.html");
-        let _ = std::fs::remove_file("test-new-main-article.html");
-        let _ = std::fs::remove_file("uploads/test-exclusive-article_image_820.jpg");
-        let _ = std::fs::remove_file("uploads/test-exclusive-article_image_50.jpg");
-        let _ = std::fs::remove_file("uploads/test-exclusive-article_image_288.jpg");
-        let _ = std::fs::remove_file("uploads/test-exclusive-article_image_440.jpg");
-        let _ = std::fs::remove_file("uploads/test-new-main-article_image_820.jpg");
-        let _ = std::fs::remove_file("uploads/test-new-main-article_image_50.jpg");
-        let _ = std::fs::remove_file("uploads/test-new-main-article_image_288.jpg");
-        let _ = std::fs::remove_file("uploads/test-new-main-article_image_440.jpg");
+        let _ = std::fs::remove_file("web/test-exclusive-article.html");
+        let _ = std::fs::remove_file("web/test-new-main-article.html");
+        let _ = std::fs::remove_file("web/uploads/test-exclusive-article_image_820.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-exclusive-article_image_50.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-exclusive-article_image_288.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-exclusive-article_image_440.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-new-main-article_image_820.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-new-main-article_image_50.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-new-main-article_image_288.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-new-main-article_image_440.jpg");
     }
 }

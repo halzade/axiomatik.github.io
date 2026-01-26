@@ -3,11 +3,11 @@ mod tests {
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::content_type_with_boundary;
-    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axum::http::{header, StatusCode};
     use axum_core::extract::Request;
     use reqwest::Body;
     use std::fs;
+    use axiomatik_web::test_framework::script_base_data::PNG;
 
     #[tokio::test]
     async fn test_exclusive_main_article_finance() {
@@ -15,6 +15,7 @@ mod tests {
 
         let cookie = script_base::setup_user_and_login("user2").await;
 
+        let image_data = script_base::get_test_image_data();
         let body = ArticleBuilder::new()
             .title("test-Financni trhy v soku")
             .author("Financni Expert")
@@ -23,7 +24,7 @@ mod tests {
             .short_text("Krátký text o financich")
             .main()
             .exclusive()
-            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image("test.png", &image_data, PNG)
             .image_description("anything")
             .build()
             .unwrap();
@@ -59,10 +60,10 @@ mod tests {
         );
 
         // Cleanup
-        let _ = fs::remove_file("test-financni-trhy-v-soku.html");
-        let _ = fs::remove_file("uploads/test-financni-trhy-v-soku_image_820.jpg");
-        let _ = fs::remove_file("uploads/test-financni-trhy-v-soku_image_50.jpg");
-        let _ = fs::remove_file("uploads/test-financni-trhy-v-soku_image_288.jpg");
-        let _ = fs::remove_file("uploads/test-financni-trhy-v-soku_image_440.jpg");
+        let _ = fs::remove_file("web/test-financni-trhy-v-soku.html");
+        let _ = fs::remove_file("web/uploads/test-financni-trhy-v-soku_image_820.jpg");
+        let _ = fs::remove_file("web/uploads/test-financni-trhy-v-soku_image_50.jpg");
+        let _ = fs::remove_file("web/uploads/test-financni-trhy-v-soku_image_288.jpg");
+        let _ = fs::remove_file("web/uploads/test-financni-trhy-v-soku_image_440.jpg");
     }
 }

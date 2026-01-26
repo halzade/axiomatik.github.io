@@ -2,6 +2,7 @@ use crate::{
     database, form_account, form_change_password, form_login, form_new_article, form_search,
 };
 use axum::body::Body;
+use axum::handler::HandlerWithoutStateExt;
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::routing::{get, post};
@@ -89,14 +90,13 @@ pub async fn start_router() -> Router {
         )
         .route("/search", get(form_search::handle_search))
         // serve static content
-        .nest_service("/", ServeDir::new("web"))
         .nest_service("/css", ServeDir::new("web/css"))
         .nest_service("/js", ServeDir::new("web/js"))
         .nest_service("/uploads", ServeDir::new("web/uploads"))
         // web app
         .merge(protected_routes)
         // non existent content
-        .fallback(show_404)
+        .fallback_service(ServeDir::new("web").not_found_service(show_404.into_service()))
         .with_state(status);
 
     info!("start_router() finished");
@@ -133,7 +133,7 @@ async fn auth_middleware(jar: CookieJar, req: Request<Body>, next: Next) -> Resp
 async fn show_404() -> impl IntoResponse {
     debug!("show_404 called");
 
-    match fs::read_to_string("404.html") {
+    match fs::read_to_string("web/404.html") {
         Ok(content) => (StatusCode::NOT_FOUND, Html(content)),
         Err(err) => {
             debug!("Failed to read 404.html: {err}");

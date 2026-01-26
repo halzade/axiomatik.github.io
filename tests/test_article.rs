@@ -3,9 +3,7 @@ mod tests {
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::content_type_with_boundary;
-    use axiomatik_web::test_framework::script_base_data::{
-        FAKE_AUDIO_DATA_MP3, FAKE_IMAGE_DATA_JPEG, JPEG, MP3,
-    };
+    use axiomatik_web::test_framework::script_base_data::{FAKE_AUDIO_DATA_MP3, JPEG, MP3, PNG};
     use axum::http::{header, Request, StatusCode};
     use header::{CONTENT_TYPE, COOKIE};
     use reqwest::Body;
@@ -17,6 +15,7 @@ mod tests {
 
         let cookie = script_base::setup_user_and_login("user6").await;
 
+        let image_data = script_base::get_test_image_data();
         let body = ArticleBuilder::new()
             .title("Test Article")
             .author("Test Author")
@@ -24,7 +23,7 @@ mod tests {
             .text("This is a test article text.")
             .short_text("Short text.")
             .related_articles("related-test-article.html")
-            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image("test.jpg", &image_data, PNG)
             .image_description("test description")
             .audio("test.mp3", FAKE_AUDIO_DATA_MP3, MP3)
             .build();
@@ -86,11 +85,11 @@ mod tests {
         );
 
         // Cleanup
-        let _ = std::fs::remove_file("test-article.html");
-        let _ = std::fs::remove_file("uploads/test-article_image_820.jpg");
-        let _ = std::fs::remove_file("uploads/test-article_image_50.jpg");
-        let _ = std::fs::remove_file("uploads/test-article_image_288.jpg");
-        let _ = std::fs::remove_file("uploads/test-article_image_440.jpg");
-        let _ = std::fs::remove_file("uploads/test-article_audio.mp3");
+        let _ = std::fs::remove_file("web/test-article.html");
+        let _ = std::fs::remove_file("web/uploads/test-article_image_820.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-article_image_50.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-article_image_288.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-article_image_440.jpg");
+        let _ = std::fs::remove_file("web/uploads/test-article_audio.mp3");
     }
 }

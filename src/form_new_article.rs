@@ -15,10 +15,17 @@ pub struct ArticleData {
     pub title: String,
     pub text_processed: String,
     pub short_text_processed: String,
+
     pub image_path: String,
+    pub image_data: Vec<u8>,
     pub image_description: String,
+
     pub video_path: Option<String>,
+    pub video_data: Vec<u8>,
+
     pub audio_path: Option<String>,
+    pub audio_data: Vec<u8>,
+
     pub category: String,
     pub category_display: String,
     pub related_articles: String,
@@ -92,6 +99,8 @@ pub async fn show_form(jar: CookieJar) -> Response {
     Redirect::to("/login").into_response()
 }
 
+// to Try from for Multipart
+// need multipart because of the files
 pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
     let created_by = if let Some(cookie) = jar.get(AUTH_COOKIE) {
         cookie.value().to_string()
@@ -105,11 +114,10 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
     /*
      * Read request data
      */
-    let article_data_o = crate::form_new_article_data::article_data(multipart).await;
+    let article_data_r = crate::form_new_article_data::article_data(multipart).await;
 
-    match article_data_o {
-        None => StatusCode::BAD_REQUEST.into_response(),
-        Some(article_data) => {
+    match article_data_r {
+        Ok(article_data) => {
             let now = Local::now();
             let formatted_date = data::date();
             let formatted_weather = data::weather();
@@ -281,5 +289,6 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
 
             Redirect::to(&*file_path).into_response()
         }
+        Err(_) => StatusCode::BAD_REQUEST.into_response(),
     }
 }

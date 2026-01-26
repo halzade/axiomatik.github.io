@@ -3,18 +3,19 @@ mod tests {
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::content_type_with_boundary;
-    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axum::http::{header, StatusCode};
     use axum_core::extract::Request;
     use reqwest::Body;
     use std::fs;
+    use axiomatik_web::test_framework::script_base_data::PNG;
 
     #[tokio::test]
     async fn test_veda_article_is_main_rotation() {
         script_base::setup_before_tests_once().await;
 
         let cookie = script_base::setup_user_and_login("user4").await;
-
+        
+        let image_data = script_base::get_test_image_data();
         let body = ArticleBuilder::new()
             .title("Test New Veda Main")
             .author("Author Veda")
@@ -22,7 +23,7 @@ mod tests {
             .text("Main text of veda article")
             .short_text("Short text of veda article")
             .main()
-            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image("test.jpg", &image_data, PNG)
             .image_description("test description")
             .build()
             .unwrap();
@@ -50,10 +51,10 @@ mod tests {
         assert!(main_section.contains("uploads/")); // Image should be there
 
         // Cleanup
-        let _ = fs::remove_file("test-new-veda-main.html");
-        let _ = fs::remove_file("uploads/test-new-veda-main_image_820.jpg");
-        let _ = fs::remove_file("uploads/test-new-veda-main_image_50.jpg");
-        let _ = fs::remove_file("uploads/test-new-veda-main_image_288.jpg");
-        let _ = fs::remove_file("uploads/test-new-veda-main_image_440.jpg");
+        let _ = fs::remove_file("web/test-new-veda-main.html");
+        let _ = fs::remove_file("web/uploads/test-new-veda-main_image_820.jpg");
+        let _ = fs::remove_file("web/uploads/test-new-veda-main_image_50.jpg");
+        let _ = fs::remove_file("web/uploads/test-new-veda-main_image_288.jpg");
+        let _ = fs::remove_file("web/uploads/test-new-veda-main_image_440.jpg");
     }
 }

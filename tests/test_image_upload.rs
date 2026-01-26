@@ -79,7 +79,7 @@ mod tests {
         }
 
         // Cleanup
-        let _ = fs::remove_file("text-testing-upload.html");
+        let _ = fs::remove_file("web/text-testing-upload.html");
         let _ = fs::remove_file(format!("uploads/{}_image_820.png", base_name));
         let _ = fs::remove_file(format!("uploads/{}_image_50.png", base_name));
         let _ = fs::remove_file(format!("uploads/{}_image_288.png", base_name));

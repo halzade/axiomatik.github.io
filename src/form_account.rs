@@ -1,7 +1,7 @@
 use crate::database;
 use crate::database::Article;
 use crate::server::AUTH_COOKIE;
-use crate::validation::validate_input;
+use crate::validation::validate_input_simple;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
@@ -67,7 +67,7 @@ pub async fn handle_update_author_name(
 ) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let username = cookie.value();
-        if validate_input(&payload.author_name).is_err() {
+        if validate_input_simple(&payload.author_name).is_err() {
             return StatusCode::BAD_REQUEST.into_response();
         }
         match update_author_name(username, &payload.author_name).await {

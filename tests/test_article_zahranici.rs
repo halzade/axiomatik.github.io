@@ -3,10 +3,10 @@ mod tests {
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::content_type_with_boundary;
-    use axiomatik_web::test_framework::script_base_data::{FAKE_IMAGE_DATA_JPEG, JPEG};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs;
+    use axiomatik_web::test_framework::script_base_data::PNG;
 
     #[tokio::test]
     async fn test_zahranici_article_creation_and_limit() {
@@ -14,13 +14,14 @@ mod tests {
 
         let cookie = script_base::setup_user_and_login("user7").await;
 
+        let image_data = script_base::get_test_image_data();
         let body = ArticleBuilder::new()
             .title("Test Newest Zahranici")
             .author("Author")
             .category("zahranici")
             .text("Main text")
             .short_text("Short text of newest article")
-            .image("test.jpg", FAKE_IMAGE_DATA_JPEG, JPEG)
+            .image("test.jpg", &image_data, PNG)
             .image_description("test description")
             .build()
             .unwrap();
@@ -50,10 +51,10 @@ mod tests {
         assert!(section.contains("Test Newest Zahranici"));
 
         // Cleanup
-        let _ = fs::remove_file("test-newest-zahranici.html");
-        let _ = fs::remove_file("uploads/test-newest-zahranici_image_820.jpg");
-        let _ = fs::remove_file("uploads/test-newest-zahranici_image_50.jpg");
-        let _ = fs::remove_file("uploads/test-newest-zahranici_image_288.jpg");
-        let _ = fs::remove_file("uploads/test-newest-zahranici_image_440.jpg");
+        let _ = fs::remove_file("web/test-newest-zahranici.html");
+        let _ = fs::remove_file("web/uploads/test-newest-zahranici_image_820.jpg");
+        let _ = fs::remove_file("web/uploads/test-newest-zahranici_image_50.jpg");
+        let _ = fs::remove_file("web/uploads/test-newest-zahranici_image_288.jpg");
+        let _ = fs::remove_file("web/uploads/test-newest-zahranici_image_440.jpg");
     }
 }
