@@ -20,11 +20,11 @@ pub mod library_name_days;
 pub mod logger;
 pub mod name_days;
 pub mod server;
+pub mod utils;
 pub mod validation;
 
 pub mod test_framework {
     pub mod article_builder;
     pub mod script_base;
     pub mod script_base_data;
-    pub mod utils;
 }

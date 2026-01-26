@@ -61,70 +61,82 @@ pub async fn extract_optional_string(
 
 pub async fn extract_image_data(field: Field<'_>) -> Option<(Vec<u8>, String)> {
     let file_name = field.file_name()?.to_string();
-    extract_data(field, file_name, ALLOWED_EXTENSIONS_IMAGE).await
+    let bytes = field.bytes().await.ok()?.to_vec();
+    validate_and_extract(&file_name, bytes, ALLOWED_EXTENSIONS_IMAGE)
 }
 
 pub async fn extract_video_data(field: Field<'_>) -> Option<(Vec<u8>, String)> {
     let file_name = field.file_name()?.to_string();
-    extract_data(field, file_name, ALLOWED_EXTENSIONS_VIDEO).await
+    let bytes = field.bytes().await.ok()?.to_vec();
+    validate_and_extract(&file_name, bytes, ALLOWED_EXTENSIONS_VIDEO)
 }
 
 pub async fn extract_audio_data(field: Field<'_>) -> Option<(Vec<u8>, String)> {
     let file_name = field.file_name()?.to_string();
-    extract_data(field, file_name, ALLOWED_EXTENSIONS_AUDIO).await
+    let bytes = field.bytes().await.ok()?.to_vec();
+    validate_and_extract(&file_name, bytes, ALLOWED_EXTENSIONS_AUDIO)
 }
 
-async fn extract_data(
-    field: Field<'_>,
-    file_name: String,
+fn validate_and_extract(
+    file_name: &str,
+    bytes: Vec<u8>,
     allowed_extensions: &[&str],
 ) -> Option<(Vec<u8>, String)> {
     let extension = file_name.split('.').last()?.to_lowercase();
-
     if !allowed_extensions.contains(&extension.as_str()) {
         return None;
     }
 
-    match field.bytes().await {
-        Ok(bytes) => {
-            if bytes.is_empty() {
-                None
-            } else {
-                Some((bytes.to_vec(), extension))
-            }
-        }
-        _ => None,
+    if bytes.is_empty() {
+        None
+    } else {
+        Some((bytes, extension))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::test_framework::article_builder::ArticleBuilder;
-    use crate::test_framework::script_base;
-    use crate::test_framework::script_base_data::PNG;
+    use super::*;
 
     #[test]
     fn test_extract_image_data() {
-        let image_data = script_base::get_test_image_data();
-        let article = ArticleBuilder::new()
-            .image("test.jpg", &image_data, PNG)
-            .build();
-
-        // extract_image_data()
+        let allowed = ALLOWED_EXTENSIONS_IMAGE;
+        let data = vec![1, 2, 3];
+        assert_eq!(validate_and_extract("t.jpg", data.clone(), allowed), Some((data.clone(), "jpg".to_string())));
+        assert_eq!(validate_and_extract("t.gif", data.clone(), allowed), None);
     }
 
     #[test]
-    fn test_extract_video_data() {}
+    fn test_extract_video_data() {
+        let allowed = ALLOWED_EXTENSIONS_VIDEO;
+        let data = vec![1, 2, 3];
+        assert_eq!(validate_and_extract("t.mp4", data.clone(), allowed), Some((data.clone(), "mp4".to_string())));
+        assert_eq!(validate_and_extract("t.jpg", data.clone(), allowed), None);
+    }
 
     #[test]
-    fn test_extract_audio_data() {}
+    fn test_extract_audio_data() {
+        let allowed = ALLOWED_EXTENSIONS_AUDIO;
+        let data = vec![1, 2, 3];
+        assert_eq!(validate_and_extract("t.mp3", data.clone(), allowed), Some((data.clone(), "mp3".to_string())));
+        assert_eq!(validate_and_extract("t.mp4", data.clone(), allowed), None);
+    }
 
     #[test]
-    fn test_extract_required_string() {}
+    fn test_extract_required_string() {
+        assert!(validate_required_string("valid").is_ok());
+        assert!(validate_required_string("").is_err());
+    }
 
     #[test]
-    fn test_extract_required_text() {}
+    fn test_extract_required_text() {
+        assert!(validate_required_text("valid text").is_ok());
+        assert!(validate_required_text("").is_err());
+    }
 
     #[test]
-    fn test_extract_optional_string() {}
+    fn test_extract_optional_string() {
+        assert!(validate_optional_string("valid").is_ok());
+        assert!(validate_optional_string("").is_ok());
+    }
 }

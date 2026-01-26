@@ -1,11 +1,11 @@
 use crate::form_new_article::ArticleData;
-use crate::test_framework::utils::{
+use crate::utils::{
     extract_audio_data, extract_image_data, extract_required_string, extract_required_text,
     extract_video_data,
 };
 use anyhow::{anyhow, Error};
 use axum::extract::Multipart;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error> {
     // required
@@ -24,9 +24,6 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error
     let mut is_main_o = None;
     let mut is_exclusive_o = None;
     let mut related_articles_o = None;
-
-    let mut has_video = false;
-    let mut has_audio = false;
 
     while let Ok(Some(field)) = multipart.next_field().await {
         // TODO don't default
@@ -94,12 +91,9 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error
 
             "video" => {
                 video_data_o = extract_video_data(field).await;
-                has_video = true;
             }
-
             "audio" => {
                 audio_data_o = extract_audio_data(field).await;
-                has_audio = true;
             }
             _ => {
                 error!("Unknown field: {}", field_name);
@@ -110,20 +104,6 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error
     let category_display = process_category(&category_o.clone().unwrap())?;
 
     let base_file_name = base_file_name_o.unwrap();
-
-    // TODO extensions
-    let video_path = if let Some((_, ref extension)) = video_data_o {
-        Some(format!("upload/{}-video.{}", &base_file_name, extension))
-    } else {
-        None
-    };
-
-    // TODO extensions
-    let audio_path = if let Some((_, ref extension)) = audio_data_o {
-        Some(format!("upload/{}-audio.{}", &base_file_name, extension))
-    } else {
-        None
-    };
 
     let image_data_bu8;
     let image_extension;
@@ -137,6 +117,40 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error
         None => {
             error!("Image was required");
             return Err(anyhow!("Image was required"));
+        }
+    }
+
+    let video_data_bu8;
+    let video_extension;
+    let video_path;
+    match video_data_o {
+        Some(video_data) => {
+            video_data_bu8 = Some(video_data.0);
+            video_extension = Some(video_data.1);
+            video_path = Some(format!("uploads/{}-video.{}", &base_file_name, video_extension.unwrap()));
+        }
+        None => {
+            info!("video not set");
+            video_data_bu8 = None;
+            video_extension = None;
+            video_path = None
+        }
+    }
+
+    let audio_data_bu8;
+    let audio_extension;
+    let audio_path;
+    match audio_data_o {
+        Some(audio_data) => {
+            audio_data_bu8 = Some(audio_data.0);
+            audio_extension = Some(audio_data.1);
+            audio_path = Some(format!("uploads/{}-audio.{}", &base_file_name, audio_extension.unwrap()));
+        }
+        None => {
+            info!("audio not set");
+            audio_data_bu8 = None;
+            audio_extension = None;
+            audio_path = None
         }
     }
 
