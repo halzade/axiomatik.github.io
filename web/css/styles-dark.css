@@ -1,5 +1,5 @@
 body {
-    background: #252749;
+    background: #151739;
     color: #f6f4ef;
 }
 
@@ -92,4 +92,8 @@ a h1, a h2, a h3, a h4, a h5, a h6 {
 
 .always-white, .always-white:focus, .always-white:visited {
     color: black;
+}
+
+.white-arrow {
+    background-image: url("../images/black_arrow.png");
 }
