@@ -6,6 +6,9 @@ use crate::utils::{
 use anyhow::{anyhow, Error};
 use axum::extract::Multipart;
 use tracing::{debug, error, info};
+use processor::process_text;
+use crate::processor;
+use crate::processor::{process_category, process_short_text};
 
 pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error> {
     // required
@@ -101,17 +104,18 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error
         }
     }
 
-    let category_display = process_category(&category_o.clone().unwrap())?;
+    let category_o = category_o.ok_or_else(|| anyhow!("Category is required"))?;
+    let category_display = process_category(&category_o)?;
 
-    let base_file_name = base_file_name_o.unwrap();
+    let base_file_name = base_file_name_o.ok_or_else(|| anyhow!("Title/Base file name is required"))?;
 
     let image_data_bu8;
     let image_extension;
     let image_path;
-    match image_data_o {
+    match &image_data_o {
         Some(image_data) => {
-            image_data_bu8 = image_data.0;
-            image_extension = image_data.1;
+            image_data_bu8 = image_data.0.clone();
+            image_extension = image_data.1.clone();
             image_path = format!("uploads/{}-image.{}", &base_file_name, image_extension);
         }
         None => {
@@ -120,36 +124,24 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error
         }
     }
 
-    let video_data_bu8;
-    let video_extension;
     let video_path;
-    match video_data_o {
+    match &video_data_o {
         Some(video_data) => {
-            video_data_bu8 = Some(video_data.0);
-            video_extension = Some(video_data.1);
-            video_path = Some(format!("uploads/{}-video.{}", &base_file_name, video_extension.unwrap()));
+            video_path = Some(format!("uploads/{}-video.{}", &base_file_name, video_data.1));
         }
         None => {
             info!("video not set");
-            video_data_bu8 = None;
-            video_extension = None;
             video_path = None
         }
     }
 
-    let audio_data_bu8;
-    let audio_extension;
     let audio_path;
-    match audio_data_o {
+    match &audio_data_o {
         Some(audio_data) => {
-            audio_data_bu8 = Some(audio_data.0);
-            audio_extension = Some(audio_data.1);
-            audio_path = Some(format!("uploads/{}-audio.{}", &base_file_name, audio_extension.unwrap()));
+            audio_path = Some(format!("uploads/{}-audio.{}", &base_file_name, audio_data.1));
         }
         None => {
             info!("audio not set");
-            audio_data_bu8 = None;
-            audio_extension = None;
             audio_path = None
         }
     }
@@ -157,69 +149,19 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Error
     Ok(ArticleData {
         is_main: is_main_o.unwrap_or(false),
         is_exclusive: is_exclusive_o.unwrap_or(false),
-        author: author_o.unwrap(),
-        title: title_o.unwrap(),
-        text_processed: text_processed_o.unwrap(),
-        short_text_processed: short_text_processed_o.unwrap(),
+        author: author_o.ok_or_else(|| anyhow!("Author is required"))?,
+        title: title_o.ok_or_else(|| anyhow!("Title is required"))?,
+        text_processed: text_processed_o.ok_or_else(|| anyhow!("Text is required"))?,
+        short_text_processed: short_text_processed_o.ok_or_else(|| anyhow!("Short text is required"))?,
         image_data: image_data_bu8,
-        image_description: image_description_o.unwrap(),
-        video_data: video_data_o.map(|(d, _)| d).unwrap_or_default(),
-        audio_data: audio_data_o.map(|(d, _)| d).unwrap_or_default(),
-        category: category_o.unwrap(),
+        image_description: image_description_o.ok_or_else(|| anyhow!("Image description is required"))?,
+        video_data: video_data_o.as_ref().map(|(d, _)| d.clone()).unwrap_or_default(),
+        audio_data: audio_data_o.as_ref().map(|(d, _)| d.clone()).unwrap_or_default(),
+        category: category_o,
         category_display: category_display.to_string(),
-        related_articles: related_articles_o.unwrap(),
+        related_articles: related_articles_o.ok_or_else(|| anyhow!("Related articles field is required"))?,
         image_path,
         video_path,
         audio_path,
     })
-}
-
-fn process_category(raw_category: &str) -> Result<String, Error> {
-    match raw_category {
-        "zahranici" => Ok("zahraničí".into()),
-        "republika" => Ok("republika".into()),
-        "finance" => Ok("finance".into()),
-        "technologie" => Ok("technologie".into()),
-        "veda" => Ok("věda".into()),
-        cat => {
-            error!("Unknown category: {}", cat);
-            Err(anyhow!(format!("Unknown category: {}", cat)))
-        }
-    }
-}
-
-// TODO
-fn process_short_text(raw_text: &str) -> String {
-    raw_text
-        .replace("\r\n", "\n")
-        .split("\n\n")
-        .filter(|s| !s.trim().is_empty())
-        .map(|s| s.trim().replace("\n", "<br>\n"))
-        .collect::<Vec<String>>()
-        .join("</p><p>")
-}
-
-// TODO
-fn process_text(raw_text: &str) -> String {
-    raw_text
-        .replace("\r\n", "\n")
-        .split("\n\n\n")
-        .filter(|block| !block.trim().is_empty())
-        .map(|block| {
-            let inner_html = block
-                .split("\n\n")
-                .filter(|s| !s.trim().is_empty())
-                .map(|s| {
-                    if s.starts_with("   ") {
-                        format!("<blockquote>{}</blockquote>", s.trim())
-                    } else {
-                        format!("<p>{}</p>", s.trim().replace("\n", " "))
-                    }
-                })
-                .collect::<Vec<String>>()
-                .join("");
-            format!("<div class=\"container\">{}</div>", inner_html)
-        })
-        .collect::<Vec<String>>()
-        .join("")
 }

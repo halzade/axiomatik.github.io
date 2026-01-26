@@ -18,7 +18,7 @@ mod tests {
 
         // 2. Read placeholder image
         let image_data =
-            fs::read("images/placeholder_1024.png").expect("Failed to read placeholder image");
+            fs::read("web/images/placeholder_1024.png").expect("Failed to read placeholder image");
         let png_mime = "image/png";
 
         // 3. Create article with name starting with "text-"

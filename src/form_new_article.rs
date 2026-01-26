@@ -211,7 +211,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             let _ = database::create_article(article_db).await;
 
             if !std::path::Path::new(&category_month_year_filename).exists() {
-                let cat_template = CategoryTemplate {
+                let category_template = CategoryTemplate {
                     title: format!(
                         "{} - {} {}",
                         article_data.category_display,
@@ -223,7 +223,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                     name_day: formatted_name_day.clone(),
                     articles: "".to_string(),
                 };
-                let mut base_html = cat_template.render().unwrap();
+                let mut base_html = category_template.render().unwrap();
                 base_html = base_html.replace("", &format!("\n{}", category_article));
                 fs::write(&category_month_year_filename, base_html).unwrap();
             } else {

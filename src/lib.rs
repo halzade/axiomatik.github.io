@@ -6,7 +6,7 @@ pub mod database;
 pub mod database_internal;
 pub mod database_tools;
 pub mod external;
-pub mod files;
+pub mod processor;
 pub mod form_account;
 pub mod form_category;
 pub mod form_change_password;
