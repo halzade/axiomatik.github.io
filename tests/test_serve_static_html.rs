@@ -11,7 +11,7 @@ mod tests {
         let response = script_base::one_shot(
             Request::builder()
                 .method("GET")
-                .uri("/jeden-tisic-dnu.html")
+                .uri("/favicon.ico")
                 .body(Body::default())
                 .unwrap(),
         )

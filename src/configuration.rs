@@ -33,3 +33,18 @@ fn my_env_is() -> String {
         "dev".into()
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::configuration;
+
+    #[test]
+    fn test_get_config() {
+        let config = configuration::get_config();
+        assert!(
+            config.is_ok(),
+            "Failed to read configuration: {:?}",
+            config.err()
+        );
+    }
+}

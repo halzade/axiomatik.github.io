@@ -140,3 +140,130 @@ pub fn process_text(raw_text: &str) -> String {
         .collect::<Vec<String>>()
         .join("")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::{DynamicImage, RgbImage};
+    use std::fs;
+    use std::path::Path;
+
+    #[test]
+    fn test_process_audio() {
+        // MP3 Magic number: ID3
+        let mp3_data = [0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+        let file_name = "test_audio.mp3";
+        let result = process_audio(&mp3_data, file_name);
+        assert!(result.is_ok());
+        let path = format!("web/uploads/{}", file_name);
+        assert!(Path::new(&path).exists());
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn test_process_video() {
+        // MP4 Magic number (ftyp)
+        let mp4_data = [
+            0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d,
+        ];
+        let file_name = "test_video.mp4";
+        let result = process_video(&mp4_data, file_name);
+        assert!(result.is_ok());
+        let path = format!("web/uploads/{}", file_name);
+        assert!(Path::new(&path).exists());
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn test_process_images() {
+        let img = DynamicImage::ImageRgb8(RgbImage::new(1000, 1000));
+        let result = process_images(&img, "test_image.png", "png");
+        assert!(result.is_some());
+
+        let expected_files = [
+            "web/uploads/test_image_image_820.png",
+            "web/uploads/test_image_image_50.png",
+            "web/uploads/test_image_image_288.png",
+            "web/uploads/test_image_image_440.png",
+        ];
+
+        for file in expected_files.iter() {
+            assert!(Path::new(file).exists(), "File {} does not exist", file);
+            fs::remove_file(file).unwrap();
+        }
+    }
+
+    #[test]
+    fn test_process_images_too_small() {
+        let img = DynamicImage::ImageRgb8(RgbImage::new(100, 100));
+        let result = process_images(&img, "test_small.png", "png");
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_resized_and_save_image() {
+        let img = DynamicImage::ImageRgb8(RgbImage::new(100, 100));
+        resized_and_save_image(&img, 50, 50, "resized", "suffix", "png");
+        let path = "web/uploads/resized_suffix.png";
+        assert!(Path::new(path).exists());
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn test_save_image() {
+        let img = DynamicImage::ImageRgb8(RgbImage::new(10, 10));
+        let result = save_image(&img, "save_test.png");
+        assert!(result.is_ok());
+        let path = "web/uploads/save_test.png";
+        assert!(Path::new(path).exists());
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn test_save_video() {
+        let data = b"video data";
+        let result = save_video(data, "save_video.mp4");
+        assert!(result.is_ok());
+        let path = "web/uploads/save_video.mp4";
+        assert!(Path::new(path).exists());
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn test_save_audio() {
+        let data = b"audio data";
+        let result = save_audio(data, "save_audio.mp3");
+        assert!(result.is_ok());
+        let path = "web/uploads/save_audio.mp3";
+        assert!(Path::new(path).exists());
+        fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn test_process_category() {
+        assert_eq!(process_category("zahranici").unwrap(), "zahraničí");
+        assert_eq!(process_category("republika").unwrap(), "republika");
+        assert_eq!(process_category("finance").unwrap(), "finance");
+        assert_eq!(process_category("technologie").unwrap(), "technologie");
+        assert_eq!(process_category("veda").unwrap(), "věda");
+        assert!(process_category("invalid").is_err());
+    }
+
+    #[test]
+    fn test_process_short_text() {
+        let input = "Para 1\r\n\r\nPara 2\nLine 2";
+        let output = process_short_text(input);
+        assert_eq!(output, "Para 1</p><p>Para 2<br>\nLine 2");
+    }
+
+    #[test]
+    fn test_process_text() {
+        let input = "Block 1 Para 1\n\nBlock 1 Para 2\n\n\n   Block 2 Quote\n\nBlock 2 Para";
+        let output = process_text(input);
+        assert!(output.contains("<div class=\"container\">"));
+        assert!(output.contains("<p>Block 1 Para 1</p>"));
+        assert!(output.contains("<p>Block 1 Para 2</p>"));
+        assert!(output.contains("<blockquote>Block 2 Quote</blockquote>"));
+        assert!(output.contains("<p>Block 2 Para</p>"));
+    }
+}

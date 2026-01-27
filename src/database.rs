@@ -127,6 +127,7 @@ pub async fn get_articles_by_username(username: &str) -> Option<Vec<Article>> {
 }
 
 // TODO limit to like a 1000 lates articles or something like that
+// TODO this method should be deleted
 pub async fn get_all_articles() -> Option<Vec<Article>> {
     let sdb_r = db_read().await;
     match sdb_r {

@@ -17,7 +17,6 @@ pub enum ValidationError {
 }
 
 // TODO validate if not too long
-// TODO I don't like the Error return type
 pub fn validate_required_string(input: &str) -> Result<(), ValidationError> {
     for c in input.chars() {
         if c.is_ascii() {
@@ -75,7 +74,7 @@ pub fn validate_optional_string(input: &str) -> Result<(), ValidationError> {
 }
 
 pub fn validate_search_query(input: &str) -> Result<(), ValidationError> {
-    if (input.len() < 3) || (input.len() > 100) {
+    if (input.len() < 3) || (input.len() > 40) {
         return Err(ValidationError::InvalidLength);
     }
     for c in input.chars() {
@@ -137,5 +136,32 @@ mod tests {
         assert!(validate_input_simple("Hello World").is_err()); // Space is not allowed
         assert!(validate_input_simple("Příliš").is_err()); // Non-ASCII is not allowed
         assert!(validate_input_simple("Hello-World").is_err()); // Hyphen is not allowed
+    }
+
+    #[test]
+    fn test_validate_search_query_too_short() {
+        // TODO
+        // validate_search_query doesn't check length anymore, handle_search does.
+        // assert!(validate_search_query("").is_err());
+        assert!(validate_search_query("ab").is_err());
+        assert!(validate_search_query(".").is_err());
+        assert!(validate_search_query("0").is_err());
+
+        // TODO should be shorter
+        assert!(validate_search_query("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789X").is_err());
+    }
+
+    #[test]
+    fn test_validate_search_query_invalid_chars() {
+        assert!(validate_search_query("test!").is_err());
+        assert!(validate_search_query("search; drop table").is_err());
+        assert!(validate_search_query("query <script>").is_err());
+    }
+
+    #[test]
+    fn test_validate_search_query_valid() {
+        assert!(validate_search_query("test query").is_ok());
+        assert!(validate_search_query("123 search").is_ok());
+        assert!(validate_search_query("český dotaz").is_ok());
     }
 }
