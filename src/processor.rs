@@ -1,3 +1,4 @@
+use crate::validate_media::{validate_data_is_audio, validate_data_is_video, MediaValidationError};
 use image::imageops::Lanczos3;
 use image::{DynamicImage, GenericImageView};
 use std::fs;
@@ -8,17 +9,24 @@ use tracing::error;
 pub enum ProcessorError {
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
+
     #[error("Unknown category: {0}")]
     UnknownCategory(String),
+
     #[error("Something wrong with the image data")]
     InvalidImageFormatError,
+
+    #[error("Media validation error: {0}")]
+    MediaValidation(#[from] MediaValidationError),
 }
 
 pub fn process_audio(audio_data: &[u8], file_name: &str) -> Result<(), ProcessorError> {
+    validate_data_is_audio(audio_data)?;
     save_audio(audio_data, file_name)
 }
 
 pub fn process_video(video_data: &[u8], file_name: &str) -> Result<(), ProcessorError> {
+    validate_data_is_video(video_data)?;
     save_video(video_data, file_name)
 }
 
