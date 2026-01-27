@@ -4,14 +4,19 @@ use thiserror::Error;
 pub enum ValidationError {
     #[error("Invalid character detected")]
     InvalidCharacter,
+
     #[error("Input too short or too long")]
     InvalidLength,
+
     #[error("Only alphanumeric characters and spaces are allowed in search")]
     SearchOnlyAlphanumericAndSpaces,
+
     #[error("Only alphanumeric characters are allowed in search")]
     SearchOnlyAlphanumeric,
+
     #[error("Incorrect character detected")]
     SimpleInputIncorrectCharacter,
+
     #[error("is required but not set")]
     RequiredFieldMissing,
 }
@@ -117,6 +122,23 @@ mod tests {
         assert!(validate_required_string("Příliš žluťoučký kůň úpěl ďábelské ódy").is_ok()); // Non-ASCII UTF-8 is allowed
         assert!(validate_required_string("Hello \x01 World").is_err()); // ASCII control character
         assert!(validate_required_string("Hello \x7F World").is_err()); // ASCII DEL
+    }
+
+    #[test]
+    fn test_validate_required_text() {
+        assert!(validate_required_text("").is_err());
+        assert!(validate_required_text("Hello World").is_ok());
+        assert!(validate_required_text("Příliš žluťoučký kůň").is_ok()); // Non-ASCII UTF-8 is allowed
+        assert!(validate_required_text("Hello\nWorld").is_err()); // Newline is NOT allowed in validate_required_text
+        assert!(validate_required_text("Hello\tWorld").is_err()); // Tab is NOT allowed in validate_required_text
+    }
+
+    #[test]
+    fn test_validate_optional_string() {
+        assert!(validate_optional_string("").is_ok());
+        assert!(validate_optional_string("Hello\nWorld\r\t").is_ok());
+        assert!(validate_optional_string("Příliš žluťoučký kůň").is_ok());
+        assert!(validate_optional_string("Hello \x01 World").is_err());
     }
 
     #[test]

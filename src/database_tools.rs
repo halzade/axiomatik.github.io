@@ -35,3 +35,15 @@ fn fix_query(query: &str) -> String {
     }
     query
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fix_query() {
+        assert_eq!(fix_query("SELECT * FROM table"), "SELECT * FROM table;");
+        assert_eq!(fix_query("SELECT * FROM table;"), "SELECT * FROM table;");
+        assert_eq!(fix_query("  SELECT * FROM table  "), "SELECT * FROM table;");
+    }
+}

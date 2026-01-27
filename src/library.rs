@@ -104,3 +104,47 @@ pub fn formatted_article_date(now: DateTime<Local>) -> String {
         now.year()
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::TimeZone;
+
+    #[test]
+    fn test_get_czech_month() {
+        assert_eq!(get_czech_month(1), "leden");
+        assert_eq!(get_czech_month(12), "prosinec");
+    }
+
+    #[test]
+    fn test_get_czech_month_capital() {
+        assert_eq!(get_czech_month_capital(1), "Leden");
+        assert_eq!(get_czech_month_capital(12), "Prosinec");
+    }
+
+    #[test]
+    fn test_get_czech_month_genitive() {
+        assert_eq!(get_czech_month_genitive(1), "ledna");
+        assert_eq!(get_czech_month_genitive(12), "prosince");
+    }
+
+    #[test]
+    fn test_day_of_week() {
+        let dt = Local.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap(); // Monday
+        assert_eq!(day_of_week(dt), "Pondělí");
+        let dt = Local.with_ymd_and_hms(2024, 1, 7, 12, 0, 0).unwrap(); // Sunday
+        assert_eq!(day_of_week(dt), "Neděle");
+    }
+
+    #[test]
+    fn test_save_article_file_name() {
+        assert_eq!(save_article_file_name(&"Příliš žluťoučký kůň".to_string()), "prilis-zlutoucky-kun");
+        assert_eq!(save_article_file_name(&"Hello World!".to_string()), "hello-world-");
+    }
+
+    #[test]
+    fn test_formatted_article_date() {
+        let dt = Local.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap();
+        assert_eq!(formatted_article_date(dt), "Pondělí 1. ledna 2024");
+    }
+}
