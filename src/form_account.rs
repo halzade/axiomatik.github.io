@@ -8,6 +8,13 @@ use axum::Form;
 use axum_extra::extract::CookieJar;
 use http::StatusCode;
 use serde::Deserialize;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum AccountError {
+    #[error("User not found")]
+    UserNotFound,
+}
 
 #[derive(Deserialize)]
 pub struct UpdateAuthorNamePayload {
@@ -79,13 +86,13 @@ pub async fn handle_update_author_name(
     }
 }
 
-async fn update_author_name(username: &str, author_name: &str) -> Result<(), String> {
+async fn update_author_name(username: &str, author_name: &str) -> Result<(), AccountError> {
     match database::get_user(username).await {
         Some(mut user) => {
             user.author_name = author_name.to_string();
             database::update_user(user).await;
             Ok(())
         }
-        None => Err("User not found".to_string()),
+        None => Err(AccountError::UserNotFound),
     }
 }

@@ -8,7 +8,18 @@ use axum_extra::extract::CookieJar;
 use bcrypt::{hash, DEFAULT_COST};
 use http::StatusCode;
 use serde::Deserialize;
+use thiserror::Error;
 use tracing::error;
+
+#[derive(Debug, Error)]
+pub enum ChangePasswordError {
+    #[error("Password too short")]
+    PasswordTooShort,
+    #[error("User not found")]
+    UserNotFound,
+    #[error("Bcrypt error: {0}")]
+    Bcrypt(#[from] bcrypt::BcryptError),
+}
 
 #[derive(Deserialize)]
 pub struct ChangePasswordPayload {
@@ -68,16 +79,16 @@ pub async fn handle_change_password(
     }
 }
 
-async fn change_password(username: &str, new_password: &str) -> Result<(), String> {
+async fn change_password(username: &str, new_password: &str) -> Result<(), ChangePasswordError> {
     if new_password.len() < 3 {
-        return Err("Heslo musí být delší".to_string());
+        return Err(ChangePasswordError::PasswordTooShort);
     }
 
     let user_o = database::get_user(username).await;
     match user_o {
-        None => Err("User not found".to_string()),
+        None => Err(ChangePasswordError::UserNotFound),
         Some(mut user) => {
-            let password_hash = hash(new_password, DEFAULT_COST).unwrap();
+            let password_hash = hash(new_password, DEFAULT_COST)?;
             user.password_hash = password_hash;
             user.needs_password_change = false;
             database::update_user(user).await;

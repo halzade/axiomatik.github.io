@@ -1,12 +1,30 @@
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum ValidationError {
+    #[error("Invalid character detected")]
+    InvalidCharacter,
+    #[error("Input too short or too long")]
+    InvalidLength,
+    #[error("Only alphanumeric characters and spaces are allowed in search")]
+    SearchOnlyAlphanumericAndSpaces,
+    #[error("Only alphanumeric characters are allowed in search")]
+    SearchOnlyAlphanumeric,
+    #[error("Incorrect character detected")]
+    SimpleInputIncorrectCharacter,
+    #[error("is required but not set")]
+    RequiredFieldMissing,
+}
+
 // TODO validate if not too long
 // TODO I don't like the Error return type
-pub fn validate_required_string(input: &str) -> Result<(), &'static str> {
+pub fn validate_required_string(input: &str) -> Result<(), ValidationError> {
     for c in input.chars() {
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
             if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
-                return Err("Invalid character detected");
+                return Err(ValidationError::InvalidCharacter);
             }
         }
         // Non-ASCII (UTF-8) is allowed
@@ -17,17 +35,17 @@ pub fn validate_required_string(input: &str) -> Result<(), &'static str> {
         return Ok(());
     }
     // required but empty
-    Err("is required but not set")
+    Err(ValidationError::RequiredFieldMissing)
 }
 
 // TODO
-pub fn validate_required_text(input: &str) -> Result<(), &'static str> {
+pub fn validate_required_text(input: &str) -> Result<(), ValidationError> {
     for c in input.chars() {
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
             if !(val >= 32 && val <= 126) {
-                return Err("Invalid character detected");
+                return Err(ValidationError::InvalidCharacter);
             }
         }
         // Non-ASCII (UTF-8) is allowed
@@ -38,17 +56,17 @@ pub fn validate_required_text(input: &str) -> Result<(), &'static str> {
         return Ok(());
     }
     // required but empty
-    Err("is required but not set")
+    Err(ValidationError::RequiredFieldMissing)
 }
 
 // TODO Unit tests
-pub fn validate_optional_string(input: &str) -> Result<(), &'static str> {
+pub fn validate_optional_string(input: &str) -> Result<(), ValidationError> {
     for c in input.chars() {
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
             if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
-                return Err("Invalid character detected");
+                return Err(ValidationError::InvalidCharacter);
             }
         }
         // Non-ASCII (UTF-8) is allowed
@@ -56,29 +74,29 @@ pub fn validate_optional_string(input: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn validate_search_query(input: &str) -> Result<(), &'static str> {
+pub fn validate_search_query(input: &str) -> Result<(), ValidationError> {
     if (input.len() < 3) || (input.len() > 100) {
-        return Err("Input to short or too long");
+        return Err(ValidationError::InvalidLength);
     }
     for c in input.chars() {
         if c.is_ascii() {
             // No system characters (0-31, 127) and no special characters
             // Allow only alphanumeric and spaces for search
             if !c.is_ascii_alphanumeric() && c != ' ' {
-                return Err("Only alphanumeric characters and spaces are allowed in search");
+                return Err(ValidationError::SearchOnlyAlphanumericAndSpaces);
             }
         } else if !c.is_alphanumeric() {
-            return Err("Only alphanumeric characters are allowed in search");
+            return Err(ValidationError::SearchOnlyAlphanumeric);
         }
     }
     Ok(())
 }
 
-pub fn validate_input_simple(input: &str) -> Result<(), &'static str> {
+pub fn validate_input_simple(input: &str) -> Result<(), ValidationError> {
     for c in input.chars() {
         if !c.is_ascii_alphanumeric() {
             if c != '_' {
-                return Err("Incorrect character detected");
+                return Err(ValidationError::SimpleInputIncorrectCharacter);
             }
         }
     }

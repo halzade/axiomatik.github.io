@@ -10,8 +10,16 @@ use axum_extra::extract::CookieJar;
 use bcrypt::verify;
 use http::StatusCode;
 use serde::Deserialize;
+use thiserror::Error;
 use tracing::{info, warn};
 
+#[derive(Debug, Error)]
+pub enum AuthError {
+    #[error("User not found")]
+    UserNotFound,
+    #[error("Invalid password")]
+    InvalidPassword,
+}
 
 #[derive(Deserialize)]
 pub struct LoginPayload {
@@ -62,15 +70,15 @@ pub async fn handle_login(jar: CookieJar, Form(payload): Form<LoginPayload>) -> 
     }
 }
 
-pub async fn authenticate_user(username: &str, password: &str) -> Result<User, String> {
+pub async fn authenticate_user(username: &str, password: &str) -> Result<User, AuthError> {
     let user_o = database::get_user(username).await;
     match user_o {
-        None => Err("User not found".to_string()),
+        None => Err(AuthError::UserNotFound),
         Some(user) => {
             if verify(password, &user.password_hash).unwrap_or(false) {
                 Ok(user)
             } else {
-                Err("Invalid password".to_string())
+                Err(AuthError::InvalidPassword)
             }
         }
     }

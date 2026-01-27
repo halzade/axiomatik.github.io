@@ -1,11 +1,19 @@
 use crate::database_internal;
 use crate::database_internal::DatabaseSurreal;
-use anyhow::Error;
 use serde::{Deserialize, Serialize};
 use surrealdb::engine::any::Any;
 use surrealdb::{Response, Surreal};
+use thiserror::Error;
 use tokio::sync::{OnceCell, RwLockReadGuard, RwLockWriteGuard};
 use tracing::error;
+
+#[derive(Debug, Error)]
+pub enum DatabaseError {
+    #[error("Database not initialized")]
+    NotInitialized,
+    #[error("SurrealDB error: {0}")]
+    Surreal(#[from] surrealdb::Error),
+}
 
 static DATABASE: OnceCell<DatabaseSurreal> = OnceCell::const_new();
 
@@ -174,16 +182,16 @@ pub async fn initialize_in_memory_database() {
     DATABASE.get_or_init(database_internal::init_mem_db).await;
 }
 
-async fn db_read<'lt>() -> Result<RwLockReadGuard<'lt, Surreal<Any>>, Error> {
+async fn db_read<'lt>() -> Result<RwLockReadGuard<'lt, Surreal<Any>>, DatabaseError> {
     let sdb = DATABASE
         .get()
-        .ok_or_else(|| anyhow::anyhow!("Database not initialized"))?;
+        .ok_or(DatabaseError::NotInitialized)?;
     Ok(sdb.db.read().await)
 }
 
-async fn db_write<'lt>() -> Result<RwLockWriteGuard<'lt, Surreal<Any>>, Error> {
+async fn db_write<'lt>() -> Result<RwLockWriteGuard<'lt, Surreal<Any>>, DatabaseError> {
     let sdb = DATABASE
         .get()
-        .ok_or_else(|| anyhow::anyhow!("Database not initialized"))?;
+        .ok_or(DatabaseError::NotInitialized)?;
     Ok(sdb.db.write().await)
 }

@@ -22,6 +22,7 @@ pub mod name_days;
 pub mod server;
 pub mod utils;
 pub mod validation;
+pub mod validate_media;
 
 pub mod test_framework {
     pub mod article_builder;

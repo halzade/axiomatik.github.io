@@ -1,61 +1,51 @@
 use crate::validation::{
-    validate_optional_string, validate_required_string, validate_required_text,
+    validate_optional_string, validate_required_string, validate_required_text, ValidationError,
 };
-use anyhow::{anyhow, Error};
+use thiserror::Error;
 use axum::extract::multipart::Field;
+
+#[derive(Debug, Error)]
+pub enum UtilsError {
+    #[error("Validation error: {0}")]
+    Validation(#[from] ValidationError),
+    #[error("Error extracting {0}")]
+    ExtractionError(String),
+}
 
 const ALLOWED_EXTENSIONS_IMAGE: &[&str] = &["jpg", "jpeg", "png"];
 const ALLOWED_EXTENSIONS_VIDEO: &[&str] = &["avi", "mp4"];
 const ALLOWED_EXTENSIONS_AUDIO: &[&str] = &["mp3", "wav", "ogg", "m4a"];
 
-pub async fn extract_required_string(field: Field<'_>, name: &str) -> Result<String, Error> {
+pub async fn extract_required_string(field: Field<'_>, name: &str) -> Result<String, UtilsError> {
     match field.text().await {
         Ok(text) => {
-            // extracted
-            match validate_required_string(&text) {
-                Ok(_) => {
-                    // sanitized & validated
-                    Ok(text)
-                }
-                _ => Err(anyhow!(format!("Invalid input value for: {}", name))),
-            }
+            validate_required_string(&text)?;
+            Ok(text)
         }
-        _ => Err(anyhow!(format!("Error extracting: {}", name))),
+        _ => Err(UtilsError::ExtractionError(name.to_string())),
     }
 }
 
-pub async fn extract_required_text(field: Field<'_>, name: &str) -> Result<String, Error> {
+pub async fn extract_required_text(field: Field<'_>, name: &str) -> Result<String, UtilsError> {
     match field.text().await {
         Ok(text) => {
-            // extracted
-            match validate_required_text(&text) {
-                Ok(_) => {
-                    // sanitized & validated
-                    Ok(text)
-                }
-                _ => Err(anyhow!(format!("Invalid input value for: {}", name))),
-            }
+            validate_required_text(&text)?;
+            Ok(text)
         }
-        _ => Err(anyhow!(format!("Error extracting: {}", name))),
+        _ => Err(UtilsError::ExtractionError(name.to_string())),
     }
 }
 
 pub async fn extract_optional_string(
     field: Field<'_>,
     name: &str,
-) -> Result<Option<String>, Error> {
+) -> Result<Option<String>, UtilsError> {
     match field.text().await {
         Ok(text) => {
-            // extracted
-            match validate_optional_string(&text) {
-                Ok(_) => {
-                    // sanitized & validated
-                    Ok(Some(text))
-                }
-                _ => Err(anyhow!(format!("Invalid input value for: {}", name))),
-            }
+            validate_optional_string(&text)?;
+            Ok(Some(text))
         }
-        _ => Err(anyhow!(format!("Error extracting: {}", name))),
+        _ => Err(UtilsError::ExtractionError(name.to_string())),
     }
 }
 

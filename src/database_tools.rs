@@ -1,9 +1,20 @@
 use crate::database;
-use anyhow::Error;
+// TODO I don't think these Serde are necessary
 use serde_json::Value;
+use thiserror::Error;
 use tracing::info;
 
-pub async fn print_from_db(query: &str) -> Result<(), Error> {
+#[derive(Debug, Error)]
+pub enum DatabaseToolsError {
+    #[error("Database error: {0}")]
+    Database(#[from] database::DatabaseError),
+    #[error("SurrealDB error: {0}")]
+    Surreal(#[from] surrealdb::Error),
+    #[error("Serde JSON error: {0}")]
+    SerdeJson(#[from] serde_json::Error),
+}
+
+pub async fn print_from_db(query: &str) -> Result<(), DatabaseToolsError> {
     let mut response = database::query(fix_query(query)).await;
 
     // Check for errors in the response and keep the response

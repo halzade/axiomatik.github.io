@@ -47,7 +47,7 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
     }
 
     if let Err(e) = validation::validate_search_query(query) {
-        return (StatusCode::BAD_REQUEST, e).into_response();
+        return (StatusCode::BAD_REQUEST, e.to_string()).into_response();
     }
 
     let search_words: Vec<String> = query

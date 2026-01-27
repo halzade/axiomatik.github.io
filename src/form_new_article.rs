@@ -7,6 +7,7 @@ use axum_extra::extract::CookieJar;
 use chrono::{Datelike, Local};
 use http::StatusCode;
 use std::fs;
+use crate::processor::{process_audio, process_images, process_video};
 
 pub struct ArticleData {
     pub is_main: bool,
@@ -153,7 +154,9 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 date: formatted_date.clone(),
                 weather: formatted_weather.clone(),
                 name_day: formatted_name_day.clone(),
-                related_articles: vec![], // TODO
+
+                // TODO
+                related_articles: vec![],
                 articles_most_read: most_read_data,
             };
 
@@ -165,6 +168,22 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
              * Write the Article
              */
             fs::write(&file_path, html_content).unwrap();
+
+            // Process media
+            if let Ok(img) = image::load_from_memory(&article_data.image_data) {
+                let ext = article_data.image_path.split('.').last().unwrap_or("png");
+                let _ = process_images(&img, &article_data.image_path, ext);
+            }
+
+            if let Some(video_path) = &article_data.video_path {
+                let file_name = video_path.split('/').last().unwrap_or(video_path);
+                let _ = process_video(&article_data.video_data, file_name);
+            }
+
+            if let Some(audio_path) = &article_data.audio_path {
+                let file_name = audio_path.split('/').last().unwrap_or(audio_path);
+                let _ = process_audio(&article_data.audio_data, file_name);
+            }
 
             // category
             let month_name = library::get_czech_month(now.month());

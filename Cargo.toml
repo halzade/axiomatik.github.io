@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0.100"
 axum = { version = "0.8.8", features = ["multipart"] }
 askama = { version = "0.15" }
 axum-core = "0.5.6"
@@ -12,16 +11,17 @@ axum-extra = { version = "0.12.5", features = ["cookie"] }
 bcrypt = "0.18.0"
 chrono = "0.4.42"
 config = "0.15"
+infer = "0.19"
 http = "1.4.0"
 image = "0.25.5"
 reqwest = { version = "0.13.1", features = ["json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0"
 surrealdb = { version = "2.4.0", features = ["kv-rocksdb", "kv-mem", "protocol-ws", "rustls"] }
+thiserror = "2.0"
 tokio = { version = "1.49", features = ["full"] }
 tower = { version = "0.5.2" }
 tower-http = { version = "0.6.8", features = ["fs", "trace"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "chrono"] }
 url = "2.5.7"
-uuid = { version = "1.19", features = ["v4"] }

@@ -1,7 +1,16 @@
 use crate::database::{Role, User};
 use crate::{database, database_tools};
 use bcrypt::{hash, DEFAULT_COST};
+use thiserror::Error;
 use tracing::{debug, error, info};
+
+#[derive(Debug, Error)]
+pub enum CommandError {
+    #[error("Password too short")]
+    PasswordTooShort,
+    #[error("Bcrypt error: {0}")]
+    Bcrypt(String),
+}
 
 pub async fn create_user(args: &Vec<String>) {
     if args.len() != 4 {
@@ -57,12 +66,12 @@ pub async fn print_from_db(args: &Vec<String>) {
     }
 }
 
-pub async fn create_editor_user(username: &str, password: &str) -> Result<(), String> {
+pub async fn create_editor_user(username: &str, password: &str) -> Result<(), CommandError> {
     if password.len() < 3 {
-        return Err("Heslo musí být delší".to_string());
+        return Err(CommandError::PasswordTooShort);
     }
 
-    let password_hash = hash(password, DEFAULT_COST).map_err(|e| e.to_string())?;
+    let password_hash = hash(password, DEFAULT_COST).map_err(|e| CommandError::Bcrypt(e.to_string()))?;
     let user = User {
         username: username.to_string(),
         author_name: username.to_string().clone(),

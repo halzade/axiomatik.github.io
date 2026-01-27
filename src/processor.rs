@@ -1,14 +1,25 @@
-use anyhow::{anyhow, Error};
-use image::{DynamicImage, GenericImageView};
 use image::imageops::Lanczos3;
+use image::{DynamicImage, GenericImageView};
+use std::fs;
+use thiserror::Error;
 use tracing::error;
 
-pub fn process_audio() {
-    // TODO
+#[derive(Debug, Error)]
+pub enum ProcessorError {
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Unknown category: {0}")]
+    UnknownCategory(String),
+    #[error("Something wrong with the image data")]
+    InvalidImageFormatError,
 }
 
-pub fn process_video() {
-    // TODO
+pub fn process_audio(audio_data: &[u8], file_name: &str) -> Result<(), ProcessorError> {
+    save_audio(audio_data, file_name)
+}
+
+pub fn process_video(video_data: &[u8], file_name: &str) -> Result<(), ProcessorError> {
+    save_video(video_data, file_name)
 }
 
 pub fn process_images(img: &DynamicImage, new_name: &str, ext: &str) -> Option<()> {
@@ -23,9 +34,8 @@ pub fn process_images(img: &DynamicImage, new_name: &str, ext: &str) -> Option<(
     let base_name = new_name.split('.').next().unwrap();
     let name_820 = format!("{}_image_820.{}", base_name, ext);
 
-
     // Save 820xany
-    save_image(&img_820, name_820.as_str());
+    let _ = save_image(&img_820, name_820.as_str());
 
     // Save 50x50
     resized_and_save_image(&img, 50, 50, base_name, "image_50", &ext);
@@ -47,17 +57,33 @@ pub fn resized_and_save_image(
 ) {
     let resized = img.resize_to_fill(w, h, Lanczos3);
     let name = format!("{}_{}.{}", base_name, suffix, ext);
-    save_image(&resized, name.as_str());
+    let _ = save_image(&resized, name.as_str());
 }
 
-pub fn save_image(image: &DynamicImage, file_name: &str) {
-    if let Err(e) = image.save(format!("web/uploads/{}", file_name)) {
-        error!("Failed to save image {}: {}", file_name, e);
-    }
+pub fn save_image(image: &DynamicImage, file_name: &str) -> Result<(), ProcessorError> {
+    image
+        .save(format!("web/uploads/{}", file_name))
+        .map_err(|e| {
+            error!("Failed to save image {}: {}", file_name, e);
+            ProcessorError::InvalidImageFormatError
+        })
 }
 
+pub fn save_video(video_data: &[u8], file_name: &str) -> Result<(), ProcessorError> {
+    fs::write(format!("web/uploads/{}", file_name), video_data).map_err(|e| {
+        error!("Failed to save video {}: {}", file_name, e);
+        ProcessorError::Io(e)
+    })
+}
 
-pub fn process_category(raw_category: &str) -> Result<String, Error> {
+pub fn save_audio(audio_data: &[u8], file_name: &str) -> Result<(), ProcessorError> {
+    fs::write(format!("web/uploads/{}", file_name), audio_data).map_err(|e| {
+        error!("Failed to save audio {}: {}", file_name, e);
+        ProcessorError::Io(e)
+    })
+}
+
+pub fn process_category(raw_category: &str) -> Result<String, ProcessorError> {
     match raw_category {
         "zahranici" => Ok("zahraničí".into()),
         "republika" => Ok("republika".into()),
@@ -66,7 +92,7 @@ pub fn process_category(raw_category: &str) -> Result<String, Error> {
         "veda" => Ok("věda".into()),
         cat => {
             error!("Unknown category: {}", cat);
-            Err(anyhow!(format!("Unknown category: {}", cat)))
+            Err(ProcessorError::UnknownCategory(cat.to_string()))
         }
     }
 }
@@ -106,4 +132,3 @@ pub fn process_text(raw_text: &str) -> String {
         .collect::<Vec<String>>()
         .join("")
 }
-
