@@ -1,3 +1,4 @@
+use crate::processor::{process_audio, process_images, process_video};
 use crate::server::AUTH_COOKIE;
 use crate::{data, database, form_index, library};
 use askama::Template;
@@ -7,7 +8,6 @@ use axum_extra::extract::CookieJar;
 use chrono::{Datelike, Local};
 use http::StatusCode;
 use std::fs;
-use crate::processor::{process_audio, process_images, process_video};
 
 pub struct ArticleData {
     pub is_main: bool,
@@ -17,19 +17,19 @@ pub struct ArticleData {
     pub text_processed: String,
     pub short_text_processed: String,
 
-    pub image_path: String,
-    pub image_data: Vec<u8>,
     pub image_description: String,
-
-    pub video_path: Option<String>,
+    pub image_data: Vec<u8>,
     pub video_data: Vec<u8>,
-
-    pub audio_path: Option<String>,
     pub audio_data: Vec<u8>,
 
     pub category: String,
     pub category_display: String,
     pub related_articles: String,
+
+    pub article_file_name: String,
+    pub image_path: String,
+    pub video_path: Option<String>,
+    pub audio_path: Option<String>,
 }
 
 #[derive(Template)]
@@ -161,13 +161,11 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             };
 
             let html_content = article_template.render().unwrap();
-            let safe_title = library::save_article_file_name(&article_data.title);
-            let file_path = format!("{}.html", safe_title);
 
             /*
              * Write the Article
              */
-            fs::write(&file_path, html_content).unwrap();
+            fs::write(article_data.article_file_name.clone(), html_content).unwrap();
 
             // Process media
             if let Ok(img) = image::load_from_memory(&article_data.image_data) {
@@ -195,7 +193,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             );
 
             let category_article = CategoryArticleTemplate {
-                url: file_path.clone(),
+                url: article_data.article_file_name.clone(),
                 title: article_data.title.clone(),
                 short_text: article_data.short_text_processed.clone(),
                 is_first: false,
@@ -215,7 +213,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 title: article_data.title.clone(),
                 text: article_data.text_processed.clone(),
                 short_text: article_data.short_text_processed.clone(),
-                article_file_name: file_path.clone(),
+                article_file_name: article_data.article_file_name.clone(),
                 image_url: article_data.image_path.clone(),
                 image_description: article_data.image_description.clone(),
                 video_url: article_data.video_path.clone(),
@@ -306,7 +304,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
 
             form_index::render_new_index(Some(index_data)).await;
 
-            Redirect::to(&*file_path).into_response()
+            Redirect::to(&article_data.article_file_name).into_response()
         }
         Err(_) => StatusCode::BAD_REQUEST.into_response(),
     }

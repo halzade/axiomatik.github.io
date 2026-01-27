@@ -6,6 +6,7 @@ use crate::utils::{
 use axum::extract::Multipart;
 use thiserror::Error;
 use tracing::{debug, error, info};
+use crate::library;
 use crate::processor::{process_category, process_short_text, process_text, ProcessorError};
 
 #[derive(Debug, Error)]
@@ -62,7 +63,7 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
             "title" => {
                 let extracted = extract_required_string(field, "title").await?;
                 title_o = Some(extracted.clone());
-                base_file_name_o = Some(extracted);
+                base_file_name_o = Some(library::save_article_file_name(&extracted));
             }
 
             "author" => {
@@ -171,5 +172,6 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
         image_path,
         video_path,
         audio_path,
+        article_file_name: format!("{}.html", base_file_name),
     })
 }

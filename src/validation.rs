@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn test_validate_required_string() {
-        assert!(validate_required_string("").is_ok());
+        assert!(validate_required_string("").is_err());
         assert!(validate_required_string("Hello\nWorld\r\t").is_ok());
         assert!(validate_required_string("Příliš žluťoučký kůň úpěl ďábelské ódy").is_ok()); // Non-ASCII UTF-8 is allowed
         assert!(validate_required_string("Hello \x01 World").is_err()); // ASCII control character
@@ -140,15 +140,12 @@ mod tests {
 
     #[test]
     fn test_validate_search_query_too_short() {
-        // TODO
-        // validate_search_query doesn't check length anymore, handle_search does.
-        // assert!(validate_search_query("").is_err());
+        assert!(validate_search_query("").is_err());
         assert!(validate_search_query("ab").is_err());
         assert!(validate_search_query(".").is_err());
         assert!(validate_search_query("0").is_err());
-
-        // TODO should be shorter
-        assert!(validate_search_query("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789X").is_err());
+        assert!(validate_search_query("1234567890123456789012345678901234567890").is_ok());
+        assert!(validate_search_query("12345678901234567890123456789012345678901").is_err());
     }
 
     #[test]
