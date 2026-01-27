@@ -1,12 +1,12 @@
 pub fn get_name_day(month: u32, day: u32) -> String {
     match month {
         1 => match day {
-            1 => "_Nový rok".to_string(),
+            1 => "_je Nový rok, státní svátek".to_string(),
             2 => "Karina".to_string(),
             3 => "Radmila".to_string(),
             4 => "Diana".to_string(),
             5 => "Dalimil".to_string(),
-            6 => "_Tři králové".to_string(),
+            6 => "_jsou Tři králové".to_string(),
             7 => "Vilma".to_string(),
             8 => "Čestmír".to_string(),
             9 => "Vladan".to_string(),
@@ -134,14 +134,15 @@ pub fn get_name_day(month: u32, day: u32) -> String {
             _ => "".to_string(),
         },
         5 => match day {
-            1 => "No nameday (Labour Day)".to_string(),
+            1 => "_je Den práce".to_string(),
             2 => "Zikmund".to_string(),
             3 => "Alexej".to_string(),
             4 => "Květoslav".to_string(),
             5 => "Klaudie".to_string(),
             6 => "Radoslav".to_string(),
             7 => "Stanislav".to_string(),
-            8 => "No nameday (National holiday)".to_string(),
+
+            8 => "_Den vítězství".to_string(),
             9 => "Ctibor".to_string(),
             10 => "Blažena".to_string(),
             11 => "Svatava".to_string(),
@@ -206,7 +207,7 @@ pub fn get_name_day(month: u32, day: u32) -> String {
             3 => "Radomír".to_string(),
             4 => "Prokop".to_string(),
             5 => "Cyril a Metoděj".to_string(),
-            6 => "No nameday (National holiday - Jan Hus)".to_string(),
+            6 => "_Den upálení mistra Jana Husa".to_string(),
             7 => "Bohuslava".to_string(),
             8 => "Nora".to_string(),
             9 => "Drahoslava".to_string(),
@@ -329,7 +330,7 @@ pub fn get_name_day(month: u32, day: u32) -> String {
             25 => "Beáta".to_string(),
             26 => "Erik".to_string(),
             27 => "Šarlota a Zoe".to_string(),
-            28 => "No nameday (National holiday)".to_string(),
+            28 => "_Den vzniku samostatného Československa".to_string(),
             29 => "Silvie".to_string(),
             30 => "Tadeáš".to_string(),
             31 => "Štěpánka".to_string(),
@@ -337,7 +338,8 @@ pub fn get_name_day(month: u32, day: u32) -> String {
         },
         11 => match day {
             1 => "Felix".to_string(),
-            2 => "No nameday (All Souls' Day)".to_string(),
+            // Dušičky
+            2 => "Pamela".to_string(),
             3 => "Hubert".to_string(),
             4 => "Karel".to_string(),
             5 => "Miriam".to_string(),
@@ -393,9 +395,9 @@ pub fn get_name_day(month: u32, day: u32) -> String {
             22 => "Šimon".to_string(),
             23 => "Vlasta".to_string(),
             
-            // TODO
-            24 => "No nameday (Adam a Eva, Christmas Eve)".to_string(),
-            25 => "No nameday (1st Christmas Holiday)".to_string(),
+            // TODO Nejsou vyřešeny státní svátky
+            24 => "Adam a Eva".to_string(),
+            25 => "_je 2. svátek Vánoční".to_string(),
             26 => "Štěpán".to_string(),
             27 => "Žaneta".to_string(),
             28 => "Bohumila".to_string(),
