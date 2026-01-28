@@ -36,7 +36,7 @@ pub async fn show_account(jar: CookieJar) -> Response {
         return match user_o {
             None => Redirect::to("/login").into_response(),
             Some(user) => {
-                let articles_r = database::articles_by_username(&user.username).await;
+                let articles_r = database::articles_by_username(&user.username, 100).await;
                 let articles = articles_r.unwrap_or_else(|e| {
                     error!("Failed to fetch articles for user {}: {}", user.username, e);
                     Vec::new()

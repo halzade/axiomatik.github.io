@@ -99,21 +99,23 @@ pub async fn create_article(article: Article) -> Option<Article> {
     })
 }
 
-pub async fn articles_by_username(username: &str) -> Result<Vec<Article>, DatabaseError> {
+pub async fn articles_by_username(username: &str, limit: u32) -> Result<Vec<Article>, DatabaseError> {
     let sdb = db_read().await?;
     let mut response = sdb
-        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
+        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC LIMIT $limit")
         .bind(("username", username.to_string()))
+        .bind(("limit", limit))
         .await?;
     let articles: Vec<Article> = response.take(0)?;
     Ok(articles)
 }
 
-pub async fn articles_by_author(username: &str) -> Result<Vec<Article>, DatabaseError> {
+pub async fn articles_by_author(username: &str, limit: u32) -> Result<Vec<Article>, DatabaseError> {
     let sdb = db_read().await?;
     let mut response = sdb
-        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
+        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC LIMIT $limit")
         .bind(("username", username.to_string()))
+        .bind(("limit", limit))
         .await?;
     let articles: Vec<Article> = response.take(0)?;
     Ok(articles)
@@ -129,11 +131,12 @@ pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, Dat
     Ok(articles.into_iter().next())
 }
 
-pub async fn articles_by_category(category: &str) -> Result<Vec<Article>, DatabaseError> {
+pub async fn articles_by_category(category: &str, limit: u32) -> Result<Vec<Article>, DatabaseError> {
     let sdb = db_read().await?;
     let mut response = sdb
-        .query("SELECT * FROM article WHERE category = $category ORDER BY date DESC")
+        .query("SELECT * FROM article WHERE category = $category ORDER BY date DESC LIMIT $limit")
         .bind(("category", category.to_string()))
+        .bind(("limit", limit))
         .await?;
     let articles: Vec<Article> = response.take(0)?;
     Ok(articles)
