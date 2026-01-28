@@ -42,7 +42,6 @@ pub fn validate_required_string(input: &str) -> Result<(), ValidationError> {
     Err(ValidationError::RequiredFieldMissing)
 }
 
-// TODO
 pub fn validate_required_text(input: &str) -> Result<(), ValidationError> {
     for c in input.chars() {
         if c.is_ascii() {
@@ -63,7 +62,6 @@ pub fn validate_required_text(input: &str) -> Result<(), ValidationError> {
     Err(ValidationError::RequiredFieldMissing)
 }
 
-// TODO Unit tests
 pub fn validate_optional_string(input: &str) -> Result<(), ValidationError> {
     for c in input.chars() {
         if c.is_ascii() {

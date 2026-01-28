@@ -9,6 +9,7 @@ use axum_extra::extract::CookieJar;
 use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
+use tracing::error;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -35,33 +36,22 @@ pub async fn show_account(jar: CookieJar) -> Response {
         return match user_o {
             None => Redirect::to("/login").into_response(),
             Some(user) => {
-                let articles_o = database::get_articles_by_username(&user.username).await;
+                let articles_r = database::articles_by_username(&user.username).await;
+                let articles = articles_r.unwrap_or_else(|e| {
+                    error!("Failed to fetch articles for user {}: {}", user.username, e);
+                    Vec::new()
+                });
 
-                match articles_o {
-                    None => {
-                        Html(
-                            AccountTemplate {
-                                username: user.username,
-                                author_name: user.author_name,
-                                // not articles found
-                                articles: Vec::new(),
-                            }
-                            .render()
-                            .unwrap(),
-                        )
-                        .into_response()
+                Html(
+                    AccountTemplate {
+                        username: user.username,
+                        author_name: user.author_name,
+                        articles,
                     }
-                    Some(articles) => Html(
-                        AccountTemplate {
-                            username: user.username,
-                            author_name: user.author_name,
-                            articles,
-                        }
-                        .render()
-                        .unwrap(),
-                    )
-                    .into_response(),
-                }
+                    .render()
+                    .unwrap(),
+                )
+                .into_response()
             }
         };
     }

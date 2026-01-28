@@ -89,7 +89,14 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
 
             "related_articles" => {
                 let extracted = extract_required_string(field, "related_articles").await?;
-                related_articles_o = Some(extracted);
+                related_articles_o = Some(
+                    extracted
+                        .lines()
+                        .map(str::trim)
+                        .filter(|s| !s.is_empty())
+                        .map(String::from)
+                        .collect(),
+                );
             }
 
             "image_description" => {

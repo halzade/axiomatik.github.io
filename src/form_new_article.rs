@@ -24,7 +24,7 @@ pub struct ArticleData {
 
     pub category: String,
     pub category_display: String,
-    pub related_articles: String,
+    pub related_articles: Vec<String>,
 
     pub article_file_name: String,
     pub image_path: String,
@@ -124,13 +124,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             let formatted_weather = data::weather();
             let formatted_name_day = data::name_day();
 
-            let related_articles_vec: Vec<String> = article_data
-                .related_articles
-                .lines()
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-                .map(String::from)
-                .collect();
+            let related_articles_vec = article_data.related_articles.clone();
 
             let mut most_read_data = Vec::new();
             for i in 1..=5 {
@@ -219,7 +213,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 video_url: article_data.video_path.clone(),
                 audio_url: article_data.audio_path.clone(),
                 category: article_data.category.clone(),
-                related_articles: article_data.related_articles.clone(),
+                related_articles: related_articles_vec.clone(),
                 is_main: article_data.is_main,
                 is_exclusive: article_data.is_exclusive,
                 views: 0,

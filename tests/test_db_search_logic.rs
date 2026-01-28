@@ -21,7 +21,9 @@ mod tests {
             video_url: None,
             audio_url: None,
             category: "cat".to_string(),
-            related_articles: "".to_string(),
+
+            // TODO
+            related_articles: vec![],
             is_main: false,
             is_exclusive: false,
             views: 0,
@@ -40,7 +42,7 @@ mod tests {
             video_url: None,
             audio_url: None,
             category: "cat".to_string(),
-            related_articles: "".to_string(),
+            related_articles: vec![],
             is_main: false,
             is_exclusive: false,
             views: 0,

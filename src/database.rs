@@ -11,6 +11,7 @@ use tracing::error;
 pub enum DatabaseError {
     #[error("Database not initialized")]
     NotInitialized,
+
     #[error("SurrealDB error: {0}")]
     Surreal(#[from] surrealdb::Error),
 }
@@ -45,9 +46,15 @@ pub struct Article {
     pub video_url: Option<String>,
     pub audio_url: Option<String>,
     pub category: String,
-    pub related_articles: String,
+    pub related_articles: Vec<String>,
     pub is_main: bool,
     pub is_exclusive: bool,
+    pub views: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ArticleViews {
+    pub article_file_name: String,
     pub views: i64,
 }
 
@@ -83,21 +90,6 @@ pub async fn delete_user(user_name: &str) {
     }
 }
 
-pub async fn has_users() -> bool {
-    if let Ok(sdb) = db_read().await {
-        let response_r = sdb.query("SELECT count() FROM user").await;
-        return if let Ok(mut response) = response_r {
-            let count: Option<i64> = response.take(0).unwrap_or_default();
-            count.unwrap_or(0) > 0
-        } else {
-            error!("Database not available");
-            false
-        };
-    }
-    error!("Database error");
-    false
-}
-
 pub async fn create_article(article: Article) -> Option<Article> {
     let sdb_wg = db_write().await.ok()?;
     let article_r: Result<Option<Article>, _> = sdb_wg.create("article").content(article).await;
@@ -107,27 +99,47 @@ pub async fn create_article(article: Article) -> Option<Article> {
     })
 }
 
-pub async fn get_articles_by_username(username: &str) -> Option<Vec<Article>> {
-    if let Ok(sdb) = db_read().await {
-        let response_r = sdb
-            .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
-            .bind(("username", username.to_string()))
-            .await;
-        if let Ok(mut response) = response_r {
-            return match response.take(0) {
-                Ok(articles) => Some(articles),
-                Err(e) => {
-                    error!("Failed to deserialize articles: {}", e);
-                    None
-                }
-            }
-        }
-    }
-    None
+pub async fn articles_by_username(username: &str) -> Result<Vec<Article>, DatabaseError> {
+    let sdb = db_read().await?;
+    let mut response = sdb
+        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
+        .bind(("username", username.to_string()))
+        .await?;
+    let articles: Vec<Article> = response.take(0)?;
+    Ok(articles)
 }
 
-// TODO limit to like a 1000 lates articles or something like that
-// TODO this method should be deleted
+pub async fn articles_by_author(username: &str) -> Result<Vec<Article>, DatabaseError> {
+    let sdb = db_read().await?;
+    let mut response = sdb
+        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC")
+        .bind(("username", username.to_string()))
+        .await?;
+    let articles: Vec<Article> = response.take(0)?;
+    Ok(articles)
+}
+
+pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, DatabaseError> {
+    let sdb = db_read().await?;
+    let mut response = sdb
+        .query("SELECT * FROM article WHERE article_file_name = $filename")
+        .bind(("filename", filename.to_string()))
+        .await?;
+    let articles: Vec<Article> = response.take(0)?;
+    Ok(articles.into_iter().next())
+}
+
+pub async fn articles_by_category(category: &str) -> Result<Vec<Article>, DatabaseError> {
+    let sdb = db_read().await?;
+    let mut response = sdb
+        .query("SELECT * FROM article WHERE category = $category ORDER BY date DESC")
+        .bind(("category", category.to_string()))
+        .await?;
+    let articles: Vec<Article> = response.take(0)?;
+    Ok(articles)
+}
+
+// TODO limit to like a 1000 laters articles or something like that
 pub async fn get_all_articles() -> Option<Vec<Article>> {
     let sdb_r = db_read().await;
     match sdb_r {
