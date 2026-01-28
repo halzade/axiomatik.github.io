@@ -70,7 +70,7 @@ pub fn resized_and_save_image(
 
 pub fn save_image(image: &DynamicImage, file_name: &str) -> Result<(), ProcessorError> {
     image
-        .save(format!("web/uploads/{}", file_name))
+        .save(format!("web/u/{}", file_name))
         .map_err(|e| {
             error!("Failed to save image {}: {}", file_name, e);
             ProcessorError::InvalidImageFormatError
@@ -78,14 +78,14 @@ pub fn save_image(image: &DynamicImage, file_name: &str) -> Result<(), Processor
 }
 
 pub fn save_video(video_data: &[u8], file_name: &str) -> Result<(), ProcessorError> {
-    fs::write(format!("web/uploads/{}", file_name), video_data).map_err(|e| {
+    fs::write(format!("web/u/{}", file_name), video_data).map_err(|e| {
         error!("Failed to save video {}: {}", file_name, e);
         ProcessorError::Io(e)
     })
 }
 
 pub fn save_audio(audio_data: &[u8], file_name: &str) -> Result<(), ProcessorError> {
-    fs::write(format!("web/uploads/{}", file_name), audio_data).map_err(|e| {
+    fs::write(format!("web/u/{}", file_name), audio_data).map_err(|e| {
         error!("Failed to save audio {}: {}", file_name, e);
         ProcessorError::Io(e)
     })
@@ -155,7 +155,7 @@ mod tests {
         let file_name = "test_audio.mp3";
         let result = process_audio(&mp3_data, file_name);
         assert!(result.is_ok());
-        let path = format!("web/uploads/{}", file_name);
+        let path = format!("web/u/{}", file_name);
         assert!(Path::new(&path).exists());
         fs::remove_file(path).unwrap();
     }
@@ -169,7 +169,7 @@ mod tests {
         let file_name = "test_video.mp4";
         let result = process_video(&mp4_data, file_name);
         assert!(result.is_ok());
-        let path = format!("web/uploads/{}", file_name);
+        let path = format!("web/u/{}", file_name);
         assert!(Path::new(&path).exists());
         fs::remove_file(path).unwrap();
     }
@@ -181,10 +181,10 @@ mod tests {
         assert!(result.is_some());
 
         let expected_files = [
-            "web/uploads/test_image_image_820.png",
-            "web/uploads/test_image_image_50.png",
-            "web/uploads/test_image_image_288.png",
-            "web/uploads/test_image_image_440.png",
+            "web/u/test_image_image_820.png",
+            "web/u/test_image_image_50.png",
+            "web/u/test_image_image_288.png",
+            "web/u/test_image_image_440.png",
         ];
 
         for file in expected_files.iter() {
@@ -204,7 +204,7 @@ mod tests {
     fn test_resized_and_save_image() {
         let img = DynamicImage::ImageRgb8(RgbImage::new(100, 100));
         resized_and_save_image(&img, 50, 50, "resized", "suffix", "png");
-        let path = "web/uploads/resized_suffix.png";
+        let path = "web/u/resized_suffix.png";
         assert!(Path::new(path).exists());
         fs::remove_file(path).unwrap();
     }
@@ -214,7 +214,7 @@ mod tests {
         let img = DynamicImage::ImageRgb8(RgbImage::new(10, 10));
         let result = save_image(&img, "save_test.png");
         assert!(result.is_ok());
-        let path = "web/uploads/save_test.png";
+        let path = "web/u/save_test.png";
         assert!(Path::new(path).exists());
         fs::remove_file(path).unwrap();
     }
@@ -224,7 +224,7 @@ mod tests {
         let data = b"video data";
         let result = save_video(data, "save_video.mp4");
         assert!(result.is_ok());
-        let path = "web/uploads/save_video.mp4";
+        let path = "web/u/save_video.mp4";
         assert!(Path::new(path).exists());
         fs::remove_file(path).unwrap();
     }
@@ -234,7 +234,7 @@ mod tests {
         let data = b"audio data";
         let result = save_audio(data, "save_audio.mp3");
         assert!(result.is_ok());
-        let path = "web/uploads/save_audio.mp3";
+        let path = "web/u/save_audio.mp3";
         assert!(Path::new(path).exists());
         fs::remove_file(path).unwrap();
     }

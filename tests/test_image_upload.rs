@@ -48,18 +48,18 @@ mod tests {
         assert_eq!(response.status(), StatusCode::SEE_OTHER);
 
         // TODO
-        // 4. Verify that four copies with required dimensions were saved in uploads/
+        // 4. Verify that four copies with required dimensions were saved in u/
         let base_name = "text-testing-upload";
         let expected_files = vec![
-            (format!("uploads/{}_image_820.png", base_name), 820, None), // None means height is proportional or we don't strictly check it as per save_file_field_with_name logic (it uses resize(820, height, ...))
-            (format!("uploads/{}_image_50.png", base_name), 50, Some(50)),
+            (format!("u/{}_image_820.png", base_name), 820, None), // None means height is proportional or we don't strictly check it as per save_file_field_with_name logic (it uses resize(820, height, ...))
+            (format!("u/{}_image_50.png", base_name), 50, Some(50)),
             (
-                format!("uploads/{}_image_288.png", base_name),
+                format!("u/{}_image_288.png", base_name),
                 288,
                 Some(211),
             ),
             (
-                format!("uploads/{}_image_440.png", base_name),
+                format!("u/{}_image_440.png", base_name),
                 440,
                 Some(300),
             ),
@@ -80,9 +80,9 @@ mod tests {
 
         // Cleanup
         let _ = fs::remove_file("web/text-testing-upload.html");
-        let _ = fs::remove_file(format!("uploads/{}_image_820.png", base_name));
-        let _ = fs::remove_file(format!("uploads/{}_image_50.png", base_name));
-        let _ = fs::remove_file(format!("uploads/{}_image_288.png", base_name));
-        let _ = fs::remove_file(format!("uploads/{}_image_440.png", base_name));
+        let _ = fs::remove_file(format!("u/{}_image_820.png", base_name));
+        let _ = fs::remove_file(format!("u/{}_image_50.png", base_name));
+        let _ = fs::remove_file(format!("u/{}_image_288.png", base_name));
+        let _ = fs::remove_file(format!("u/{}_image_440.png", base_name));
     }
 }

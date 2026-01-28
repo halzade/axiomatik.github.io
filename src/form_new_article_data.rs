@@ -38,9 +38,8 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
     let mut related_articles_o = None;
 
     while let Ok(Some(field)) = multipart.next_field().await {
-        // TODO don't default
-        let field_name = field.name().unwrap_or_default().to_string();
-        let content_type = field.content_type().map(|c| c.to_string());
+        let field_name = field.name().unwrap().to_string();
+        let content_type = field.content_type().unwrap();
 
         debug!(
             "Processing field: {}, content_type: {:?}",
@@ -132,7 +131,7 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
         Some(image_data) => {
             image_data_bu8 = image_data.0.clone();
             image_extension = image_data.1.clone();
-            image_path = format!("uploads/{}-image.{}", &base_file_name, image_extension);
+            image_path = format!("u/{}-image.{}", &base_file_name, image_extension);
         }
         None => {
             error!("Image was required");
@@ -143,7 +142,7 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
     let video_path;
     match &video_data_o {
         Some(video_data) => {
-            video_path = Some(format!("uploads/{}-video.{}", &base_file_name, video_data.1));
+            video_path = Some(format!("u/{}-video.{}", &base_file_name, video_data.1));
         }
         None => {
             info!("video not set");
@@ -154,7 +153,7 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
     let audio_path;
     match &audio_data_o {
         Some(audio_data) => {
-            audio_path = Some(format!("uploads/{}-audio.{}", &base_file_name, audio_data.1));
+            audio_path = Some(format!("u/{}-audio.{}", &base_file_name, audio_data.1));
         }
         None => {
             info!("audio not set");
@@ -171,6 +170,8 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
         short_text_processed: short_text_processed_o.ok_or_else(|| ArticleError::FieldRequired("Short text".to_string()))?,
         image_data: image_data_bu8,
         image_description: image_description_o.ok_or_else(|| ArticleError::FieldRequired("Image description".to_string()))?,
+
+        // TODO stupid defaults
         video_data: video_data_o.as_ref().map(|(d, _)| d.clone()).unwrap_or_default(),
         audio_data: audio_data_o.as_ref().map(|(d, _)| d.clone()).unwrap_or_default(),
         category: category_o,

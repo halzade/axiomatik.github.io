@@ -52,9 +52,9 @@ mod tests {
 
         // Cleanup
         let _ = fs::remove_file("web/test-newest-zahranici.html");
-        let _ = fs::remove_file("web/uploads/test-newest-zahranici_image_820.jpg");
-        let _ = fs::remove_file("web/uploads/test-newest-zahranici_image_50.jpg");
-        let _ = fs::remove_file("web/uploads/test-newest-zahranici_image_288.jpg");
-        let _ = fs::remove_file("web/uploads/test-newest-zahranici_image_440.jpg");
+        let _ = fs::remove_file("web/u/test-newest-zahranici_image_820.jpg");
+        let _ = fs::remove_file("web/u/test-newest-zahranici_image_50.jpg");
+        let _ = fs::remove_file("web/u/test-newest-zahranici_image_288.jpg");
+        let _ = fs::remove_file("web/u/test-newest-zahranici_image_440.jpg");
     }
 }

@@ -61,9 +61,9 @@ mod tests {
 
         // Cleanup
         let _ = fs::remove_file("web/test-financni-trhy-v-soku.html");
-        let _ = fs::remove_file("web/uploads/test-financni-trhy-v-soku_image_820.jpg");
-        let _ = fs::remove_file("web/uploads/test-financni-trhy-v-soku_image_50.jpg");
-        let _ = fs::remove_file("web/uploads/test-financni-trhy-v-soku_image_288.jpg");
-        let _ = fs::remove_file("web/uploads/test-financni-trhy-v-soku_image_440.jpg");
+        let _ = fs::remove_file("web/u/test-financni-trhy-v-soku_image_820.jpg");
+        let _ = fs::remove_file("web/u/test-financni-trhy-v-soku_image_50.jpg");
+        let _ = fs::remove_file("web/u/test-financni-trhy-v-soku_image_288.jpg");
+        let _ = fs::remove_file("web/u/test-financni-trhy-v-soku_image_440.jpg");
     }
 }

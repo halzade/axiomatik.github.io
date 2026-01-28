@@ -48,13 +48,13 @@ mod tests {
         let main_end = updated_index.find("<!-- /MAIN_ARTICLE -->").unwrap();
         let main_section = &updated_index[main_start..main_end];
         assert!(main_section.contains("Test New Veda Main"));
-        assert!(main_section.contains("uploads/")); // Image should be there
+        assert!(main_section.contains("u/")); // Image should be there
 
         // Cleanup
         let _ = fs::remove_file("web/test-new-veda-main.html");
-        let _ = fs::remove_file("web/uploads/test-new-veda-main_image_820.jpg");
-        let _ = fs::remove_file("web/uploads/test-new-veda-main_image_50.jpg");
-        let _ = fs::remove_file("web/uploads/test-new-veda-main_image_288.jpg");
-        let _ = fs::remove_file("web/uploads/test-new-veda-main_image_440.jpg");
+        let _ = fs::remove_file("web/u/test-new-veda-main_image_820.jpg");
+        let _ = fs::remove_file("web/u/test-new-veda-main_image_50.jpg");
+        let _ = fs::remove_file("web/u/test-new-veda-main_image_288.jpg");
+        let _ = fs::remove_file("web/u/test-new-veda-main_image_440.jpg");
     }
 }

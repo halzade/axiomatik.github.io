@@ -52,9 +52,9 @@ mod tests {
 
         // Cleanup
         let _ = fs::remove_file("web/test-newest-republika.html");
-        let _ = fs::remove_file("web/uploads/test-newest-republika_image_820.jpg");
-        let _ = fs::remove_file("web/uploads/test-newest-republika_image_50.jpg");
-        let _ = fs::remove_file("web/uploads/test-newest-republika_image_288.jpg");
-        let _ = fs::remove_file("web/uploads/test-newest-republika_image_440.jpg");
+        let _ = fs::remove_file("web/u/test-newest-republika_image_820.jpg");
+        let _ = fs::remove_file("web/u/test-newest-republika_image_50.jpg");
+        let _ = fs::remove_file("web/u/test-newest-republika_image_288.jpg");
+        let _ = fs::remove_file("web/u/test-newest-republika_image_440.jpg");
     }
 }

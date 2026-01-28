@@ -92,7 +92,7 @@ pub async fn start_router() -> Router {
         // serve static content
         .nest_service("/css", ServeDir::new("web/css"))
         .nest_service("/js", ServeDir::new("web/js"))
-        .nest_service("/uploads", ServeDir::new("web/uploads"))
+        .nest_service("/u", ServeDir::new("web/u"))
         // web app
         .merge(protected_routes)
         // non existent content

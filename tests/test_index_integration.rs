@@ -43,10 +43,10 @@ async fn test_index_main_article() {
 
     // Cleanup
     let _ = fs::remove_file("web/regular-main-article.html");
-    let _ = fs::remove_file("web/uploads/regular-main-article_image_820.jpg");
-    let _ = fs::remove_file("web/uploads/regular-main-article_image_50.jpg");
-    let _ = fs::remove_file("web/uploads/regular-main-article_image_288.jpg");
-    let _ = fs::remove_file("web/uploads/regular-main-article_image_440.jpg");
+    let _ = fs::remove_file("web/u/regular-main-article_image_820.jpg");
+    let _ = fs::remove_file("web/u/regular-main-article_image_50.jpg");
+    let _ = fs::remove_file("web/u/regular-main-article_image_288.jpg");
+    let _ = fs::remove_file("web/u/regular-main-article_image_440.jpg");
 }
 
 #[tokio::test]
@@ -86,10 +86,10 @@ async fn test_index_main_article_exclusive() {
 
     // Cleanup
     let _ = fs::remove_file("web/exclusive-main-article.html");
-    let _ = fs::remove_file("web/uploads/exclusive-main-article_image_820.jpg");
-    let _ = fs::remove_file("web/uploads/exclusive-main-article_image_50.jpg");
-    let _ = fs::remove_file("web/uploads/exclusive-main-article_image_288.jpg");
-    let _ = fs::remove_file("web/uploads/exclusive-main-article_image_440.jpg");
+    let _ = fs::remove_file("web/u/exclusive-main-article_image_820.jpg");
+    let _ = fs::remove_file("web/u/exclusive-main-article_image_50.jpg");
+    let _ = fs::remove_file("web/u/exclusive-main-article_image_288.jpg");
+    let _ = fs::remove_file("web/u/exclusive-main-article_image_440.jpg");
 }
 
 #[tokio::test]
@@ -128,10 +128,10 @@ async fn test_index_article_republika() {
 
     // Cleanup
     let _ = fs::remove_file("web/new-republika-article.html");
-    let _ = fs::remove_file("web/uploads/new-republika-article_image_820.jpg");
-    let _ = fs::remove_file("web/uploads/new-republika-article_image_50.jpg");
-    let _ = fs::remove_file("web/uploads/new-republika-article_image_288.jpg");
-    let _ = fs::remove_file("web/uploads/new-republika-article_image_440.jpg");
+    let _ = fs::remove_file("web/u/new-republika-article_image_820.jpg");
+    let _ = fs::remove_file("web/u/new-republika-article_image_50.jpg");
+    let _ = fs::remove_file("web/u/new-republika-article_image_288.jpg");
+    let _ = fs::remove_file("web/u/new-republika-article_image_440.jpg");
 }
 
 #[tokio::test]
@@ -170,10 +170,10 @@ async fn test_index_article_zahranici() {
 
     // Cleanup
     let _ = fs::remove_file("web/new-zahranici-article.html");
-    let _ = fs::remove_file("web/uploads/new-zahranici-article_image_820.jpg");
-    let _ = fs::remove_file("web/uploads/new-zahranici-article_image_50.jpg");
-    let _ = fs::remove_file("web/uploads/new-zahranici-article_image_288.jpg");
-    let _ = fs::remove_file("web/uploads/new-zahranici-article_image_440.jpg");
+    let _ = fs::remove_file("web/u/new-zahranici-article_image_820.jpg");
+    let _ = fs::remove_file("web/u/new-zahranici-article_image_50.jpg");
+    let _ = fs::remove_file("web/u/new-zahranici-article_image_288.jpg");
+    let _ = fs::remove_file("web/u/new-zahranici-article_image_440.jpg");
 }
 
 #[tokio::test]
@@ -221,8 +221,8 @@ async fn test_index_article_veda() {
 
     // Cleanup
     let _ = fs::remove_file("web/new-veda-article.html");
-    let _ = fs::remove_file("web/uploads/new-veda-article_image_820.jpg");
-    let _ = fs::remove_file("web/uploads/new-veda-article_image_50.jpg");
-    let _ = fs::remove_file("web/uploads/new-veda-article_image_288.jpg");
-    let _ = fs::remove_file("web/uploads/new-veda-article_image_440.jpg");
+    let _ = fs::remove_file("web/u/new-veda-article_image_820.jpg");
+    let _ = fs::remove_file("web/u/new-veda-article_image_50.jpg");
+    let _ = fs::remove_file("web/u/new-veda-article_image_288.jpg");
+    let _ = fs::remove_file("web/u/new-veda-article_image_440.jpg");
 }

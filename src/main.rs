@@ -37,8 +37,8 @@ async fn main() {
     info!("Application starting...");
     logger::config();
 
-    // TODO rename uploads to something
-    create_dir_all("uploads").unwrap();
+    // the uploads directory
+    create_dir_all("u").unwrap();
 
     /*
      * Trigger actions at startup
