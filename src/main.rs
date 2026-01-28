@@ -1,4 +1,4 @@
-use axiomatik_web::commands::{create_user, delete_user, print_from_db};
+use axiomatik_web::commands::{create_user, delete_user};
 use axiomatik_web::configuration;
 use axiomatik_web::content_worker;
 use axiomatik_web::database;
@@ -23,9 +23,6 @@ async fn main() {
     }
     if args.len() > 1 && args[1] == "delete-user" {
         delete_user(&args).await;
-    }
-    if args.len() > 1 && args[1] == "print-from-db" {
-        print_from_db(&args).await;
     }
 
     if server::is_started().await {
