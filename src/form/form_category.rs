@@ -1,6 +1,7 @@
-use crate::form_index::{IndexArticleMostRead, IndexCategoryArticleTemplate};
-use crate::{data, database, library};
+use crate::form::form_index::{IndexArticleMostRead, IndexCategoryArticleTemplate};
+use crate::{system_data, database, library};
 use askama::Template;
+use crate::db::database_article;
 
 pub struct CategoryArticleData {
     pub url: String,
@@ -73,7 +74,7 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
     let category_data = if let Some(d) = data {
         d
     } else {
-        let articles = database::get_all_articles().await.unwrap_or_default();
+        let articles = database_article::articles_by_category().await.unwrap_or_default();
         let mut category_articles: Vec<_> =
             articles.iter().filter(|a| a.category == category).collect();
 
@@ -96,9 +97,9 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
             .collect();
 
         CategoryData {
-            date: data::date(),
-            weather: data::weather(),
-            name_day: data::name_day(),
+            date: system_data::date(),
+            weather: system_data::weather(),
+            name_day: system_data::name_day(),
             category_name: category.to_string(),
             category_url: format!("{}.html", category),
             articles: articles_data,

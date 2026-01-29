@@ -1,12 +1,13 @@
 #[cfg(test)]
 mod tests {
     use askama::Template;
-    use axiomatik_web::form_category::TechnologieTemplate;
-    use axiomatik_web::form_index::IndexCategoryArticleTemplate;
+    use axiomatik_web::form::form_category::TechnologieTemplate;
+    use axiomatik_web::form::form_index::IndexCategoryArticleTemplate;
+    use axiomatik_web::system::system_data;
 
     #[test]
     fn test_technologie_build_from_template() {
-        axiomatik_web::data::init_trivial();
+        system_data::init_trivial_data();
         let template = TechnologieTemplate {
             date: "Wednesday, January 21, 2026".to_string(),
             weather: "5°C | Prague".to_string(),
@@ -25,7 +26,7 @@ mod tests {
         };
 
         let rendered = template.render().expect("Failed to render template");
-        
+
         // Basic content verification
         assert!(rendered.contains("Ze světa technologií"));
         assert!(rendered.contains("Technology Article 1"));

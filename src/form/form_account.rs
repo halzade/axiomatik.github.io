@@ -1,7 +1,4 @@
-use crate::database;
-use crate::database::Article;
 use crate::server::AUTH_COOKIE;
-use crate::validation::validate_input_simple;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
@@ -10,6 +7,9 @@ use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::error;
+use crate::db::database_article::Article;
+use crate::db::{database_article, database_user};
+use crate::validation::validate_text::validate_input_simple;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -32,11 +32,11 @@ pub struct AccountTemplate {
 
 pub async fn show_account(jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let user_o = database::get_user(cookie.value()).await;
+        let user_o = database_user::get_user(cookie.value()).await;
         return match user_o {
             None => Redirect::to("/login").into_response(),
             Some(user) => {
-                let articles_r = database::articles_by_username(&user.username, 100).await;
+                let articles_r = database_article::articles_by_username(&user.username, 100).await;
                 let articles = articles_r.unwrap_or_else(|e| {
                     error!("Failed to fetch articles for user {}: {}", user.username, e);
                     Vec::new()
@@ -77,10 +77,10 @@ pub async fn handle_update_author_name(
 }
 
 async fn update_author_name(username: &str, author_name: &str) -> Result<(), AccountError> {
-    match database::get_user(username).await {
+    match database_user::get_user(username).await {
         Some(mut user) => {
             user.author_name = author_name.to_string();
-            database::update_user(user).await;
+            database_user::update_user(user).await;
             Ok(())
         }
         None => Err(AccountError::UserNotFound),

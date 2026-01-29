@@ -1,6 +1,7 @@
-use crate::{data, database, library};
 use askama::Template;
 use std::fs;
+use crate::db::database_article;
+use crate::library;
 
 pub struct IndexArticleTopMainData {
     pub url: String,
@@ -147,7 +148,7 @@ pub struct IndexArticleTopTemplate {
 pub async fn render_new_index(data: Option<IndexData>) {
     let index_data = if let Some(mut d) = data {
         if d.main_article.url.is_empty() {
-            let articles = database::get_all_articles().await.unwrap_or_default();
+            let articles = database_article::get_all_articles().await.unwrap_or_default();
             let mut main_articles: Vec<_> = articles.iter().filter(|a| a.is_main).collect();
             // Sort by date descending
             main_articles.sort_by(|a, b| {
@@ -331,9 +332,9 @@ pub async fn render_new_index(data: Option<IndexData>) {
         }
 
         IndexData {
-            date: data::date(),
-            weather: data::weather(),
-            name_day: data::name_day(),
+            date: system_data::date(),
+            weather: system_data::weather(),
+            name_day: system_data::name_day(),
             main_article: IndexArticleTopMainData {
                 url: main_article
                     .map(|a| a.article_file_name.clone())

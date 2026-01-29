@@ -3,7 +3,6 @@ use std::time::Duration;
 use tokio::time;
 use tokio::time::{interval, Instant};
 use tracing::{info, trace};
-use crate::data::GLOBAL_DATA;
 
 pub fn heart_beat() {
     info!("start heart beat");

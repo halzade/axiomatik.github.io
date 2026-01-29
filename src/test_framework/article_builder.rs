@@ -67,21 +67,11 @@ impl<'a> ArticleBuilder<'a> {
         self
     }
 
-    pub fn image(
-        mut self,
-        filename: &str,
-        data: &'a [u8],
-        content_type: &str,
-    ) -> Self {
+    pub fn image(mut self, filename: &str, data: &'a [u8], content_type: &str) -> Self {
         self.image_o = Some((filename.into(), data, content_type.into()));
         self
     }
-    pub fn audio(
-        mut self,
-        filename: &str,
-        data: &'a [u8],
-        content_type: &str,
-    ) -> Self {
+    pub fn audio(mut self, filename: &str, data: &'a [u8], content_type: &str) -> Self {
         self.audio_o = Some((filename.into(), data, content_type.into()));
         self
     }

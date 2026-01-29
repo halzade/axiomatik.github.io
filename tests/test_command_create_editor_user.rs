@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::commands::create_editor_user;
-    use axiomatik_web::database::Role::Editor;
-    use axiomatik_web::{form_login};
+    use axiomatik_web::db::database_user::Role::Editor;
+    use axiomatik_web::form::form_login;
     use axiomatik_web::test_framework::script_base;
 
     #[tokio::test]
     async fn test_create_editor_user() {
         script_base::setup_before_tests_once().await;
-        
+
         let username = "user11";
         let password = "password123";
 

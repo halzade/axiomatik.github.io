@@ -1,8 +1,6 @@
-use crate::validation::{
-    validate_optional_string, validate_required_string, validate_required_text, ValidationError,
-};
 use thiserror::Error;
 use axum::extract::multipart::Field;
+use crate::validation::validate_text::{validate_optional_string, validate_required_string, validate_required_text, ValidationError};
 
 #[derive(Debug, Error)]
 pub enum UtilsError {

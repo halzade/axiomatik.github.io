@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests {
+    use axiomatik_web::db::database_user;
+    use axiomatik_web::db::database_user::Role::Editor;
+    use axiomatik_web::db::database_user::User;
     use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::{serialize};
-    use axiomatik_web::{database};
+    use axiomatik_web::test_framework::script_base::serialize;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
 
@@ -12,12 +14,12 @@ mod tests {
 
         // Create user who needs password change
         let password_hash = bcrypt::hash("pass1234", bcrypt::DEFAULT_COST).unwrap();
-        database::create_user(database::User {
+        database_user::create_user(User {
             username: "user1".to_string(),
             author_name: "user1".to_string(),
             password_hash,
             needs_password_change: true,
-            role: database::Role::Editor,
+            role: Editor,
         })
         .await
         .unwrap();
@@ -68,7 +70,7 @@ mod tests {
         );
 
         // Verify change in DB
-        let user = database::get_user("user1").await.unwrap();
+        let user = database_user::get_user("user1").await.unwrap();
         assert_eq!(user.author_name, "user1");
         assert!(!user.needs_password_change);
     }

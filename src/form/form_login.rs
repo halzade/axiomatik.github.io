@@ -1,7 +1,4 @@
-use crate::database;
-use crate::database::User;
 use crate::server::AUTH_COOKIE;
-use crate::validation::validate_input_simple;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
@@ -12,6 +9,9 @@ use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::{info, warn};
+use crate::db::database_user;
+use crate::db::database_user::User;
+use crate::validation::validate_text::validate_input_simple;
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -71,7 +71,7 @@ pub async fn handle_login(jar: CookieJar, Form(payload): Form<LoginPayload>) -> 
 }
 
 pub async fn authenticate_user(username: &str, password: &str) -> Result<User, AuthError> {
-    let user_o = database::get_user(username).await;
+    let user_o = database_user::get_user(username).await;
     match user_o {
         None => Err(AuthError::UserNotFound),
         Some(user) => {

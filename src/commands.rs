@@ -1,5 +1,5 @@
-use crate::database;
-use crate::database::{Role, User};
+use crate::db::database_user;
+use crate::db::database_user::{Role, User};
 use bcrypt::{hash, DEFAULT_COST};
 use thiserror::Error;
 use tracing::{error, info};
@@ -41,7 +41,7 @@ pub async fn delete_user(args: &Vec<String>) {
     }
     let username = &args[2];
 
-    database::delete_user(username).await
+    database_user::delete_user(username).await
 }
 
 pub async fn create_editor_user(username: &str, password: &str) -> Result<(), CommandError> {
@@ -59,6 +59,6 @@ pub async fn create_editor_user(username: &str, password: &str) -> Result<(), Co
         role: Role::Editor,
     };
 
-    database::create_user(user).await;
+    database_user::create_user(user).await;
     Ok(())
 }

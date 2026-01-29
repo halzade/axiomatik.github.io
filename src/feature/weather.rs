@@ -5,6 +5,7 @@ use tracing::error;
 pub enum ExternalError {
     #[error("Reqwest error: {0}")]
     Reqwest(#[from] reqwest::Error),
+    
     #[error("Temperature data not found")]
     TemperatureNotFound,
 }

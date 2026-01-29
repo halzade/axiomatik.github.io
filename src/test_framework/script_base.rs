@@ -5,11 +5,12 @@ use std::convert::Into;
 use std::string::ToString;
 use tower::ServiceExt;
 
-use crate::database::Role::Editor;
-use crate::database::User;
-use crate::{data, database, logger, server};
-
+use crate::db::database_user::Role::Editor;
+use crate::db::database_user::User;
+use crate::db::{database, database_user};
+use crate::system::system_data;
 use crate::test_framework::article_builder::BOUNDARY;
+use crate::{logger, server};
 use tokio::sync::OnceCell;
 use tracing::log::debug;
 
@@ -22,7 +23,7 @@ pub async fn setup_before_tests_once() {
     debug!("only once");
 
     logger::config();
-    data::init_trivial();
+    system_data::init_trivial_data();
     database::initialize_in_memory_database().await;
 
     let r = server::start_router().await;
@@ -44,7 +45,7 @@ pub fn serialize(params: &[(&str, &str)]) -> String {
 
 pub async fn setup_user_and_login(name: &str) -> String {
     // create user in DB
-    database::create_user(new_user(name)).await.unwrap();
+    database_user::create_user(new_user(name)).await.unwrap();
 
     // login user
     let login_resp = one_shot(
@@ -82,7 +83,8 @@ pub async fn response_to_body(response: axum::response::Response) -> String {
 }
 
 pub fn get_test_image_data() -> Vec<u8> {
-    std::fs::read("tests/data/image_1024.png").expect("Test image not found at tests/data/image_1024.png")
+    std::fs::read("tests/data/image_1024.png")
+        .expect("Test image not found at tests/data/image_1024.png")
 }
 
 fn new_user(name: &str) -> User {

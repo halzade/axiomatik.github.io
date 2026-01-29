@@ -1,6 +1,4 @@
-use crate::database;
 use crate::server::AUTH_COOKIE;
-use crate::validation::validate_input_simple;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
@@ -10,13 +8,17 @@ use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::error;
+use crate::db::database_user;
+use crate::validation::validate_text::validate_input_simple;
 
 #[derive(Debug, Error)]
 pub enum ChangePasswordError {
     #[error("Password too short")]
     PasswordTooShort,
+    
     #[error("User not found")]
     UserNotFound,
+    
     #[error("Bcrypt error: {0}")]
     Bcrypt(#[from] bcrypt::BcryptError),
 }
@@ -84,14 +86,14 @@ async fn change_password(username: &str, new_password: &str) -> Result<(), Chang
         return Err(ChangePasswordError::PasswordTooShort);
     }
 
-    let user_o = database::get_user(username).await;
+    let user_o = database_user::get_user(username).await;
     match user_o {
         None => Err(ChangePasswordError::UserNotFound),
         Some(mut user) => {
             let password_hash = hash(new_password, DEFAULT_COST)?;
             user.password_hash = password_hash;
             user.needs_password_change = false;
-            database::update_user(user).await;
+            database_user::update_user(user).await;
             Ok(())
         }
     }

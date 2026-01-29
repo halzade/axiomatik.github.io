@@ -1,4 +1,6 @@
-use crate::form_new_article::ArticleData;
+use crate::form::form_new_article::ArticleData;
+use crate::library;
+use crate::processor::{process_category, process_short_text, process_text, ProcessorError};
 use crate::utils::{
     extract_audio_data, extract_image_data, extract_required_string, extract_required_text,
     extract_video_data, UtilsError,
@@ -6,15 +8,15 @@ use crate::utils::{
 use axum::extract::Multipart;
 use thiserror::Error;
 use tracing::{debug, error, info};
-use crate::library;
-use crate::processor::{process_category, process_short_text, process_text, ProcessorError};
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
     #[error("Utils error: {0}")]
     Utils(#[from] UtilsError),
+
     #[error("Processor error: {0}")]
     Processor(#[from] ProcessorError),
+
     #[error("Field {0} is required")]
     FieldRequired(String),
 }
@@ -119,10 +121,12 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
         }
     }
 
-    let category_o = category_o.ok_or_else(|| ArticleError::FieldRequired("Category".to_string()))?;
+    let category_o =
+        category_o.ok_or_else(|| ArticleError::FieldRequired("Category".to_string()))?;
     let category_display = process_category(&category_o)?;
 
-    let base_file_name = base_file_name_o.ok_or_else(|| ArticleError::FieldRequired("Title/Base file name".to_string()))?;
+    let base_file_name = base_file_name_o
+        .ok_or_else(|| ArticleError::FieldRequired("Title/Base file name".to_string()))?;
 
     let image_data_bu8;
     let image_extension;
@@ -166,17 +170,27 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
         is_exclusive: is_exclusive_o.unwrap_or(false),
         author: author_o.ok_or_else(|| ArticleError::FieldRequired("Author".to_string()))?,
         title: title_o.ok_or_else(|| ArticleError::FieldRequired("Title".to_string()))?,
-        text_processed: text_processed_o.ok_or_else(|| ArticleError::FieldRequired("Text".to_string()))?,
-        short_text_processed: short_text_processed_o.ok_or_else(|| ArticleError::FieldRequired("Short text".to_string()))?,
+        text_processed: text_processed_o
+            .ok_or_else(|| ArticleError::FieldRequired("Text".to_string()))?,
+        short_text_processed: short_text_processed_o
+            .ok_or_else(|| ArticleError::FieldRequired("Short text".to_string()))?,
         image_data: image_data_bu8,
-        image_description: image_description_o.ok_or_else(|| ArticleError::FieldRequired("Image description".to_string()))?,
+        image_description: image_description_o
+            .ok_or_else(|| ArticleError::FieldRequired("Image description".to_string()))?,
 
         // TODO stupid defaults
-        video_data: video_data_o.as_ref().map(|(d, _)| d.clone()).unwrap_or_default(),
-        audio_data: audio_data_o.as_ref().map(|(d, _)| d.clone()).unwrap_or_default(),
+        video_data: video_data_o
+            .as_ref()
+            .map(|(d, _)| d.clone())
+            .unwrap_or_default(),
+        audio_data: audio_data_o
+            .as_ref()
+            .map(|(d, _)| d.clone())
+            .unwrap_or_default(),
         category: category_o,
         category_display: category_display.to_string(),
-        related_articles: related_articles_o.ok_or_else(|| ArticleError::FieldRequired("Related articles".to_string()))?,
+        related_articles: related_articles_o
+            .ok_or_else(|| ArticleError::FieldRequired("Related articles".to_string()))?,
         image_path,
         video_path,
         audio_path,

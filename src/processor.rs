@@ -1,9 +1,9 @@
-use crate::validate_media::{validate_data_is_audio, validate_data_is_video, MediaValidationError};
 use image::imageops::Lanczos3;
 use image::{DynamicImage, GenericImageView};
 use std::fs;
 use thiserror::Error;
 use tracing::error;
+use crate::validation::validate_media::{validate_data_is_audio, validate_data_is_video, MediaValidationError};
 
 #[derive(Debug, Error)]
 pub enum ProcessorError {

@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::database;
-    use axiomatik_web::database::Article;
+    use axiomatik_web::db::database_article::Article;
+    use axiomatik_web::db::database_article;
     use axiomatik_web::test_framework::script_base;
 
     #[tokio::test]
     async fn test_db_search_logic() {
         script_base::setup_before_tests_once().await;
-        
+
         let article1 = Article {
             author: "author".to_string(),
             created_by: "user".to_string(),
@@ -48,11 +48,10 @@ mod tests {
             views: 0,
         };
 
-        database::create_article(article1).await.unwrap();
-        database::create_article(article2).await.unwrap();
+        database_article::create_article(article1).await.unwrap();
+        database_article::create_article(article2).await.unwrap();
 
-        // TODO
-        let articles_o = database::get_all_articles().await;
+        let articles_o = database_article::articles_by_words("match").await;
 
         match articles_o {
             None => {
@@ -78,6 +77,7 @@ mod tests {
 
                 results.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
 
+                // TODO ?
                 assert_eq!(results.len(), 2);
                 assert_eq!(results[0].0, 2);
                 assert_eq!(results[0].1, "article1");

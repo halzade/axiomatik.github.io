@@ -1,12 +1,13 @@
 #[cfg(test)]
 mod tests {
     use askama::Template;
-    use axiomatik_web::form_category::VedaTemplate;
-    use axiomatik_web::form_index::IndexCategoryArticleTemplate;
+    use axiomatik_web::form::form_category::VedaTemplate;
+    use axiomatik_web::form::form_index::IndexCategoryArticleTemplate;
+    use axiomatik_web::system::system_data;
 
     #[test]
     fn test_veda_build_from_template() {
-        axiomatik_web::data::init_trivial();
+        system_data::init_trivial_data();
         let template = VedaTemplate {
             date: "Wednesday, January 21, 2026".to_string(),
             weather: "5°C | Prague".to_string(),
@@ -25,7 +26,7 @@ mod tests {
         };
 
         let rendered = template.render().expect("Failed to render template");
-        
+
         // Basic content verification
         assert!(rendered.contains("Věda a výzkum"));
         assert!(rendered.contains("Veda Article 1"));

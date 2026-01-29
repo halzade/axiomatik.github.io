@@ -1,13 +1,14 @@
 #[cfg(test)]
 mod tests {
     use askama::Template;
-    use axiomatik_web::form_index::{
+    use axiomatik_web::form::form_index::{
         IndexCategoryArticleTemplate, IndexCategoryTemplate, NewsTemplate,
     };
+    use axiomatik_web::system::system_data;
 
     #[test]
     fn test_news_build_from_template() {
-        axiomatik_web::data::init_trivial();
+        system_data::init_trivial_data();
         
         let empty_category = |name: &str, url: &str| IndexCategoryTemplate {
             category_name: name.to_string(),

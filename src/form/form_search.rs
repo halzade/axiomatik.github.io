@@ -1,10 +1,12 @@
-use crate::{data, database, validation};
 use askama::Template;
 use axum::response::{Html, IntoResponse, Response};
 use axum::Form;
 use http::StatusCode;
 use serde::Deserialize;
 use tracing::info;
+use crate::db::database_article;
+use crate::system::system_data;
+use crate::validation::validate_text;
 
 #[derive(Deserialize)]
 pub struct SearchPayload {
@@ -46,7 +48,7 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
             .into_response();
     }
 
-    if let Err(e) = validation::validate_search_query(query) {
+    if let Err(e) = validate_text::validate_search_query(query) {
         return (StatusCode::BAD_REQUEST, e.to_string()).into_response();
     }
 
@@ -56,7 +58,7 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
         .filter(|w| !w.is_empty())
         .collect();
 
-    let articles_o = database::articles_by_words(search_words, 20).await;
+    let articles_o = database_article::articles_by_words(search_words, 20).await;
 
     match articles_o {
         None => {
@@ -64,9 +66,9 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
 
             let template = SearchTemplate {
                 title: format!("Výsledky hledání: {}", query),
-                date: data::date(),
-                weather: data::weather(),
-                name_day: data::name_day(),
+                date: system_data::date(),
+                weather: system_data::weather(),
+                name_day: system_data::name_day(),
                 articles: "".to_string(),
             };
 
@@ -123,9 +125,9 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
 
             let template = SearchTemplate {
                 title: format!("Výsledky hledání: {}", query),
-                date: data::date(),
-                weather: data::weather(),
-                name_day: data::name_day(),
+                date: system_data::date(),
+                weather: system_data::weather(),
+                name_day: system_data::name_day(),
                 articles: articles_html,
             };
 

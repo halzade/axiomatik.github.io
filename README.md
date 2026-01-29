@@ -2,7 +2,9 @@
 
 ### DEV environment
 
-Use `dev.sh`
+Use 
+    
+    dev.sh
 
 See [dev.sh](dev.sh)
 
@@ -10,3 +12,4 @@ And a friendly file [DEV.md](DEV.md)
 
 ### Production
 
+    cargo clippy -- -D warnings

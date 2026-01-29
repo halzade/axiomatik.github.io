@@ -1,12 +1,13 @@
 #[cfg(test)]
 mod tests {
     use askama::Template;
-    use axiomatik_web::form_new_article::ArticleTemplate;
-    use axiomatik_web::form_index::{IndexCategoryArticleTemplate, IndexArticleMostRead};
+    use axiomatik_web::form::form_index::{IndexArticleMostRead, IndexCategoryArticleTemplate};
+    use axiomatik_web::form::form_new_article::ArticleTemplate;
+    use axiomatik_web::system::system_data;
 
     #[test]
     fn test_article_build_from_template() {
-        axiomatik_web::data::init_trivial();
+        system_data::init_trivial_data();
         
         let related_articles = vec![
             IndexCategoryArticleTemplate {

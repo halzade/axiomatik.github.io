@@ -1,15 +1,16 @@
 #[cfg(test)]
 mod tests {
     use askama::Template;
-    use axiomatik_web::form_index::{
+    use axiomatik_web::form::form_index::{
         IndexArticleTopData, IndexArticleTopMainData, IndexArticleTopMainTemplate,
         IndexArticleTopTemplate, IndexCategoryArticleData, IndexCategoryArticleTemplate,
         IndexCategoryData, IndexCategoryTemplate, IndexData, IndexTemplate,
     };
+    use axiomatik_web::system::system_data;
 
     #[test]
     fn test_index_build_from_template() {
-        axiomatik_web::data::init_trivial();
+        system_data::init_trivial_data();
         let index_data = IndexData {
             date: "Wednesday, January 21, 2026".to_string(),
             weather: "5°C | Prague".to_string(),

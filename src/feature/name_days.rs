@@ -1,4 +1,4 @@
-use crate::library_name_days;
+use crate::feature::name_days_library;
 use chrono::prelude::*;
 use std::string::ToString;
 use tracing::error;
@@ -29,7 +29,7 @@ fn today_name_day(now: DateTime<Local>) -> String {
     if month == 2 && day == 29 && !is_leap_year(year) {
         return LEEP_YEAR_NAME_DAY.to_string();
     }
-    library_name_days::get_name_day(month, day)
+    name_days_library::get_name_day(month, day)
 }
 
 fn is_leap_year(year: i32) -> bool {

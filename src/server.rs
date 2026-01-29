@@ -1,6 +1,5 @@
-use crate::{
-    database, form_account, form_change_password, form_login, form_new_article, form_search,
-};
+use crate::db::database_user;
+use crate::form::{form_account, form_change_password, form_login, form_new_article, form_search};
 use axum::body::Body;
 use axum::handler::HandlerWithoutStateExt;
 use axum::middleware::Next;
@@ -105,7 +104,7 @@ pub async fn start_router() -> Router {
 
 async fn auth_middleware(jar: CookieJar, req: Request<Body>, next: Next) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let user_o = database::get_user(cookie.value()).await;
+        let user_o = database_user::get_user(cookie.value()).await;
         match user_o {
             None => {
                 // error -> login
@@ -119,7 +118,7 @@ async fn auth_middleware(jar: CookieJar, req: Request<Body>, next: Next) -> Resp
                 }
 
                 // continue
-                if user.role == database::Role::Editor {
+                if user.role == database_user::Role::Editor {
                     return next.run(req).await;
                 }
             }

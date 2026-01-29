@@ -1,6 +1,5 @@
 use crate::processor::{process_audio, process_images, process_video};
 use crate::server::AUTH_COOKIE;
-use crate::{data, database, form_index, library};
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -8,6 +7,10 @@ use axum_extra::extract::CookieJar;
 use chrono::{Datelike, Local};
 use http::StatusCode;
 use std::fs;
+use crate::db::{database_article, database_user};
+use crate::form::{form_index, form_new_article_data};
+use crate::library;
+use crate::system::system_data;
 
 pub struct ArticleData {
     pub is_main: bool,
@@ -82,7 +85,7 @@ pub struct CategoryArticleTemplate {
 
 pub async fn show_form(jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let user_o = database::get_user(cookie.value()).await;
+        let user_o = database_user::get_user(cookie.value()).await;
         match user_o {
             None => {}
             Some(user) => {
@@ -115,14 +118,14 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
     /*
      * Read request data
      */
-    let article_data_r = crate::form_new_article_data::article_data(multipart).await;
+    let article_data_r = form_new_article_data::article_data(multipart).await;
 
     match article_data_r {
         Ok(article_data) => {
             let now = Local::now();
-            let formatted_date = data::date();
-            let formatted_weather = data::weather();
-            let formatted_name_day = data::name_day();
+            let formatted_date = system_data::date();
+            let formatted_weather = system_data::weather();
+            let formatted_name_day = system_data::name_day();
 
             let related_articles_vec = article_data.related_articles.clone();
 
@@ -200,7 +203,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             .unwrap();
 
             // Store in DB
-            let article_db = database::Article {
+            let article_db = database_article::Article {
                 author: article_data.author.clone(),
                 created_by,
                 date: formatted_date.clone(),
@@ -219,7 +222,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
                 views: 0,
             };
 
-            let _ = database::create_article(article_db).await;
+            let _ = database_article::create_article(article_db).await;
 
             if !std::path::Path::new(&category_month_year_filename).exists() {
                 let category_template = CategoryTemplate {

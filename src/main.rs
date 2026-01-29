@@ -1,7 +1,6 @@
 use axiomatik_web::commands::{create_user, delete_user};
 use axiomatik_web::configuration;
 use axiomatik_web::content_worker;
-use axiomatik_web::database;
 use axiomatik_web::logger;
 use axiomatik_web::server;
 use fs::create_dir_all;
@@ -10,6 +9,7 @@ use std::fs;
 use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::{error, info};
+use axiomatik_web::db::database;
 
 #[tokio::main]
 async fn main() {

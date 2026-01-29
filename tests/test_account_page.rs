@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::database;
     use axiomatik_web::test_framework::article_builder::ArticleBuilder;
     use axiomatik_web::test_framework::script_base;
     use axiomatik_web::test_framework::script_base::{
@@ -10,6 +9,7 @@ mod tests {
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs::remove_file;
+    use axiomatik_web::db::database_user;
 
     #[tokio::test]
     async fn test_account_page() {
@@ -57,7 +57,7 @@ mod tests {
         );
 
         // Verify update in DB
-        let user = database::get_user("user8").await.unwrap();
+        let user = database_user::get_user("user8").await.unwrap();
         assert_eq!(user.author_name, "Updated Author");
 
         // Create an article with this user
