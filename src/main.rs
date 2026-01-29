@@ -1,6 +1,5 @@
 use axiomatik_web::system::commands::{create_user, delete_user};
-use axiomatik_web::system::configuration;
-use axiomatik_web::content_worker;
+use axiomatik_web::system::{configuration, heartbeat};
 use axiomatik_web::logger;
 use axiomatik_web::system::server;
 use fs::create_dir_all;
@@ -48,10 +47,9 @@ async fn main() {
     /*
      * Start regular actions
      */
-    info!("startup actions workers");
-    content_worker::heart_beat();
-    content_worker::midnight_worker();
-    content_worker::weather_worker();
+    info!("startup actions");
+    heartbeat::heart_beat();
+
 
     /*
      * Database
@@ -61,7 +59,7 @@ async fn main() {
     /*
      * Server
      */
-    let router = server::start_router().await;
+    let router = server::start_server().await;
     let config = configuration::get_config().expect("Failed to read configuration.");
     let addr = format!("{}:{}", config.host, config.port);
     info!("listening on {}", addr);

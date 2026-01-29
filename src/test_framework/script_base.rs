@@ -16,6 +16,7 @@ use tracing::log::debug;
 
 pub const CLEANUP: &str = "Failed to cleanup";
 
+// TODO
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";
 
