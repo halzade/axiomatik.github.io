@@ -5,9 +5,6 @@
 #![forbid(clippy::todo)]
 #![forbid(clippy::unimplemented)]
 
-pub mod commands;
-pub mod configuration;
-pub mod content_worker;
 pub mod db {
     pub mod database;
     pub mod database_article;
@@ -33,9 +30,11 @@ pub mod form {
 pub mod library;
 pub mod logger;
 pub mod processor;
-pub mod server;
 pub mod system {
     pub mod system_data;
+    pub mod configuration;
+    pub mod server;
+    pub mod commands;
 }
 pub mod utils;
 pub mod validation {

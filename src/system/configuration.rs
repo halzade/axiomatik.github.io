@@ -13,7 +13,7 @@ pub struct ApplicationSettings {
  */
 pub fn get_config() -> Result<ApplicationSettings, ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
-    let configuration_directory = base_path.join("configuration");
+    let configuration_directory = base_path.join("../../configuration");
 
     let settings = Config::builder()
         .add_source(File::from(
@@ -36,7 +36,7 @@ fn my_env_is() -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::configuration;
+    use crate::system::configuration;
 
     #[test]
     fn test_get_config() {

@@ -1,7 +1,7 @@
 use crate::form::form_index::{IndexArticleMostRead, IndexCategoryArticleTemplate};
-use crate::{system_data, database, library};
 use askama::Template;
 use crate::db::database_article;
+use crate::library;
 
 pub struct CategoryArticleData {
     pub url: String,
@@ -74,16 +74,9 @@ pub async fn render_template(category: &str, data: Option<CategoryData>) {
     let category_data = if let Some(d) = data {
         d
     } else {
-        let articles = database_article::articles_by_category().await.unwrap_or_default();
+        let articles = database_article::articles_by_category().await;
         let mut category_articles: Vec<_> =
             articles.iter().filter(|a| a.category == category).collect();
-
-        // Sort by date descending
-        category_articles.sort_by(|a, b| {
-            let da = library::save_article_file_name(&a.title);
-            let db = library::save_article_file_name(&b.title);
-            b.date.cmp(&a.date).then(db.cmp(&da))
-        });
 
         let articles_data = category_articles
             .into_iter()

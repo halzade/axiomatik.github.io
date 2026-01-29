@@ -1,5 +1,5 @@
 use crate::processor::{process_audio, process_images, process_video};
-use crate::server::AUTH_COOKIE;
+use crate::system::server::AUTH_COOKIE;
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{Html, IntoResponse, Redirect, Response};

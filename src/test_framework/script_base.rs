@@ -8,9 +8,9 @@ use tower::ServiceExt;
 use crate::db::database_user::Role::Editor;
 use crate::db::database_user::User;
 use crate::db::{database, database_user};
-use crate::system::system_data;
+use crate::system::{server, system_data};
 use crate::test_framework::article_builder::BOUNDARY;
-use crate::{logger, server};
+use crate::logger;
 use tokio::sync::OnceCell;
 use tracing::log::debug;
 
