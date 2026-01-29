@@ -90,6 +90,13 @@ pub async fn delete_user(user_name: &str) {
     }
 }
 
+pub async fn get_user(user_name: &str) -> Option<User> {
+    if let Ok(sdb) = db_read().await {
+        return sdb.select(("user", user_name)).await.unwrap();
+    }
+    None
+}
+
 pub async fn create_article(article: Article) -> Option<Article> {
     let sdb_wg = db_write().await.ok()?;
     let article_r: Result<Option<Article>, _> = sdb_wg.create("article").content(article).await;
@@ -142,43 +149,39 @@ pub async fn articles_by_category(category: &str, limit: u32) -> Result<Vec<Arti
     Ok(articles)
 }
 
-// TODO limit to like a 1000 laters articles or something like that
-pub async fn get_all_articles() -> Option<Vec<Article>> {
-    let sdb_r = db_read().await;
-    match sdb_r {
-        Ok(sdb) => Some(sdb.select("article").await.unwrap()),
-        _ => None,
+pub async fn articles_by_words(
+    search_words: Vec<String>,
+    limit: u32,
+) -> Result<Vec<Article>, DatabaseError> {
+    if search_words.is_empty() {
+        return Ok(Vec::new());
     }
-}
+    let sdb = db_read().await?;
+    // Build WHERE conditions like:
+    // string::contains(text, $w0) AND string::contains(text, $w1) ...
+    let mut conditions = Vec::new();
+    for i in 0..search_words.len() {
+        conditions.push(format!("string::contains(text, $w{})", i));
+    }
+    let query = format!(
+        "SELECT * FROM article \
+         WHERE {} \
+         ORDER BY date DESC \
+         LIMIT $limit",
+        conditions.join(" AND ")
+    );
 
-// TODO
-pub async fn get_article_by_filename(filename: &str) -> Option<Article> {
-    if let Ok(sdb) = db_read().await {
-        let response_r = sdb
-            .query("SELECT * FROM article WHERE article_file_name = $filename")
-            .bind(("filename", filename.to_string()))
-            .await;
-        if let Ok(mut response) = response_r {
-            return match response.take(0) {
-                Ok(articles) => {
-                    let articles: Vec<Article> = articles;
-                    articles.into_iter().next()
-                }
-                Err(e) => {
-                    error!("Failed to deserialize article: {}", e);
-                    None
-                }
-            };
-        }
-    }
-    None
-}
+    let mut q = sdb.query(query);
 
-pub async fn get_user(user_name: &str) -> Option<User> {
-    if let Ok(sdb) = db_read().await {
-        return sdb.select(("user", user_name)).await.unwrap();
+    for (i, word) in search_words.iter().enumerate() {
+        q = q.bind((format!("w{}", i), word.clone()));
     }
-    None
+    q = q.bind(("limit", limit));
+
+    let mut response = q.await?;
+    let articles: Vec<Article> = response.take(0)?;
+
+    Ok(articles)
 }
 
 pub async fn query(query: String) -> Response {

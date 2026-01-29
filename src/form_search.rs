@@ -56,7 +56,7 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
         .filter(|w| !w.is_empty())
         .collect();
 
-    let articles_o = database::get_all_articles().await;
+    let articles_o = database::articles_by_words(search_words, 20).await;
 
     match articles_o {
         None => {

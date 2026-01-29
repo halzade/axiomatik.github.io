@@ -21,8 +21,10 @@ pub enum ValidationError {
     RequiredFieldMissing,
 }
 
-// TODO validate if not too long
 pub fn validate_required_string(input: &str) -> Result<(), ValidationError> {
+    if input.len() > 200 {
+        return Err(ValidationError::InvalidLength);
+    }
     for c in input.chars() {
         if c.is_ascii() {
             let val = c as u32;
@@ -43,6 +45,9 @@ pub fn validate_required_string(input: &str) -> Result<(), ValidationError> {
 }
 
 pub fn validate_required_text(input: &str) -> Result<(), ValidationError> {
+    if input.len() > 20_000 {
+        return Err(ValidationError::InvalidLength);
+    }
     for c in input.chars() {
         if c.is_ascii() {
             let val = c as u32;
@@ -63,6 +68,9 @@ pub fn validate_required_text(input: &str) -> Result<(), ValidationError> {
 }
 
 pub fn validate_optional_string(input: &str) -> Result<(), ValidationError> {
+    if input.len() > 200 {
+        return Err(ValidationError::InvalidLength);
+    }
     for c in input.chars() {
         if c.is_ascii() {
             let val = c as u32;
@@ -95,6 +103,9 @@ pub fn validate_search_query(input: &str) -> Result<(), ValidationError> {
 }
 
 pub fn validate_input_simple(input: &str) -> Result<(), ValidationError> {
+    if input.len() > 200 {
+        return Err(ValidationError::InvalidLength);
+    }
     for c in input.chars() {
         if !c.is_ascii_alphanumeric() {
             if c != '_' {
