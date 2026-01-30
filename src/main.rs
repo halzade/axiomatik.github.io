@@ -1,17 +1,20 @@
-use axiomatik_web::system::commands::{create_user, delete_user};
-use axiomatik_web::system::{configuration, heartbeat};
+use axiomatik_web::db::database;
 use axiomatik_web::logger;
+use axiomatik_web::system::commands::{create_user, delete_user};
 use axiomatik_web::system::server;
+use axiomatik_web::system::{configuration, heartbeat};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
 use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::{error, info};
-use axiomatik_web::db::database;
 
 #[tokio::main]
 async fn main() {
+    /*
+     * Command arguments if any
+     */
     let args: Vec<String> = env::args().collect();
 
     /*
@@ -24,7 +27,11 @@ async fn main() {
         delete_user(&args).await;
     }
 
-    if server::is_started().await {
+    /*
+     * Server
+     */
+    let server = server::new();
+    if !server.is_off() {
         info!("But the Application has already started");
         info!("Shutting down gracefully...");
         signal::ctrl_c().await.ok();
@@ -40,16 +47,10 @@ async fn main() {
     create_dir_all("u").unwrap();
 
     /*
-     * Trigger actions at startup
-     */
-    info!("startup actions data");
-
-    /*
      * Start regular actions
      */
     info!("startup actions");
     heartbeat::heart_beat();
-
 
     /*
      * Database
@@ -57,12 +58,17 @@ async fn main() {
     database::initialize_database().await;
 
     /*
-     * Server
+     * Router
      */
-    let router = server::start_server().await;
+    let router = server.start_server().await;
+
     let config = configuration::get_config().expect("Failed to read configuration.");
     let addr = format!("{}:{}", config.host, config.port);
     info!("listening on {}", addr);
+
+    /*
+     * Listener
+     */
     let listener = TcpListener::bind(&addr)
         .await
         .expect(&format!("Failed to bind to {}", addr));
