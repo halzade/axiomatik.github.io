@@ -8,7 +8,6 @@ use chrono::{Datelike, Local};
 use http::StatusCode;
 use std::fs;
 use crate::db::{database_article, database_user};
-use crate::form::{form_index, form_new_article_data};
 use crate::library;
 use crate::system::system_data;
 
@@ -48,10 +47,10 @@ pub struct ArticleTemplate {
     pub audio_path: Option<String>,
     pub category: String,
     pub category_display: String,
-    pub related_articles: Vec<form_index::IndexCategoryArticleTemplate>,
+    pub related_articles: Vec<IndexCategoryArticleTemplate>,
     pub weather: String,
     pub name_day: String,
-    pub articles_most_read: Vec<form_index::IndexArticleMostRead>,
+    pub articles_most_read: Vec<ArticleMostRead>,
 }
 
 #[derive(Template)]
@@ -83,42 +82,9 @@ pub struct CategoryArticleTemplate {
     pub category_url: String,
 }
 
-pub async fn show_form(jar: CookieJar) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let user_o = database_user::get_user(cookie.value()).await;
-        match user_o {
-            None => {}
-            Some(user) => {
-                return Html(
-                    FormTemplate {
-                        author_name: user.author_name,
-                    }
-                    .render()
-                    .unwrap(),
-                )
-                .into_response();
-            }
-        }
-    }
-    Redirect::to("/login").into_response()
-}
-
 // to Try from for Multipart
 // need multipart because of the files
 pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
-    let created_by = if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        cookie.value().to_string()
-    } else {
-        return Redirect::to("/login").into_response();
-    };
-
-    // TODO article already exists
-    // TODO double click on create button
-
-    /*
-     * Read request data
-     */
-    let article_data_r = form_new_article_data::article_data(multipart).await;
 
     match article_data_r {
         Ok(article_data) => {
@@ -131,7 +97,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
 
             let mut most_read_data = Vec::new();
             for i in 1..=5 {
-                most_read_data.push(form_index::IndexArticleMostRead {
+                most_read_data.push(form_index::ArticleMostRead {
                     image_url_50: "images/placeholder_50.png".to_string(),
                     title: format!("Dummy Article {}", i),
                     text: "This is a dummy most read article.".to_string(),
@@ -225,18 +191,7 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
             let _ = database_article::create_article(article_db).await;
 
             if !std::path::Path::new(&category_month_year_filename).exists() {
-                let category_template = CategoryTemplate {
-                    title: format!(
-                        "{} - {} {}",
-                        article_data.category_display,
-                        month_name,
-                        now.year()
-                    ),
-                    date: formatted_date.clone(),
-                    weather: formatted_weather.clone(),
-                    name_day: formatted_name_day.clone(),
-                    articles: "".to_string(),
-                };
+
                 let mut base_html = category_template.render().unwrap();
                 base_html = base_html.replace("", &format!("\n{}", category_article));
                 fs::write(&category_month_year_filename, base_html).unwrap();

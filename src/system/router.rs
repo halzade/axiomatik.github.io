@@ -1,5 +1,4 @@
 use crate::db::database_user;
-use crate::form::{form_account, form_change_password, form_login, form_new_article, form_search};
 use crate::system::server::{ApplicationStatus, AUTH_COOKIE};
 use crate::system::{content, heartbeat};
 use axum::body::Body;
@@ -12,6 +11,8 @@ use http::{Request, StatusCode};
 use std::fs;
 use tower_http::services::{ServeDir, ServeFile};
 use tracing::{debug, error, info};
+use crate::application::{form_account, form_change_password, form_login, form_article_create};
+use crate::web::search::search;
 
 #[rustfmt::skip]
 pub async fn start_router(status: ApplicationStatus) -> Router {
@@ -21,8 +22,8 @@ pub async fn start_router(status: ApplicationStatus) -> Router {
      * Protected routes
      */
     let protected_routes = Router::new()
-        .route("/form", get(form_new_article::show_form))
-        .route("/create", post(form_new_article::create_article))
+        .route("/form", get(form_article_create::show_form))
+        .route("/create", post(form_article_create::create_article))
         .route("/change-password",
              get(form_change_password::show_change_password)
             .post(form_change_password::handle_change_password),
@@ -49,7 +50,7 @@ pub async fn start_router(status: ApplicationStatus) -> Router {
              get(form_login::show_login)
             .post(form_login::handle_login),
         )
-        .route("/search", get(form_search::handle_search))
+        .route("/search", get(search::handle_search))
         .route("/ping", get("ping success"))
         // serve static content
         .nest_service("/css", ServeDir::new("../../web/css"))

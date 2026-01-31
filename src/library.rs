@@ -1,4 +1,55 @@
 use chrono::{DateTime, Datelike, Local, Weekday};
+use std::str::FromStr;
+use thiserror::Error;
+use tracing::error;
+
+#[derive(Debug, Error)]
+pub enum ProcessorError {
+    #[error("Unknown category: {0}")]
+    UnknownCategory(String),
+}
+
+pub fn process_category(raw_category: &str) -> Result<String, ProcessorError> {
+    match raw_category {
+        "zahranici" => Ok("zahraničí".into()),
+        "republika" => Ok("republika".into()),
+        "finance" => Ok("finance".into()),
+        "technologie" => Ok("technologie".into()),
+        "veda" => Ok("věda".into()),
+        cat => {
+            error!("Unknown category: {}", cat);
+            Err(ProcessorError::UnknownCategory(cat.to_string()))
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CategoryEnum {
+    Index,
+    News,
+    Finance,
+    Republika,
+    Technologie,
+    Veda,
+    Zahranici,
+}
+
+impl FromStr for CategoryEnum {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "index" => Ok(CategoryEnum::Index),
+            "news" => Ok(CategoryEnum::News),
+            "finance" => Ok(CategoryEnum::Finance),
+            "republika" => Ok(CategoryEnum::Republika),
+            "technologie" => Ok(CategoryEnum::Technologie),
+            "veda" => Ok(CategoryEnum::Veda),
+            "zahranici" => Ok(CategoryEnum::Zahranici),
+            _ => Err(()),
+        }
+    }
+}
 
 pub const CZECH_MONTHS_CAPITAL: [&str; 12] = [
     "Leden",
@@ -138,13 +189,29 @@ mod tests {
 
     #[test]
     fn test_save_article_file_name() {
-        assert_eq!(save_article_file_name(&"Příliš žluťoučký kůň".to_string()), "prilis-zlutoucky-kun");
-        assert_eq!(save_article_file_name(&"Hello World!".to_string()), "hello-world-");
+        assert_eq!(
+            save_article_file_name(&"Příliš žluťoučký kůň".to_string()),
+            "prilis-zlutoucky-kun"
+        );
+        assert_eq!(
+            save_article_file_name(&"Hello World!".to_string()),
+            "hello-world-"
+        );
     }
 
     #[test]
     fn test_formatted_article_date() {
         let dt = Local.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap();
         assert_eq!(formatted_article_date(dt), "Pondělí 1. ledna 2024");
+    }
+
+    #[test]
+    fn test_process_category() {
+        assert_eq!(process_category("zahranici").unwrap(), "zahraničí");
+        assert_eq!(process_category("republika").unwrap(), "republika");
+        assert_eq!(process_category("finance").unwrap(), "finance");
+        assert_eq!(process_category("technologie").unwrap(), "technologie");
+        assert_eq!(process_category("veda").unwrap(), "věda");
+        assert!(process_category("invalid").is_err());
     }
 }

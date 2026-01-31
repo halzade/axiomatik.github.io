@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use askama::Template;
-    use axiomatik_web::form::form_index::{IndexArticleMostRead, IndexCategoryArticleTemplate};
+    use axiomatik_web::form::form_index::{ArticleMostRead, IndexCategoryArticleTemplate};
     use axiomatik_web::form::form_new_article::ArticleTemplate;
     use axiomatik_web::system::system_data;
 
@@ -33,7 +33,7 @@ mod tests {
         ];
 
         let most_read = vec![
-            IndexArticleMostRead {
+            ArticleMostRead {
                 image_url_50: "images/placeholder_50.png".to_string(),
                 title: "Most Read 1".to_string(),
                 text: "Text for most read 1".to_string(),

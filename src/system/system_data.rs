@@ -2,6 +2,7 @@ use crate::feature::{name_days, weather};
 use crate::library;
 use chrono::{DateTime, Duration, Local};
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::RwLock;
 use tracing::error;
 
@@ -13,7 +14,7 @@ pub struct ApplicationData {
 
 type ArticleLastUpdates = HashMap<String, DateTime<Local>>;
 
-pub struct ApplicationArticleData {
+pub struct ApplicationLastUpdatesData {
     // when was which HTML file last updated?
     updates: RwLock<ArticleLastUpdates>,
 }
@@ -47,12 +48,13 @@ impl ApplicationData {
     }
 }
 
-impl ApplicationArticleData {
+impl ApplicationLastUpdatesData {
     /*
      * returns true if article/html was last updated over 30 minutes ago.
      * maybe needs a weather update
      */
-    pub fn article_update(&self, article_name: &str) -> bool {
+    pub fn article_update(&self, article_name_buf: &PathBuf) -> bool {
+        let article_name = article_name_buf.to_str().unwrap();
         let now = Local::now();
 
         match self.updates.read() {
@@ -86,9 +88,10 @@ impl ApplicationArticleData {
     }
 
     /*
-     * html was updated from template with new data
+     * HTML was updated from template with new data
      */
-    pub fn article_update_now(&self, article_name: &str) {
+    pub fn article_update_now(&self, article_name_buf: &PathBuf) {
+        let article_name = article_name_buf.to_str().unwrap();
         match self.updates.write() {
             Ok(mut updates) => {
                 updates.insert(article_name.to_string(), Local::now());
@@ -108,10 +111,10 @@ pub fn init_trivial_data() -> ApplicationData {
     }
 }
 
-pub fn init_trivial_article_data() -> ApplicationArticleData {
+pub fn init_trivial_article_data() -> ApplicationLastUpdatesData {
     let mut alu = ArticleLastUpdates::new();
     alu.insert("index".to_string(), Local::now());
-    ApplicationArticleData {
+    ApplicationLastUpdatesData {
         updates: RwLock::new(alu),
     }
 }
@@ -119,6 +122,7 @@ pub fn init_trivial_article_data() -> ApplicationArticleData {
 #[cfg(test)]
 mod tests {
     use crate::system::system_data::{init_trivial_article_data, init_trivial_data};
+    use std::path::PathBuf;
 
     #[test]
     fn test_application_data() {
@@ -131,6 +135,7 @@ mod tests {
     #[test]
     fn test_application_article_data() {
         let aad = init_trivial_article_data();
-        assert!(!aad.article_update("index"));
+        let pb = PathBuf::from("index");
+        assert!(!aad.article_update(&pb));
     }
 }

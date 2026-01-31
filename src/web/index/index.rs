@@ -43,7 +43,7 @@ pub struct IndexData {
     pub second_article: IndexArticleTopData,
     pub third_article: IndexArticleTopData,
 
-    pub articles_most_read: Vec<IndexArticleMostRead>,
+    pub articles_most_read: Vec<ArticleMostRead>,
 
     pub z_republiky: IndexCategoryData,
     pub ze_zahranici: IndexCategoryData,
@@ -54,7 +54,7 @@ pub struct NewsData {
     pub weather: String,
     pub name_day: String,
 
-    pub articles_most_read: Vec<IndexArticleMostRead>,
+    pub articles_most_read: Vec<ArticleMostRead>,
 
     pub z_republiky: IndexCategoryData,
     pub ze_zahranici: IndexCategoryData,
@@ -70,7 +70,7 @@ pub struct NewsTemplate {
     pub weather: String,
     pub name_day: String,
 
-    pub articles_most_read: Vec<IndexArticleMostRead>,
+    pub articles_most_read: Vec<ArticleMostRead>,
 
     pub z_republiky: IndexCategoryTemplate,
     pub ze_zahranici: IndexCategoryTemplate,
@@ -86,7 +86,7 @@ pub struct IndexTemplate {
     pub weather: String,
     pub name_day: String,
 
-    pub articles_most_read: Vec<IndexArticleMostRead>,
+    pub articles_most_read: Vec<ArticleMostRead>,
     pub main_article: IndexArticleTopMainTemplate,
     pub second_article: IndexArticleTopTemplate,
     pub third_article: IndexArticleTopTemplate,
@@ -116,13 +116,7 @@ pub struct IndexCategoryArticleTemplate {
     pub category_url: String,
 }
 
-#[derive(Template, Clone)]
-#[template(path = "index_article_most_read.html")]
-pub struct IndexArticleMostRead {
-    pub image_url_50: String,
-    pub title: String,
-    pub text: String,
-}
+
 
 #[derive(Template)]
 #[template(path = "index_article_top_main_template.html")]
@@ -145,7 +139,12 @@ pub struct IndexArticleTopTemplate {
     pub short_text: String,
 }
 
-pub async fn render_new_index(data: Option<IndexData>) {
+pub async fn render_index() {
+    // TODO render index template
+    // TODO save new file
+}
+
+pub async fn compose_index_from_data(data: Option<IndexData>) {
     let index_data = if let Some(mut d) = data {
         if d.main_article.url.is_empty() {
             let articles = database_article::get_all_articles().await.unwrap_or_default();
@@ -260,7 +259,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
         }
         d
     } else {
-        let articles = database::get_all_articles().await.unwrap_or_default();
+        let articles = database_article::get_all_articles().await.unwrap_or_default();
         let mut main_articles: Vec<_> = articles.iter().filter(|a| a.is_main).collect();
         // Sort by date descending
         main_articles.sort_by(|a, b| {
@@ -324,7 +323,7 @@ pub async fn render_new_index(data: Option<IndexData>) {
         // TODO
         let mut most_read_data = Vec::new();
         for i in 1..=5 {
-            most_read_data.push(IndexArticleMostRead {
+            most_read_data.push(ArticleMostRead {
                 image_url_50: "images/placeholder_50.png".to_string(),
                 title: format!("Dummy Article {}", i),
                 text: "This is a dummy most read article.".to_string(),

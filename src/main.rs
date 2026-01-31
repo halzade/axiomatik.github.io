@@ -1,17 +1,31 @@
 use axiomatik_web::db::database;
 use axiomatik_web::logger;
 use axiomatik_web::system::commands::{create_user, delete_user};
+use axiomatik_web::system::configuration::ConfigurationError;
 use axiomatik_web::system::server;
 use axiomatik_web::system::{configuration, heartbeat};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
+use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::{error, info};
 
+#[derive(Debug, Error)]
+pub enum ApplicationError {
+    #[error("configuration error")]
+    Configuration(#[from] ConfigurationError),
+
+    #[error("io error")]
+    Io(#[from] std::io::Error),
+}
+
+// TODO any authorization framework
+// TODO any validators in Rust
+
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), ApplicationError> {
     /*
      * Command arguments if any
      */
@@ -44,7 +58,7 @@ async fn main() {
     logger::config();
 
     // the uploads directory
-    create_dir_all("u").unwrap();
+    create_dir_all("u")?;
 
     /*
      * Start regular actions
@@ -62,7 +76,7 @@ async fn main() {
      */
     let router = server.start_server().await;
 
-    let config = configuration::get_config().expect("Failed to read configuration.");
+    let config = configuration::get_config()?;
     let addr = format!("{}:{}", config.host, config.port);
     info!("listening on {}", addr);
 
@@ -81,4 +95,5 @@ async fn main() {
     };
 
     info!("end.");
+    Ok(())
 }
