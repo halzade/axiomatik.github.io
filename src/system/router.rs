@@ -18,13 +18,13 @@ use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::routing::{get, get_service, post};
 use axum::{middleware, Router};
+use axum_core::extract::Request;
 use axum_extra::extract::CookieJar;
-use chrono::{DateTime, Duration, Local};
-use http::{Request, StatusCode};
+use http::StatusCode;
+use std::convert::Infallible;
 use std::fs;
-use std::sync::Arc;
 use thiserror::Error;
-use tokio::sync::RwLock;
+use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
 use tracing::{debug, error, info};
 
@@ -36,7 +36,7 @@ pub enum RouterError {
     #[error("data update error: {0}")]
     RouterDataUpdate(#[from] DataUpdatesError),
 
-    #[error("data update syste: {0}")]
+    #[error("data update system: {0}")]
     RouterDataSystem(#[from] DataSystemError),
 
     #[error("form error: {0}")]
@@ -44,6 +44,9 @@ pub enum RouterError {
 
     #[error("index error: {0}")]
     RouterIndexError(#[from] IndexError),
+
+    #[error("response infallible: {0}")]
+    RouterInfallible(#[from] Infallible),
 }
 
 pub struct ApplicationRouter {
@@ -110,8 +113,8 @@ impl ApplicationRouter {
             // other files
             .nest_service("/favicon.ico", get_service(ServeFile::new("../../web/favicon.ico")))
             // HTML files
-            .route("/*.html", get(|ori_uri: OriginalUri| async move {
-                    self.serve_html_content(ori_uri).await
+            .route("/*.html", get(|ori_uri: OriginalUri, request| async move {
+                    self.serve_html_content(ori_uri, request).await
                 }
             ))
             // web app
@@ -127,60 +130,55 @@ impl ApplicationRouter {
     pub async fn serve_html_content(
         &self,
         ori_uri: OriginalUri,
-    ) -> Result<impl IntoResponse, RouterError> {
+        request: Request<Body>,
+    ) -> Result<Response, RouterError> {
         /*
          * What kind of content is it?
          */
-        let mut is_index = false;
-        let mut is_finance = false;
-        let mut is_republika = false;
-        let mut is_veda = false;
-        let mut is_technologie = false;
-        let mut is_zahranici = false;
-        let mut is_news = false;
-        let mut is_article = false;
-
-        match ori_uri {
+        match &ori_uri {
             OriginalUri(uri) => match uri.path() {
-                "/index.html" => is_index = true,
-                "/finance.html" => is_finance = true,
-                "/news.html" => is_news = true,
-                "/republika.html" => is_republika = true,
-                "/technologie.html" => is_technologie = true,
-                "/veda.html" => is_veda = true,
-                "/zahranici.html" => is_zahranici = true,
-                // forgot some or Article
-                _ => is_article = true,
+                "/index.html" => {
+                    if self.update_index_now() {
+                        index::render_index().await?;
+                    }
+                }
+                "/finance.html" => {}
+                "/news.html" => {}
+                "/republika.html" => {}
+                "/technologie.html" => {}
+                "/veda.html" => {}
+                "/zahranici.html" => {}
+                _ => {
+                    // forgot some or Article
+                }
             },
         }
+        let service = ServeFile::new(ori_uri.path().to_string());
+        let response = service.oneshot(request).await?;
 
-        if is_index {
-            let index_invalid = self.data_updates.index_valid()?;
-            if !index_invalid {
-                // index invalidated because of new Article published
-                // render
-                return index::render_index().await?;
-            }
+        Ok(response.into_response())
+    }
 
-            let my_last_update = self.data_updates.index_updated()?;
-            let weather_last_update = self.data_system.weather_last_update()?;
-
-            if my_last_update.clone() < weather_last_update {
-                // weather changed
-                return index::render_index().await?;
-            }
-
-            let date_last_update = self.data_system.date_last_update()?;
-
-            if my_last_update < date_last_update {
-                // date changed
-                // render
-                return index::render_index().await?;
-            }
+    fn update_index_now(&self) -> bool {
+        let index_invalid = self.data_updates.index_valid();
+        if !index_invalid {
+            // index invalidated because of a new Article published, render
+            return true;
         }
 
+        let my_last_update = self.data_updates.index_updated();
+        let weather_last_update = self.data_system.weather_last_update();
+        if my_last_update.clone() < weather_last_update {
+            // weather changed, render
+            return true;
+        }
 
-        Ok(ServeFile::new(ori_uri.path().to_string()))
+        let date_last_update = self.data_system.date_last_update();
+        if my_last_update < date_last_update {
+            // date changed, render
+            return true;
+        }
+        false
     }
 }
 

@@ -1,8 +1,7 @@
-use crate::system::data_updates::DataUpdatesError::Poisoned;
 use chrono::{DateTime, Duration, Local};
+use parking_lot::RwLock;
 use std::collections::HashMap;
 use std::ops::Index;
-use std::sync::RwLock;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -56,123 +55,71 @@ pub fn new() -> DataUpdates {
 }
 
 impl DataUpdates {
-    pub fn index_updated(&self) -> Result<DateTime<Local>, DataUpdatesError> {
-        match self.index.read() {
-            Ok(dt) => Ok(*dt),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn index_updated(&self) -> DateTime<Local> {
+        *self.index.read()
     }
 
-    pub fn news_updated(&self) -> Result<DateTime<Local>, DataUpdatesError> {
-        match self.news.read() {
-            Ok(dt) => Ok(*dt),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn news_updated(&self) -> DateTime<Local> {
+        *self.news.read()
     }
 
-    pub fn finance_updated(&self) -> Result<DateTime<Local>, DataUpdatesError> {
-        match self.finance.read() {
-            Ok(dt) => Ok(*dt),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn finance_updated(&self) -> DateTime<Local> {
+        *self.finance.read()
     }
-    pub fn republika_updated(&self) -> Result<DateTime<Local>, DataUpdatesError> {
-        match self.republika.read() {
-            Ok(dt) => Ok(*dt),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn republika_updated(&self) -> DateTime<Local> {
+        *self.republika.read()
     }
-    pub fn technologie_updated(&self) -> Result<DateTime<Local>, DataUpdatesError> {
-        match self.technologie.read() {
-            Ok(dt) => Ok(*dt),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn technologie_updated(&self) -> DateTime<Local> {
+        *self.technologie.read()
     }
-    pub fn veda_updated(&self) -> Result<DateTime<Local>, DataUpdatesError> {
-        match self.veda.read() {
-            Ok(dt) => Ok(*dt),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn veda_updated(&self) -> DateTime<Local> {
+        *self.veda.read()
     }
-    pub fn zahranici_updated(&self) -> Result<DateTime<Local>, DataUpdatesError> {
-        match self.zahranici.read() {
-            Ok(dt) => Ok(*dt),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn zahranici_updated(&self) -> DateTime<Local> {
+        *self.zahranici.read()
     }
-    pub fn article_updated(&self, file_name: &str) -> Result<DateTime<Local>, DataUpdatesError> {
-        match self.article_updates.read() {
-            Ok(hm) => {
-                match hm.get(file_name) {
-                    None => {
-                        // record not found
-                        match self.article_updates.write() {
-                            Ok(mut hm) => {
-                                hm.insert(file_name.into(), Local::now());
-                            }
-                            Err(_) => {}
-                        }
-                    }
-                    Some(dtl) => {
-                        // record found
-                        Ok(*dtl)
-                    }
-                }
+    pub fn article_updated(&self, file_name: &str) -> DateTime<Local> {
+        let ldt_o = self.articles_update.read().get(file_name).cloned();
+        match ldt_o {
+            None => {
+                self.articles_update.write().insert(file_name.to_string(), Local::now());
+                
+                
             }
-            Err(_) => Err(Poisoned),
+            Some(ldt) => {
+                ldt
+            }
         }
     }
 
     // TODO
     // article_valids: RwLock::new(HashMap::new()),
-
-    pub fn index_valid(&self) -> Result<bool, DataUpdatesError> {
-        match self.index_valid.read() {
-            Ok(b) => Ok(*b),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn index_valid(&self) -> bool {
+        *self.index_valid.read()
     }
 
-    pub fn news_valid(&self) -> Result<bool, DataUpdatesError> {
-        match self.news_valid.read() {
-            Ok(b) => Ok(*b),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn news_valid(&self) -> bool {
+        *self.news_valid.read()
     }
 
-    pub fn finance_valid(&self) -> Result<bool, DataUpdatesError> {
-        match self.finance_valid.read() {
-            Ok(b) => Ok(*b),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn finance_valid(&self) -> bool {
+        *self.finance_valid.read()
     }
 
-    pub fn republika_valid(&self) -> Result<bool, DataUpdatesError> {
-        match self.republika_valid.read() {
-            Ok(b) => Ok(*b),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn republika_valid(&self) -> bool {
+        *self.republika_valid.read()
     }
-    pub fn technologie_valid(&self) -> Result<bool, DataUpdatesError> {
-        match self.technologie_valid.read() {
-            Ok(b) => Ok(*b),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn technologie_valid(&self) -> bool {
+        *self.technologie_valid.read()
     }
-    pub fn veda_valid(&self) -> Result<bool, DataUpdatesError> {
-        match self.veda_valid.read() {
-            Ok(b) => Ok(*b),
-            Err(_) => Err(Poisoned),
-        }
+
+    pub fn veda_valid(&self) -> bool {
+        *self.veda_valid.read()
     }
-    pub fn zahranici_valid(&self) -> Result<bool, DataUpdatesError> {
-        match self.zahranici_valid.read() {
-            Ok(b) => Ok(*b),
-            Err(_) => Err(Poisoned),
-        }
+    pub fn zahranici_valid(&self) -> bool {
+        *self.zahranici_valid.read()
     }
 }
-
 
 fn yesterday() -> DateTime<Local> {
     // after restart, all content gets updated when requested
@@ -181,26 +128,5 @@ fn yesterday() -> DateTime<Local> {
 
 #[cfg(test)]
 mod tests {
-    use crate::system::data_updates::{time_check_date, time_check_hour};
-    use chrono::{Duration, Local};
-
-    #[test]
-    fn test_time_check_hour() {
-        assert_eq!(false, time_check_hour(Local::now() - Duration::minutes(1)));
-        assert_eq!(false, time_check_hour(Local::now() - Duration::minutes(30)));
-        assert_eq!(false, time_check_hour(Local::now() - Duration::minutes(59)));
-
-        assert_eq!(true, time_check_hour(Local::now() - Duration::hours(1)));
-        assert_eq!(true, time_check_hour(Local::now() - Duration::hours(2)));
-    }
-
-    #[test]
-    fn test_time_check_date() {
-        assert_eq!(false, time_check_date(Local::now() - Duration::hours(6)));
-        assert_eq!(false, time_check_date(Local::now() - Duration::hours(12)));
-        assert_eq!(false, time_check_date(Local::now() - Duration::hours(23)));
-
-        assert_eq!(true, time_check_date(Local::now() - Duration::days(1)));
-        assert_eq!(true, time_check_date(Local::now() - Duration::days(2)));
-    }
+    
 }
