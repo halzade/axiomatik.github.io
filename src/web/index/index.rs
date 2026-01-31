@@ -151,8 +151,8 @@ pub async fn compose_index_from_data(data: Option<IndexData>) {
             let mut main_articles: Vec<_> = articles.iter().filter(|a| a.is_main).collect();
             // Sort by date descending
             main_articles.sort_by(|a, b| {
-                let da = library::save_article_file_name(&a.title);
-                let db = library::save_article_file_name(&b.title);
+                let da = library::safe_article_file_name(&a.title);
+                let db = library::safe_article_file_name(&b.title);
                 b.date.cmp(&a.date).then(db.cmp(&da))
             });
 
@@ -202,8 +202,8 @@ pub async fn compose_index_from_data(data: Option<IndexData>) {
                 .filter(|a| a.category == "republika")
                 .collect();
             z_republiky_articles.sort_by(|a, b| {
-                let da = library::save_article_file_name(&a.title);
-                let db = library::save_article_file_name(&b.title);
+                let da = library::safe_article_file_name(&a.title);
+                let db = library::safe_article_file_name(&b.title);
                 b.date.cmp(&a.date).then(db.cmp(&da))
             });
             let z_republiky_articles = z_republiky_articles.into_iter().take(6);
@@ -213,8 +213,8 @@ pub async fn compose_index_from_data(data: Option<IndexData>) {
                 .filter(|a| a.category == "zahranici")
                 .collect();
             ze_zahranici_articles.sort_by(|a, b| {
-                let da = library::save_article_file_name(&a.title);
-                let db = library::save_article_file_name(&b.title);
+                let da = library::safe_article_file_name(&a.title);
+                let db = library::safe_article_file_name(&b.title);
                 b.date.cmp(&a.date).then(db.cmp(&da))
             });
             let ze_zahranici_articles = ze_zahranici_articles.into_iter().take(6);
@@ -263,8 +263,8 @@ pub async fn compose_index_from_data(data: Option<IndexData>) {
         let mut main_articles: Vec<_> = articles.iter().filter(|a| a.is_main).collect();
         // Sort by date descending
         main_articles.sort_by(|a, b| {
-            let da = library::save_article_file_name(&a.title);
-            let db = library::save_article_file_name(&b.title);
+            let da = library::safe_article_file_name(&a.title);
+            let db = library::safe_article_file_name(&b.title);
             b.date.cmp(&a.date).then(db.cmp(&da))
         });
 
@@ -277,8 +277,8 @@ pub async fn compose_index_from_data(data: Option<IndexData>) {
             .filter(|a| a.category == "republika")
             .collect();
         z_republiky_articles.sort_by(|a, b| {
-            let da = library::save_article_file_name(&a.title);
-            let db = library::save_article_file_name(&b.title);
+            let da = library::safe_article_file_name(&a.title);
+            let db = library::safe_article_file_name(&b.title);
             b.date.cmp(&a.date).then(db.cmp(&da))
         });
         let z_republiky_articles = z_republiky_articles.into_iter().take(6);
@@ -288,8 +288,8 @@ pub async fn compose_index_from_data(data: Option<IndexData>) {
             .filter(|a| a.category == "zahranici")
             .collect();
         ze_zahranici_articles.sort_by(|a, b| {
-            let da = library::save_article_file_name(&a.title);
-            let db = library::save_article_file_name(&b.title);
+            let da = library::safe_article_file_name(&a.title);
+            let db = library::safe_article_file_name(&b.title);
             b.date.cmp(&a.date).then(db.cmp(&da))
         });
         let ze_zahranici_articles = ze_zahranici_articles.into_iter().take(6);

@@ -11,11 +11,19 @@
  * Implementation
  */
 pub mod application {
-    pub mod form_account;
-    pub mod form_article_create;
-    pub mod form_article_data_parser;
-    pub mod form_change_password;
-    pub mod form_login;
+    pub mod article {
+        pub mod form_article_create;
+        pub mod form_article_data_parser;
+    }
+    pub mod account {
+        pub mod form_account;
+    }
+    pub mod change_password {
+        pub mod form_change_password;
+    }
+    pub mod login {
+        pub mod form_login;
+    }
 }
 pub mod db {
     pub mod database;
@@ -24,6 +32,21 @@ pub mod db {
     pub mod database_system;
     pub mod database_user;
 }
+pub mod data {
+    pub mod audio_extractor;
+    pub mod audio_processor;
+    pub mod audio_validator;
+    pub mod image_extractor;
+    pub mod image_processor;
+    pub mod image_validator;
+    pub mod processor;
+    pub mod text_extractor;
+    pub mod text_processor;
+    pub mod text_validator;
+    pub mod video_extractor;
+    pub mod video_processor;
+    pub mod video_validator;
+}
 pub mod feature {
     pub mod name_days;
     pub mod name_days_library;
@@ -31,13 +54,6 @@ pub mod feature {
 }
 pub mod library;
 pub mod logger;
-pub mod processor {
-    pub mod process_audio;
-    pub mod process_images;
-    pub mod process_text;
-    pub mod process_video;
-    pub mod processor;
-}
 pub mod system {
     pub mod commands;
     pub mod configuration;
@@ -46,11 +62,6 @@ pub mod system {
     pub mod router;
     pub mod server;
     pub mod system_data;
-}
-pub mod utils;
-pub mod validation {
-    pub mod validate_media;
-    pub mod validate_text;
 }
 pub mod test_framework {
     pub mod article_builder;

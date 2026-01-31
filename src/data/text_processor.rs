@@ -1,23 +1,9 @@
-use image::imageops::Lanczos3;
-use image::{DynamicImage, GenericImageView};
-use std::fs;
 use thiserror::Error;
-use tracing::error;
-use crate::validation::validate_media::{validate_data_is_audio, validate_data_is_video, MediaValidationError};
 
 #[derive(Debug, Error)]
-pub enum ProcessorError {
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
-
+pub enum TextProcessorError {
     #[error("Unknown category: {0}")]
     UnknownCategory(String),
-
-    #[error("Something wrong with the image data")]
-    InvalidImageFormatError,
-
-    #[error("Media validation error: {0}")]
-    MediaValidation(#[from] MediaValidationError),
 }
 
 // TODO
@@ -59,9 +45,6 @@ pub fn process_text(raw_text: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use image::{DynamicImage, RgbImage};
-    use std::fs;
-    use std::path::Path;
 
     #[test]
     fn test_process_short_text() {

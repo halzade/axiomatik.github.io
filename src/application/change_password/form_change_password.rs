@@ -1,3 +1,5 @@
+use crate::db::database_user;
+use crate::processor::text_validator::validate_input_simple;
 use crate::system::server::AUTH_COOKIE;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -8,17 +10,15 @@ use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::error;
-use crate::db::database_user;
-use crate::validation::validate_text::validate_input_simple;
 
 #[derive(Debug, Error)]
 pub enum ChangePasswordError {
     #[error("Password too short")]
     PasswordTooShort,
-    
+
     #[error("User not found")]
     UserNotFound,
-    
+
     #[error("Bcrypt error: {0}")]
     Bcrypt(#[from] bcrypt::BcryptError),
 }
@@ -29,7 +29,7 @@ pub struct ChangePasswordPayload {
 }
 
 #[derive(Template)]
-#[template(path = "../pages/change_password.html")]
+#[template(path = "change_password/change_password.html")]
 pub struct ChangePasswordTemplate {
     pub error: bool,
     pub username: String,

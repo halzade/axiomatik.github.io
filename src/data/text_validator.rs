@@ -1,4 +1,8 @@
 use thiserror::Error;
+use ValidationError::{
+    InvalidCharacter, InvalidLength, RequiredFieldMissing, SearchOnlyAlphanumeric,
+    SearchOnlyAlphanumericAndSpaces, SimpleInputIncorrectCharacter,
+};
 
 #[derive(Debug, Error)]
 pub enum ValidationError {
@@ -23,14 +27,14 @@ pub enum ValidationError {
 
 pub fn validate_required_string(input: &str) -> Result<(), ValidationError> {
     if input.len() > 200 {
-        return Err(ValidationError::InvalidLength);
+        return Err(InvalidLength);
     }
     for c in input.chars() {
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
             if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
-                return Err(ValidationError::InvalidCharacter);
+                return Err(InvalidCharacter);
             }
         }
         // Non-ASCII (UTF-8) is allowed
@@ -41,19 +45,19 @@ pub fn validate_required_string(input: &str) -> Result<(), ValidationError> {
         return Ok(());
     }
     // required but empty
-    Err(ValidationError::RequiredFieldMissing)
+    Err(RequiredFieldMissing)
 }
 
 pub fn validate_required_text(input: &str) -> Result<(), ValidationError> {
     if input.len() > 20_000 {
-        return Err(ValidationError::InvalidLength);
+        return Err(InvalidLength);
     }
     for c in input.chars() {
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
             if !(val >= 32 && val <= 126) {
-                return Err(ValidationError::InvalidCharacter);
+                return Err(InvalidCharacter);
             }
         }
         // Non-ASCII (UTF-8) is allowed
@@ -64,19 +68,19 @@ pub fn validate_required_text(input: &str) -> Result<(), ValidationError> {
         return Ok(());
     }
     // required but empty
-    Err(ValidationError::RequiredFieldMissing)
+    Err(RequiredFieldMissing)
 }
 
 pub fn validate_optional_string(input: &str) -> Result<(), ValidationError> {
     if input.len() > 200 {
-        return Err(ValidationError::InvalidLength);
+        return Err(InvalidLength);
     }
     for c in input.chars() {
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
             if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
-                return Err(ValidationError::InvalidCharacter);
+                return Err(InvalidCharacter);
             }
         }
         // Non-ASCII (UTF-8) is allowed
@@ -86,17 +90,17 @@ pub fn validate_optional_string(input: &str) -> Result<(), ValidationError> {
 
 pub fn validate_search_query(input: &str) -> Result<(), ValidationError> {
     if (input.len() < 3) || (input.len() > 40) {
-        return Err(ValidationError::InvalidLength);
+        return Err(InvalidLength);
     }
     for c in input.chars() {
         if c.is_ascii() {
             // No system characters (0-31, 127) and no special characters
             // Allow only alphanumeric and spaces for search
             if !c.is_ascii_alphanumeric() && c != ' ' {
-                return Err(ValidationError::SearchOnlyAlphanumericAndSpaces);
+                return Err(SearchOnlyAlphanumericAndSpaces);
             }
         } else if !c.is_alphanumeric() {
-            return Err(ValidationError::SearchOnlyAlphanumeric);
+            return Err(SearchOnlyAlphanumeric);
         }
     }
     Ok(())
@@ -104,12 +108,12 @@ pub fn validate_search_query(input: &str) -> Result<(), ValidationError> {
 
 pub fn validate_input_simple(input: &str) -> Result<(), ValidationError> {
     if input.len() > 200 {
-        return Err(ValidationError::InvalidLength);
+        return Err(InvalidLength);
     }
     for c in input.chars() {
         if !c.is_ascii_alphanumeric() {
             if c != '_' {
-                return Err(ValidationError::SimpleInputIncorrectCharacter);
+                return Err(SimpleInputIncorrectCharacter);
             }
         }
     }
@@ -129,7 +133,7 @@ mod tests {
         assert!(validate_required_string("").is_err());
         assert!(validate_required_string("Hello\nWorld\r\t").is_ok());
         assert!(validate_required_string("Příliš žluťoučký kůň úpěl ďábelské ódy").is_ok()); // Non-ASCII UTF-8 is allowed
-        assert!(validate_required_string("Hello \x01 World").is_err()); // ASCII control character
+        assert!(validate_required_string("Hello\x01World").is_err()); // ASCII control character
         assert!(validate_required_string("Hello \x7F World").is_err()); // ASCII DEL
     }
 

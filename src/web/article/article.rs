@@ -1,4 +1,4 @@
-use crate::processor::{process_audio, process_images, process_video};
+use crate::processor::{audio_processor, image_processor, video_processor};
 use crate::system::server::AUTH_COOKIE;
 use askama::Template;
 use axum::extract::Multipart;
@@ -10,29 +10,7 @@ use std::fs;
 use crate::db::{database_article, database_user};
 use crate::library;
 use crate::system::system_data;
-
-pub struct ArticleData {
-    pub is_main: bool,
-    pub is_exclusive: bool,
-    pub author: String,
-    pub title: String,
-    pub text_processed: String,
-    pub short_text_processed: String,
-
-    pub image_description: String,
-    pub image_data: Vec<u8>,
-    pub video_data: Vec<u8>,
-    pub audio_data: Vec<u8>,
-
-    pub category: String,
-    pub category_display: String,
-    pub related_articles: Vec<String>,
-
-    pub article_file_name: String,
-    pub image_path: String,
-    pub video_path: Option<String>,
-    pub audio_path: Option<String>,
-}
+use crate::web::base::ArticleMostRead;
 
 #[derive(Template)]
 #[template(path = "article_template.html")]
@@ -47,7 +25,7 @@ pub struct ArticleTemplate {
     pub audio_path: Option<String>,
     pub category: String,
     pub category_display: String,
-    pub related_articles: Vec<IndexCategoryArticleTemplate>,
+    pub related_articles: Vec<CategoryArticleTemplate>,
     pub weather: String,
     pub name_day: String,
     pub articles_most_read: Vec<ArticleMostRead>,
@@ -89,9 +67,6 @@ pub async fn create_article(jar: CookieJar, multipart: Multipart) -> Response {
     match article_data_r {
         Ok(article_data) => {
             let now = Local::now();
-            let formatted_date = system_data::date();
-            let formatted_weather = system_data::weather();
-            let formatted_name_day = system_data::name_day();
 
             let related_articles_vec = article_data.related_articles.clone();
 

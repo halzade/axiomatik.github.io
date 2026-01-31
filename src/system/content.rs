@@ -89,7 +89,7 @@ fn file_name_base(path_buf: &PathBuf) -> Result<impl Template, ContentError> {
     file_name_str.strip_suffix(".html")
         .ok_or(InvalidPath("No .html suffix"))?
         .to_string();
-}
+
 match file_name_base.as_str() {
         FINANCE_STR => Ok(form_category::FinanceTemplate),
         INDEX_STR => Ok(form_index::IndexTemplate),

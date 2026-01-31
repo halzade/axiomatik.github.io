@@ -1,3 +1,6 @@
+use crate::db::database_user;
+use crate::db::database_user::User;
+use crate::processor::text_validator::validate_input_simple;
 use crate::system::server::AUTH_COOKIE;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -9,9 +12,6 @@ use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::{info, warn};
-use crate::db::database_user;
-use crate::db::database_user::User;
-use crate::validation::validate_text::validate_input_simple;
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -28,7 +28,7 @@ pub struct LoginPayload {
 }
 
 #[derive(Template)]
-#[template(path = "../pages/login.html")]
+#[template(path = "login/login.html")]
 pub struct LoginTemplate {
     pub error: bool,
 }

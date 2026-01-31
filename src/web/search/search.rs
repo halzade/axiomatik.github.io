@@ -6,7 +6,7 @@ use serde::Deserialize;
 use tracing::info;
 use crate::db::database_article;
 use crate::system::system_data;
-use crate::validation::validate_text;
+use crate::validation::process_text_validator;
 
 #[derive(Deserialize)]
 pub struct SearchPayload {
@@ -48,7 +48,7 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
             .into_response();
     }
 
-    if let Err(e) = validate_text::validate_search_query(query) {
+    if let Err(e) = process_text_validator::validate_search_query(query) {
         return (StatusCode::BAD_REQUEST, e.to_string()).into_response();
     }
 

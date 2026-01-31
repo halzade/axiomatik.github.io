@@ -1,31 +1,59 @@
-use crate::form::form_new_article::ArticleData;
 use crate::library;
-use crate::processor::{process_category, process_short_text, process_text, ProcessorError};
-use crate::utils::{
-    extract_audio_data, extract_image_data, extract_required_string, extract_required_text,
-    extract_video_data, UtilsError,
-};
 use axum::extract::Multipart;
+use axum::extract::multipart::Field;
 use thiserror::Error;
 use tracing::{debug, error, info};
+use crate::data::audio_extractor::extract_audio_data;
+use crate::data::image_extractor::extract_image_data;
+use crate::data::text_extractor::{extract_required_string, extract_required_text};
+use crate::data::video_extractor::extract_video_data;
+use crate::library::ProcessorError;
+use crate::processor::text_extractor::extract_required_string;
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
-    #[error("Utils error: {0}")]
-    Utils(#[from] UtilsError),
 
     #[error("Processor error: {0}")]
     Processor(#[from] ProcessorError),
 
     #[error("Field {0} is required")]
     FieldRequired(String),
+
+    #[error("Unknown field {0}")]
+    UnknownField(String),
+}
+
+/**
+ * Parsed result of new Article /create
+ * Contains sanitized raw text and raw data
+ * Text will be processed only for the Template
+ */
+pub struct ArticleData {
+    pub is_main: bool,
+    pub is_exclusive: bool,
+
+    pub title: String,
+    pub text_processed: String,
+    pub short_text_processed: String,
+
+    pub image_description: String,
+    pub image_data: Vec<u8>,
+    pub video_data: Vec<u8>,
+    pub audio_data: Vec<u8>,
+
+    pub category: String,
+    pub related_articles: Vec<String>,
+
+    pub image_path: String,
+    pub video_path: Option<String>,
+    pub audio_path: Option<String>,
+    pub article_file_name: String,
 }
 
 pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, ArticleError> {
     // required
     let mut title_o = None;
     let mut base_file_name_o = None;
-    let mut author_o = None;
     let mut text_processed_o = None;
     let mut short_text_processed_o = None;
     let mut image_data_o = None;
@@ -51,45 +79,39 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
         match field_name.as_str() {
             "is_main" => {
                 // if present, then required
-                let extracted = extract_required_string(field, "is_main").await?;
+                let extracted = extract_required_string(field).await?;
                 is_main_o = Some(extracted == "on");
             }
 
             "is_exclusive" => {
                 // if present, then required
-                let extracted = extract_required_string(field, "is_exclusive").await?;
+                let extracted = extract_required_string(field).await?;
                 is_exclusive_o = Some(extracted == "on");
             }
 
             "title" => {
-                let extracted = extract_required_string(field, "title").await?;
+                let extracted = extract_required_string(field).await?;
                 title_o = Some(extracted.clone());
-                base_file_name_o = Some(library::save_article_file_name(&extracted));
-            }
-
-            "author" => {
-                // TODO use data from DB instead
-                let extracted = extract_required_string(field, "author").await?;
-                author_o = Some(extracted);
+                base_file_name_o = Some(library::safe_article_file_name(&extracted));
             }
 
             "text" => {
-                let raw_text = extract_required_text(field, "text").await?;
-                text_processed_o = Some(process_text(&raw_text));
+                let raw_text = extract_required_text(field).await?;
+                text_processed_o = Some(raw_text);
             }
 
             "short_text" => {
-                let raw_text = extract_required_text(field, "short_text").await?;
-                short_text_processed_o = Some(process_short_text(&raw_text));
+                let raw_text = extract_required_text(field).await?;
+                short_text_processed_o = Some(raw_text);
             }
 
             "category" => {
-                let extracted = extract_required_string(field, "category").await?;
+                let extracted = extract_required_string(field).await?;
                 category_o = Some(extracted);
             }
 
             "related_articles" => {
-                let extracted = extract_required_string(field, "related_articles").await?;
+                let extracted = extract_required_string(field).await?;
                 related_articles_o = Some(
                     extracted
                         .lines()
@@ -117,17 +139,17 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
             }
             _ => {
                 error!("Unknown field: {}", field_name);
+                Err(ArticleError::UnknownField(field_name))?
             }
         }
     }
 
-    let category_o =
-        category_o.ok_or_else(|| ArticleError::FieldRequired("Category".to_string()))?;
-    let category_display = process_category(&category_o)?;
-
     let base_file_name = base_file_name_o
         .ok_or_else(|| ArticleError::FieldRequired("Title/Base file name".to_string()))?;
 
+    /*
+     * process images
+     */
     let image_data_bu8;
     let image_extension;
     let image_path;
@@ -143,6 +165,9 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
         }
     }
 
+    /*
+     * process video
+     */
     let video_path;
     match &video_data_o {
         Some(video_data) => {
@@ -154,6 +179,9 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
         }
     }
 
+    /*
+     * process images
+     */
     let audio_path;
     match &audio_data_o {
         Some(audio_data) => {
@@ -168,7 +196,6 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
     Ok(ArticleData {
         is_main: is_main_o.unwrap_or(false),
         is_exclusive: is_exclusive_o.unwrap_or(false),
-        author: author_o.ok_or_else(|| ArticleError::FieldRequired("Author".to_string()))?,
         title: title_o.ok_or_else(|| ArticleError::FieldRequired("Title".to_string()))?,
         text_processed: text_processed_o
             .ok_or_else(|| ArticleError::FieldRequired("Text".to_string()))?,
@@ -187,8 +214,7 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
             .as_ref()
             .map(|(d, _)| d.clone())
             .unwrap_or_default(),
-        category: category_o,
-        category_display: category_display.to_string(),
+        category: category_o.unwrap(),
         related_articles: related_articles_o
             .ok_or_else(|| ArticleError::FieldRequired("Related articles".to_string()))?,
         image_path,
