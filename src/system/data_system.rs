@@ -1,12 +1,23 @@
 use crate::feature::{name_days, weather};
 use crate::library;
-use chrono::Local;
+use crate::system::data_system::DataSystemError::Poisoned;
+use chrono::{DateTime, Local};
 use std::sync::RwLock;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum DataSystemError {
+    #[error("index lock")]
+    Poisoned,
+}
 
 pub struct DataSystem {
     date: RwLock<String>,
     name_day: RwLock<String>,
     weather: RwLock<String>,
+    
+    date_last_update: RwLock<DateTime<Local>>,
+    weather_last_update: RwLock<DateTime<Local>>,
 }
 
 pub fn new() -> DataSystem {
@@ -15,11 +26,13 @@ pub fn new() -> DataSystem {
         date: RwLock::new(String::new()),
         name_day: RwLock::new(String::new()),
         weather: RwLock::new(String::new()),
+        
+        date_last_update: RwLock::new(Local::now()),
+        weather_last_update: RwLock::new(Local::now()),
     }
 }
 
 impl DataSystem {
-    
     pub fn date(&self) -> String {
         self.date.read().unwrap().clone()
     }
@@ -30,6 +43,20 @@ impl DataSystem {
 
     pub fn weather(&self) -> String {
         self.weather.read().unwrap().clone()
+    }
+
+    pub fn date_last_update(&self) -> Result<DateTime<Local>, DataSystemError> {
+        match self.date_last_update.read() {
+            Ok(ldt) => Ok(*ldt),
+            Err(_) => Err(Poisoned),
+        }
+    }
+    
+    pub fn weather_last_update(&self) -> Result<DateTime<Local>, DataSystemError> {
+        match self.weather_last_update.read() {
+            Ok(ldt) => Ok(*ldt),
+            Err(_) => Err(Poisoned),
+        }
     }
 
     pub fn update_date(&self) {

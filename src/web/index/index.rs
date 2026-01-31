@@ -1,7 +1,15 @@
 use askama::Template;
 use std::fs;
+use axum_core::response::IntoResponse;
+use thiserror::Error;
 use crate::db::database_article;
 use crate::library;
+use crate::web::base::ArticleMostRead;
+
+#[derive(Debug, Error)]
+pub enum IndexError {
+    #[error("create article error: {0}")]
+    RouterArticleError,
 
 pub struct IndexArticleTopMainData {
     pub url: String,
@@ -139,7 +147,7 @@ pub struct IndexArticleTopTemplate {
     pub short_text: String,
 }
 
-pub async fn render_index() {
+pub async fn render_index()  -> Result<impl IntoResponse, IndexError> {{
     // TODO render index template
     // TODO save new file
 }

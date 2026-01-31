@@ -1,24 +1,28 @@
 use crate::application::account::form_account;
 use crate::application::article::form_article_create;
+use crate::application::article::form_article_create::FormError;
 use crate::application::article::form_article_data_parser::ArticleCreateError;
 use crate::application::change_password::form_change_password;
 use crate::application::login::form_login;
 use crate::db::database_user;
-use crate::system::data_system::DataSystem;
-use crate::system::data_updates::DataUpdates;
+use crate::system::data_system::{DataSystem, DataSystemError};
+use crate::system::data_updates::{DataUpdates, DataUpdatesError};
 use crate::system::server::{ApplicationStatus, AUTH_COOKIE};
 use crate::system::{data_system, data_updates, heartbeat};
+use crate::web::index::index;
+use crate::web::index::index::IndexError;
 use crate::web::search::search;
 use axum::body::Body;
+use axum::extract::OriginalUri;
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::routing::{get, get_service, post};
 use axum::{middleware, Router};
 use axum_extra::extract::CookieJar;
+use chrono::{DateTime, Duration, Local};
 use http::{Request, StatusCode};
 use std::fs;
 use std::sync::Arc;
-use axum::extract::OriginalUri;
 use thiserror::Error;
 use tokio::sync::RwLock;
 use tower_http::services::{ServeDir, ServeFile};
@@ -28,6 +32,18 @@ use tracing::{debug, error, info};
 pub enum RouterError {
     #[error("create article error: {0}")]
     RouterArticleError(#[from] ArticleCreateError),
+
+    #[error("data update error: {0}")]
+    RouterDataUpdate(#[from] DataUpdatesError),
+
+    #[error("data update syste: {0}")]
+    RouterDataSystem(#[from] DataSystemError),
+
+    #[error("form error: {0}")]
+    RouterForm(#[from] FormError),
+
+    #[error("index error: {0}")]
+    RouterIndexError(#[from] IndexError),
 }
 
 pub struct ApplicationRouter {
@@ -41,8 +57,14 @@ pub fn new() -> ApplicationRouter {
         data_updates: data_updates::new(),
     }
 }
-impl ApplicationRouter {
 
+impl IntoResponse for RouterError {
+    fn into_response(self) -> Response {
+        (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+    }
+}
+
+impl ApplicationRouter {
     #[rustfmt::skip]
     pub async fn start_router(&self, status: ApplicationStatus) -> Router {
         info!("start_router()");
@@ -88,7 +110,10 @@ impl ApplicationRouter {
             // other files
             .nest_service("/favicon.ico", get_service(ServeFile::new("../../web/favicon.ico")))
             // HTML files
-            .route("/*.html", get(self.serve_html_content()))
+            .route("/*.html", get(|ori_uri: OriginalUri| async move {
+                    self.serve_html_content(ori_uri).await
+                }
+            ))
             // web app
             .merge(protected_routes)
             // everything already served, user requested for non-existent content
@@ -101,7 +126,7 @@ impl ApplicationRouter {
 
     pub async fn serve_html_content(
         &self,
-        ouri: OriginalUri,
+        ori_uri: OriginalUri,
     ) -> Result<impl IntoResponse, RouterError> {
         /*
          * What kind of content is it?
@@ -115,8 +140,8 @@ impl ApplicationRouter {
         let mut is_news = false;
         let mut is_article = false;
 
-        match ouri {
-            OriginalUri(url) => match url.path() {
+        match ori_uri {
+            OriginalUri(uri) => match uri.path() {
                 "/index.html" => is_index = true,
                 "/finance.html" => is_finance = true,
                 "/news.html" => is_news = true,
@@ -124,24 +149,41 @@ impl ApplicationRouter {
                 "/technologie.html" => is_technologie = true,
                 "/veda.html" => is_veda = true,
                 "/zahranici.html" => is_zahranici = true,
-                // it probably is an Article
+                // forgot some or Article
                 _ => is_article = true,
             },
         }
 
         if is_index {
-            let d = self.data_updates.index_lag()?;
+            let index_invalid = self.data_updates.index_valid()?;
+            if !index_invalid {
+                // index invalidated because of new Article published
+                // render
+                return index::render_index().await?;
+            }
 
+            let my_last_update = self.data_updates.index_updated()?;
+            let weather_last_update = self.data_system.weather_last_update()?;
+
+            if my_last_update.clone() < weather_last_update {
+                // weather changed
+                return index::render_index().await?;
+            }
+
+            let date_last_update = self.data_system.date_last_update()?;
+
+            if my_last_update < date_last_update {
+                // date changed
+                // render
+                return index::render_index().await?;
+            }
         }
 
 
-
-        /*
-         * serve the content
-         */
-
+        Ok(ServeFile::new(ori_uri.path().to_string()))
     }
 }
+
 async fn auth_middleware(jar: CookieJar, req: Request<Body>, next: Next) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
         let user_o = database_user::get_user(cookie.value()).await;
