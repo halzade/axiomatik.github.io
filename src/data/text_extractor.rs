@@ -1,61 +1,56 @@
-use axum::extract::multipart::Field;
-use crate::data::text_validator::validate_required_string;
+use crate::data::text_validator::{
+    validate_optional_string, validate_required_string, validate_required_text, TextValidationError,
+};
+use axum::extract::multipart::{Field, MultipartError};
+use thiserror::Error;
+use TextExtractorError::TextExtractionFailed;
 
+#[derive(Debug, Error)]
+pub enum TextExtractorError {
+    #[error(transparent)]
+    TextValidationError(#[from] TextValidationError),
 
+    #[error("file name error")]
+    TextNameError,
 
-pub async fn extract_required_string(field: Field<'_>) -> Result<String, UtilsError> {
+    #[error("file extension error")]
+    TextExtensionError,
+
+    #[error("data extension failed {0}")]
+    TextExtractionFailed(#[from] MultipartError),
+}
+
+pub async fn extract_required_string(field: Field<'_>) -> Result<String, TextExtractorError> {
     match field.text().await {
         Ok(text) => {
             validate_required_string(&text)?;
             Ok(text)
         }
-        _ => Err(UtilsError::ExtractionError(name.to_string())),
+        Err(e) => Err(TextExtractionFailed(e)),
     }
 }
 
-pub async fn extract_required_text(field: Field<'_>) -> Result<String, UtilsError> {
+pub async fn extract_required_text(field: Field<'_>) -> Result<String, TextExtractorError> {
     match field.text().await {
         Ok(text) => {
             validate_required_text(&text)?;
             Ok(text)
         }
-        _ => Err(UtilsError::ExtractionError(field.name.to_string())),
+        Err(e) => Err(TextExtractionFailed(e)),
     }
 }
 
-
 pub async fn extract_optional_string(
     field: Field<'_>,
-    name: &str,
-) -> Result<Option<String>, UtilsError> {
+) -> Result<Option<String>, TextExtractorError> {
     match field.text().await {
         Ok(text) => {
             validate_optional_string(&text)?;
             Ok(Some(text))
         }
-        _ => Err(UtilsError::ExtractionError(name.to_string())),
+        Err(e) => Err(TextExtractionFailed(e)),
     }
 }
-
 
 #[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_extract_required_string() {
-        assert!(validate_required_string("valid").is_ok());
-        assert!(validate_required_string("").is_err());
-    }
-
-    #[test]
-    fn test_extract_required_text() {
-        assert!(validate_required_text("valid text").is_ok());
-        assert!(validate_required_text("").is_err());
-    }
-
-    #[test]
-    fn test_extract_optional_string() {
-        assert!(validate_optional_string("valid").is_ok());
-        assert!(validate_optional_string("").is_ok());
-    }
-}
+mod tests {}

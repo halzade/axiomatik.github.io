@@ -3,11 +3,11 @@ mod tests {
     use askama::Template;
     use axiomatik_web::form::form_index::{ArticleMostRead, IndexCategoryArticleTemplate};
     use axiomatik_web::form::form_new_article::ArticleTemplate;
-    use axiomatik_web::system::system_data;
+    use axiomatik_web::system::data_updates;
 
     #[test]
     fn test_article_build_from_template() {
-        system_data::init_trivial_data();
+        data_updates::init_trivial_data();
         
         let related_articles = vec![
             IndexCategoryArticleTemplate {

@@ -1,11 +1,11 @@
 use thiserror::Error;
-use ValidationError::{
+use TextValidationError::{
     InvalidCharacter, InvalidLength, RequiredFieldMissing, SearchOnlyAlphanumeric,
     SearchOnlyAlphanumericAndSpaces, SimpleInputIncorrectCharacter,
 };
 
 #[derive(Debug, Error)]
-pub enum ValidationError {
+pub enum TextValidationError {
     #[error("Invalid character detected")]
     InvalidCharacter,
 
@@ -25,7 +25,7 @@ pub enum ValidationError {
     RequiredFieldMissing,
 }
 
-pub fn validate_required_string(input: &str) -> Result<(), ValidationError> {
+pub fn validate_required_string(input: &str) -> Result<(), TextValidationError> {
     if input.len() > 200 {
         return Err(InvalidLength);
     }
@@ -48,7 +48,7 @@ pub fn validate_required_string(input: &str) -> Result<(), ValidationError> {
     Err(RequiredFieldMissing)
 }
 
-pub fn validate_required_text(input: &str) -> Result<(), ValidationError> {
+pub fn validate_required_text(input: &str) -> Result<(), TextValidationError> {
     if input.len() > 20_000 {
         return Err(InvalidLength);
     }
@@ -71,7 +71,7 @@ pub fn validate_required_text(input: &str) -> Result<(), ValidationError> {
     Err(RequiredFieldMissing)
 }
 
-pub fn validate_optional_string(input: &str) -> Result<(), ValidationError> {
+pub fn validate_optional_string(input: &str) -> Result<(), TextValidationError> {
     if input.len() > 200 {
         return Err(InvalidLength);
     }
@@ -88,7 +88,7 @@ pub fn validate_optional_string(input: &str) -> Result<(), ValidationError> {
     Ok(())
 }
 
-pub fn validate_search_query(input: &str) -> Result<(), ValidationError> {
+pub fn validate_search_query(input: &str) -> Result<(), TextValidationError> {
     if (input.len() < 3) || (input.len() > 40) {
         return Err(InvalidLength);
     }
@@ -106,7 +106,7 @@ pub fn validate_search_query(input: &str) -> Result<(), ValidationError> {
     Ok(())
 }
 
-pub fn validate_input_simple(input: &str) -> Result<(), ValidationError> {
+pub fn validate_input_simple(input: &str) -> Result<(), TextValidationError> {
     if input.len() > 200 {
         return Err(InvalidLength);
     }

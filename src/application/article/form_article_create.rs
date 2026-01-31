@@ -1,15 +1,15 @@
 use crate::application::article::form_article_data_parser;
-use crate::application::article::form_article_data_parser::ArticleError;
+use crate::application::article::form_article_data_parser::ArticleCreateError;
 use crate::db::database_user;
-use crate::processor::processor;
 use crate::system::server::AUTH_COOKIE;
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum_extra::extract::CookieJar;
+use crate::web::article::article;
 
 #[derive(Template)]
-#[template(path = "article/form.html")]
+#[template(path = "application/article/form.html")]
 pub struct FormTemplate {
     pub author_name: String,
 }
@@ -36,17 +36,11 @@ pub async fn show_form(jar: CookieJar) -> Response {
 }
 
 pub async fn create_article(
-    jar: CookieJar,
     multipart: Multipart,
-) -> Result<Response, ArticleError> {
-    let created_by = if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        cookie.value().to_string()
-    } else {
-        return Ok(Redirect::to("/login").into_response());
-    };
-
+) -> Result<Response, ArticleCreateError> {
+    
     // TODO article already exists
-    // TODO double click on create button
+    // TODO doubled request on create button
 
     /*
      * Read request data
@@ -56,10 +50,7 @@ pub async fn create_article(
     /*
      * Create Article, process the data
      */
-    let article_url_r = processor::process_articles_create(article_data);
+    let article_url = article::process_article_create(article_data).await?;
 
-    match article_url_r {
-        Ok(article_url) => Ok(Redirect::to(&article_url).into_response()),
-        Err(e) => Err(e),
-    }
+    Ok(Redirect::to(&article_url).into_response())
 }

@@ -5,7 +5,7 @@ use http::StatusCode;
 use serde::Deserialize;
 use tracing::info;
 use crate::db::database_article;
-use crate::system::system_data;
+use crate::system::data_updates;
 use crate::validation::process_text_validator;
 
 #[derive(Deserialize)]
@@ -66,9 +66,9 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
 
             let template = SearchTemplate {
                 title: format!("Výsledky hledání: {}", query),
-                date: system_data::date(),
-                weather: system_data::weather(),
-                name_day: system_data::name_day(),
+                date: data_updates::date(),
+                weather: data_updates::weather(),
+                name_day: data_updates::name_day(),
                 articles: "".to_string(),
             };
 
@@ -125,9 +125,9 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
 
             let template = SearchTemplate {
                 title: format!("Výsledky hledání: {}", query),
-                date: system_data::date(),
-                weather: system_data::weather(),
-                name_day: system_data::name_day(),
+                date: data_updates::date(),
+                weather: data_updates::weather(),
+                name_day: data_updates::name_day(),
                 articles: articles_html,
             };
 

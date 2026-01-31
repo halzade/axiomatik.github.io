@@ -57,11 +57,11 @@ pub mod logger;
 pub mod system {
     pub mod commands;
     pub mod configuration;
-    pub mod content;
     pub mod heartbeat;
     pub mod router;
     pub mod server;
-    pub mod system_data;
+    pub mod data_updates;
+    pub mod data_system;
 }
 pub mod test_framework {
     pub mod article_builder;

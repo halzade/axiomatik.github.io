@@ -4,8 +4,6 @@ use thiserror::Error;
 use tracing::error;
 use VideoProcessorError::{UnexpectedMedia, UnknownType};
 
-const ALLOWED_EXTENSIONS_VIDEO: &[&str] = &["avi", "mp4"];
-
 #[derive(Debug, Error)]
 pub enum VideoProcessorError {
     #[error("Something wrong with the image data")]

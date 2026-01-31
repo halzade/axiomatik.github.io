@@ -1,17 +1,36 @@
-pub async fn extract_image_data(field: Field<'_>) -> Option<(Vec<u8>, String)> {
-    let file_name = field.file_name()?.to_string();
-    let bytes = field.bytes().await.ok()?.to_vec();
-    validate_and_extract(&file_name, bytes, ALLOWED_EXTENSIONS_IMAGE)
+use crate::data::image_extractor::ImageExtractorError::{
+    ImageExtensionError, ImageExtractionFailed, ImageNameError,
+};
+use axum::extract::multipart::{Field, MultipartError};
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum ImageExtractorError {
+    #[error("file name error")]
+    ImageNameError,
+
+    #[error("file extension error")]
+    ImageExtensionError,
+
+    #[error("data extension failed {0}")]
+    ImageExtractionFailed(#[from] MultipartError),
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_extract_image_data() {
-        let data = vec![1, 2, 3];
-        assert_eq!(validate_and_extract("t.jpg", data.clone()), Some((data.clone(), "jpg".to_string())));
-        assert_eq!(validate_and_extract("t.gif", data.clone()), None);
-    }
+pub async fn extract_image_data(
+    field: Field<'_>,
+) -> Result<(Vec<u8>, String), ImageExtractorError> {
+    // extension
+    let file_name = field.file_name().ok_or(ImageNameError)?.to_string();
+    let ext = file_name
+        .split('.')
+        .last()
+        .ok_or(ImageExtensionError)?
+        .to_lowercase();
+    // data
+    let bytes = field
+        .bytes()
+        .await
+        .map_err(|e| ImageExtractionFailed(e))?
+        .to_vec();
+    Ok((bytes, ext))
 }

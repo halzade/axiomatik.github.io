@@ -1,8 +1,10 @@
 use std::str::FromStr;
 use thiserror::Error;
 use tracing::error;
-use crate::application::article::form_article_data_parser::{ArticleData, ArticleError};
+use crate::application::article::form_article_data_parser::{ArticleData, ArticleCreateError};
+use crate::data::audio_validator::validate_audio_data;
 
+// TODO
 
 #[derive(Debug, Error)]
 pub enum ProcessorError {
@@ -51,10 +53,6 @@ impl FromStr for CategoryEnum {
             _ => Err(()),
         }
     }
-}
-
-pub fn process_articles_create(article_data: ArticleData) -> Result<String, ArticleError> {
-    
 }
 
 #[cfg(test)]

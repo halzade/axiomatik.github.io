@@ -1,17 +1,36 @@
-pub async fn extract_video_data(field: Field<'_>) -> Option<(Vec<u8>, String)> {
-    let file_name = field.file_name()?.to_string();
-    let bytes = field.bytes().await.ok()?.to_vec();
-    validate_and_extract(&file_name, bytes, ALLOWED_EXTENSIONS_VIDEO)
+use crate::data::video_extractor::VideoExtractorError::{
+    VideoExtensionError, VideoExtractionFailed, VideoNameError,
+};
+use axum::extract::multipart::{Field, MultipartError};
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum VideoExtractorError {
+    #[error("file name error")]
+    VideoNameError,
+
+    #[error("file extension error")]
+    VideoExtensionError,
+
+    #[error("data extension failed {0}")]
+    VideoExtractionFailed(#[from] MultipartError),
 }
 
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_extract_video_data() {
-        let allowed = ALLOWED_EXTENSIONS_VIDEO;
-        let data = vec![1, 2, 3];
-        assert_eq!(validate_and_extract("t.mp4", data.clone(), allowed), Some((data.clone(), "mp4".to_string())));
-        assert_eq!(validate_and_extract("t.jpg", data.clone(), allowed), None);
-    }
+pub async fn extract_video_data(
+    field: Field<'_>,
+) -> Result<(Vec<u8>, String), VideoExtractorError> {
+    // extension
+    let file_name = field.file_name().ok_or(VideoNameError)?.to_string();
+    let ext = file_name
+        .split('.')
+        .last()
+        .ok_or(VideoExtensionError)?
+        .to_lowercase();
+    // data
+    let bytes = field
+        .bytes()
+        .await
+        .map_err(|e| VideoExtractionFailed(e))?
+        .to_vec();
+    Ok((bytes, ext))
 }

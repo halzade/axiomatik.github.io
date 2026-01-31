@@ -28,7 +28,7 @@ pub struct LoginPayload {
 }
 
 #[derive(Template)]
-#[template(path = "login/login.html")]
+#[template(path = "application/login/login.html")]
 pub struct LoginTemplate {
     pub error: bool,
 }

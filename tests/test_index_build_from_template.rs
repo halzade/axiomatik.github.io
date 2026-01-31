@@ -6,11 +6,11 @@ mod tests {
         IndexArticleTopTemplate, IndexCategoryArticleData, IndexCategoryArticleTemplate,
         IndexCategoryData, IndexCategoryTemplate, IndexData, IndexTemplate,
     };
-    use axiomatik_web::system::system_data;
+    use axiomatik_web::system::data_updates;
 
     #[test]
     fn test_index_build_from_template() {
-        system_data::init_trivial_data();
+        data_updates::init_trivial_data();
         let index_data = IndexData {
             date: "Wednesday, January 21, 2026".to_string(),
             weather: "5°C | Prague".to_string(),

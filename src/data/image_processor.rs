@@ -1,18 +1,15 @@
+use crate::data::image_validator::{validate_image_data, validate_image_width, ImageValidationError};
 use image::imageops::Lanczos3;
 use image::{DynamicImage, GenericImageView, ImageError};
 use thiserror::Error;
-
 
 #[derive(Debug, Error)]
 pub enum ImageProcessorError {
     #[error("failed to save image because {0}")]
     ImageFormat(#[from] ImageError),
 
-    #[error("validation error: {0}")]
-    ImageValidation(String),
-
-    #[error("width {0} is less than 820")]
-    ImageWidthValidation(u32),
+    #[error("image validation failed {0}")]
+    ImageValidationError(#[from] ImageValidationError),
 }
 
 pub fn process_images(
@@ -20,8 +17,10 @@ pub fn process_images(
     new_name: &str,
     ext: &str,
 ) -> Result<(), ImageProcessorError> {
-
-       
+    let (width, height) = img.dimensions();
+    validate_image_width(width)?;
+    validate_image_data(img)?;
+    // validated
 
     // Save 820xheight
     let img_820 = img.resize(820, height, Lanczos3);

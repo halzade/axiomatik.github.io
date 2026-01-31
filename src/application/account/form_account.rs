@@ -23,7 +23,7 @@ pub struct UpdateAuthorNamePayload {
 }
 
 #[derive(Template)]
-#[template(path = "account/account.html")]
+#[template(path = "application/account/account.html")]
 pub struct AccountTemplate {
     pub username: String,
     pub author_name: String,

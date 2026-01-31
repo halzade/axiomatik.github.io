@@ -29,7 +29,7 @@ pub struct ChangePasswordPayload {
 }
 
 #[derive(Template)]
-#[template(path = "change_password/change_password.html")]
+#[template(path = "application/change_password/change_password.html")]
 pub struct ChangePasswordTemplate {
     pub error: bool,
     pub username: String,

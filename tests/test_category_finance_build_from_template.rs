@@ -3,11 +3,11 @@ mod tests {
     use askama::Template;
     use axiomatik_web::form::form_category::FinanceTemplate;
     use axiomatik_web::form::form_index::IndexCategoryArticleTemplate;
-    use axiomatik_web::system::system_data;
+    use axiomatik_web::system::data_updates;
 
     #[test]
     fn test_finance_build_from_template() {
-        system_data::init_trivial_data();
+        data_updates::init_trivial_data();
         let template = FinanceTemplate {
             date: "Wednesday, January 21, 2026".to_string(),
             weather: "5°C | Prague".to_string(),
