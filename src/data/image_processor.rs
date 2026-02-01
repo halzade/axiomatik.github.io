@@ -83,10 +83,10 @@ mod tests {
         assert!(Path::new(ef_440).exists());
         assert!(Path::new(ef_820).exists());
 
-        fs::remove_file(ef_50).unwrap();
-        fs::remove_file(ef_288).unwrap();
-        fs::remove_file(ef_440).unwrap();
-        fs::remove_file(ef_820).unwrap();
+        assert!(fs::remove_file(ef_50).is_ok());
+        assert!(fs::remove_file(ef_288).is_ok());
+        assert!(fs::remove_file(ef_440).is_ok());
+        assert!(fs::remove_file(ef_820).is_ok());
     }
 
     #[test]
@@ -104,6 +104,6 @@ mod tests {
 
         assert!(res.is_ok());
         assert!(Path::new("web/u/resize_me_image_50.png").exists());
-        fs::remove_file("web/u/resize_me_image_50.png").unwrap();
+        assert!(fs::remove_file("web/u/resize_me_image_50.png").is_ok());
     }
 }

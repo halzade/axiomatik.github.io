@@ -64,6 +64,6 @@ mod tests {
         assert!(saved_content.contains("<section class=\"main-article\">"));
 
         // Cleanup
-        let _ = std::fs::remove_file("test-index.html");
+        assert!(std::fs::remove_file("test-index.html").is_ok());
     }
 }

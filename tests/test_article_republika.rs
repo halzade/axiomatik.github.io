@@ -46,10 +46,10 @@ mod tests {
         assert!(updated_index.contains("Test Newest Republika"));
 
         // Cleanup
-        let _ = fs::remove_file("web/test-newest-republika.html");
-        let _ = fs::remove_file("web/u/test-newest-republika_image_820.jpg");
-        let _ = fs::remove_file("web/u/test-newest-republika_image_50.jpg");
-        let _ = fs::remove_file("web/u/test-newest-republika_image_288.jpg");
-        let _ = fs::remove_file("web/u/test-newest-republika_image_440.jpg");
+        assert!(fs::remove_file("web/test-newest-republika.html").is_ok());
+        assert!(fs::remove_file("web/u/test-newest-republika_image_820.jpg").is_ok());
+        assert!(fs::remove_file("web/u/test-newest-republika_image_50.jpg").is_ok());
+        assert!(fs::remove_file("web/u/test-newest-republika_image_288.jpg").is_ok());
+        assert!(fs::remove_file("web/u/test-newest-republika_image_440.jpg").is_ok());
     }
 }

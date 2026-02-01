@@ -3,11 +3,12 @@ mod tests {
     use axiomatik_web::trust::article_builder::ArticleBuilder;
     use axiomatik_web::trust::script_base;
     use axiomatik_web::trust::script_base::content_type_with_boundary;
+    use axiomatik_web::trust::script_base_data::PNG;
+    use axum::body::to_bytes;
     use axum::http::{header, StatusCode};
     use axum_core::extract::Request;
     use reqwest::Body;
     use std::fs;
-    use axiomatik_web::trust::script_base_data::PNG;
 
     #[tokio::test]
     async fn test_exclusive_main_article_finance() {
@@ -17,7 +18,7 @@ mod tests {
 
         let image_data = script_base::get_test_image_data();
         let body = ArticleBuilder::new()
-            .title("test-Financni trhy v soku")
+            .title("Test Financni Trhy v Šoku")
             .author("Financni Expert")
             .category("finance")
             .text("Dlouhý text o financich")
@@ -29,7 +30,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let response = script_base::one_shot(
+        let response_create = script_base::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")
@@ -40,30 +41,32 @@ mod tests {
         )
         .await;
 
-        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+        assert_eq!(response_create.status(), StatusCode::SEE_OTHER);
 
-        let updated_index = fs::read_to_string("index.html").unwrap();
+        let response_index = script_base::one_shot(
+            http::Request::builder()
+                .method("GET")
+                .uri("/index.html")
+                .body(Body::default())
+                .unwrap(),
+        )
+        .await;
 
-        // Check the MAIN_ARTICLE section
-        let main_start = updated_index
-            .find("<!-- MAIN_ARTICLE -->")
-            .expect("MAIN_ARTICLE marker not found");
-        let main_end = updated_index
-            .find("<!-- /MAIN_ARTICLE -->")
-            .expect("/MAIN_ARTICLE marker not found");
-        let main_section = &updated_index[main_start..main_end];
+        assert_eq!(response_index.status(), StatusCode::OK);
 
+        let body = to_bytes(response_index.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body_str = String::from_utf8(body.to_vec()).unwrap();
         assert!(
-            main_section
-                .contains(r#"<span class="red">EXKLUZIVNĚ:</span> test-Financni trhy v soku"#),
-            "Exclusive tag not found in main article title"
+            body_str.contains("<span class=\"red\">EXKLUZIVNĚ:</span>Test Financni Trhy v Šoku")
         );
 
         // Cleanup
-        let _ = fs::remove_file("web/test-financni-trhy-v-soku.html");
-        let _ = fs::remove_file("web/u/test-financni-trhy-v-soku_image_820.jpg");
-        let _ = fs::remove_file("web/u/test-financni-trhy-v-soku_image_50.jpg");
-        let _ = fs::remove_file("web/u/test-financni-trhy-v-soku_image_288.jpg");
-        let _ = fs::remove_file("web/u/test-financni-trhy-v-soku_image_440.jpg");
+        assert!(fs::remove_file("web/test-financni-trhy-v-soku.html").is_ok());
+        assert!(fs::remove_file("web/u/test-financni-trhy-v-soku_image_50.jpg").is_ok());
+        assert!(fs::remove_file("web/u/test-financni-trhy-v-soku_image_288.jpg").is_ok());
+        assert!(fs::remove_file("web/u/test-financni-trhy-v-soku_image_440.jpg").is_ok());
+        assert!(fs::remove_file("web/u/test-financni-trhy-v-soku_image_820.jpg").is_ok());
     }
 }

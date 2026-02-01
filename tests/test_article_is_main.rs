@@ -48,10 +48,10 @@ mod tests {
         assert!(updated_index.contains("u/")); // Image should be there
 
         // Cleanup
-        let _ = fs::remove_file("web/test-new-veda-main.html");
-        let _ = fs::remove_file("web/u/test-new-veda-main_image_820.jpg");
-        let _ = fs::remove_file("web/u/test-new-veda-main_image_50.jpg");
-        let _ = fs::remove_file("web/u/test-new-veda-main_image_288.jpg");
-        let _ = fs::remove_file("web/u/test-new-veda-main_image_440.jpg");
+        assert!(fs::remove_file("web/test-new-veda-main.html").is_ok());
+        assert!(fs::remove_file("web/u/test-new-veda-main_image_820.jpg").is_ok());
+        assert!(fs::remove_file("web/u/test-new-veda-main_image_50.jpg").is_ok());
+        assert!(fs::remove_file("web/u/test-new-veda-main_image_288.jpg").is_ok());
+        assert!(fs::remove_file("web/u/test-new-veda-main_image_440.jpg").is_ok());
     }
 }

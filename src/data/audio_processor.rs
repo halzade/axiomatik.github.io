@@ -34,6 +34,6 @@ mod tests {
         assert!(result.is_ok());
         assert!(Path::new("web/u/test_audio.mp3").exists());
 
-        fs::remove_file("web/u/test_audio.mp3").unwrap();
+        assert!(fs::remove_file("web/u/test_audio.mp3").is_ok());
     }
 }

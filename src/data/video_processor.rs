@@ -73,9 +73,9 @@ mod tests {
         let file_name = "test_video.mp4";
         let result = process_video(&mp4_data, file_name);
         assert!(result.is_ok());
-        let path = format!("web/u/{}", file_name);
-        assert!(Path::new(&path).exists());
-        fs::remove_file(path).unwrap();
+        let path = "web/u/test_video.mp4";
+        assert!(Path::new(path).exists());
+        assert!(fs::remove_file(path).is_ok());
     }
 
     #[test]
@@ -85,6 +85,6 @@ mod tests {
         assert!(result.is_ok());
         let path = "web/u/save_video.mp4";
         assert!(Path::new(path).exists());
-        fs::remove_file(path).unwrap();
+        assert!(fs::remove_file(path).is_ok());
     }
 }

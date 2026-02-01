@@ -42,11 +42,11 @@ async fn test_index_main_article() {
     assert!(!index_html.contains("<span class=\"red\">EXKLUZIVNĚ:</span>"));
 
     // Cleanup
-    let _ = fs::remove_file("web/regular-main-article.html");
-    let _ = fs::remove_file("web/u/regular-main-article_image_820.jpg");
-    let _ = fs::remove_file("web/u/regular-main-article_image_50.jpg");
-    let _ = fs::remove_file("web/u/regular-main-article_image_288.jpg");
-    let _ = fs::remove_file("web/u/regular-main-article_image_440.jpg");
+    assert!(fs::remove_file("web/regular-main-article.html").is_ok());
+    assert!(fs::remove_file("web/u/regular-main-article_image_820.jpg").is_ok());
+    assert!(fs::remove_file("web/u/regular-main-article_image_50.jpg").is_ok());
+    assert!(fs::remove_file("web/u/regular-main-article_image_288.jpg").is_ok());
+    assert!(fs::remove_file("web/u/regular-main-article_image_440.jpg").is_ok());
 }
 
 #[tokio::test]
@@ -85,11 +85,11 @@ async fn test_index_main_article_exclusive() {
     assert!(index_html.contains("<span class=\"red\">EXKLUZIVNĚ:</span>"));
 
     // Cleanup
-    let _ = fs::remove_file("web/exclusive-main-article.html");
-    let _ = fs::remove_file("web/u/exclusive-main-article_image_820.jpg");
-    let _ = fs::remove_file("web/u/exclusive-main-article_image_50.jpg");
-    let _ = fs::remove_file("web/u/exclusive-main-article_image_288.jpg");
-    let _ = fs::remove_file("web/u/exclusive-main-article_image_440.jpg");
+    assert!(fs::remove_file("web/exclusive-main-article.html").is_ok());
+    assert!(fs::remove_file("web/u/exclusive-main-article_image_820.jpg").is_ok());
+    assert!(fs::remove_file("web/u/exclusive-main-article_image_50.jpg").is_ok());
+    assert!(fs::remove_file("web/u/exclusive-main-article_image_288.jpg").is_ok());
+    assert!(fs::remove_file("web/u/exclusive-main-article_image_440.jpg").is_ok());
 }
 
 #[tokio::test]
@@ -127,11 +127,11 @@ async fn test_index_article_republika() {
     assert!(index_html.contains("New Republika Article"));
 
     // Cleanup
-    let _ = fs::remove_file("web/new-republika-article.html");
-    let _ = fs::remove_file("web/u/new-republika-article_image_820.jpg");
-    let _ = fs::remove_file("web/u/new-republika-article_image_50.jpg");
-    let _ = fs::remove_file("web/u/new-republika-article_image_288.jpg");
-    let _ = fs::remove_file("web/u/new-republika-article_image_440.jpg");
+    assert!(fs::remove_file("web/new-republika-article.html").is_ok());
+    assert!(fs::remove_file("web/u/new-republika-article_image_820.jpg").is_ok());
+    assert!(fs::remove_file("web/u/new-republika-article_image_50.jpg").is_ok());
+    assert!(fs::remove_file("web/u/new-republika-article_image_288.jpg").is_ok());
+    assert!(fs::remove_file("web/u/new-republika-article_image_440.jpg").is_ok());
 }
 
 #[tokio::test]
@@ -169,11 +169,11 @@ async fn test_index_article_zahranici() {
     assert!(index_html.contains("New Zahranici Article"));
 
     // Cleanup
-    let _ = fs::remove_file("web/new-zahranici-article.html");
-    let _ = fs::remove_file("web/u/new-zahranici-article_image_820.jpg");
-    let _ = fs::remove_file("web/u/new-zahranici-article_image_50.jpg");
-    let _ = fs::remove_file("web/u/new-zahranici-article_image_288.jpg");
-    let _ = fs::remove_file("web/u/new-zahranici-article_image_440.jpg");
+    assert!(fs::remove_file("web/new-zahranici-article.html").is_ok());
+    assert!(fs::remove_file("web/u/new-zahranici-article_image_820.jpg").is_ok());
+    assert!(fs::remove_file("web/u/new-zahranici-article_image_50.jpg").is_ok());
+    assert!(fs::remove_file("web/u/new-zahranici-article_image_288.jpg").is_ok());
+    assert!(fs::remove_file("web/u/new-zahranici-article_image_440.jpg").is_ok());
 }
 
 #[tokio::test]
@@ -220,9 +220,9 @@ async fn test_index_article_veda() {
     assert!(!zah_section.contains("New Veda Article"));
 
     // Cleanup
-    let _ = fs::remove_file("web/new-veda-article.html");
-    let _ = fs::remove_file("web/u/new-veda-article_image_820.jpg");
-    let _ = fs::remove_file("web/u/new-veda-article_image_50.jpg");
-    let _ = fs::remove_file("web/u/new-veda-article_image_288.jpg");
-    let _ = fs::remove_file("web/u/new-veda-article_image_440.jpg");
+    assert!(fs::remove_file("web/new-veda-article.html").is_ok());
+    assert!(fs::remove_file("web/u/new-veda-article_image_820.jpg").is_ok());
+    assert!(fs::remove_file("web/u/new-veda-article_image_50.jpg").is_ok());
+    assert!(fs::remove_file("web/u/new-veda-article_image_288.jpg").is_ok());
+    assert!(fs::remove_file("web/u/new-veda-article_image_440.jpg").is_ok());
 }

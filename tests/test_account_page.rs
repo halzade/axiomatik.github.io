@@ -135,10 +135,10 @@ mod tests {
         assert!(body.contains("Second Update"));
 
         // Cleanup files
-        remove_file("web/test-user-article.html").expect(CLEANUP);
-        remove_file("web/u/test-user-article_image_820.png").expect(CLEANUP);
-        remove_file("web/u/test-user-article_image_50.png").expect(CLEANUP);
-        remove_file("web/u/test-user-article_image_288.png").expect(CLEANUP);
-        remove_file("web/u/test-user-article_image_440.png").expect(CLEANUP);
+        assert!(remove_file("web/test-user-article.html").is_ok());
+        assert!(remove_file("web/u/test-user-article_image_820.png").is_ok());
+        assert!(remove_file("web/u/test-user-article_image_50.png").is_ok());
+        assert!(remove_file("web/u/test-user-article_image_288.png").is_ok());
+        assert!(remove_file("web/u/test-user-article_image_440.png").is_ok());
     }
 }

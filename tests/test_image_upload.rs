@@ -72,10 +72,10 @@ mod tests {
         }
 
         // Cleanup
-        let _ = fs::remove_file("web/text-testing-upload.html");
-        let _ = fs::remove_file(format!("u/{}_image_820.png", file_base));
-        let _ = fs::remove_file(format!("u/{}_image_50.png", file_base));
-        let _ = fs::remove_file(format!("u/{}_image_288.png", file_base));
-        let _ = fs::remove_file(format!("u/{}_image_440.png", file_base));
+        assert!(fs::remove_file("web/text-testing-upload.html").is_ok());
+        assert!(fs::remove_file("web/u/text-testing-upload_image_820.png").is_ok());
+        assert!(fs::remove_file("web/u/text-testing-upload_image_50.png").is_ok());
+        assert!(fs::remove_file("web/u/text-testing-upload_image_288.png").is_ok());
+        assert!(fs::remove_file("web/u/text-testing-upload_image_440.png").is_ok());
     }
 }

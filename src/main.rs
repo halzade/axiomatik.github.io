@@ -57,7 +57,7 @@ async fn main() -> Result<(), ApplicationError> {
     logger::config();
 
     // the uploads directory
-    create_dir_all("u")?;
+    create_dir_all("web/u")?;
 
     /*
      * Start regular actions
