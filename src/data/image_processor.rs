@@ -1,4 +1,4 @@
-use crate::data::image_validator::{validate_image_data, validate_image_width, ImageValidationError};
+use crate::data::image_validator::{validate_image_width, ImageValidationError};
 use image::imageops::Lanczos3;
 use image::{DynamicImage, GenericImageView, ImageError};
 use thiserror::Error;
@@ -21,8 +21,7 @@ pub fn process_images(
     let img = image::load_from_memory(img_data)?;
     let (width, height) = img.dimensions();
     validate_image_width(width)?;
-    validate_image_data(&img)?;
-    // validated
+    // validate_image_data(&img)?;
 
     // Save 820xheight
     let img_820 = img.resize(820, height, Lanczos3);

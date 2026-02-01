@@ -1,8 +1,7 @@
-use infer::MatcherType::Video;
+use crate::data::video_validator::{validate_video_data, VideoValidatorError};
 use std::fs;
 use thiserror::Error;
 use tracing::error;
-use VideoProcessorError::{UnexpectedMedia, UnknownType};
 
 #[derive(Debug, Error)]
 pub enum VideoProcessorError {
@@ -20,23 +19,16 @@ pub enum VideoProcessorError {
 
     #[error("Could not determine media type")]
     UnknownType,
+
+    #[error("Video validation error: {0}")]
+    ValidationError(#[from] VideoValidatorError),
 }
 
 pub fn process_video(video_data: &[u8], file_name: &str) -> Result<(), VideoProcessorError> {
-    validate_data_is_video(video_data)?;
-
     // TODO X validate there's no audio
+    validate_video_data(video_data)?;
 
     save_video(video_data, file_name)
-}
-
-/// Validate that provided data is **video (may include audio)**
-fn validate_data_is_video(data: &[u8]) -> Result<(), VideoProcessorError> {
-    let kind = infer::get(data).ok_or(UnknownType)?;
-    match kind.matcher_type() {
-        Video => Ok(()),
-        _ => Err(UnexpectedMedia(kind.mime_type().to_string())),
-    }
 }
 
 fn save_video(video_data: &[u8], file_name: &str) -> Result<(), VideoProcessorError> {
@@ -51,18 +43,6 @@ mod tests {
     use super::*;
     use std::fs;
     use std::path::Path;
-
-    #[test]
-    fn test_validate_video() {
-        // MP4 Magic number (ftyp)
-        let mp4_data = [
-            0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d,
-        ];
-        assert!(validate_data_is_video(&mp4_data).is_ok());
-
-        let mp3_data = [0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-        assert!(validate_data_is_video(&mp3_data).is_err());
-    }
 
     #[test]
     fn test_process_video() {

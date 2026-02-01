@@ -9,8 +9,8 @@ pub struct ArticleViews {
 /*
  * Increase and read article view count
  */
-pub fn increase_article_views(article_base: String) -> u64 {
-    // TODO do, only save, don't show
-
-    0
-}
+// TODO
+// pub fn increase_article_views(article_base: String) -> u64 {
+//
+//
+// }

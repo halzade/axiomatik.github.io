@@ -1,5 +1,4 @@
 use crate::data::image_validator::ImageValidationError::{ImageWidthValidation, UnknownDataType};
-use image::DynamicImage;
 use thiserror::Error;
 
 const ALLOWED_EXTENSIONS_IMAGE: &[&str] = &["jpg", "jpeg", "png"];
@@ -19,10 +18,10 @@ pub enum ImageValidationError {
     UndefinedDataType,
 }
 
-pub fn validate_image_data(img: &DynamicImage) -> Result<(), ImageValidationError> {
-    // TODO X
-    Ok(())
-}
+// pub fn validate_image_data(img: &DynamicImage) -> Result<(), ImageValidationError> {
+//     // TODO X
+//     Ok(())
+// }
 
 pub fn validate_image_width(width: u32) -> Result<(), ImageValidationError> {
     if width < 820 {
@@ -31,7 +30,7 @@ pub fn validate_image_width(width: u32) -> Result<(), ImageValidationError> {
     Ok(())
 }
 
-fn validate_image_extension(ext: &str) -> Result<(), ImageValidationError> {
+pub fn validate_image_extension(ext: &str) -> Result<(), ImageValidationError> {
     if !ALLOWED_EXTENSIONS_IMAGE.contains(&ext) {
         return Err(UnknownDataType(ext.into()));
     }

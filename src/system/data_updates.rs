@@ -1,4 +1,3 @@
-use chrono::{DateTime, Duration, Local};
 use parking_lot::RwLock;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -145,10 +144,7 @@ impl DataUpdates {
     }
 }
 
-fn yesterday() -> DateTime<Local> {
-    // after restart, all content gets updated when requested
-    Local::now() - Duration::hours(25)
-}
-
 #[cfg(test)]
-mod tests {}
+mod tests {
+    // TODO X
+}

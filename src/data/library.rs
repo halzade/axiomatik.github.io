@@ -1,5 +1,4 @@
 use chrono::{DateTime, Datelike, Local, Weekday};
-use std::str::FromStr;
 
 pub const CZECH_MONTHS_CAPITAL: [&str; 12] = [
     "Leden",
