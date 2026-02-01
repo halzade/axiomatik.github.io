@@ -3,7 +3,7 @@ mod tests {
     use axiomatik_web::trust::article_builder::ArticleBuilder;
     use axiomatik_web::trust::script_base;
     use axiomatik_web::trust::script_base::content_type_with_boundary;
-    use axiomatik_web::test_framework::script_base_data::{FAKE_AUDIO_DATA_MP3, MP3, PNG};
+    use axiomatik_web::trust::script_base_data::{FAKE_AUDIO_DATA_MP3, MP3, PNG};
     use axum::http::{header, Request, StatusCode};
     use header::{CONTENT_TYPE, COOKIE};
     use reqwest::Body;

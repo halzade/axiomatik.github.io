@@ -3,11 +3,9 @@ mod tests {
     use askama::Template;
     use axiomatik_web::application::veda::veda::VedaTemplate;
     use axiomatik_web::db::database_article_data::ShortArticleData;
-    use axiomatik_web::system::data_updates;
 
     #[test]
     fn test_veda_build_from_template() {
-        data_updates::init_trivial_data();
         let articles_left = vec![ShortArticleData {
             url: "veda-1.html".to_string(),
             title: "Veda Article 1".to_string(),

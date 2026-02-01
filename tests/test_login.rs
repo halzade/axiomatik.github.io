@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::trust::script_base;
-    use axiomatik_web::test_framework::script_base::serialize;
+    use axiomatik_web::trust::script_base::serialize;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use axiomatik_web::system::commands;

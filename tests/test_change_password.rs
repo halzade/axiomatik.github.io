@@ -4,7 +4,7 @@ mod tests {
     use axiomatik_web::db::database_user::Role::Editor;
     use axiomatik_web::db::database_user::User;
     use axiomatik_web::trust::script_base;
-    use axiomatik_web::test_framework::script_base::serialize;
+    use axiomatik_web::trust::script_base::serialize;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
 

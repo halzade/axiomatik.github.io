@@ -2,10 +2,10 @@
 mod tests {
     use axiomatik_web::trust::article_builder::ArticleBuilder;
     use axiomatik_web::trust::script_base;
-    use axiomatik_web::test_framework::script_base::{
+    use axiomatik_web::trust::script_base::{
         content_type_with_boundary, response_to_body, serialize, CLEANUP,
     };
-    use axiomatik_web::test_framework::script_base_data::PNG;
+    use axiomatik_web::trust::script_base_data::PNG;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs::remove_file;

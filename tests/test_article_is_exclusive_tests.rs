@@ -7,7 +7,7 @@ mod tests {
     use axum_core::extract::Request;
     use reqwest::Body;
     use std::fs;
-    use axiomatik_web::test_framework::script_base_data::PNG;
+    use axiomatik_web::trust::script_base_data::PNG;
 
     #[tokio::test]
     async fn test_exclusive_main_article_finance() {
