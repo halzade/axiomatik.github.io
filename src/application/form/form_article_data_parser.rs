@@ -38,6 +38,7 @@ pub enum ArticleCreateError {
  * Contains sanitized raw text and raw data
  * Text will be processed only for the Template
  */
+#[derive(Debug, Clone)]
 pub struct ArticleData {
     pub is_main: bool,
     pub is_exclusive: bool,

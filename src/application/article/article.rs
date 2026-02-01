@@ -1,15 +1,14 @@
 use crate::application::form::form_article_create::FormArticleCreateError;
 use crate::application::form::form_article_data_parser;
-use crate::application::form::form_article_data_parser::ArticleData;
 use crate::data::audio_validator::AudioValidatorError;
+use crate::data::{audio_processor, image_processor, video_processor};
 use crate::db::database_article;
 use crate::db::database_article_data::{Article, MiniArticleData, ShortArticleData};
+use crate::system::data_system::DataSystem;
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{IntoResponse, Redirect};
 use thiserror::Error;
-use crate::data::{audio_processor, image_processor, video_processor};
-use crate::system::data_system::DataSystem;
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
@@ -68,7 +67,7 @@ pub async fn create_article(
 
     // TODO X Validate text fields, use validator framework instead
 
-    let article_db = Article::try_from(article_data)?;
+    let article_db = Article::try_from(article_data.clone())?;
 
     // process data image
     image_processor::process_images(
@@ -81,10 +80,9 @@ pub async fn create_article(
     if article_data.has_audio {
         // validate_audio_data(&article_data.audio_data)?;
         // validate_audio_extension(&article_data.audio_ext)?;
-        video_processor::process_video(
-            &article_data.video_data,
-            &article_data.base_file_name,
-            &article_data.video_ext,
+        audio_processor::process_valid_audio(
+            &article_data.audio_data,
+            &format!("{}.{}", article_data.base_file_name, article_data.audio_ext),
         )?;
     }
 
@@ -93,19 +91,19 @@ pub async fn create_article(
         // validate_video_data(&article.video_data)?;
         // validate_video_extension(&article.video_data_ext)?;
 
-        audio_processor::process_valid_audio(
-            &article_data.audio_data,
-            &article_data.base_file_name,
-            &article_data.audio_ext,
+        video_processor::process_video(
+            &article_data.video_data,
+            &format!("{}.{}", article_data.base_file_name, article_data.video_ext),
         )?;
     }
-
 
     /*
      * Store Article data
      */
 
-    database_article::create_article(article_db).await?;
+    database_article::create_article(article_db)
+        .await
+        .ok_or(FormArticleCreateError::ArticleCreationInDbFailed)?;
 
     // invalidate index
     // invalidate category page
@@ -124,7 +122,5 @@ pub async fn create_article(
  * But wont render any html
  */
 pub async fn render_article(data_system: &DataSystem) -> Result<String, ArticleError> {
-
-
-
+    Ok("".to_string())
 }

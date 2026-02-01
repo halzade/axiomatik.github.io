@@ -13,13 +13,15 @@ pub enum ImageProcessorError {
 }
 
 pub fn process_images(
-    img_data: Vec<u8>,
+    img_data: &[u8],
     file_base: &str,
     ext: &str,
 ) -> Result<(), ImageProcessorError> {
+
+    let img = image::load_from_memory(img_data)?;
     let (width, height) = img.dimensions();
     validate_image_width(width)?;
-    validate_image_data(img)?;
+    validate_image_data(&img)?;
     // validated
 
     // Save 820xheight
@@ -68,8 +70,12 @@ mod tests {
 
     #[test]
     fn test_process_images() {
-        let img = ImageRgb8(RgbImage::new(1000, 1000));
-        let result = process_images(&img, "test_image.png", "png");
+        let mut img_data = Vec::new();
+        ImageRgb8(RgbImage::new(1000, 1000))
+            .write_to(&mut std::io::Cursor::new(&mut img_data), image::ImageFormat::Png)
+            .unwrap();
+
+        let result = process_images(&img_data, "test_image", "png");
 
         assert!(result.is_ok());
         let ef_50 = "web/u/test_image_image_50.png";
@@ -90,8 +96,11 @@ mod tests {
 
     #[test]
     fn test_process_images_too_small() {
-        let img = ImageRgb8(RgbImage::new(100, 100));
-        let result = process_images(&img, "test_small.png", "png");
+        let mut img_data = Vec::new();
+        ImageRgb8(RgbImage::new(100, 100))
+            .write_to(&mut std::io::Cursor::new(&mut img_data), image::ImageFormat::Png)
+            .unwrap();
+        let result = process_images(&img_data, "test_small", "png");
 
         assert!(result.is_err());
     }
