@@ -1,9 +1,8 @@
-use crate::application::article::article::ShortArticleData;
 use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::DatabaseError;
 use crate::db::database_article;
-use crate::db::database_article::MiniArticleData;
+use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 use crate::system::data_system::DataSystem;
 use askama::Template;
 use thiserror::Error;
@@ -36,12 +35,12 @@ pub struct NewsTemplate {
 }
 
 pub async fn render_news(data_system: &DataSystem) -> Result<(), NewsError> {
-    let articles_most_read = database_article::articles_most_read(3).await?;
-    let z_republiky = database_article::articles_by_category("republika", 3).await?;
-    let ze_zahranici = database_article::articles_by_category("zahranici", 3).await?;
-    let technologie = database_article::articles_by_category("technologie", 3).await?;
-    let veda = database_article::articles_by_category("veda", 3).await?;
-    let finance = database_article::articles_by_category("finance", 3).await?;
+    let articles_most_read = database_article::articles_most_read(10).await?;
+    let z_republiky = database_article::articles_by_category("republika", 10).await?;
+    let ze_zahranici = database_article::articles_by_category("zahranici", 10).await?;
+    let technologie = database_article::articles_by_category("technologie", 10).await?;
+    let veda = database_article::articles_by_category("veda", 10).await?;
+    let finance = database_article::articles_by_category("finance", 10).await?;
 
     let news = NewsTemplate {
         date: data_system.date(),

@@ -1,6 +1,6 @@
 use crate::data::text_validator::validate_search_query;
 use crate::db::database_article;
-use crate::db::database_article::ShortArticleData;
+use crate::db::database_article_data::ShortArticleData;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Response};
 use axum::Form;

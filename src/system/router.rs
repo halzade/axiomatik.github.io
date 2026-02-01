@@ -9,7 +9,7 @@ use crate::application::index::index::IndexError;
 use crate::application::login::form_login;
 use crate::application::republika::republika;
 use crate::application::republika::republika::RepublikaError;
-use crate::application::search::search_template;
+use crate::application::search::search;
 use crate::db::database_user::{self, Backend};
 use crate::system::data_system::{DataSystem, DataSystemError};
 use crate::system::data_updates::{DataUpdates, DataUpdatesError};
@@ -122,7 +122,7 @@ impl ApplicationRouter {
                 get(form_login::show_login)
                .post(form_login::handle_login),
             )
-            .route("/search", get(search_template::handle_search))
+            .route("/search", get(search::handle_search))
             .route("/ping", get("ping success"))
             // serve static content
             .nest_service("/css", ServeDir::new("../../web/css"))

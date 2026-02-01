@@ -40,7 +40,7 @@ pub mod application {
         pub mod republika;
     }
     pub mod search {
-        pub mod search_template;
+        pub mod search;
     }
     pub mod technologie {
         pub mod technologie;

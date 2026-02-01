@@ -8,9 +8,10 @@ use tower::ServiceExt;
 use crate::db::database_user::Role::Editor;
 use crate::db::database_user::User;
 use crate::db::{database, database_user};
-use crate::system::{server, data_updates, logger};
+use crate::system::{data_updates, logger, server};
 use tokio::sync::OnceCell;
 use tracing::log::debug;
+use crate::trust::article_builder::BOUNDARY;
 
 pub const CLEANUP: &str = "Failed to cleanup";
 
@@ -22,11 +23,12 @@ pub async fn setup_before_tests_once() {
     debug!("only once");
 
     logger::config();
-    data_updates::init_trivial_data();
+    data_updates::new();
     database::initialize_in_memory_database().await;
 
-    let r = server::start_router().await;
-    let _ = APP_ROUTER.set(r);
+    let s = server::new();
+    let r = s.start_server().await;
+    let _ = APP_ROUTER.set(r.unwrap());
 
     debug!("test initialized");
 }
