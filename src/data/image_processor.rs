@@ -13,8 +13,8 @@ pub enum ImageProcessorError {
 }
 
 pub fn process_images(
-    img: &DynamicImage,
-    new_name: &str,
+    img_data: Vec<u8>,
+    file_base: &str,
     ext: &str,
 ) -> Result<(), ImageProcessorError> {
     let (width, height) = img.dimensions();
@@ -24,7 +24,6 @@ pub fn process_images(
 
     // Save 820xheight
     let img_820 = img.resize(820, height, Lanczos3);
-    let file_base = new_name.split('.').next().unwrap();
     let name_820 = format!("{}_image_820.{}", file_base, ext);
 
     // Save 820xany

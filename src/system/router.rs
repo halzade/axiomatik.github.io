@@ -1,14 +1,15 @@
 use crate::application::account::form_account;
 use crate::application::article::article;
+use crate::application::article::article::ArticleError;
 use crate::application::change_password::form_change_password;
+use crate::application::finance::finance;
+use crate::application::finance::finance::FinanceError;
 use crate::application::form::form_article_create;
 use crate::application::form::form_article_create::FormArticleCreateError;
 use crate::application::form::form_article_data_parser::ArticleCreateError;
 use crate::application::index::index;
 use crate::application::index::index::IndexError;
 use crate::application::login::form_login;
-use crate::application::finance::finance;
-use crate::application::finance::finance::FinanceError;
 use crate::application::news::news;
 use crate::application::news::news::NewsError;
 use crate::application::republika::republika;
@@ -48,7 +49,7 @@ pub type AuthSession = axum_login::AuthSession<Backend>;
 #[derive(Debug, Error)]
 pub enum RouterError {
     #[error("create article error: {0}")]
-    RouterArticleError(#[from] ArticleCreateError),
+    RouterArticleCreateError(#[from] ArticleCreateError),
 
     #[error("data update error: {0}")]
     RouterDataUpdate(#[from] DataUpdatesError),
@@ -73,6 +74,9 @@ pub enum RouterError {
 
     #[error("zahranici error: {0}")]
     RouterZahraniciError(#[from] ZahraniciError),
+
+    #[error("article error: {0}")]
+    RouterArticleError(#[from] ArticleError),
 
     #[error("data update system: {0}")]
     RouterDataSystem(#[from] DataSystemError),
@@ -230,7 +234,10 @@ impl ApplicationRouter {
                 }
                 _ => {
                     // forgot some or Article
-                    // TODO article.rs
+                    if !self.data_updates.article_valid(uri.path().trim()) {
+                        article::render_article(&self.data_system).await?;
+                        self.data_updates.article_validate(uri.path().trim());
+                    }
                 }
             },
         };

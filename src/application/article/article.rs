@@ -2,11 +2,14 @@ use crate::application::form::form_article_create::FormArticleCreateError;
 use crate::application::form::form_article_data_parser;
 use crate::application::form::form_article_data_parser::ArticleData;
 use crate::data::audio_validator::AudioValidatorError;
-use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
+use crate::db::database_article;
+use crate::db::database_article_data::{Article, MiniArticleData, ShortArticleData};
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{IntoResponse, Redirect};
 use thiserror::Error;
+use crate::data::{audio_processor, image_processor, video_processor};
+use crate::system::data_system::DataSystem;
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
@@ -22,7 +25,6 @@ pub enum ArticleError {
     #[error("detected empty audio file")]
     DetectedEmptyAudioFile,
 }
-
 
 #[derive(Template)]
 #[template(path = "application/article/article_template.html")]
@@ -52,19 +54,68 @@ pub async fn create_article(
     auth_session: crate::system::router::AuthSession,
     multipart: Multipart,
 ) -> Result<impl IntoResponse, FormArticleCreateError> {
-    // TODO X article already exists
     // TODO X doubled request on create button
 
     /*
      * Read request data
      */
     let article_data = form_article_data_parser::article_data(auth_session, multipart).await?;
+    let article_url = format!("{}.html", article_data.base_file_name.clone());
 
     /*
-     * Create Article, process the data
+     * Validate
      */
-    let article_url = process_article_create(article_data).await?;
 
+    // TODO X Validate text fields, use validator framework instead
+
+    let article_db = Article::try_from(article_data)?;
+
+    // process data image
+    image_processor::process_images(
+        &article_data.image_data,
+        &article_data.base_file_name,
+        &article_data.image_ext,
+    )?;
+
+    // process data audio
+    if article_data.has_audio {
+        // validate_audio_data(&article_data.audio_data)?;
+        // validate_audio_extension(&article_data.audio_ext)?;
+        video_processor::process_video(
+            &article_data.video_data,
+            &article_data.base_file_name,
+            &article_data.video_ext,
+        )?;
+    }
+
+    // process data video
+    if article_data.has_video {
+        // validate_video_data(&article.video_data)?;
+        // validate_video_extension(&article.video_data_ext)?;
+
+        audio_processor::process_valid_audio(
+            &article_data.audio_data,
+            &article_data.base_file_name,
+            &article_data.audio_ext,
+        )?;
+    }
+
+
+    /*
+     * Store Article data
+     */
+
+    database_article::create_article(article_db).await?;
+
+    // invalidate index
+    // invalidate category page
+    // invalidate related articles
+
+    /*
+     * don't render anything
+     * redirect to new article
+     * trigger to render from template will be handled by router
+     */
     Ok(Redirect::to(&article_url).into_response())
 }
 
@@ -72,55 +123,8 @@ pub async fn create_article(
  * This will process and store the new Article and related files
  * But wont render any html
  */
-pub async fn process_article_create(article_data: ArticleData) -> Result<String, ArticleError> {
-    /*
-     * Validate
-     */
-
-    // TODO X Validate text fields, use validator framework instead
-
-    if article_data.has_audio {
-        // validate_audio_data(&article_data.audio_data)?;
-        // validate_audio_extension(&article_data.audio_ext)?;
-    }
-    if article_data.has_video {
-        // validate_video_data(&article.video_data)?;
-        // validate_video_extension(&article.video_data_ext)?;
-    }
+pub async fn render_article(data_system: &DataSystem) -> Result<String, ArticleError> {
 
 
-    // process data image
-    // process data audio
-    // process data video
 
-
-    /*
-     * Prepare Article data
-     */
-
-    // let article_db = database_article::create_article();
-
-
-    /*
-     * Index page
-     */
-    // invalidate index
-
-    /*
-     * category page
-     */
-    // invalidate category page
-
-    /*
-     * category page
-     */
-    // invalidate related articles
-
-
-    // let html_content = article_template.render().unwrap();
-
-    // Store in DB
-
-    // don't render anything
-    Ok("".to_string())
 }

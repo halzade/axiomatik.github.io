@@ -129,6 +129,20 @@ impl DataUpdates {
             Some(valid) => valid,
         }
     }
+
+    pub fn article_validate(&self, file_name: &str) {
+        self.article_set(file_name, true);
+    }
+
+    pub fn article_invalidate(&self, file_name: &str) {
+        self.article_set(file_name, false);
+    }
+
+    fn article_set(&self, file_name: &str, value: bool) {
+        self.articles_valid
+            .write()
+            .insert(file_name.to_string(), value);
+    }
 }
 
 fn yesterday() -> DateTime<Local> {

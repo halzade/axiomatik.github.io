@@ -13,8 +13,6 @@ use tokio::sync::OnceCell;
 use tracing::log::debug;
 use crate::trust::article_builder::BOUNDARY;
 
-pub const CLEANUP: &str = "Failed to cleanup";
-
 // TODO X, proper test framework
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";
