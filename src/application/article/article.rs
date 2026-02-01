@@ -2,13 +2,12 @@ use crate::application::form::form_article_create::FormArticleCreateError;
 use crate::application::form::form_article_data_parser;
 use crate::application::form::form_article_data_parser::ArticleData;
 use crate::data::audio_validator::{validate_audio_data, validate_audio_extension, AudioValidatorError};
-use crate::db::database_article::MiniArticleData;
-pub(crate) use crate::db::database_article::ShortArticleData;
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{IntoResponse, Redirect};
 use thiserror::Error;
 use crate::db::database_article;
+use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
@@ -45,15 +44,17 @@ pub struct ArticleTemplate {
     pub articles_most_read: Vec<MiniArticleData>,
 }
 
-pub async fn create_article(multipart: Multipart) -> Result<impl IntoResponse, FormArticleCreateError> {
-
+pub async fn create_article(
+    auth_session: crate::system::router::AuthSession,
+    multipart: Multipart,
+) -> Result<impl IntoResponse, FormArticleCreateError> {
     // TODO X article already exists
     // TODO X doubled request on create button
 
     /*
      * Read request data
      */
-    let article_data = form_article_data_parser::article_data(multipart).await?;
+    let article_data = form_article_data_parser::article_data(auth_session, multipart).await?;
 
     /*
      * Create Article, process the data
@@ -93,9 +94,7 @@ pub async fn process_article_create(article_data: ArticleData) -> Result<String,
      * Prepare Article data
      */
 
-    ArticleA
-
-    let article_db = database_article::create_article();
+    // let article_db = database_article::create_article();
 
 
     /*
@@ -114,9 +113,10 @@ pub async fn process_article_create(article_data: ArticleData) -> Result<String,
     // invalidate related articles
 
 
-    let html_content = article_template.render().unwrap();
+    // let html_content = article_template.render().unwrap();
 
     // Store in DB
 
     // don't render anything
+    Ok("".to_string())
 }

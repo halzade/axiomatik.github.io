@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use axum::Extension;
+use crate::db::database_user::User;
 use crate::data::audio_extractor::{extract_audio_data, AudioExtractorError};
 use crate::data::image_extractor::{extract_image_data, ImageExtractorError};
 use crate::data::library;
@@ -72,9 +73,10 @@ pub struct ArticleData {
  * return raw Article data
  */
 pub async fn article_data(
-    Extension(user): Extension<Arc<User>>,
+    auth_session: crate::system::router::AuthSession,
     mut multipart: Multipart
 ) -> Result<ArticleData, ArticleCreateError> {
+    let user = auth_session.user.unwrap().username.clone();
     // required
     let mut author = String::new();
     let mut title = String::new();

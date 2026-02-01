@@ -1,17 +1,14 @@
 use crate::data::text_validator::validate_input_simple;
-use crate::db::database_user;
-use crate::db::database_user::User;
-use crate::system::server::AUTH_COOKIE;
+use crate::db::database_user::{self, User};
+use crate::system::router::AuthSession;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
-use axum_extra::extract::cookie::{Cookie, SameSite};
-use axum_extra::extract::CookieJar;
 use bcrypt::verify;
 use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -37,35 +34,39 @@ pub async fn show_login() -> impl IntoResponse {
     Html(LoginTemplate { error: false }.render().unwrap())
 }
 
-pub async fn handle_login(jar: CookieJar, Form(payload): Form<LoginPayload>) -> Response {
+pub async fn handle_login(
+    mut auth_session: AuthSession,
+    Form(payload): Form<LoginPayload>,
+) -> Response {
     if validate_input_simple(&payload.username).is_err()
         || validate_input_simple(&payload.password).is_err()
     {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    let username = &payload.username;
-    match authenticate_user(username, &payload.password).await {
-        Ok(user) => {
+
+    let credentials = (payload.username.clone(), payload.password.clone());
+
+    match auth_session.authenticate(credentials).await {
+        Ok(Some(user)) => {
+            if let Err(_) = auth_session.login(&user).await {
+                return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+            }
+
             info!(user = %user.username, "User logged in successfully");
 
-            let jar = jar.add(
-                Cookie::build((AUTH_COOKIE, user.username))
-                    .http_only(true)
-                    .secure(true)
-                    .same_site(SameSite::Strict)
-                    .path("/")
-                    .build(),
-            );
-
             if user.needs_password_change {
-                (jar, Redirect::to("/change-password")).into_response()
+                Redirect::to("/change-password").into_response()
             } else {
-                (jar, Redirect::to("/account")).into_response()
+                Redirect::to("/account").into_response()
             }
         }
-        Err(e) => {
-            warn!(username = %payload.username, error = %e, "Failed login attempt");
-            (jar, Html(LoginTemplate { error: true }.render().unwrap())).into_response()
+        Ok(None) => {
+            warn!(username = %payload.username, "Failed login attempt: Invalid credentials");
+            Html(LoginTemplate { error: true }.render().unwrap()).into_response()
+        }
+        Err(_) => {
+            error!(username = %payload.username, "Authentication error");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
 }

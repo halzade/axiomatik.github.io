@@ -1,5 +1,6 @@
 use crate::application::article::article::ArticleError;
 // use crate::application::form::form_article_data_parser::ArticleCreateError;
+use crate::application::form::form_article_data_parser::ArticleCreateError;
 use crate::db::database_user;
 use crate::system::server::AUTH_COOKIE;
 use askama::Template;
@@ -11,6 +12,9 @@ use thiserror::Error;
 pub enum FormArticleCreateError {
     #[error("article error")]
     FormArticleError(#[from] ArticleError),
+
+    #[error("article create error")]
+    FormArticleCreateError(#[from] ArticleCreateError),
 }
 
 #[derive(Template)]

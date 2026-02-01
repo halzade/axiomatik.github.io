@@ -10,10 +10,10 @@ use crate::application::login::form_login;
 use crate::application::republika::republika;
 use crate::application::republika::republika::RepublikaError;
 use crate::application::search::search_template;
-use crate::db::database_user;
+use crate::db::database_user::{self, Backend};
 use crate::system::data_system::{DataSystem, DataSystemError};
 use crate::system::data_updates::{DataUpdates, DataUpdatesError};
-use crate::system::server::{ApplicationStatus, AUTH_COOKIE};
+use crate::system::server::ApplicationStatus;
 use crate::system::{data_system, data_updates, heartbeat};
 use axum::body::Body;
 use axum::extract::OriginalUri;
@@ -22,15 +22,17 @@ use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::routing::{get, get_service, post};
 use axum::{middleware, Router};
 use axum_core::extract::Request;
-use axum_extra::extract::CookieJar;
+use axum_login::AuthManagerLayerBuilder;
 use http::StatusCode;
 use std::convert::Infallible;
 use std::fs;
-use std::sync::Arc;
 use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
-use tracing::{debug, error, info};
+use tower_sessions::{MemoryStore, SessionManagerLayer};
+use tracing::{debug, info};
+
+pub type AuthSession = axum_login::AuthSession<Backend>;
 
 #[derive(Debug, Error)]
 pub enum RouterError {
@@ -61,10 +63,12 @@ pub struct ApplicationRouter {
     data_updates: DataUpdates,
 }
 
-pub fn new() -> ApplicationRouter {
-    ApplicationRouter {
-        data_system: data_system::new(),
-        data_updates: data_updates::new(),
+impl ApplicationRouter {
+    pub fn new() -> ApplicationRouter {
+        ApplicationRouter {
+            data_system: data_system::new(),
+            data_updates: data_updates::new(),
+        }
     }
 }
 
@@ -80,13 +84,18 @@ impl IntoResponse for FormArticleCreateError {
     }
 }
 
-#[derive(Clone)]
-struct User { name: String }
-
 impl ApplicationRouter {
     #[rustfmt::skip]
     pub async fn start_router(&self, status: ApplicationStatus) -> Router {
         info!("start_router()");
+
+        let session_store = MemoryStore::default();
+        let session_layer = SessionManagerLayer::new(session_store)
+            .with_secure(false)
+            .with_same_site(tower_sessions::cookie::SameSite::Lax);
+
+        let backend = Backend;
+        let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
         /*
          * Protected routes
@@ -95,30 +104,23 @@ impl ApplicationRouter {
             .route("/form", get(form_article_create::show_article_create_form))
             .route("/create", post(article::create_article))
             .route("/change-password",
-                 get(form_change_password::show_change_password)
-                .post(form_change_password::handle_change_password),
+                get(form_change_password::show_change_password)
+               .post(form_change_password::handle_change_password),
             )
             .route("/account", get(form_account::show_account))
             .route("/account/update-author", post(form_account::handle_update_author_name))
             .route("/heartbeat", get(heartbeat::handle_heartbeat))
-            /*
-             * Authorization
-             */
-            .route_layer(
-                middleware::from_fn_with_state(
-                status.clone(),
-                auth_middleware,
-            ))
-            .with_state(status.clone());
+            .layer(middleware::from_fn(auth_middleware));
 
         /*
          * Unprotected routes
          */
+
         let ret = Router::new()
             .route("/", get(|| async { Redirect::to("/index.html") }))
             .route("/login",
-                 get(form_login::show_login)
-                .post(form_login::handle_login),
+                get(form_login::show_login)
+               .post(form_login::handle_login),
             )
             .route("/search", get(search_template::handle_search))
             .route("/ping", get("ping success"))
@@ -137,6 +139,7 @@ impl ApplicationRouter {
             .merge(protected_routes)
             // everything already served, user requested for non-existent content
             .fallback(show_404)
+            .layer(auth_layer)
             .with_state(status);
 
         info!("start_router() finished");
@@ -197,30 +200,22 @@ impl ApplicationRouter {
     }
 }
 
-async fn auth_middleware(jar: CookieJar, mut req: Request<Body>, next: Next) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-
-        match user_o {
-            None => {
-                // error -> login
-                error!("User not found");
-                return Redirect::to("/login").into_response();
+async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Next) -> Response {
+    let req = req;
+    match auth_session.user {
+        Some(user) => {
+            // change password
+            if user.needs_password_change && req.uri().path() != "/change-password" {
+                return Redirect::to("/change-password").into_response();
             }
-            Some(user) => {
-                // change password
-                if user.needs_password_change && req.uri().path() != "/change-password" {
-                    return Redirect::to("/change-password").into_response();
-                }
 
-                // continue
-                if user.role == database_user::Role::Editor {
-                    req.extensions_mut().insert(Arc::new(User{
-                        name: user.username,
-                        author: user.author_name,
-                    }));
-                    return next.run(req).await;
-                }
+            // continue
+            if user.role == database_user::Role::Editor {
+                return next.run(req).await;
             }
+        }
+        None => {
+            return Redirect::to("/login").into_response();
         }
     }
 

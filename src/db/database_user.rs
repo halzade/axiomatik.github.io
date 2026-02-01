@@ -1,3 +1,4 @@
+use axum_login::AuthUser;
 use serde::{Deserialize, Serialize};
 use tracing::error;
 
@@ -10,9 +11,51 @@ pub struct User {
     pub role: Role,
 }
 
+impl AuthUser for User {
+    type Id = String;
+
+    fn id(&self) -> Self::Id {
+        self.username.clone()
+    }
+
+    fn session_auth_hash(&self) -> &[u8] {
+        self.password_hash.as_bytes()
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum Role {
     Editor,
+}
+
+#[derive(Clone, Debug)]
+pub struct Backend;
+
+impl axum_login::AuthnBackend for Backend {
+    type User = User;
+    type Credentials = (String, String);
+    type Error = std::convert::Infallible;
+
+    async fn authenticate(
+        &self,
+        creds: Self::Credentials,
+    ) -> Result<Option<Self::User>, Self::Error> {
+        let (username, password) = creds;
+        let user_o = get_user(&username).await;
+        if let Some(user) = user_o {
+            if bcrypt::verify(password, &user.password_hash).unwrap_or(false) {
+                return Ok(Some(user));
+            }
+        }
+        Ok(None)
+    }
+
+    async fn get_user(
+        &self,
+        user_id: &axum_login::UserId<Self>,
+    ) -> Result<Option<Self::User>, Self::Error> {
+        Ok(get_user_by_id(user_id).await)
+    }
 }
 
 pub async fn update_user(user: User) -> Option<User> {
@@ -47,11 +90,13 @@ pub async fn delete_user(user_name: &str) {
     }
 }
 
-// TODO X implement get_current_user(), use axum authentication
-// this takes username from cookie, bad
-pub async fn get_user(user_name: &str) -> Option<User> {
+pub async fn get_user_by_id(user_id: &str) -> Option<User> {
     if let Ok(sdb) = crate::db::database::db_read().await {
-        return sdb.select(("user", user_name)).await.unwrap();
+        return sdb.select(("user", user_id)).await.unwrap();
     }
     None
+}
+
+pub async fn get_user(user_name: &str) -> Option<User> {
+    get_user_by_id(user_name).await
 }

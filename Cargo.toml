@@ -7,7 +7,8 @@ edition = "2024"
 axum = { version = "0.8.8", features = ["multipart"] }
 askama = { version = "0.15" }
 axum-core = "0.5.6"
-axum-login = "0.18.0"
+axum-login = { version = "0.18.0" }
+tower-sessions = { version = "0.14.0", features = ["memory-store"] }
 axum-extra = { version = "0.12.5", features = ["cookie"] }
 bcrypt = "0.18.0"
 chrono = "0.4.42"
