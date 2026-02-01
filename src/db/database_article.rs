@@ -22,6 +22,15 @@ pub struct Article {
     pub views: i64,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct EmbeddedArticleData {
+    pub url: String,
+    pub title: String,
+    pub short_text: String,
+    pub image_path: String,
+    pub image_description: String,
+}
+
 pub async fn create_article(article: Article) -> Option<Article> {
     let sdb_wg = crate::db::database::db_write().await.ok()?;
     let article_r: Result<Option<Article>, _> = sdb_wg.create("article").content(article).await;
@@ -84,7 +93,7 @@ pub async fn articles_by_category(
 pub async fn articles_by_words(
     search_words: Vec<String>,
     limit: u32,
-) -> Result<Vec<Article>, DatabaseError> {
+) -> Result<Vec<EmbeddedArticleData>, DatabaseError> {
     if search_words.is_empty() {
         return Ok(Vec::new());
     }
@@ -111,7 +120,7 @@ pub async fn articles_by_words(
     q = q.bind(("limit", limit));
 
     let mut response = q.await?;
-    let articles: Vec<Article> = response.take(0)?;
+    let articles: Vec<EmbeddedArticleData> = response.take(0)?;
 
     Ok(articles)
 }

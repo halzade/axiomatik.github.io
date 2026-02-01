@@ -47,14 +47,38 @@
     <div class="little"></div>
     <main class="w8 content">
         <div class="top-sections">
-            {{ main_article|safe }}
+            <section class="main-article">
+                <div class="main-article-text">
+                    <a href="{{ url }}">
+                        <h2>
+                            {% if is_exclusive %}<span class="red">EXKLUZIVNĚ:</span>{% endif %}
+                            {{ title }}
+                        </h2>
+                    </a>
+                    <a class="category" href="{{ category_url }}">{{ category_name }}</a>
+                    <a href="{{ url }}">
+                        <p>{{ short_text }}</p>
+                    </a>
+                </div>
+                <a href="{{ url }}"><img src="u/{{ image_path }}" alt="{{ image_description }}"></a>
+            </section>
+
             <section class="right-articles">
                 <div class="first-article border-right text">
-                    {{ second_article|safe }}
+
+                    <a href="{{ url }}"><h2>{{ title }}</h2></a>
+                    <a href="{{ url }}">
+                        <p>{{ short_text }}</p>
+                    </a>
                 </div>
 
                 <div class="second-article relative text">
-                    {{ third_article|safe }}
+
+                    <a href="{{ url }}"><h2>{{ title }}</h2></a>
+                    <a href="{{ url }}">
+                        <p>{{ short_text }}</p>
+                    </a>
+
                     <div class="right bottom">
                         <a class="button" href="">Více zpráv</a>
                     </div>
@@ -63,7 +87,15 @@
         </div>
         <div class="split-layout border-bottom">
             {{ z_republiky|safe }}
+
+            {% for article in articles %}
+            {% endfor %}
+
             {{ ze_zahranici|safe }}
+
+            {% for article in articles %}
+            {% endfor %}
+
         </div>
     </main>
     <footer class="w8">

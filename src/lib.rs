@@ -11,18 +11,48 @@
  * Implementation
  */
 pub mod application {
-    pub mod article {
-        pub mod form_article_create;
-        pub mod form_article_data_parser;
-    }
     pub mod account {
         pub mod form_account;
+    }
+    pub mod article {
+        pub mod article;
     }
     pub mod change_password {
         pub mod form_change_password;
     }
+    pub mod finance {
+        pub mod finance;
+    }
+    pub mod form {
+        pub mod form_article_create;
+        pub mod form_article_data_parser;
+    }
+    pub mod index {
+        pub mod index;
+    }
     pub mod login {
         pub mod form_login;
+    }
+    pub mod most_read {
+        pub mod most_read_articles;
+    }
+    pub mod news {
+        pub mod news;
+    }
+    pub mod republika {
+        pub mod republika;
+    }
+    pub mod search {
+        pub mod search;
+    }
+    pub mod technologie {
+        pub mod technologie;
+    }
+    pub mod veda {
+        pub mod veda;
+    }
+    pub mod zahranici {
+        pub mod zahranici;
     }
 }
 pub mod db {
@@ -39,6 +69,7 @@ pub mod data {
     pub mod image_extractor;
     pub mod image_processor;
     pub mod image_validator;
+    pub mod library;
     pub mod processor;
     pub mod text_extractor;
     pub mod text_processor;
@@ -52,49 +83,18 @@ pub mod feature {
     pub mod name_days_library;
     pub mod weather;
 }
-pub mod library;
-pub mod logger;
 pub mod system {
     pub mod commands;
     pub mod configuration;
+    pub mod data_system;
+    pub mod data_updates;
     pub mod heartbeat;
+    pub mod logger;
     pub mod router;
     pub mod server;
-    pub mod data_updates;
-    pub mod data_system;
 }
-pub mod test_framework {
+pub mod trust {
     pub mod article_builder;
     pub mod script_base;
     pub mod script_base_data;
-}
-pub mod web {
-    pub mod base;
-    pub mod article {
-        pub mod article;
-    }
-    pub mod index {
-        pub mod index;
-    }
-    pub mod finance {
-        pub mod finance;
-    }
-    pub mod republika {
-        pub mod republika;
-    }
-    pub mod technologie {
-        pub mod technologie;
-    }
-    pub mod veda {
-        pub mod veda;
-    }
-    pub mod zahranici {
-        pub mod zahranici;
-    }
-    pub mod news {
-        pub mod news;
-    }
-    pub mod search {
-        pub mod search;
-    }
 }

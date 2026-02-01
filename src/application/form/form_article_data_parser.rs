@@ -1,10 +1,10 @@
 use crate::data::audio_extractor::{extract_audio_data, AudioExtractorError};
 use crate::data::image_extractor::{extract_image_data, ImageExtractorError};
+use crate::data::library;
 use crate::data::text_extractor::{
     extract_required_string, extract_required_text, TextExtractorError,
 };
 use crate::data::video_extractor::{extract_video_data, VideoExtractorError};
-use crate::library;
 use axum::extract::Multipart;
 use thiserror::Error;
 use tracing::debug;

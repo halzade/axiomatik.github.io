@@ -1,17 +1,18 @@
 use crate::application::account::form_account;
-use crate::application::article::form_article_create;
-use crate::application::article::form_article_create::FormError;
-use crate::application::article::form_article_data_parser::ArticleCreateError;
+use crate::application::article::article;
 use crate::application::change_password::form_change_password;
+use crate::application::form::form_article_create;
+use crate::application::form::form_article_create::FormArticleCreateError;
+use crate::application::form::form_article_data_parser::ArticleCreateError;
+use crate::application::index::index;
+use crate::application::index::index::IndexError;
 use crate::application::login::form_login;
+use crate::application::search::search;
 use crate::db::database_user;
 use crate::system::data_system::{DataSystem, DataSystemError};
 use crate::system::data_updates::{DataUpdates, DataUpdatesError};
 use crate::system::server::{ApplicationStatus, AUTH_COOKIE};
 use crate::system::{data_system, data_updates, heartbeat};
-use crate::web::index::index;
-use crate::web::index::index::IndexError;
-use crate::web::search::search;
 use axum::body::Body;
 use axum::extract::OriginalUri;
 use axum::middleware::Next;
@@ -40,7 +41,7 @@ pub enum RouterError {
     RouterDataSystem(#[from] DataSystemError),
 
     #[error("form error: {0}")]
-    RouterForm(#[from] FormError),
+    RouterForm(#[from] FormArticleCreateError),
 
     #[error("index error: {0}")]
     RouterIndexError(#[from] IndexError),
@@ -76,8 +77,8 @@ impl ApplicationRouter {
          * Protected routes
          */
         let protected_routes = Router::new()
-            .route("/form", get(form_article_create::show_form))
-            .route("/create", post(form_article_create::create_article))
+            .route("/form", get(form_article_create::show_article_create_form))
+            .route("/create", post(article::create_article))
             .route("/change-password",
                  get(form_change_password::show_change_password)
                 .post(form_change_password::handle_change_password),
@@ -132,6 +133,8 @@ impl ApplicationRouter {
         ori_uri: OriginalUri,
         request: Request<Body>,
     ) -> Result<Response, RouterError> {
+        // TODO validate ori_uri contain only alphanumeric and - and one .
+
         /*
          * What kind of content is it?
          */
@@ -139,24 +142,48 @@ impl ApplicationRouter {
             OriginalUri(uri) => match uri.path() {
                 "/index.html" => {
                     if self.update_index_now() {
+                        // render
                         index::render_index().await?;
+                        // reset
+                        self.data_updates.index_set_valid();
+                        self.data_updates.index_set_updated();
                     }
                 }
-                "/finance.html" => {}
-                "/news.html" => {}
-                "/republika.html" => {}
-                "/technologie.html" => {}
-                "/veda.html" => {}
-                "/zahranici.html" => {}
+                "/finance.html" => {
+                    // TODO
+                }
+                "/news.html" => {
+                    // TODO
+                }
+                "/republika.html" => {
+                    // if self.update_republika_now() {
+                    //     // render
+                    //     republika::render_republika().await?;
+                    //     // reset
+                    //     self.data_updates.republika_set_valid();
+                    //     self.data_updates.republika_set_updated();
+                    // }
+                }
+                "/technologie.html" => {
+                    // TODO
+                }
+                "/veda.html" => {
+                    // TODO
+                }
+                "/zahranici.html" => {
+                    // TODO
+                }
                 _ => {
                     // forgot some or Article
+                    // TODO
                 }
             },
-        }
-        let service = ServeFile::new(ori_uri.path().to_string());
-        let response = service.oneshot(request).await?;
+        };
 
-        Ok(response.into_response())
+        Ok(ServeFile::new(ori_uri.path().to_string())
+            .oneshot(request)
+            .await?
+            .into_response())
     }
 
     fn update_index_now(&self) -> bool {

@@ -23,7 +23,9 @@
             <div class="right search">
                 <form action="/search" method="get" class="search-form">
                     <input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
-                    <button type="submit"><div class="search-icon" aria-label="Hledat"></div></button>
+                    <button type="submit">
+                        <div class="search-icon" aria-label="Hledat"></div>
+                    </button>
                 </form>
             </div>
         </div>
@@ -42,7 +44,23 @@
         </header>
 
         <section class="article-grid">
-            {{ articles|safe }}
+            {% for article in articles %}
+            <article class="embedded-article">
+                <a href="{{ article.url }}">
+                    <img src="{{ article.image_path }}"
+                         alt="{{ article.image_description }}"
+                         loading="lazy">
+                    <div>
+                        <h2>
+                            {{ article.title }}
+                        </h2>
+                        <p>
+                            {{ article.short_text }}
+                        </p>
+                    </div>
+                </a>
+            </article>
+            {% endfor %}
         </section>
     </main>
     <footer>

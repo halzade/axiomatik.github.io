@@ -59,6 +59,10 @@ impl DataUpdates {
         *self.index.read()
     }
 
+    pub fn index_set_updated(&self) {
+        *self.index.write() = Local::now();
+    }
+
     pub fn news_updated(&self) -> DateTime<Local> {
         *self.news.read()
     }
@@ -82,9 +86,10 @@ impl DataUpdates {
         let ldt_o = self.articles_update.read().get(file_name).cloned();
         match ldt_o {
             None => {
+                // no record, new Article or restart
                 self.articles_update.write().insert(file_name.to_string(), Local::now());
-                
-                
+
+                // TODO
             }
             Some(ldt) => {
                 ldt
@@ -96,6 +101,10 @@ impl DataUpdates {
     // article_valids: RwLock::new(HashMap::new()),
     pub fn index_valid(&self) -> bool {
         *self.index_valid.read()
+    }
+
+    pub fn index_set_valid(&self) {
+        *self.index_valid.write() = true;
     }
 
     pub fn news_valid(&self) -> bool {
@@ -128,5 +137,5 @@ fn yesterday() -> DateTime<Local> {
 
 #[cfg(test)]
 mod tests {
-    
+
 }

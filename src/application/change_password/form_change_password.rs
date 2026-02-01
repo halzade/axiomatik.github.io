@@ -1,5 +1,4 @@
 use crate::db::database_user;
-use crate::processor::text_validator::validate_input_simple;
 use crate::system::server::AUTH_COOKIE;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -10,6 +9,7 @@ use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::error;
+use crate::data::text_validator::validate_input_simple;
 
 #[derive(Debug, Error)]
 pub enum ChangePasswordError {

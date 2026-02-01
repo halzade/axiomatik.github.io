@@ -1,11 +1,7 @@
-use crate::application::article::form_article_data_parser::ArticleData;
 use crate::data::audio_validator::{validate_audio_data, validate_audio_extension, AudioValidatorError};
 use crate::db::{database_article, database_user};
-use crate::library;
 use crate::system::server::AUTH_COOKIE;
 use crate::system::data_updates;
-use crate::web::base::ArticleMostRead;
-use crate::web::search::search::CategoryArticleTemplate;
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -14,6 +10,12 @@ use chrono::{Datelike, Local};
 use http::StatusCode;
 use std::fs;
 use thiserror::Error;
+use crate::application::article::article;
+use crate::application::form::form_article_create::FormArticleCreateError;
+use crate::application::form::form_article_data_parser;
+use crate::application::form::form_article_data_parser::ArticleData;
+use crate::application::most_read::most_read_articles::ArticlesMostReadTemplate;
+pub(crate) use crate::db::database_article::EmbeddedArticleData;
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
@@ -32,7 +34,7 @@ pub enum ArticleError {
 
 
 #[derive(Template)]
-#[template(path = "web/article/article_template.html")]
+#[template(path = "application/article/article.html")]
 pub struct ArticleTemplate {
     pub title: String,
     pub author: String,
@@ -44,10 +46,27 @@ pub struct ArticleTemplate {
     pub audio_path: Option<String>,
     pub category: String,
     pub category_display: String,
-    pub related_articles: Vec<CategoryArticleTemplate>,
+    pub related_articles: Vec<EmbeddedArticleData>,
     pub weather: String,
     pub name_day: String,
-    pub articles_most_read: Vec<ArticleMostRead>,
+    pub articles_most_read: ArticlesMostReadTemplate,
+}
+
+pub async fn create_article(multipart: Multipart) -> Result<impl IntoResponse, FormArticleCreateError> {
+    // TODO article already exists
+    // TODO doubled request on create button
+
+    /*
+     * Read request data
+     */
+    let article_data = form_article_data_parser::article_data(multipart).await?;
+
+    /*
+     * Create Article, process the data
+     */
+    let article_url = article::process_article_create(article_data).await?;
+
+    Ok(Redirect::to(&article_url).into_response())
 }
 
 /**
