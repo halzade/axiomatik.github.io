@@ -14,7 +14,7 @@ mod tests {
     async fn test_image_upload_resized_copies() {
         script_base::setup_before_tests_once().await;
 
-        // 1. Setup user and login
+        // 1. Set up user and login
         let cookie = script_base::setup_user_and_login("image_tester").await;
 
         // 2. Read placeholder image
@@ -22,7 +22,7 @@ mod tests {
             fs::read("web/images/placeholder_1024.png").expect("Failed to read placeholder image");
         let png_mime = "image/png";
 
-        // 3. Create article with name starting with "text-"
+        // 3. Create an article with a name starting with "text-"
         let title = "text-testing-upload";
         let body = ArticleBuilder::new()
             .title(title)
@@ -51,12 +51,12 @@ mod tests {
         // TODO do update dimension verification
 
         // 4. Verify that four copies with required dimensions were saved in u/
-        let base_name = "text-testing-upload";
+        let file_base = "text-testing-upload";
         let expected_files = vec![
-            (format!("u/{}_image_820.png", base_name), 820, None), // None means height is proportional or we don't strictly check it as per save_file_field_with_name logic (it uses resize(820, height, ...))
-            (format!("u/{}_image_50.png", base_name), 50, Some(50)),
-            (format!("u/{}_image_288.png", base_name), 288, Some(211)),
-            (format!("u/{}_image_440.png", base_name), 440, Some(300)),
+            (format!("u/{}_image_820.png", file_base), 820, None), // None means height is proportional, or we don't strictly check it as per save_file_field_with_name logic (it uses resize(820, height, ...))
+            (format!("u/{}_image_50.png", file_base), 50, Some(50)),
+            (format!("u/{}_image_288.png", file_base), 288, Some(211)),
+            (format!("u/{}_image_440.png", file_base), 440, Some(300)),
         ];
 
         for (path_str, expected_w, expected_h_opt) in expected_files {
@@ -74,9 +74,9 @@ mod tests {
 
         // Cleanup
         let _ = fs::remove_file("web/text-testing-upload.html");
-        let _ = fs::remove_file(format!("u/{}_image_820.png", base_name));
-        let _ = fs::remove_file(format!("u/{}_image_50.png", base_name));
-        let _ = fs::remove_file(format!("u/{}_image_288.png", base_name));
-        let _ = fs::remove_file(format!("u/{}_image_440.png", base_name));
+        let _ = fs::remove_file(format!("u/{}_image_820.png", file_base));
+        let _ = fs::remove_file(format!("u/{}_image_50.png", file_base));
+        let _ = fs::remove_file(format!("u/{}_image_288.png", file_base));
+        let _ = fs::remove_file(format!("u/{}_image_440.png", file_base));
     }
 }

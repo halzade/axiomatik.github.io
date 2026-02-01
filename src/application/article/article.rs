@@ -1,13 +1,12 @@
 use crate::application::form::form_article_create::FormArticleCreateError;
 use crate::application::form::form_article_data_parser;
 use crate::application::form::form_article_data_parser::ArticleData;
-use crate::data::audio_validator::{validate_audio_data, validate_audio_extension, AudioValidatorError};
+use crate::data::audio_validator::AudioValidatorError;
+use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{IntoResponse, Redirect};
 use thiserror::Error;
-use crate::db::database_article;
-use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
@@ -31,15 +30,20 @@ pub struct ArticleTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
-    pub title: String,
+
     pub author: String,
+
+    pub title: String,
     pub text: String,
+
     pub image_path: String,
     pub image_desc: String,
     pub video_path: Option<String>,
     pub audio_path: Option<String>,
+
     pub category: String,
     pub category_display: String,
+
     pub related_articles: Vec<ShortArticleData>,
     pub articles_most_read: Vec<MiniArticleData>,
 }
@@ -65,7 +69,7 @@ pub async fn create_article(
 }
 
 /**
- * This will process store the new Article and related files
+ * This will process and store the new Article and related files
  * But wont render any html
  */
 pub async fn process_article_create(article_data: ArticleData) -> Result<String, ArticleError> {
@@ -76,8 +80,8 @@ pub async fn process_article_create(article_data: ArticleData) -> Result<String,
     // TODO X Validate text fields, use validator framework instead
 
     if article_data.has_audio {
-        validate_audio_data(&article_data.audio_data)?;
-        validate_audio_extension(&article_data.audio_ext)?;
+        // validate_audio_data(&article_data.audio_data)?;
+        // validate_audio_extension(&article_data.audio_ext)?;
     }
     if article_data.has_video {
         // validate_video_data(&article.video_data)?;

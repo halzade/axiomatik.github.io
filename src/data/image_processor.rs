@@ -24,18 +24,18 @@ pub fn process_images(
 
     // Save 820xheight
     let img_820 = img.resize(820, height, Lanczos3);
-    let base_name = new_name.split('.').next().unwrap();
-    let name_820 = format!("{}_image_820.{}", base_name, ext);
+    let file_base = new_name.split('.').next().unwrap();
+    let name_820 = format!("{}_image_820.{}", file_base, ext);
 
     // Save 820xany
     save_image(&img_820, name_820.as_str())?;
 
     // Save 50x50
-    resized_and_save_image(&img, 50, 50, base_name, "image_50", &ext)?;
+    resized_and_save_image(&img, 50, 50, file_base, "image_50", &ext)?;
     // Save 288x211
-    resized_and_save_image(&img, 288, 211, base_name, "image_288", &ext)?;
+    resized_and_save_image(&img, 288, 211, file_base, "image_288", &ext)?;
     // Save 440x300
-    resized_and_save_image(&img, 440, 300, base_name, "image_440", &ext)?;
+    resized_and_save_image(&img, 440, 300, file_base, "image_440", &ext)?;
 
     Ok(())
 }
@@ -44,12 +44,12 @@ fn resized_and_save_image(
     img: &DynamicImage,
     w: u32,
     h: u32,
-    base_name: &str,
+    file_base: &str,
     resolution_image_suffix: &str,
     ext: &str,
 ) -> Result<(), ImageProcessorError> {
     let resized = img.resize_to_fill(w, h, Lanczos3);
-    let name = format!("{}_{}.{}", base_name, resolution_image_suffix, ext);
+    let name = format!("{}_{}.{}", file_base, resolution_image_suffix, ext);
     save_image(&resized, name.as_str())?;
     Ok(())
 }

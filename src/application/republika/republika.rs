@@ -1,9 +1,8 @@
-use crate::application::article::article::ShortArticleData;
 use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::DatabaseError;
 use crate::db::database_article;
-use crate::db::database_article::MiniArticleData;
+use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 use crate::system::data_system::DataSystem;
 use askama::Template;
 use thiserror::Error;

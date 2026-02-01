@@ -1,4 +1,3 @@
-use crate::db::database_article::Article;
 use crate::db::{database_article, database_user};
 use crate::system::server::AUTH_COOKIE;
 use askama::Template;
@@ -10,6 +9,7 @@ use serde::Deserialize;
 use thiserror::Error;
 use tracing::error;
 use crate::data::text_validator::validate_input_simple;
+use crate::db::database_article_data::Article;
 
 #[derive(Debug, Error)]
 pub enum AccountError {

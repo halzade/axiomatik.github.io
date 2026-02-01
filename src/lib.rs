@@ -28,7 +28,7 @@ pub mod application {
         pub mod form_article_data_parser;
     }
     pub mod index {
-        pub mod index_template;
+        pub mod index;
     }
     pub mod login {
         pub mod form_login;

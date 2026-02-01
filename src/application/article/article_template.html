@@ -40,7 +40,17 @@
         <div class="most-articles">
             <div class="arrow red-arrow-left"></div>
             {% for article in articles_most_read %}
-                {{ article|safe }}
+            <table>
+                <tr>
+                    <td>
+                        <img class="most-image" src="{{ article.image_50_path }}" alt="{{ article.image_desc }}">
+                    </td>
+                    <td>
+                        <h3>{{ article.title }}</h3><br/>
+                        <p>{{ article.mini_text }}</p>
+                    </td>
+                </tr>
+            </table>
             {% endfor %}
             <div class="arrow red-arrow-right right-click-arrow"></div>
         </div>
@@ -60,7 +70,7 @@
             </div>
 
             <figure class="article-figure">
-                <img src="u/{{ image_path }}" alt="{{ image_desc }}">
+                <img src="{{ image_path }}" alt="{{ image_desc }}">
                 <figcaption>
                     {{ image_desc }}
                 </figcaption>
@@ -68,7 +78,7 @@
             {% if audio_path.is_some() %}
             <div class="container">
                 <audio controls style="width: 100%;">
-                    <source src="u/{{ audio_path.as_ref().unwrap() }}" type="audio/mpeg">
+                    <source src="{{ audio_path.as_ref().unwrap() }}" type="audio/mpeg">
                     Váš prohlížeč nepodporuje zvukový prvek (audio).
                 </audio>
             </div>
@@ -82,7 +92,7 @@
             <div class="container">
                 <div class="video-holder">
                     <video muted playsinline controls class="video">
-                        <source src="u/{{ video_path.as_ref().unwrap() }}" type="video/mp4">
+                        <source src="{{ video_path.as_ref().unwrap() }}" type="video/mp4">
                     </video>
                 </div>
             </div>
@@ -95,7 +105,16 @@
                     <section class="article-grid text">
                         {% for article in related_articles %}
                             {% if loop.index0 % 2 == 0 %}
-                                {{ article|safe }}
+                            <article class="card first">
+                                <a href="{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                                <div class="article-right">
+                                    <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a><br/>
+                                    <span class="category always-white">{{ category_display }}</span><br/>
+                                    <a href="{{ article.url }}">
+                                        {{ article.short_text }}
+                                    </a>
+                                </div>
+                            </article>
                             {% endif %}
                         {% endfor %}
                     </section>
@@ -104,7 +123,12 @@
                     <section class="article-grid text">
                         {% for article in related_articles %}
                             {% if loop.index0 % 2 != 0 %}
-                                {{ article|safe }}
+                            <article class="card">
+                                <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
+                                <a href="{{ article.url }}">
+                                    {{ article.short_text }}
+                                </a>
+                            </article>
                             {% endif %}
                         {% endfor %}
                         <div class="right">
