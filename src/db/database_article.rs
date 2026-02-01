@@ -46,6 +46,23 @@ pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, Dat
     Ok(articles.into_iter().next())
 }
 
+pub async fn related_articles(related: &[String]) -> Result<Vec<ShortArticleData>, DatabaseError> {
+    if related.is_empty() {
+        return Ok(Vec::new());
+    }
+    let sdb = crate::db::database::db_read().await?;
+    let mut response = sdb
+        .query(
+            "SELECT id, title, article_file_name, summary
+             FROM article
+             WHERE article_file_name IN $related",
+        )
+        .bind(("related", related.to_vec()))
+        .await?;
+    let articles: Vec<ShortArticleData> = response.take(0)?;
+    Ok(articles)
+}
+
 pub async fn articles_by_category(
     category: &str,
     limit: u32,

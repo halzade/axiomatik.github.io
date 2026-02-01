@@ -90,14 +90,14 @@ pub enum RouterError {
 
 pub struct ApplicationRouter {
     data_system: DataSystem,
-    data_updates: DataUpdates,
+    data_updates_a: Arc<DataUpdates>,
 }
 
 impl ApplicationRouter {
     pub fn new() -> ApplicationRouter {
         ApplicationRouter {
             data_system: data_system::new(),
-            data_updates: data_updates::new(),
+            data_updates_a: Arc::new(data_updates::new()),
         }
     }
 }
@@ -105,6 +105,12 @@ impl ApplicationRouter {
 impl IntoResponse for RouterError {
     fn into_response(self) -> Response {
         (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+    }
+}
+
+impl IntoResponse for ArticleError {
+    fn into_response(self) -> Response {
+        (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response()
     }
 }
 
@@ -119,21 +125,23 @@ impl ApplicationRouter {
     pub async fn start_router(self: Arc<Self>, status: ApplicationStatus) -> Router {
         info!("start_router()");
 
-        let self_a = self.clone();
+        let self_a1 = self.clone();
+        let self_a2 = self.clone();
         let session_store = MemoryStore::default();
         let session_layer = SessionManagerLayer::new(session_store)
             .with_secure(false)
             .with_same_site(tower_sessions::cookie::SameSite::Lax);
 
-        let backend = Backend;
-        let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
+        let auth_layer = AuthManagerLayerBuilder::new(Backend, session_layer).build();
 
         /*
          * Protected routes
          */
         let protected_routes = Router::new()
             .route("/form", get(form_article_create::show_article_create_form))
-            .route("/create", post(article::create_article))
+            .route("/create", post(move |auth, multipart| {
+                article::create_article(self_a1.data_updates_a.clone(), auth, multipart)
+            }))
             .route("/change-password",
                 get(form_change_password::show_change_password)
                .post(form_change_password::handle_change_password),
@@ -163,7 +171,7 @@ impl ApplicationRouter {
             .nest_service("/favicon.ico", get_service(ServeFile::new("../../web/favicon.ico")))
             // HTML files
             .route("/*.html", get(move |ori_uri: OriginalUri, request| async move {
-                    self_a.serve_html_content(ori_uri, request).await
+                    self_a2.serve_html_content(ori_uri, request).await
                 }
             ))
             // web app
@@ -191,52 +199,52 @@ impl ApplicationRouter {
         match &ori_uri {
             OriginalUri(uri) => match uri.path() {
                 "/index.html" => {
-                    if !self.data_updates.index_valid() {
+                    if !self.data_updates_a.index_valid() {
                         index::render_index(&self.data_system).await?;
-                        self.data_updates.index_validate();
+                        self.data_updates_a.index_validate();
                     }
                 }
                 "/finance.html" => {
-                    if !self.data_updates.finance_valid() {
+                    if !self.data_updates_a.finance_valid() {
                         finance::render_finance(&self.data_system).await?;
-                        self.data_updates.finance_validate();
+                        self.data_updates_a.finance_validate();
                     }
                 }
                 "/news.html" => {
-                    if !self.data_updates.news_valid() {
+                    if !self.data_updates_a.news_valid() {
                         news::render_news(&self.data_system).await?;
-                        self.data_updates.news_validate();
+                        self.data_updates_a.news_validate();
                     }
                 }
                 "/republika.html" => {
-                    if !self.data_updates.republika_valid() {
+                    if !self.data_updates_a.republika_valid() {
                         republika::render_republika(&self.data_system).await?;
-                        self.data_updates.republika_validate();
+                        self.data_updates_a.republika_validate();
                     }
                 }
                 "/technologie.html" => {
-                    if !self.data_updates.technologie_valid() {
+                    if !self.data_updates_a.technologie_valid() {
                         technologie::render_technologie(&self.data_system).await?;
-                        self.data_updates.technologie_validate();
+                        self.data_updates_a.technologie_validate();
                     }
                 }
                 "/veda.html" => {
-                    if !self.data_updates.veda_valid() {
+                    if !self.data_updates_a.veda_valid() {
                         veda::render_veda(&self.data_system).await?;
-                        self.data_updates.veda_validate();
+                        self.data_updates_a.veda_validate();
                     }
                 }
                 "/zahranici.html" => {
-                    if !self.data_updates.zahranici_valid() {
+                    if !self.data_updates_a.zahranici_valid() {
                         zahranici::render_zahranici(&self.data_system).await?;
-                        self.data_updates.zahranici_validate();
+                        self.data_updates_a.zahranici_validate();
                     }
                 }
                 _ => {
                     // forgot some or Article
-                    if !self.data_updates.article_valid(uri.path().trim()) {
-                        article::render_article(&self.data_system).await?;
-                        self.data_updates.article_validate(uri.path().trim());
+                    if !self.data_updates_a.article_valid(uri.path().trim()) {
+                        article::render_article(uri.path().trim(), &self.data_system).await?;
+                        self.data_updates_a.article_validate(uri.path().trim());
                     }
                 }
             },

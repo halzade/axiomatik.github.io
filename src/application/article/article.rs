@@ -1,28 +1,59 @@
-use crate::application::form::form_article_create::FormArticleCreateError;
+use crate::application::article::article::ArticleError::{ArticleNotFound, RenderArticleError};
 use crate::application::form::form_article_data_parser;
-use crate::data::audio_validator::AudioValidatorError;
-use crate::data::{audio_processor, image_processor, video_processor};
+use crate::application::form::form_article_data_parser::ArticleCreateError;
+use crate::data::audio_processor::AudioProcessorError;
+use crate::data::image_processor::ImageProcessorError;
+use crate::data::video_processor::VideoProcessorError;
+use crate::data::{audio_processor, image_processor, processor, video_processor};
+use crate::db::database::DatabaseError;
 use crate::db::database_article;
-use crate::db::database_article_data::{Article, MiniArticleData, ShortArticleData};
+use crate::db::database_article_data::{
+    Article, DataProcessorError, MiniArticleData, ShortArticleData,
+};
 use crate::system::data_system::DataSystem;
+use crate::system::data_updates::DataUpdates;
+use crate::system::router::AuthSession;
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{IntoResponse, Redirect};
+use std::sync::Arc;
 use thiserror::Error;
+use ArticleError::{ArticleCreationInDbFailed, CategoryFailed};
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
-    #[error("audio validation error {0}")]
-    ArticleAudioArticleError(AudioValidatorError),
+    #[error("category unknown {0}")]
+    CategoryFailed(String),
 
-    #[error("undefined data type")]
-    UndefinedAudioType,
+    #[error("article creation failed: {0}")]
+    ArticleCreate(#[from] ArticleCreateError),
 
-    #[error("unsupported format {0}")]
-    UnsupportedAudioType(String),
+    #[error("data processing failed: {0}")]
+    DataProcessor(#[from] DataProcessorError),
 
-    #[error("detected empty audio file")]
-    DetectedEmptyAudioFile,
+    #[error("image processing failed: {0}")]
+    ImageProcessor(#[from] ImageProcessorError),
+
+    #[error("audio processing failed: {0}")]
+    AudioProcessor(#[from] AudioProcessorError),
+
+    #[error("video processing failed: {0}")]
+    VideoProcessor(#[from] VideoProcessorError),
+
+    #[error("database error: {0}")]
+    DatabaseError(#[from] DatabaseError),
+
+    #[error("processor error: {0}")]
+    ProcessorError(#[from] processor::ProcessorError),
+
+    #[error("failed to create article in db")]
+    ArticleCreationInDbFailed,
+
+    #[error("failed to render article")]
+    RenderArticleError,
+
+    #[error("failed not found")]
+    ArticleNotFound,
 }
 
 #[derive(Template)]
@@ -50,9 +81,10 @@ pub struct ArticleTemplate {
 }
 
 pub async fn create_article(
-    auth_session: crate::system::router::AuthSession,
+    data_updates: Arc<DataUpdates>,
+    auth_session: AuthSession,
     multipart: Multipart,
-) -> Result<impl IntoResponse, FormArticleCreateError> {
+) -> Result<impl IntoResponse, ArticleError> {
     // TODO X doubled request on create button
 
     /*
@@ -97,17 +129,25 @@ pub async fn create_article(
         )?;
     }
 
+    // invalidate cache
+    data_updates.index_invalidate();
+    data_updates.news_invalidate();
+
+    match article_data.category.as_str() {
+        "zahranici" => data_updates.zahranici_invalidate(),
+        "republika" => data_updates.republika_invalidate(),
+        "finance" => data_updates.finance_invalidate(),
+        "technologie" => data_updates.technologie_invalidate(),
+        "veda" => data_updates.veda_invalidate(),
+        cat => return Err(CategoryFailed(cat.into())),
+    }
+
     /*
      * Store Article data
      */
-
     database_article::create_article(article_db)
         .await
-        .ok_or(FormArticleCreateError::ArticleCreationInDbFailed)?;
-
-    // invalidate index
-    // invalidate category page
-    // invalidate related articles
+        .ok_or(ArticleCreationInDbFailed)?;
 
     /*
      * don't render anything
@@ -121,6 +161,53 @@ pub async fn create_article(
  * This will process and store the new Article and related files
  * But wont render any html
  */
-pub async fn render_article(data_system: &DataSystem) -> Result<String, ArticleError> {
-    Ok("".to_string())
+pub async fn render_article(
+    article_file_name: &str,
+    data_system: &DataSystem,
+) -> Result<(), ArticleError> {
+    let data_o = database_article::article_by_file_name(article_file_name).await?;
+
+    match data_o {
+        None => Err(ArticleNotFound),
+        Some(data) => {
+            let related_articles =
+                database_article::related_articles(&data.related_articles).await?;
+            let articles_most_read = database_article::articles_most_read(3).await?;
+
+            let article_template = ArticleTemplate {
+                date: data_system.date(),
+                weather: data_system.weather(),
+                name_day: data_system.name_day(),
+
+                author: data.author,
+                title: data.title,
+
+                text: data.text,
+
+                image_path: data.image_820_path,
+                image_desc: data.image_desc,
+                video_path: if data.has_video {
+                    Some(data.video_path)
+                } else {
+                    None
+                },
+                audio_path: if data.has_audio {
+                    Some(data.audio_path)
+                } else {
+                    None
+                },
+                category: data.category.clone(),
+                category_display: processor::process_category(data.category.as_str())?,
+                related_articles,
+                articles_most_read,
+            };
+            match article_template.render() {
+                Ok(rendered_html) => {
+                    processor::save_web_file(rendered_html, article_file_name)?;
+                    Ok(())
+                }
+                Err(_) => Err(RenderArticleError),
+            }
+        }
+    }
 }

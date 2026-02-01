@@ -34,9 +34,6 @@ pub enum FormArticleCreateError {
 
     #[error("database error")]
     DatabaseError(#[from] DatabaseError),
-
-    #[error("failed to create article in db")]
-    ArticleCreationInDbFailed,
 }
 
 #[derive(Template)]
