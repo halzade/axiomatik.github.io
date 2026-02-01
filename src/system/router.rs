@@ -7,6 +7,8 @@ use crate::application::form::form_article_data_parser::ArticleCreateError;
 use crate::application::index::index;
 use crate::application::index::index::IndexError;
 use crate::application::login::form_login;
+use crate::application::republika::republika;
+use crate::application::republika::republika::RepublikaError;
 use crate::application::search::search;
 use crate::db::database_user;
 use crate::system::data_system::{DataSystem, DataSystemError};
@@ -45,6 +47,9 @@ pub enum RouterError {
 
     #[error("index error: {0}")]
     RouterIndexError(#[from] IndexError),
+
+    #[error("republika error: {0}")]
+    RouterRepublikaErrorError(#[from] RepublikaError),
 
     #[error("response infallible: {0}")]
     RouterInfallible(#[from] Infallible),
@@ -133,7 +138,9 @@ impl ApplicationRouter {
         ori_uri: OriginalUri,
         request: Request<Body>,
     ) -> Result<Response, RouterError> {
-        // TODO validate ori_uri contain only alphanumeric and - and one .
+
+        // TODO X validate ori_uri contain only alphanumeric and dash, and one dot
+        // TODO X re-renders should be somehow one thread only
 
         /*
          * What kind of content is it?
@@ -141,41 +148,35 @@ impl ApplicationRouter {
         match &ori_uri {
             OriginalUri(uri) => match uri.path() {
                 "/index.html" => {
-                    if self.update_index_now() {
-                        // render
+                    if !self.data_updates.index_valid() {
                         index::render_index().await?;
-                        // reset
-                        self.data_updates.index_set_valid();
-                        self.data_updates.index_set_updated();
+                        self.data_updates.index_invalidate();
                     }
                 }
                 "/finance.html" => {
-                    // TODO
+                    // TODO do
                 }
                 "/news.html" => {
-                    // TODO
+                    // TODO do
                 }
                 "/republika.html" => {
-                    // if self.update_republika_now() {
-                    //     // render
-                    //     republika::render_republika().await?;
-                    //     // reset
-                    //     self.data_updates.republika_set_valid();
-                    //     self.data_updates.republika_set_updated();
-                    // }
+                    if !self.data_updates.republika_valid() {
+                        republika::render_republika().await?;
+                        self.data_updates.republika_validate();
+                    }
                 }
                 "/technologie.html" => {
-                    // TODO
+                    // TODO do
                 }
                 "/veda.html" => {
-                    // TODO
+                    // TODO do
                 }
                 "/zahranici.html" => {
-                    // TODO
+                    // TODO do
                 }
                 _ => {
                     // forgot some or Article
-                    // TODO
+                    // TODO do
                 }
             },
         };
@@ -184,28 +185,6 @@ impl ApplicationRouter {
             .oneshot(request)
             .await?
             .into_response())
-    }
-
-    fn update_index_now(&self) -> bool {
-        let index_invalid = self.data_updates.index_valid();
-        if !index_invalid {
-            // index invalidated because of a new Article published, render
-            return true;
-        }
-
-        let my_last_update = self.data_updates.index_updated();
-        let weather_last_update = self.data_system.weather_last_update();
-        if my_last_update.clone() < weather_last_update {
-            // weather changed, render
-            return true;
-        }
-
-        let date_last_update = self.data_system.date_last_update();
-        if my_last_update < date_last_update {
-            // date changed, render
-            return true;
-        }
-        false
     }
 }
 

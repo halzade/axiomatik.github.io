@@ -1,4 +1,4 @@
-use crate::data::image_validator::ImageValidationError::ImageWidthValidation;
+use crate::data::image_validator::ImageValidationError::{ImageWidthValidation, UnknownDataType};
 use image::DynamicImage;
 use thiserror::Error;
 
@@ -20,8 +20,7 @@ pub enum ImageValidationError {
 }
 
 pub fn validate_image_data(img: &DynamicImage) -> Result<(), ImageValidationError> {
-    // TODO
-
+    // TODO X
     Ok(())
 }
 
@@ -32,22 +31,20 @@ pub fn validate_image_width(width: u32) -> Result<(), ImageValidationError> {
     Ok(())
 }
 
-
 fn validate_image_extension(ext: &str) -> Result<(), ImageValidationError> {
     if !ALLOWED_EXTENSIONS_IMAGE.contains(&ext) {
-        return Err(UnsupportedFileType(ext.into()));
+        return Err(UnknownDataType(ext.into()));
     }
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::data::image_validator::validate_image_extension;
 
     #[test]
-    fn test_extract_image_data() {
-        let data = vec![1, 2, 3];
-        assert_eq!(validate_and_extract("t.jpg", data.clone()), Some((data.clone(), "jpg".to_string())));
-        assert_eq!(validate_and_extract("t.gif", data.clone()), None);
+    fn test_validate_image_extension() {
+        assert!(validate_image_extension("jpg").is_ok());
+        assert!(validate_image_extension("gif").is_err());
     }
 }

@@ -25,7 +25,6 @@ pub struct FormTemplate {
 
 pub async fn show_article_create_form(jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        // TODO but his is already handled by middleware layer
         let user_o = database_user::get_user(cookie.value()).await;
         match user_o {
             None => {}

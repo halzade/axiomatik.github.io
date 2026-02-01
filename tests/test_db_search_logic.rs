@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::db::database_article::Article;
     use axiomatik_web::db::database_article;
-    use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::db::database_article::Article;
+    use axiomatik_web::trust::script_base;
 
     #[tokio::test]
     async fn test_db_search_logic() {
@@ -21,8 +21,6 @@ mod tests {
             video_url: None,
             audio_url: None,
             category: "cat".to_string(),
-
-            // TODO
             related_articles: vec![],
             is_main: false,
             is_exclusive: false,
@@ -51,7 +49,7 @@ mod tests {
         database_article::create_article(article1).await.unwrap();
         database_article::create_article(article2).await.unwrap();
 
-        let articles_o = database_article::articles_by_words("match").await;
+        let articles_o = database_article::articles_by_words(vec!["match".into()], 3)?.await;
 
         match articles_o {
             None => {
@@ -77,7 +75,6 @@ mod tests {
 
                 results.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
 
-                // TODO ?
                 assert_eq!(results.len(), 2);
                 assert_eq!(results[0].0, 2);
                 assert_eq!(results[0].1, "article1");

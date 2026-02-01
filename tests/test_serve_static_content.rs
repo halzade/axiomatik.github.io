@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::trust::script_base;
     use axum::http::{Request, StatusCode};
     use reqwest::Body;
 

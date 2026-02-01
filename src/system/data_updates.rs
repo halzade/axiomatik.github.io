@@ -1,7 +1,6 @@
 use chrono::{DateTime, Duration, Local};
 use parking_lot::RwLock;
 use std::collections::HashMap;
-use std::ops::Index;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -12,18 +11,10 @@ pub enum DataUpdatesError {
 
 /*
  * when was which HTML file last updated?
- * or invalidated, because of new artile published
+ * or invalidated because of a new article published
  */
 pub struct DataUpdates {
-    articles_update: RwLock<HashMap<String, DateTime<Local>>>,
     articles_valid: RwLock<HashMap<String, bool>>,
-    index: RwLock<DateTime<Local>>,
-    news: RwLock<DateTime<Local>>,
-    finance: RwLock<DateTime<Local>>,
-    republika: RwLock<DateTime<Local>>,
-    zahranici: RwLock<DateTime<Local>>,
-    technologie: RwLock<DateTime<Local>>,
-    veda: RwLock<DateTime<Local>>,
     index_valid: RwLock<bool>,
     news_valid: RwLock<bool>,
     finance_valid: RwLock<bool>,
@@ -35,15 +26,7 @@ pub struct DataUpdates {
 
 pub fn new() -> DataUpdates {
     DataUpdates {
-        articles_update: RwLock::new(HashMap::new()),
         articles_valid: RwLock::new(HashMap::new()),
-        index: RwLock::new(yesterday()),
-        news: RwLock::new(yesterday()),
-        finance: RwLock::new(yesterday()),
-        republika: RwLock::new(yesterday()),
-        technologie: RwLock::new(yesterday()),
-        veda: RwLock::new(yesterday()),
-        zahranici: RwLock::new(yesterday()),
         index_valid: RwLock::new(false),
         news_valid: RwLock::new(false),
         finance_valid: RwLock::new(false),
@@ -55,78 +38,66 @@ pub fn new() -> DataUpdates {
 }
 
 impl DataUpdates {
-    pub fn index_updated(&self) -> DateTime<Local> {
-        *self.index.read()
-    }
-
-    pub fn index_set_updated(&self) {
-        *self.index.write() = Local::now();
-    }
-
-    pub fn news_updated(&self) -> DateTime<Local> {
-        *self.news.read()
-    }
-
-    pub fn finance_updated(&self) -> DateTime<Local> {
-        *self.finance.read()
-    }
-    pub fn republika_updated(&self) -> DateTime<Local> {
-        *self.republika.read()
-    }
-    pub fn technologie_updated(&self) -> DateTime<Local> {
-        *self.technologie.read()
-    }
-    pub fn veda_updated(&self) -> DateTime<Local> {
-        *self.veda.read()
-    }
-    pub fn zahranici_updated(&self) -> DateTime<Local> {
-        *self.zahranici.read()
-    }
-    pub fn article_updated(&self, file_name: &str) -> DateTime<Local> {
-        let ldt_o = self.articles_update.read().get(file_name).cloned();
-        match ldt_o {
-            None => {
-                // no record, new Article or restart
-                self.articles_update.write().insert(file_name.to_string(), Local::now());
-
-                // TODO
-            }
-            Some(ldt) => {
-                ldt
-            }
-        }
-    }
-
-    // TODO
-    // article_valids: RwLock::new(HashMap::new()),
+    // index
     pub fn index_valid(&self) -> bool {
         *self.index_valid.read()
     }
-
-    pub fn index_set_valid(&self) {
+    pub fn index_validate(&self) {
         *self.index_valid.write() = true;
     }
+    pub fn index_invalidate(&self) {
+        *self.index_valid.write() = false;
+    }
 
+    // republika
+    pub fn republika_valid(&self) -> bool {
+        *self.republika_valid.read()
+    }
+    pub fn republika_validate(&self) {
+        *self.republika_valid.write() = true;
+    }
+    pub fn republika_invalidate(&self) {
+        *self.republika_valid.write() = false;
+    }
+
+    // news
     pub fn news_valid(&self) -> bool {
         *self.news_valid.read()
     }
 
+    // finance
     pub fn finance_valid(&self) -> bool {
         *self.finance_valid.read()
     }
 
-    pub fn republika_valid(&self) -> bool {
-        *self.republika_valid.read()
-    }
+    // technologie
     pub fn technologie_valid(&self) -> bool {
         *self.technologie_valid.read()
     }
 
+    // veda
     pub fn veda_valid(&self) -> bool {
         *self.veda_valid.read()
     }
+
+    // zahranici
     pub fn zahranici_valid(&self) -> bool {
         *self.zahranici_valid.read()
+    }
+
+    // articles
+    pub fn article_valid(&self, file_name: &str) -> bool {
+        let valid_o = self.articles_valid.read().get(file_name).cloned();
+        match valid_o {
+            None => {
+                // no record, new Article or restart
+                self.articles_valid
+                    .write()
+                    .insert(file_name.to_string(), false);
+                false
+            }
+            Some(valid) => valid,
+        }
     }
 }
 
@@ -136,6 +107,4 @@ fn yesterday() -> DateTime<Local> {
 }
 
 #[cfg(test)]
-mod tests {
-
-}
+mod tests {}

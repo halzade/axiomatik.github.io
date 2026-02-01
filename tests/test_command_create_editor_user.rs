@@ -3,7 +3,7 @@ mod tests {
     use axiomatik_web::system::commands::create_editor_user;
     use axiomatik_web::db::database_user::Role::Editor;
     use axiomatik_web::form::form_login;
-    use axiomatik_web::test_framework::script_base;
+    use axiomatik_web::trust::script_base;
 
     #[tokio::test]
     async fn test_create_editor_user() {

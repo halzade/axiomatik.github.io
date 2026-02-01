@@ -24,7 +24,7 @@ pub fn heart_beat() {
 }
 
 pub async fn handle_heartbeat() -> impl IntoResponse {
-    // TODO
+    // TODO X
     Json(Heartbeat {
         status: "ok",
         uptime_seconds: 100,

@@ -25,7 +25,7 @@ pub enum VideoProcessorError {
 pub fn process_video(video_data: &[u8], file_name: &str) -> Result<(), VideoProcessorError> {
     validate_data_is_video(video_data)?;
 
-    // TODO validate there's not audio
+    // TODO X validate there's no audio
 
     save_video(video_data, file_name)
 }

@@ -1,5 +1,5 @@
+use crate::data::library;
 use crate::feature::{name_days, weather};
-use crate::library;
 use chrono::{DateTime, Local};
 use parking_lot::RwLock;
 use thiserror::Error;
@@ -20,14 +20,13 @@ pub struct DataSystem {
 }
 
 pub fn new() -> DataSystem {
+    let now = Local::now();
     DataSystem {
-        // TODO
-        date: RwLock::new(String::new()),
-        name_day: RwLock::new(String::new()),
-        weather: RwLock::new(String::new()),
-
-        date_last_update: RwLock::new(Local::now()),
-        weather_last_update: RwLock::new(Local::now()),
+        date: RwLock::new("".into()),
+        name_day: RwLock::new("".into()),
+        weather: RwLock::new("".into()),
+        date_last_update: RwLock::new(now.clone()),
+        weather_last_update: RwLock::new(now),
     }
 }
 

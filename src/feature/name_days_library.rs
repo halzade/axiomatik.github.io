@@ -394,8 +394,6 @@ pub fn get_name_day(month: u32, day: u32) -> String {
             21 => "Natálie".to_string(),
             22 => "Šimon".to_string(),
             23 => "Vlasta".to_string(),
-            
-            // TODO Nejsou vyřešeny státní svátky
             24 => "Adam a Eva".to_string(),
             25 => "_je 2. svátek Vánoční".to_string(),
             26 => "Štěpán".to_string(),

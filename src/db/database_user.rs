@@ -47,6 +47,8 @@ pub async fn delete_user(user_name: &str) {
     }
 }
 
+// TODO X implement get_current_user(), use axum authentication
+// this takes username from cookie, bad
 pub async fn get_user(user_name: &str) -> Option<User> {
     if let Ok(sdb) = crate::db::database::db_read().await {
         return sdb.select(("user", user_name)).await.unwrap();

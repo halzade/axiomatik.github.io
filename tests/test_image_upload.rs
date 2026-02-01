@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::test_framework::article_builder::ArticleBuilder;
-    use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::content_type_with_boundary;
+    use axiomatik_web::trust::article_builder::ArticleBuilder;
+    use axiomatik_web::trust::article_builder::ArticleBuilder;
+    use axiomatik_web::trust::script_base;
+    use axiomatik_web::trust::script_base::content_type_with_boundary;
     use axum::http::{header, Request, StatusCode};
     use image::GenericImageView;
     use reqwest::Body;
@@ -47,22 +48,15 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::SEE_OTHER);
 
-        // TODO
+        // TODO do update dimension verification
+
         // 4. Verify that four copies with required dimensions were saved in u/
         let base_name = "text-testing-upload";
         let expected_files = vec![
             (format!("u/{}_image_820.png", base_name), 820, None), // None means height is proportional or we don't strictly check it as per save_file_field_with_name logic (it uses resize(820, height, ...))
             (format!("u/{}_image_50.png", base_name), 50, Some(50)),
-            (
-                format!("u/{}_image_288.png", base_name),
-                288,
-                Some(211),
-            ),
-            (
-                format!("u/{}_image_440.png", base_name),
-                440,
-                Some(300),
-            ),
+            (format!("u/{}_image_288.png", base_name), 288, Some(211)),
+            (format!("u/{}_image_440.png", base_name), 440, Some(300)),
         ];
 
         for (path_str, expected_w, expected_h_opt) in expected_files {

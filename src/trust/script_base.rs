@@ -8,15 +8,13 @@ use tower::ServiceExt;
 use crate::db::database_user::Role::Editor;
 use crate::db::database_user::User;
 use crate::db::{database, database_user};
-use crate::system::{server, data_updates};
-use crate::test_framework::article_builder::BOUNDARY;
-use crate::logger;
+use crate::system::{server, data_updates, logger};
 use tokio::sync::OnceCell;
 use tracing::log::debug;
 
 pub const CLEANUP: &str = "Failed to cleanup";
 
-// TODO
+// TODO X, proper test framework
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";
 

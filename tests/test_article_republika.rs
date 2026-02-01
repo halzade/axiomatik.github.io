@@ -2,9 +2,9 @@
 mod tests {
     use axum::http::{header, Request, StatusCode};
 
-    use axiomatik_web::test_framework::article_builder::ArticleBuilder;
-    use axiomatik_web::test_framework::script_base;
-    use axiomatik_web::test_framework::script_base::content_type_with_boundary;
+    use axiomatik_web::trust::article_builder::ArticleBuilder;
+    use axiomatik_web::trust::script_base;
+    use axiomatik_web::trust::script_base::content_type_with_boundary;
     use reqwest::Body;
     use std::fs;
     use axiomatik_web::test_framework::script_base_data::PNG;

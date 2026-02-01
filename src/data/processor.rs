@@ -1,10 +1,7 @@
 use std::str::FromStr;
 use thiserror::Error;
 use tracing::error;
-use crate::application::article::form_article_data_parser::{ArticleData, ArticleCreateError};
 use crate::data::audio_validator::validate_audio_data;
-
-// TODO
 
 #[derive(Debug, Error)]
 pub enum ProcessorError {
@@ -12,7 +9,7 @@ pub enum ProcessorError {
     UnknownCategory(String),
 }
 
-// TODO try_from ??
+// TODO do try_from ??
 pub fn process_category(raw_category: &str) -> Result<String, ProcessorError> {
     match raw_category {
         "zahranici" => Ok("zahraničí".into()),

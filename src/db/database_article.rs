@@ -75,7 +75,6 @@ pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, Dat
     Ok(articles.into_iter().next())
 }
 
-// TODO sort the Articles
 pub async fn articles_by_category(
     category: &str,
     limit: u32,

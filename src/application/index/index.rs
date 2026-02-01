@@ -51,8 +51,9 @@ pub struct IndexTemplate {
 }
 
 pub async fn render_index() -> Result<(), IndexError> {
-    // TODO render index template
-    // TODO save new file
+    
+    
+    
 }
 
 pub async fn compose_index_from_data() {}

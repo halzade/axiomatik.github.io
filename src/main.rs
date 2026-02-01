@@ -21,8 +21,10 @@ pub enum ApplicationError {
     Io(#[from] std::io::Error),
 }
 
-// TODO any authorization framework
-// TODO any validators in Rust
+// TODO X authorization framework, crate axum-login, axum_gate has OAuth2
+// TODO X try, crate: validator
+// TODO X Proper test framework
+// TODO X Nejsou vyřešeny státní svátky
 
 #[tokio::main]
 async fn main() -> Result<(), ApplicationError> {

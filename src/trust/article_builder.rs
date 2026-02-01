@@ -139,7 +139,7 @@ impl<'a> ArticleBuilder<'a> {
             body.extend_from_slice(b"\r\n");
         }
 
-        // TODO video
+        // TODO do video and write test
 
         write!(body, "--{}--\r\n", BOUNDARY)?;
         Ok(body)

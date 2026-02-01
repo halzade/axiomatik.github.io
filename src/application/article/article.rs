@@ -53,8 +53,9 @@ pub struct ArticleTemplate {
 }
 
 pub async fn create_article(multipart: Multipart) -> Result<impl IntoResponse, FormArticleCreateError> {
-    // TODO article already exists
-    // TODO doubled request on create button
+
+    // TODO X article already exists
+    // TODO X doubled request on create button
 
     /*
      * Read request data
@@ -78,7 +79,7 @@ pub async fn process_article_create(article_data: ArticleData) -> Result<String,
      * Validate
      */
 
-    // TODO Validate text fileds
+    // TODO X Validate text fileds, use validator framework instead
 
     if article_data.has_audio {
         validate_audio_data(&article_data.audio_data)?;
@@ -141,8 +142,6 @@ fn article_template(article_data: &ArticleData) -> ArticleTemplate {
         date: formatted_date.clone(),
         weather: formatted_weather.clone(),
         name_day: formatted_name_day.clone(),
-
-        // TODO
         related_articles: vec![],
         articles_most_read: most_read_data,
     };
@@ -150,9 +149,8 @@ fn article_template(article_data: &ArticleData) -> ArticleTemplate {
 
 fn article_db(article_data: &ArticleData) -> database_article::Article {
 
-    // TODO TryInto ?
-
-    // TODO  database_article::Article  should be probably the same object as ArticleData
+    // TODO do TryInto ?
+    // TODO do database_article::Article  should be probably the same object as ArticleData
 
     database_article::Article {
         author: article_data.author.clone(),
