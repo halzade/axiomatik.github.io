@@ -26,6 +26,7 @@ use axum_extra::extract::CookieJar;
 use http::StatusCode;
 use std::convert::Infallible;
 use std::fs;
+use std::sync::Arc;
 use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
@@ -72,6 +73,15 @@ impl IntoResponse for RouterError {
         (StatusCode::BAD_REQUEST, self.to_string()).into_response()
     }
 }
+
+impl IntoResponse for FormArticleCreateError {
+    fn into_response(self) -> Response {
+        (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+    }
+}
+
+#[derive(Clone)]
+struct User { name: String }
 
 impl ApplicationRouter {
     #[rustfmt::skip]
@@ -138,7 +148,6 @@ impl ApplicationRouter {
         ori_uri: OriginalUri,
         request: Request<Body>,
     ) -> Result<Response, RouterError> {
-
         // TODO X validate ori_uri contain only alphanumeric and dash, and one dot
         // TODO X re-renders should be somehow one thread only
 
@@ -188,9 +197,9 @@ impl ApplicationRouter {
     }
 }
 
-async fn auth_middleware(jar: CookieJar, req: Request<Body>, next: Next) -> Response {
+async fn auth_middleware(jar: CookieJar, mut req: Request<Body>, next: Next) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let user_o = database_user::get_user(cookie.value()).await;
+
         match user_o {
             None => {
                 // error -> login
@@ -205,6 +214,10 @@ async fn auth_middleware(jar: CookieJar, req: Request<Body>, next: Next) -> Resp
 
                 // continue
                 if user.role == database_user::Role::Editor {
+                    req.extensions_mut().insert(Arc::new(User{
+                        name: user.username,
+                        author: user.author_name,
+                    }));
                     return next.run(req).await;
                 }
             }

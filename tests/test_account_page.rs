@@ -69,7 +69,7 @@ mod tests {
             .text("Content")
             .short_text("Short")
             .image("test.png", &image_data, PNG)
-            .image_description("test image description")
+            .image_desc("test image description")
             .related_articles("related-test-article.html")
             .build();
 

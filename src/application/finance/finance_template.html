@@ -42,7 +42,7 @@
             <table>
                 <tr>
                     <td>
-                        <img class="most-image" src="{{ article.image_50_path }}" alt="image_description">
+                        <img class="most-image" src="{{ article.image_50_path }}" alt="{{ article.image_desc }}">
                     </td>
                     <td>
                         <h3>{{ article.title }}</h3><br/>
@@ -69,7 +69,7 @@
                 <section class="article-grid text">
                     {% for article in articles_left %}
                     <article class="card first">
-                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_description }}"></a>
+                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
                             <a href="#"><h2>{{ article.title }}</h2></a><br/>
                             <span class="category always-white">Finance</span><br/>

@@ -19,7 +19,7 @@ mod tests {
                 short_text: "Short text for republica 1".to_string(),
                 is_first: true,
                 image_path: "rep.jpg".to_string(),
-                image_description: "image_description".to_string(),
+                image_desc: "image_desc".to_string(),
                 category_name: "Republika".to_string(),
                 category_url: "republika.html".to_string(),
             }],

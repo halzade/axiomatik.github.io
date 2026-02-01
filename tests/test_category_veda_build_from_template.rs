@@ -19,7 +19,7 @@ mod tests {
                 short_text: "Short text for veda 1".to_string(),
                 is_first: true,
                 image_path: "veda.jpg".to_string(),
-                image_description: "image_description".to_string(),
+                image_desc: "image_desc".to_string(),
                 category_name: "Věda".to_string(),
                 category_url: "veda.html".to_string(),
             }],

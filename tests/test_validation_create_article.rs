@@ -24,7 +24,7 @@ mod tests {
             .text("Content")
             .short_text("Sho\x07rt")
             .image("test.jpg", &image_data, PNG)
-            .image_description("test description")
+            .image_desc("test description")
             .build();
 
         let response = script_base::one_shot(

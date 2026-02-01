@@ -1,44 +1,6 @@
 use crate::db::database::DatabaseError;
-use serde::{Deserialize, Serialize};
+use crate::db::database_article_data::{Article, MiniArticleData, ShortArticleData};
 use tracing::error;
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Article {
-    pub author: String,
-    pub created_by: String,
-    pub date: String,
-    pub title: String,
-    pub text: String,
-    pub short_text: String,
-    pub article_file_name: String,
-    pub image_url: String,
-    pub image_description: String,
-    pub video_url: Option<String>,
-    pub audio_url: Option<String>,
-    pub category: String,
-    pub related_articles: Vec<String>,
-    pub is_main: bool,
-    pub is_exclusive: bool,
-    pub views: i64,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ShortArticleData {
-    pub url: String,
-    pub title: String,
-    pub short_text: String,
-    pub image_288_path: String,
-    pub image_description: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct MiniArticleData {
-    pub url: String,
-    pub title: String,
-    pub mini_text: String,
-    pub image_50_path: String,
-    pub image_description: String,
-}
 
 pub async fn create_article(article: Article) -> Option<Article> {
     let sdb_wg = crate::db::database::db_write().await.ok()?;
@@ -99,9 +61,7 @@ pub async fn articles_by_category(
 }
 
 // TODO X actually most read
-pub async fn articles_most_read(
-    limit: u32,
-) -> Result<Vec<MiniArticleData>, DatabaseError> {
+pub async fn articles_most_read(limit: u32) -> Result<Vec<MiniArticleData>, DatabaseError> {
     let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
         .query("SELECT * FROM article WHERE ORDER BY date DESC LIMIT $limit")

@@ -25,7 +25,7 @@ mod tests {
             .main()
             .exclusive()
             .image("test.png", &image_data, PNG)
-            .image_description("anything")
+            .image_desc("anything")
             .build()
             .unwrap();
 

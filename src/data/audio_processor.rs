@@ -1,8 +1,7 @@
-use crate::data::audio_validator::{validate_data_is_audio, AudioValidatorError};
 use std::fs;
 use thiserror::Error;
-use tracing::error;
 use AudioProcessorError::AudioIo;
+use crate::data::audio_validator::AudioValidatorError;
 
 #[derive(Debug, Error)]
 pub enum AudioProcessorError {

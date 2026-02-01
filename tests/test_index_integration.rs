@@ -21,7 +21,7 @@ async fn test_index_main_article() {
         .short_text("Short")
         .main()
         .image("img.jpg", &image_data, PNG)
-        .image_description("desc")
+        .image_desc("desc")
         .build()
         .unwrap();
 
@@ -64,7 +64,7 @@ async fn test_index_main_article_exclusive() {
         .main()
         .exclusive()
         .image("img_ex.jpg", &image_data, PNG)
-        .image_description("desc")
+        .image_desc("desc")
         .build()
         .unwrap();
 
@@ -105,7 +105,7 @@ async fn test_index_article_republika() {
         .text("Text")
         .short_text("Short")
         .image("img_rep.jpg", &image_data, PNG)
-        .image_description("desc")
+        .image_desc("desc")
         .build()
         .unwrap();
 
@@ -147,7 +147,7 @@ async fn test_index_article_zahranici() {
         .text("Text")
         .short_text("Short")
         .image("img_zah.jpg", &image_data, PNG)
-        .image_description("desc")
+        .image_desc("desc")
         .build()
         .unwrap();
 
@@ -189,7 +189,7 @@ async fn test_index_article_veda() {
         .text("Text")
         .short_text("Short")
         .image("img_veda.jpg", &image_data, PNG)
-        .image_description("desc")
+        .image_desc("desc")
         .build()
         .unwrap();
 

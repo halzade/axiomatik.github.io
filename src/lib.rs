@@ -33,9 +33,6 @@ pub mod application {
     pub mod login {
         pub mod form_login;
     }
-    pub mod most_read {
-        pub mod most_read_articles;
-    }
     pub mod news {
         pub mod news;
     }
@@ -58,6 +55,7 @@ pub mod application {
 pub mod db {
     pub mod database;
     pub mod database_article;
+    pub mod database_article_data;
     pub mod database_internal;
     pub mod database_system;
     pub mod database_user;

@@ -10,7 +10,7 @@ pub struct ArticleBuilder<'a> {
     text_o: Option<String>,
     short_text_o: Option<String>,
     related_articles_o: Option<String>,
-    image_description_o: Option<String>,
+    image_desc_o: Option<String>,
     is_main_o: Option<bool>,
     is_exclusive_o: Option<bool>,
     image_o: Option<(String, &'a [u8], String)>,
@@ -52,8 +52,8 @@ impl<'a> ArticleBuilder<'a> {
         self
     }
 
-    pub fn image_description(mut self, image_description: &str) -> Self {
-        self.image_description_o = Some(image_description.into());
+    pub fn image_desc(mut self, image_desc: &str) -> Self {
+        self.image_desc_o = Some(image_desc.into());
         self
     }
 
@@ -107,8 +107,8 @@ impl<'a> ArticleBuilder<'a> {
         if let Some(v) = self.related_articles_o {
             text_part!("related_articles", v);
         }
-        if let Some(v) = self.image_description_o {
-            text_part!("image_description", v);
+        if let Some(v) = self.image_desc_o {
+            text_part!("image_desc", v);
         }
         if let Some(v) = self.is_main_o {
             text_part!("is_main", if v { "on" } else { "off" });

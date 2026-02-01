@@ -18,7 +18,7 @@ pub struct MainArticleData {
     pub is_exclusive: bool,
     pub short_text: String,
     pub image_path: String,
-    pub image_description: String,
+    pub image_desc: String,
 }
 
 /*

@@ -22,7 +22,7 @@ mod tests {
             .text("Main text")
             .short_text("Short text of newest article")
             .image("test.jpg", &image_data, PNG)
-            .image_description("test description")
+            .image_desc("test description")
             .build()
             .unwrap();
 

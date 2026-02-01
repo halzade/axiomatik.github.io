@@ -31,7 +31,7 @@ mod tests {
             .text("Test content")
             .short_text("Short text")
             .image("placeholder_1024.png", &image_data, png_mime)
-            .image_description("Description")
+            .image_desc("Description")
             .build()
             .unwrap();
 

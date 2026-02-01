@@ -19,7 +19,7 @@ mod tests {
                 short_text: "Short text for zahranici 1".to_string(),
                 is_first: true,
                 image_path: "zahranici.jpg".to_string(),
-                image_description: "image_description".to_string(),
+                image_desc: "image_desc".to_string(),
                 category_name: "Zahraničí".to_string(),
                 category_url: "zahranici.html".to_string(),
             }],

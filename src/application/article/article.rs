@@ -1,4 +1,3 @@
-use crate::application::article::article;
 use crate::application::form::form_article_create::FormArticleCreateError;
 use crate::application::form::form_article_data_parser;
 use crate::application::form::form_article_data_parser::ArticleData;
@@ -9,6 +8,7 @@ use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{IntoResponse, Redirect};
 use thiserror::Error;
+use crate::db::database_article;
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
@@ -29,19 +29,19 @@ pub enum ArticleError {
 #[derive(Template)]
 #[template(path = "application/article/article_template.html")]
 pub struct ArticleTemplate {
+    pub date: String,
+    pub weather: String,
+    pub name_day: String,
     pub title: String,
     pub author: String,
-    pub date: String,
     pub text: String,
     pub image_path: String,
-    pub image_description: String,
+    pub image_desc: String,
     pub video_path: Option<String>,
     pub audio_path: Option<String>,
     pub category: String,
     pub category_display: String,
     pub related_articles: Vec<ShortArticleData>,
-    pub weather: String,
-    pub name_day: String,
     pub articles_most_read: Vec<MiniArticleData>,
 }
 
@@ -58,7 +58,7 @@ pub async fn create_article(multipart: Multipart) -> Result<impl IntoResponse, F
     /*
      * Create Article, process the data
      */
-    let article_url = article::process_article_create(article_data).await?;
+    let article_url = process_article_create(article_data).await?;
 
     Ok(Redirect::to(&article_url).into_response())
 }
@@ -72,26 +72,31 @@ pub async fn process_article_create(article_data: ArticleData) -> Result<String,
      * Validate
      */
 
-    // TODO X Validate text fileds, use validator framework instead
+    // TODO X Validate text fields, use validator framework instead
 
     if article_data.has_audio {
         validate_audio_data(&article_data.audio_data)?;
-        validate_audio_extension(&article_data.audio_data_ext)?;
+        validate_audio_extension(&article_data.audio_ext)?;
     }
     if article_data.has_video {
         // validate_video_data(&article.video_data)?;
         // validate_video_extension(&article.video_data_ext)?;
     }
 
-    /*
-     * Prepare Article data
-     */
-    let article_template = article_template(&article_data);
-    let article_db = article_db(&article_data);
 
     // process data image
     // process data audio
     // process data video
+
+
+    /*
+     * Prepare Article data
+     */
+
+    ArticleA
+
+    let article_db = database_article::create_article();
+
 
     /*
      * Index page
@@ -114,10 +119,4 @@ pub async fn process_article_create(article_data: ArticleData) -> Result<String,
     // Store in DB
 
     // don't render anything
-}
-
-pub async fn render_article_create(article_url: String) -> Result<String, ArticleError> {
-
-    // TODO
-    Ok("".into())
 }

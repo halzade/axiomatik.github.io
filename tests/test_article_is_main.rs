@@ -24,7 +24,7 @@ mod tests {
             .short_text("Short text of veda article")
             .main()
             .image("test.jpg", &image_data, PNG)
-            .image_description("test description")
+            .image_desc("test description")
             .build()
             .unwrap();
 

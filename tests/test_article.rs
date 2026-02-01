@@ -24,7 +24,7 @@ mod tests {
             .short_text("Short text.")
             .related_articles("related-test-article.html")
             .image("test.jpg", &image_data, PNG)
-            .image_description("test description")
+            .image_desc("test description")
             .audio("test.mp3", FAKE_AUDIO_DATA_MP3, MP3)
             .build();
 

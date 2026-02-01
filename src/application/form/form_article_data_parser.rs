@@ -1,3 +1,5 @@
+use std::sync::Arc;
+use axum::Extension;
 use crate::data::audio_extractor::{extract_audio_data, AudioExtractorError};
 use crate::data::image_extractor::{extract_image_data, ImageExtractorError};
 use crate::data::library;
@@ -41,23 +43,26 @@ pub enum ArticleCreateError {
 pub struct ArticleData {
     pub is_main: bool,
     pub is_exclusive: bool,
+    pub author: String,
+    pub user: String,
 
     pub title: String,
     pub text_raw: String,
     pub short_text_raw: String,
+    pub mini_text_raw: String,
     pub category: String,
 
-    pub image_description: String,
-    pub image_data_ext: String,
+    pub image_desc: String,
+    pub image_ext: String,
     pub image_data: Vec<u8>,
 
     pub has_video: bool,
     pub video_data: Vec<u8>,
-    pub video_data_ext: String,
+    pub video_ext: String,
 
     pub has_audio: bool,
     pub audio_data: Vec<u8>,
-    pub audio_data_ext: String,
+    pub audio_ext: String,
 
     pub related_articles: Vec<String>,
     pub base_file_name: String,
@@ -66,15 +71,19 @@ pub struct ArticleData {
 /*
  * return raw Article data
  */
-pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, ArticleCreateError> {
+pub async fn article_data(
+    Extension(user): Extension<Arc<User>>,
+    mut multipart: Multipart
+) -> Result<ArticleData, ArticleCreateError> {
     // required
+    let mut author = String::new();
     let mut title = String::new();
     let mut base_file_name = String::new();
     let mut text_raw = String::new();
     let mut short_text_raw = String::new();
     let mut image_data = Vec::<u8>::new();
     let mut image_data_ext = String::new();
-    let mut image_description = String::new();
+    let mut image_desc = String::new();
     let mut category = String::new();
 
     // not required
@@ -95,6 +104,9 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
         debug!("Processing: {}, type: {:?}", field_name, content_type);
 
         match field_name.as_str() {
+            "author" => {
+                author = extract_required_text(field).await?;
+            }
             "is_main" => {
                 // if present, then required
                 is_main = extract_required_string(field).await? == "on"
@@ -132,7 +144,7 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
                     .collect();
             }
 
-            "image_description" => image_description = extract_required_string(field).await?,
+            "image_desc" => image_desc = extract_required_string(field).await?,
 
             "image" => {
                 (image_data, image_data_ext) = extract_image_data(field).await?;
@@ -153,21 +165,24 @@ pub async fn article_data(mut multipart: Multipart) -> Result<ArticleData, Artic
     let ad = ArticleData {
         is_main,
         is_exclusive,
+        author,
+        user,
         title,
         text_raw,
         short_text_raw,
         image_data,
-        image_data_ext,
-        image_description,
+        image_ext: image_data_ext,
+        image_desc,
         video_data,
-        video_data_ext,
+        video_ext: video_data_ext,
         has_audio,
         audio_data,
         category,
         related_articles,
         base_file_name,
         has_video,
-        audio_data_ext,
+        audio_ext: audio_data_ext,
+        mini_text_raw: "".to_string(),
     };
 
     Ok(ad)
