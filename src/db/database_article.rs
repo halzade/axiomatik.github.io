@@ -23,11 +23,20 @@ pub struct Article {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct EmbeddedArticleData {
+pub struct ShortArticleData {
     pub url: String,
     pub title: String,
     pub short_text: String,
-    pub image_path: String,
+    pub image_288_path: String,
+    pub image_description: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MiniArticleData {
+    pub url: String,
+    pub title: String,
+    pub mini_text: String,
+    pub image_50_path: String,
     pub image_description: String,
 }
 
@@ -78,21 +87,34 @@ pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, Dat
 pub async fn articles_by_category(
     category: &str,
     limit: u32,
-) -> Result<Vec<Article>, DatabaseError> {
+) -> Result<Vec<ShortArticleData>, DatabaseError> {
     let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
         .query("SELECT * FROM article WHERE category = $category ORDER BY date DESC LIMIT $limit")
         .bind(("category", category.to_string()))
         .bind(("limit", limit))
         .await?;
-    let articles: Vec<Article> = response.take(0)?;
+    let articles: Vec<ShortArticleData> = response.take(0)?;
+    Ok(articles)
+}
+
+// TODO X actually most read
+pub async fn articles_most_read(
+    limit: u32,
+) -> Result<Vec<MiniArticleData>, DatabaseError> {
+    let sdb = crate::db::database::db_read().await?;
+    let mut response = sdb
+        .query("SELECT * FROM article WHERE ORDER BY date DESC LIMIT $limit")
+        .bind(("limit", limit))
+        .await?;
+    let articles: Vec<MiniArticleData> = response.take(0)?;
     Ok(articles)
 }
 
 pub async fn articles_by_words(
     search_words: Vec<String>,
     limit: u32,
-) -> Result<Vec<EmbeddedArticleData>, DatabaseError> {
+) -> Result<Vec<ShortArticleData>, DatabaseError> {
     if search_words.is_empty() {
         return Ok(Vec::new());
     }
@@ -119,7 +141,7 @@ pub async fn articles_by_words(
     q = q.bind(("limit", limit));
 
     let mut response = q.await?;
-    let articles: Vec<EmbeddedArticleData> = response.take(0)?;
+    let articles: Vec<ShortArticleData> = response.take(0)?;
 
     Ok(articles)
 }

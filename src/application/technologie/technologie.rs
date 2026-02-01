@@ -1,8 +1,7 @@
 use askama::Template;
-use crate::web::base::ArticleMostRead;
 
 #[derive(Template)]
-#[template(path = "category_technologie_template.html")]
+#[template(path = "application/technologie/technologie_template.html")]
 pub struct TechnologieTemplate {
     pub date: String,
     pub weather: String,

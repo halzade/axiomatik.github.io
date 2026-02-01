@@ -4,12 +4,12 @@ use crate::application::change_password::form_change_password;
 use crate::application::form::form_article_create;
 use crate::application::form::form_article_create::FormArticleCreateError;
 use crate::application::form::form_article_data_parser::ArticleCreateError;
-use crate::application::index::index;
-use crate::application::index::index::IndexError;
+use crate::application::index::index_template;
+use crate::application::index::index_template::IndexError;
 use crate::application::login::form_login;
 use crate::application::republika::republika;
 use crate::application::republika::republika::RepublikaError;
-use crate::application::search::search;
+use crate::application::search::search_template;
 use crate::db::database_user;
 use crate::system::data_system::{DataSystem, DataSystemError};
 use crate::system::data_updates::{DataUpdates, DataUpdatesError};
@@ -110,7 +110,7 @@ impl ApplicationRouter {
                  get(form_login::show_login)
                 .post(form_login::handle_login),
             )
-            .route("/search", get(search::handle_search))
+            .route("/search", get(search_template::handle_search))
             .route("/ping", get("ping success"))
             // serve static content
             .nest_service("/css", ServeDir::new("../../web/css"))
@@ -149,7 +149,7 @@ impl ApplicationRouter {
             OriginalUri(uri) => match uri.path() {
                 "/index.html" => {
                     if !self.data_updates.index_valid() {
-                        index::render_index().await?;
+                        index_template::render_index().await?;
                         self.data_updates.index_invalidate();
                     }
                 }
@@ -161,7 +161,7 @@ impl ApplicationRouter {
                 }
                 "/republika.html" => {
                     if !self.data_updates.republika_valid() {
-                        republika::render_republika().await?;
+                        republika::render_republika(&self.data_system).await?;
                         self.data_updates.republika_validate();
                     }
                 }

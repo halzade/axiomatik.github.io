@@ -1,7 +1,7 @@
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "application/zahranici/zahranici.html")]
+#[template(path = "application/zahranici/zahranici_template.html")]
 pub struct ZahraniciTemplate {
     pub date: String,
     pub weather: String,

@@ -28,7 +28,7 @@ pub mod application {
         pub mod form_article_data_parser;
     }
     pub mod index {
-        pub mod index;
+        pub mod index_template;
     }
     pub mod login {
         pub mod form_login;
@@ -43,7 +43,7 @@ pub mod application {
         pub mod republika;
     }
     pub mod search {
-        pub mod search;
+        pub mod search_template;
     }
     pub mod technologie {
         pub mod technologie;

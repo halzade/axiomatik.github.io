@@ -1,4 +1,4 @@
-use crate::application::article::article::EmbeddedArticleData;
+use crate::application::article::article::ShortArticleData;
 use crate::application::most_read::most_read_articles::ArticlesMostReadTemplate;
 use crate::db::database_article;
 use askama::Template;
@@ -10,7 +10,7 @@ pub struct FinanceTemplate {
     pub weather: String,
     pub name_day: String,
     pub articles_most_read: ArticlesMostReadTemplate,
-    pub articles: Vec<EmbeddedArticleData>,
+    pub articles: Vec<ShortArticleData>,
 }
 
 pub fn render() {

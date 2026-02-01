@@ -18,7 +18,7 @@ pub enum FormArticleCreateError {
 }
 
 #[derive(Template)]
-#[template(path = "application/article/form.html")]
+#[template(path = "application/article/form_template.html")]
 pub struct FormTemplate {
     pub author_name: String,
 }

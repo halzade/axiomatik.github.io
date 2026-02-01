@@ -1,6 +1,6 @@
 use crate::data::text_validator::validate_search_query;
 use crate::db::database_article;
-use crate::db::database_article::EmbeddedArticleData;
+use crate::db::database_article::ShortArticleData;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Response};
 use axum::Form;
@@ -14,13 +14,13 @@ pub struct SearchPayload {
 }
 
 #[derive(Template)]
-#[template(path = "application/search/search.html")]
+#[template(path = "application/search/search_template.html")]
 pub struct SearchTemplate {
     pub title: String,
     pub date: String,
     pub weather: String,
     pub name_day: String,
-    pub articles: Vec<EmbeddedArticleData>,
+    pub articles: Vec<ShortArticleData>,
 }
 
 pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {

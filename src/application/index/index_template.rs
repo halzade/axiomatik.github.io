@@ -1,7 +1,7 @@
 use crate::application::most_read::most_read_articles::ArticlesMostReadTemplate;
 use askama::Template;
 use thiserror::Error;
-use crate::db::database_article::EmbeddedArticleData;
+use crate::db::database_article::ShortArticleData;
 
 #[derive(Debug, Error)]
 pub enum IndexError {
@@ -34,7 +34,7 @@ pub struct TopArticleData {
  * Index
  */
 #[derive(Template)]
-#[template(path = "application/index/index.html")]
+#[template(path = "application/index/index_template.html")]
 pub struct IndexTemplate {
     pub date: String,
     pub weather: String,
@@ -46,8 +46,8 @@ pub struct IndexTemplate {
     pub second_article: TopArticleData,
     pub third_article: TopArticleData,
 
-    pub z_republiky_articles: Vec<EmbeddedArticleData>,
-    pub ze_zahranici_articles: Vec<EmbeddedArticleData>,
+    pub z_republiky_articles: Vec<ShortArticleData>,
+    pub ze_zahranici_articles: Vec<ShortArticleData>,
 }
 
 pub async fn render_index() -> Result<(), IndexError> {

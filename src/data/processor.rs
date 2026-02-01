@@ -1,15 +1,23 @@
-use std::str::FromStr;
+use std::fs;
+use std::io::Error;
+use std::path::Path;
 use thiserror::Error;
 use tracing::error;
-use crate::data::audio_validator::validate_audio_data;
 
 #[derive(Debug, Error)]
 pub enum ProcessorError {
-    #[error("Unknown category: {0}")]
+    #[error("unknown category: {0}")]
     UnknownCategory(String),
+
+    #[error("save web file io error: {0}")]
+    SaveWebFileIOError(#[from] Error),
 }
 
-// TODO do try_from ??
+pub fn save_web_file(rendered_html: String, path: &str) -> Result<(), ProcessorError> {
+    fs::write(Path::new("web").join(path), rendered_html)?;
+    Ok(())
+}
+
 pub fn process_category(raw_category: &str) -> Result<String, ProcessorError> {
     match raw_category {
         "zahranici" => Ok("zahraničí".into()),
@@ -20,34 +28,6 @@ pub fn process_category(raw_category: &str) -> Result<String, ProcessorError> {
         cat => {
             error!("Unknown category: {}", cat);
             Err(ProcessorError::UnknownCategory(cat.to_string()))
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CategoryEnum {
-    Index,
-    News,
-    Finance,
-    Republika,
-    Technologie,
-    Veda,
-    Zahranici,
-}
-
-impl FromStr for CategoryEnum {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "index" => Ok(CategoryEnum::Index),
-            "news" => Ok(CategoryEnum::News),
-            "finance" => Ok(CategoryEnum::Finance),
-            "republika" => Ok(CategoryEnum::Republika),
-            "technologie" => Ok(CategoryEnum::Technologie),
-            "veda" => Ok(CategoryEnum::Veda),
-            "zahranici" => Ok(CategoryEnum::Zahranici),
-            _ => Err(()),
         }
     }
 }
