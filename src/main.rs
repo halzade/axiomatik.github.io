@@ -1,9 +1,8 @@
 use axiomatik_web::db::database;
-use axiomatik_web::logger;
 use axiomatik_web::system::commands::{create_user, delete_user};
 use axiomatik_web::system::configuration::ConfigurationError;
 use axiomatik_web::system::server;
-use axiomatik_web::system::{configuration, heartbeat};
+use axiomatik_web::system::{configuration, heartbeat, logger};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
@@ -21,10 +20,8 @@ pub enum ApplicationError {
     Io(#[from] std::io::Error),
 }
 
-// TODO X authorization framework, crate axum-login, axum_gate has OAuth2
 // TODO X try, crate: validator
-// TODO X Proper test framework
-// TODO X Nejsou vyřešeny státní svátky
+// TODO X nejsou vyřešeny státní svátky
 
 #[tokio::main]
 async fn main() -> Result<(), ApplicationError> {
@@ -76,7 +73,7 @@ async fn main() -> Result<(), ApplicationError> {
     /*
      * Router
      */
-    let router = server.start_server().await;
+    let router = server.start_server().await.expect("Failed to start server");
 
     let config = configuration::get_config()?;
     let addr = format!("{}:{}", config.host, config.port);

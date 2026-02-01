@@ -26,6 +26,7 @@ use axum_login::AuthManagerLayerBuilder;
 use http::StatusCode;
 use std::convert::Infallible;
 use std::fs;
+use std::sync::Arc;
 use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
@@ -86,9 +87,10 @@ impl IntoResponse for FormArticleCreateError {
 
 impl ApplicationRouter {
     #[rustfmt::skip]
-    pub async fn start_router(&self, status: ApplicationStatus) -> Router {
+    pub async fn start_router(self: Arc<Self>, status: ApplicationStatus) -> Router {
         info!("start_router()");
 
+        let self_a = self.clone();
         let session_store = MemoryStore::default();
         let session_layer = SessionManagerLayer::new(session_store)
             .with_secure(false)
@@ -131,8 +133,8 @@ impl ApplicationRouter {
             // other files
             .nest_service("/favicon.ico", get_service(ServeFile::new("../../web/favicon.ico")))
             // HTML files
-            .route("/*.html", get(|ori_uri: OriginalUri, request| async move {
-                    self.serve_html_content(ori_uri, request).await
+            .route("/*.html", get(move |ori_uri: OriginalUri, request| async move {
+                    self_a.serve_html_content(ori_uri, request).await
                 }
             ))
             // web app

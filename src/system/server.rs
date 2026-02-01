@@ -1,6 +1,6 @@
 use axum::Router;
 use chrono::{DateTime, Local};
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use thiserror::Error;
 use ApplicationStatus::{Off, Started, Unknown};
 use ServerError::{ServerAlreadyStarted, ServerStatusError, UnknownServerStatus};
@@ -27,10 +27,10 @@ pub enum ApplicationStatus {
     Unknown,
 }
 
-struct Server {
+pub struct Server {
     status: RwLock<ApplicationStatus>,
     start_time: DateTime<Local>,
-    router: ApplicationRouter,
+    router: Arc<ApplicationRouter>,
 }
 
 impl Server {
@@ -45,7 +45,7 @@ impl Server {
                 self.status_start()?;
 
                 // setup router
-                Ok(self.router.start_router(status_c).await)
+                Ok(self.router.clone().start_router(status_c).await)
             }
             Unknown => Err(UnknownServerStatus),
         }
@@ -84,6 +84,6 @@ pub fn new() -> Server {
     Server {
         status: RwLock::new(Off),
         start_time: Local::now(),
-        router: ApplicationRouter::new(),
+        router: Arc::new(ApplicationRouter::new()),
     }
 }
