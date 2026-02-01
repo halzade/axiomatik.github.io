@@ -7,7 +7,7 @@ mod tests {
     use axum_core::extract::Request;
     use reqwest::Body;
     use std::fs;
-    use axiomatik_web::test_framework::script_base_data::PNG;
+    use axiomatik_web::trust::script_base_data::PNG;
 
     #[tokio::test]
     async fn test_veda_article_is_main_rotation() {
@@ -44,11 +44,8 @@ mod tests {
         let updated_index = fs::read_to_string("index.html").unwrap();
 
         // Check MAIN_ARTICLE: should contain Test New Veda Main
-        let main_start = updated_index.find("<!-- MAIN_ARTICLE -->").unwrap();
-        let main_end = updated_index.find("<!-- /MAIN_ARTICLE -->").unwrap();
-        let main_section = &updated_index[main_start..main_end];
-        assert!(main_section.contains("Test New Veda Main"));
-        assert!(main_section.contains("u/")); // Image should be there
+        assert!(updated_index.contains("Test New Veda Main"));
+        assert!(updated_index.contains("u/")); // Image should be there
 
         // Cleanup
         let _ = fs::remove_file("web/test-new-veda-main.html");

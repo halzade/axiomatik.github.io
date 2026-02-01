@@ -1,28 +1,28 @@
 #[cfg(test)]
 mod tests {
     use askama::Template;
-    use axiomatik_web::form::form_category::VedaTemplate;
-    use axiomatik_web::form::form_index::IndexCategoryArticleTemplate;
+    use axiomatik_web::application::veda::veda::VedaTemplate;
+    use axiomatik_web::db::database_article_data::ShortArticleData;
     use axiomatik_web::system::data_updates;
 
     #[test]
     fn test_veda_build_from_template() {
         data_updates::init_trivial_data();
+        let articles_left = vec![ShortArticleData {
+            url: "veda-1.html".to_string(),
+            title: "Veda Article 1".to_string(),
+            short_text: "Short text for veda 1".to_string(),
+            image_288_path: "veda.jpg".to_string(),
+            image_desc: "image_desc".to_string(),
+        }];
+        let articles_right = vec![];
         let template = VedaTemplate {
             date: "Wednesday, January 21, 2026".to_string(),
             weather: "5°C | Prague".to_string(),
             name_day: "Bohdana".to_string(),
             articles_most_read: vec![],
-            articles: vec![IndexCategoryArticleTemplate {
-                url: "veda-1.html".to_string(),
-                title: "Veda Article 1".to_string(),
-                short_text: "Short text for veda 1".to_string(),
-                is_first: true,
-                image_path: "veda.jpg".to_string(),
-                image_desc: "image_desc".to_string(),
-                category_name: "Věda".to_string(),
-                category_url: "veda.html".to_string(),
-            }],
+            articles_left: &articles_left,
+            articles_right: &articles_right,
         };
 
         let rendered = template.render().expect("Failed to render template");

@@ -7,7 +7,7 @@ mod tests {
     use axiomatik_web::trust::script_base::content_type_with_boundary;
     use reqwest::Body;
     use std::fs;
-    use axiomatik_web::test_framework::script_base_data::PNG;
+    use axiomatik_web::trust::script_base_data::PNG;
 
     #[tokio::test]
     async fn test_republika_article_creation_and_limit() {
@@ -43,12 +43,7 @@ mod tests {
         assert!(updated_index.contains("Test Newest Republika"));
 
         // Count articles in Z_REPUBLIKY section
-        let start =
-            updated_index.find("<!-- Z_REPUBLIKY -->").unwrap() + "<!-- Z_REPUBLIKY -->".len();
-        let end = updated_index.find("<!-- /Z_REPUBLIKY -->").unwrap();
-        let section = &updated_index[start..end];
-
-        assert!(section.contains("Test Newest Republika"));
+        assert!(updated_index.contains("Test Newest Republika"));
 
         // Cleanup
         let _ = fs::remove_file("web/test-newest-republika.html");

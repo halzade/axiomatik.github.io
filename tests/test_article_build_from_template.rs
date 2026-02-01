@@ -1,49 +1,46 @@
 #[cfg(test)]
 mod tests {
     use askama::Template;
-    use axiomatik_web::form::form_index::{ArticleMostRead, IndexCategoryArticleTemplate};
-    use axiomatik_web::form::form_new_article::ArticleTemplate;
-    use axiomatik_web::system::data_updates;
+    use axiomatik_web::application::article::article::ArticleTemplate;
+    use axiomatik_web::db::database_article_data::{MiniArticleData, ShortArticleData};
 
     #[test]
     fn test_article_build_from_template() {
-        data_updates::init_trivial_data();
-        
         let related_articles = vec![
-            IndexCategoryArticleTemplate {
+            ShortArticleData {
                 url: "related-1.html".to_string(),
                 title: "Related Article 1".to_string(),
                 short_text: "Short text for related 1".to_string(),
-                is_first: false,
-                image_path: "img1.jpg".to_string(),
+                image_288_path: "img1.jpg".to_string(),
                 image_desc: "image_desc".to_string(),
-                category_name: "Republika".to_string(),
-                category_url: "republika.html".to_string(),
             },
-            IndexCategoryArticleTemplate {
+            ShortArticleData {
                 url: "related-2.html".to_string(),
                 title: "Related Article 2".to_string(),
                 short_text: "Short text for related 2".to_string(),
-                is_first: false,
-                image_path: "img2.jpg".to_string(),
+                image_288_path: "img2.jpg".to_string(),
                 image_desc: "image_desc".to_string(),
-                category_name: "Zahraničí".to_string(),
-                category_url: "zahranici.html".to_string(),
             },
         ];
 
         let most_read = vec![
-            ArticleMostRead {
-                image_url_50: "images/placeholder_50.png".to_string(),
+            MiniArticleData {
+                url: "most-read-1.html".to_string(),
+                image_50_path: "images/placeholder_50.png".to_string(),
                 title: "Most Read 1".to_string(),
-                text: "Text for most read 1".to_string(),
+                mini_text: "Text for most read 1".to_string(),
+                image_desc: "desc".to_string(),
             }
         ];
 
         let template = ArticleTemplate {
-            title: "Jeden tisíc dnů".to_string(),
-            author: "Lukáš ze Sametu".to_string(),
             date: "Sobota 24. Ledna 2026".to_string(),
+            weather: "-1°C | Praha".to_string(),
+            name_day: "Milena".to_string(),
+
+            author: "Lukáš ze Sametu".to_string(),
+
+            title: "Jeden tisíc dnů".to_string(),
             text: "<p>Pouhých tisíc dnů nás dělí od vzestupu krajní pravice v Německu.</p>".to_string(),
             image_path: "fasces-white.jpg".to_string(),
             image_desc: "Vlakové nádraží v ulici Baker Street".to_string(),
@@ -52,8 +49,6 @@ mod tests {
             category: "zahranici".to_string(),
             category_display: "Zahraničí".to_string(),
             related_articles,
-            weather: "-1°C | Praha".to_string(),
-            name_day: "Milena".to_string(),
             articles_most_read: most_read,
         };
 
