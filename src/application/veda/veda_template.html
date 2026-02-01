@@ -39,7 +39,17 @@
         <div class="most-articles">
             <div class="arrow red-arrow-left"></div>
             {% for article in articles_most_read %}
-                {{ article|safe }}
+            <table>
+                <tr>
+                    <td>
+                        <img class="most-image" src="{{ article.image_50_path }}" alt="image_description">
+                    </td>
+                    <td>
+                        <h3>{{ article.title }}</h3><br/>
+                        <p>{{ article.mini_text }}</p>
+                    </td>
+                </tr>
+            </table>
             {% endfor %}
             <div class="arrow red-arrow-right right-click-arrow"></div>
         </div>
@@ -57,19 +67,29 @@
         <div class="split-layout border-bottom">
             <div class="split-column r20">
                 <section class="article-grid text">
-                    {% for article in articles %}
-                        {% if loop.index0 < 2 %}
-                            {{ article|safe }}
-                        {% endif %}
+                    {% for article in articles_left %}
+                    <article class="card first">
+                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_description }}"></a>
+                        <div class="article-right">
+                            <a href="#"><h2>{{ article.title }}</h2></a><br/>
+                            <span class="category always-white">Věda</span><br/>
+                            <a href="#">
+                                {{ article.short_text }}
+                            </a>
+                        </div>
+                    </article>
                     {% endfor %}
                 </section>
             </div>
             <div class="split-column">
                 <section class="article-grid text">
-                    {% for article in articles %}
-                        {% if loop.index0 >= 2 %}
-                            {{ article|safe }}
-                        {% endif %}
+                    {% for article in articles_right %}
+                    <article class="card">
+                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.url }}">
+                            {{ article.short_text }}
+                        </a>
+                    </article>
                     {% endfor %}
                     <div class="right">
                         <a class="button" href="index.html">K přehledu zpráv</a>

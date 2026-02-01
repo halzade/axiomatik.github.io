@@ -39,7 +39,17 @@
         <div class="most-articles">
             <div class="arrow red-arrow-left"></div>
             {% for article in articles_most_read %}
-            {{ article|safe }}
+            <table>
+                <tr>
+                    <td>
+                        <img class="most-image" src="{{ article.image_50_path }}" alt="image_description">
+                    </td>
+                    <td>
+                        <h3>{{ article.title }}</h3><br/>
+                        <p>{{ article.mini_text }}</p>
+                    </td>
+                </tr>
+            </table>
             {% endfor %}
             <div class="arrow red-arrow-right right-click-arrow"></div>
         </div>
@@ -55,7 +65,41 @@
             </p>
         </header>
         <div class="split-layout border-bottom">
-            {{ z_republiky|safe }}
+            <div class="split-column r20">
+                <section class="article-grid text">
+                    {% for article in z_republiky %}
+                    {% if loop.index0 == 0 %}
+                    <article class="card first">
+                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_description }}"></a>
+                        <div class="article-right">
+                            <a href="#"><h2>{{ article.title }}</h2></a><br/>
+                            <span class="category always-white">Republika</span><br/>
+                            <a href="#">
+                                {{ article.short_text }}
+                            </a>
+                        </div>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                </section>
+            </div>
+            <div class="split-column">
+                <section class="article-grid text">
+                    {% for article in z_republiky %}
+                    {% if loop.index0 > 0 %}
+                    <article class="card">
+                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.url }}">
+                            {{ article.short_text }}
+                        </a>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="right">
+                        <a class="button" href="republika.html">Další zprávy</a>
+                    </div>
+                </section>
+            </div>
         </div>
 
         <br/>
@@ -70,7 +114,41 @@
         </header>
 
         <div class="split-layout border-bottom">
-            {{ technologie|safe }}
+            <div class="split-column r20">
+                <section class="article-grid text">
+                    {% for article in technologie %}
+                    {% if loop.index0 == 0 %}
+                    <article class="card first">
+                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_description }}"></a>
+                        <div class="article-right">
+                            <a href="#"><h2>{{ article.title }}</h2></a><br/>
+                            <span class="category always-white">Technologie</span><br/>
+                            <a href="#">
+                                {{ article.short_text }}
+                            </a>
+                        </div>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                </section>
+            </div>
+            <div class="split-column">
+                <section class="article-grid text">
+                    {% for article in technologie %}
+                    {% if loop.index0 > 0 %}
+                    <article class="card">
+                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.url }}">
+                            {{ article.short_text }}
+                        </a>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="right">
+                        <a class="button" href="technologie.html">Další zprávy</a>
+                    </div>
+                </section>
+            </div>
         </div>
 
         <br/>
@@ -84,7 +162,41 @@
         </header>
 
         <div class="split-layout border-bottom">
-            {{ veda|safe }}
+            <div class="split-column r20">
+                <section class="article-grid text">
+                    {% for article in veda %}
+                    {% if loop.index0 == 0 %}
+                    <article class="card first">
+                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_description }}"></a>
+                        <div class="article-right">
+                            <a href="#"><h2>{{ article.title }}</h2></a><br/>
+                            <span class="category always-white">Věda</span><br/>
+                            <a href="#">
+                                {{ article.short_text }}
+                            </a>
+                        </div>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                </section>
+            </div>
+            <div class="split-column">
+                <section class="article-grid text">
+                    {% for article in veda %}
+                    {% if loop.index0 > 0 %}
+                    <article class="card">
+                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.url }}">
+                            {{ article.short_text }}
+                        </a>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="right">
+                        <a class="button" href="veda.html">Další zprávy</a>
+                    </div>
+                </section>
+            </div>
         </div>
 
         <br/>
@@ -97,7 +209,41 @@
             </p>
         </header>
         <div class="split-layout border-bottom">
-            {{ ze_zahranici|safe }}
+            <div class="split-column r20">
+                <section class="article-grid text">
+                    {% for article in ze_zahranici %}
+                    {% if loop.index0 == 0 %}
+                    <article class="card first">
+                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_description }}"></a>
+                        <div class="article-right">
+                            <a href="#"><h2>{{ article.title }}</h2></a><br/>
+                            <span class="category always-white">Zahraničí</span><br/>
+                            <a href="#">
+                                {{ article.short_text }}
+                            </a>
+                        </div>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                </section>
+            </div>
+            <div class="split-column">
+                <section class="article-grid text">
+                    {% for article in ze_zahranici %}
+                    {% if loop.index0 > 0 %}
+                    <article class="card">
+                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.url }}">
+                            {{ article.short_text }}
+                        </a>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="right">
+                        <a class="button" href="zahranici.html">Další zprávy</a>
+                    </div>
+                </section>
+            </div>
         </div>
 
         <br/>
@@ -110,7 +256,41 @@
             </p>
         </header>
         <div class="split-layout border-bottom">
-            {{ finance|safe }}
+            <div class="split-column r20">
+                <section class="article-grid text">
+                    {% for article in finance %}
+                    {% if loop.index0 == 0 %}
+                    <article class="card first">
+                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_description }}"></a>
+                        <div class="article-right">
+                            <a href="#"><h2>{{ article.title }}</h2></a><br/>
+                            <span class="category always-white">Finance</span><br/>
+                            <a href="#">
+                                {{ article.short_text }}
+                            </a>
+                        </div>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                </section>
+            </div>
+            <div class="split-column">
+                <section class="article-grid text">
+                    {% for article in finance %}
+                    {% if loop.index0 > 0 %}
+                    <article class="card">
+                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.url }}">
+                            {{ article.short_text }}
+                        </a>
+                    </article>
+                    {% endif %}
+                    {% endfor %}
+                    <div class="right">
+                        <a class="button" href="finance.html">Další zprávy</a>
+                    </div>
+                </section>
+            </div>
         </div>
     </main>
     <footer class="w8">
