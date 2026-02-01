@@ -61,7 +61,7 @@ mod tests {
         assert!(saved_content.contains("For 1"));
 
         // HTML structure verification (un-escaped)
-        assert!(saved_content.contains("<!-- MAIN_ARTICLE -->"));
+        assert!(saved_content.contains("<section class=\"main-article\">"));
 
         // Cleanup
         let _ = std::fs::remove_file("test-index.html");

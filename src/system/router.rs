@@ -7,9 +7,19 @@ use crate::application::form::form_article_data_parser::ArticleCreateError;
 use crate::application::index::index;
 use crate::application::index::index::IndexError;
 use crate::application::login::form_login;
+use crate::application::finance::finance;
+use crate::application::finance::finance::FinanceError;
+use crate::application::news::news;
+use crate::application::news::news::NewsError;
 use crate::application::republika::republika;
 use crate::application::republika::republika::RepublikaError;
 use crate::application::search::search;
+use crate::application::technologie::technologie;
+use crate::application::technologie::technologie::TechnologieError;
+use crate::application::veda::veda;
+use crate::application::veda::veda::VedaError;
+use crate::application::zahranici::zahranici;
+use crate::application::zahranici::zahranici::ZahraniciError;
 use crate::db::database_user::{self, Backend};
 use crate::system::data_system::{DataSystem, DataSystemError};
 use crate::system::data_updates::{DataUpdates, DataUpdatesError};
@@ -43,17 +53,32 @@ pub enum RouterError {
     #[error("data update error: {0}")]
     RouterDataUpdate(#[from] DataUpdatesError),
 
+    #[error("index error: {0}")]
+    RouterIndexError(#[from] IndexError),
+
+    #[error("finance error: {0}")]
+    RouterFinanceError(#[from] FinanceError),
+
+    #[error("news error: {0}")]
+    RouterNewsError(#[from] NewsError),
+
+    #[error("republika error: {0}")]
+    RouterRepublikaError(#[from] RepublikaError),
+
+    #[error("technologie error: {0}")]
+    RouterTechnologieError(#[from] TechnologieError),
+
+    #[error("veda error: {0}")]
+    RouterVedaError(#[from] VedaError),
+
+    #[error("zahranici error: {0}")]
+    RouterZahraniciError(#[from] ZahraniciError),
+
     #[error("data update system: {0}")]
     RouterDataSystem(#[from] DataSystemError),
 
     #[error("form error: {0}")]
     RouterForm(#[from] FormArticleCreateError),
-
-    #[error("index error: {0}")]
-    RouterIndexError(#[from] IndexError),
-
-    #[error("republika error: {0}")]
-    RouterRepublikaErrorError(#[from] RepublikaError),
 
     #[error("response infallible: {0}")]
     RouterInfallible(#[from] Infallible),
@@ -163,15 +188,21 @@ impl ApplicationRouter {
             OriginalUri(uri) => match uri.path() {
                 "/index.html" => {
                     if !self.data_updates.index_valid() {
-                        index::render_index().await?;
-                        self.data_updates.index_invalidate();
+                        index::render_index(&self.data_system).await?;
+                        self.data_updates.index_validate();
                     }
                 }
                 "/finance.html" => {
-                    // TODO do
+                    if !self.data_updates.finance_valid() {
+                        finance::render_finance(&self.data_system).await?;
+                        self.data_updates.finance_validate();
+                    }
                 }
                 "/news.html" => {
-                    // TODO do
+                    if !self.data_updates.news_valid() {
+                        news::render_news(&self.data_system).await?;
+                        self.data_updates.news_validate();
+                    }
                 }
                 "/republika.html" => {
                     if !self.data_updates.republika_valid() {
@@ -180,17 +211,26 @@ impl ApplicationRouter {
                     }
                 }
                 "/technologie.html" => {
-                    // TODO do
+                    if !self.data_updates.technologie_valid() {
+                        technologie::render_technologie(&self.data_system).await?;
+                        self.data_updates.technologie_validate();
+                    }
                 }
                 "/veda.html" => {
-                    // TODO do
+                    if !self.data_updates.veda_valid() {
+                        veda::render_veda(&self.data_system).await?;
+                        self.data_updates.veda_validate();
+                    }
                 }
                 "/zahranici.html" => {
-                    // TODO do
+                    if !self.data_updates.zahranici_valid() {
+                        zahranici::render_zahranici(&self.data_system).await?;
+                        self.data_updates.zahranici_validate();
+                    }
                 }
                 _ => {
                     // forgot some or Article
-                    // TODO do
+                    // TODO article.rs
                 }
             },
         };

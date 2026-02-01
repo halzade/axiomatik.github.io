@@ -64,25 +64,55 @@ impl DataUpdates {
     pub fn news_valid(&self) -> bool {
         *self.news_valid.read()
     }
+    pub fn news_validate(&self) {
+        *self.news_valid.write() = true;
+    }
+    pub fn news_invalidate(&self) {
+        *self.news_valid.write() = false;
+    }
 
     // finance
     pub fn finance_valid(&self) -> bool {
         *self.finance_valid.read()
+    }
+    pub fn finance_validate(&self) {
+        *self.finance_valid.write() = true;
+    }
+    pub fn finance_invalidate(&self) {
+        *self.finance_valid.write() = false;
     }
 
     // technologie
     pub fn technologie_valid(&self) -> bool {
         *self.technologie_valid.read()
     }
+    pub fn technologie_validate(&self) {
+        *self.technologie_valid.write() = true;
+    }
+    pub fn technologie_invalidate(&self) {
+        *self.technologie_valid.write() = false;
+    }
 
     // veda
     pub fn veda_valid(&self) -> bool {
         *self.veda_valid.read()
     }
+    pub fn veda_validate(&self) {
+        *self.veda_valid.write() = true;
+    }
+    pub fn veda_invalidate(&self) {
+        *self.veda_valid.write() = false;
+    }
 
     // zahranici
     pub fn zahranici_valid(&self) -> bool {
         *self.zahranici_valid.read()
+    }
+    pub fn zahranici_validate(&self) {
+        *self.zahranici_valid.write() = true;
+    }
+    pub fn zahranici_invalidate(&self) {
+        *self.zahranici_valid.write() = false;
     }
 
     // articles
