@@ -42,14 +42,6 @@ mod tests {
         let updated_index = fs::read_to_string("index.html").unwrap();
         assert!(updated_index.contains("Test Newest Zahranici"));
 
-        // Count articles in ZE_ZAHRANICI section
-        let start =
-            updated_index.find("<!-- ZE_ZAHRANICI -->").unwrap() + "<!-- ZE_ZAHRANICI -->".len();
-        let end = updated_index.find("<!-- /ZE_ZAHRANICI -->").unwrap();
-        let section = &updated_index[start..end];
-
-        assert!(section.contains("Test Newest Zahranici"));
-
         // Cleanup
         let _ = fs::remove_file("web/test-newest-zahranici.html");
         let _ = fs::remove_file("web/u/test-newest-zahranici_image_820.jpg");

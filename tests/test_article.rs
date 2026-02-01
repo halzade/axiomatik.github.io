@@ -46,7 +46,7 @@ mod tests {
         );
 
         // Verify files were created
-        assert!(std::path::Path::new("test-article.html").exists());
+        assert!(std::path::Path::new("web/test-article.html").exists());
 
         // Request the article
         let response_article = script_base::one_shot(
@@ -72,7 +72,7 @@ mod tests {
         assert_eq!(account_resp.status(), StatusCode::OK);
 
         // Verify audio player placement
-        let article_content = read_to_string("test-article.html").unwrap();
+        let article_content = read_to_string("web/test-article.html").unwrap();
         let audio_pos = article_content
             .find("<audio")
             .expect("Audio player not found");
