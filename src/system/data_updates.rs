@@ -1,6 +1,7 @@
 use parking_lot::RwLock;
 use std::collections::HashMap;
 use thiserror::Error;
+use ArticleStatus::{DoesntExist, Invalid, Valid};
 
 #[derive(Error, Debug)]
 pub enum DataUpdatesError {
@@ -8,12 +9,19 @@ pub enum DataUpdatesError {
     Poisoned,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ArticleStatus {
+    Valid,
+    Invalid,
+    DoesntExist,
+}
+
 /*
  * when was which HTML file last updated?
  * or invalidated because of a new article published
  */
 pub struct DataUpdates {
-    articles_valid: RwLock<HashMap<String, bool>>,
+    articles_valid: RwLock<HashMap<String, ArticleStatus>>,
     index_valid: RwLock<bool>,
     news_valid: RwLock<bool>,
     finance_valid: RwLock<bool>,
@@ -115,29 +123,23 @@ impl DataUpdates {
     }
 
     // articles
-    pub fn article_valid(&self, file_name: &str) -> bool {
-        let valid_o = self.articles_valid.read().get(file_name).cloned();
-        match valid_o {
-            None => {
-                // no record, new Article or restart
-                self.articles_valid
-                    .write()
-                    .insert(file_name.to_string(), false);
-                false
-            }
-            Some(valid) => valid,
+    pub fn article_valid(&self, file_name: &str) -> ArticleStatus {
+        let read_guard = self.articles_valid.read();
+        match read_guard.get(file_name) {
+            Some(status) => *status,
+            None => DoesntExist,
         }
     }
 
     pub fn article_validate(&self, file_name: &str) {
-        self.article_set(file_name, true);
+        self.article_set(file_name, Valid);
     }
 
     pub fn article_invalidate(&self, file_name: &str) {
-        self.article_set(file_name, false);
+        self.article_set(file_name, Invalid);
     }
 
-    fn article_set(&self, file_name: &str, value: bool) {
+    fn article_set(&self, file_name: &str, value: ArticleStatus) {
         self.articles_valid
             .write()
             .insert(file_name.to_string(), value);
@@ -146,5 +148,69 @@ impl DataUpdates {
 
 #[cfg(test)]
 mod tests {
-    // TODO X
+    use super::*;
+
+    #[test]
+    fn test_new() {
+        let du = new();
+        assert!(!du.index_valid());
+        assert!(!du.news_valid());
+        assert!(!du.finance_valid());
+        assert!(!du.republika_valid());
+        assert!(!du.technologie_valid());
+        assert!(!du.veda_valid());
+        assert!(!du.zahranici_valid());
+    }
+
+    #[test]
+    fn test_index_validation() {
+        let du = new();
+        assert!(!du.index_valid());
+        du.index_validate();
+        assert!(du.index_valid());
+        du.index_invalidate();
+        assert!(!du.index_valid());
+    }
+
+    #[test]
+    fn test_article_validation() {
+        let du = new();
+        let name = "test_article.html";
+
+        assert_eq!(du.article_valid(name), DoesntExist);
+
+        // Validate
+        du.article_validate(name);
+        match du.article_valid(name) {
+            ArticleStatus::Valid => (),
+            _ => panic!("Should be valid after validation"),
+        }
+
+        // Invalidate
+        du.article_invalidate(name);
+        match du.article_valid(name) {
+            ArticleStatus::Invalid => (),
+            _ => panic!("Should be invalid after invalidation"),
+        }
+    }
+
+    #[test]
+    fn test_multiple_articles() {
+        let du = new();
+        du.article_validate("a");
+        du.article_invalidate("b");
+
+        match du.article_valid("a") {
+            ArticleStatus::Valid => (),
+            _ => panic!("a should be valid"),
+        }
+        match du.article_valid("b") {
+            ArticleStatus::Invalid => (),
+            _ => panic!("b should be invalid"),
+        }
+        match du.article_valid("c") {
+            ArticleStatus::DoesntExist => (),
+            _ => panic!("c should not exist"),
+        }
+    }
 }

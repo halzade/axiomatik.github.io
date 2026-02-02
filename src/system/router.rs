@@ -23,7 +23,7 @@ use crate::application::zahranici::zahranici;
 use crate::application::zahranici::zahranici::ZahraniciError;
 use crate::db::database_user::{self, Backend};
 use crate::system::data_system::{DataSystem, DataSystemError};
-use crate::system::data_updates::{DataUpdates, DataUpdatesError};
+use crate::system::data_updates::{ArticleStatus, DataUpdates, DataUpdatesError};
 use crate::system::server::ApplicationStatus;
 use crate::system::{data_system, data_updates, heartbeat};
 use axum::body::Body;
@@ -36,13 +36,12 @@ use axum_core::extract::Request;
 use axum_login::AuthManagerLayerBuilder;
 use http::StatusCode;
 use std::convert::Infallible;
-use std::fs;
 use std::sync::Arc;
 use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
 use tower_sessions::{MemoryStore, SessionManagerLayer};
-use tracing::{debug, info};
+use tracing::{info, warn};
 
 pub type AuthSession = axum_login::AuthSession<Backend>;
 
@@ -170,7 +169,7 @@ impl ApplicationRouter {
              */
             .route("/", get(move |ori_uri: OriginalUri, request|
                 async move {
-                    self_a2.serve_html_content(ori_uri, request).await
+                    self_a2.serve_static_content(ori_uri, request).await
                 }
             ))
             // web app
@@ -187,12 +186,12 @@ impl ApplicationRouter {
     /**
      * serve all static files for web
      * 1. HTML file requests
-     * - serve static HTML file if valid
-     * - rebuild the html file if invalid
-     * 2. image, Video, CSS, JS requests
+     * - serve a static HTML file if valid
+     * - rebuild the HTML file if invalid
+     * 2. image, video, CSS, js requests
      * - serve static files
      */
-    pub async fn serve_html_content(
+    pub async fn serve_static_content(
         &self,
         ori_uri: OriginalUri,
         request: Request<Body>,
@@ -200,82 +199,118 @@ impl ApplicationRouter {
         // TODO X validate ori_uri contain only alphanumeric and dash, and one dot
         // TODO X re-renders should be somehow one thread only
 
-        let path = ori_uri.path().to_string();
+        let url = ori_uri.path().to_string();
 
         /*
          * What kind of content is it?
          */
-        if path.starts_with("/css/")
-            || path.starts_with("/js/")
-            || path.starts_with("/u/")
-            || path == "/favicon.ico"
+        if url.starts_with("/css/")
+            || url.starts_with("/js/")
+            || url.starts_with("/u/")
+            || url == "/favicon.ico"
         {
-            return Ok(ServeFile::new(format!("web/{}", path))
-                .oneshot(request)
-                .await?
-                .into_response());
+           return serve_this(url, request).await;
         }
         // it is an HTML file request, HTML content may need refresh
 
-        match &ori_uri {
-            OriginalUri(uri) => match uri.path() {
-                "/index.html" => {
-                    if !self.data_updates_a.index_valid() {
-                        index::render_index(&self.data_system).await?;
-                        self.data_updates_a.index_validate();
-                    }
-                }
-                "/finance.html" => {
-                    if !self.data_updates_a.finance_valid() {
-                        finance::render_finance(&self.data_system).await?;
-                        self.data_updates_a.finance_validate();
-                    }
-                }
-                "/news.html" => {
-                    if !self.data_updates_a.news_valid() {
-                        news::render_news(&self.data_system).await?;
-                        self.data_updates_a.news_validate();
-                    }
-                }
-                "/republika.html" => {
-                    if !self.data_updates_a.republika_valid() {
-                        republika::render_republika(&self.data_system).await?;
-                        self.data_updates_a.republika_validate();
-                    }
-                }
-                "/technologie.html" => {
-                    if !self.data_updates_a.technologie_valid() {
-                        self.data_updates_a.technologie_validate();
-                        technologie::render_technologie(&self.data_system).await?;
-                    }
-                }
-                "/veda.html" => {
-                    if !self.data_updates_a.veda_valid() {
-                        veda::render_veda(&self.data_system).await?;
-                        self.data_updates_a.veda_validate();
-                    }
-                }
-                "/zahranici.html" => {
-                    if !self.data_updates_a.zahranici_valid() {
-                        zahranici::render_zahranici(&self.data_system).await?;
-                        self.data_updates_a.zahranici_validate();
-                    }
-                }
-                _ => {
-                    // forgot some or Article
-                    if !self.data_updates_a.article_valid(uri.path().trim()) {
-                        article::render_article(uri.path().trim(), &self.data_system).await?;
-                        self.data_updates_a.article_validate(uri.path().trim());
-                    }
-                }
-            },
-        };
+        match url.as_str() {
+            "/index.html" => {
+                if !self.data_updates_a.index_valid() {
+                    self.data_updates_a.index_validate();
 
-        Ok(ServeFile::new(ori_uri.path().to_string())
-            .oneshot(request)
-            .await?
-            .into_response())
+                    index::render_index(&self.data_system).await?;
+
+                    return serve_this(url, request).await;
+                }
+            }
+            "/finance.html" => {
+                if !self.data_updates_a.finance_valid() {
+                    self.data_updates_a.finance_validate();
+
+                    finance::render_finance(&self.data_system).await?;
+
+                    serve_this(url, request).await
+                }
+            }
+            "/news.html" => {
+                if !self.data_updates_a.news_valid() {
+                    self.data_updates_a.news_validate();
+
+                    news::render_news(&self.data_system).await?;
+
+                    serve_this(url, request).await
+                }
+            }
+            "/republika.html" => {
+                if !self.data_updates_a.republika_valid() {
+                    self.data_updates_a.republika_validate();
+
+                    republika::render_republika(&self.data_system).await?;
+
+                    serve_this(url, request).await
+                }
+
+                // TODO serve the file
+            }
+            "/technologie.html" => {
+                if !self.data_updates_a.technologie_valid() {
+                    self.data_updates_a.technologie_validate();
+
+                    technologie::render_technologie(&self.data_system).await?;
+
+                    serve_this(url, request).await
+                }
+            }
+            "/veda.html" => {
+                if !self.data_updates_a.veda_valid() {
+                    self.data_updates_a.veda_validate();
+
+                    veda::render_veda(&self.data_system).await?;
+
+                    serve_this(url, request).await
+                }
+            }
+            "/zahranici.html" => {
+                if !self.data_updates_a.zahranici_valid() {
+                    self.data_updates_a.zahranici_validate();
+
+                    zahranici::render_zahranici(&self.data_system).await?;
+
+                    serve_this(url, request).await
+                }
+            }
+            _ => {
+                // 404 or Article
+                match self.data_updates_a.article_valid(&url) {
+                    ArticleStatus::Valid => {
+                        // no change, serve the file
+                        serve_this(url, request).await
+                    }
+                    ArticleStatus::Invalid => {
+                        // article was invalidated, render article html
+                        // new article was u
+                        article::render_article(&url, &self.data_system).await?;
+                        self.data_updates_a.article_validate(&url);
+                        serve_this(url, request).await
+                    }
+                    ArticleStatus::DoesntExist => {
+                        serve_404()
+                    }
+                }
+            }
+        }
     }
+}
+
+async fn serve_this(path: String, request: Request<Body>) -> Result<Response, RouterError> {
+    Ok(ServeFile::new(format!("web/{}", path))
+        .oneshot(request)
+        .await?
+        .into_response())
+}
+
+async fn serve_404() -> Result<Response, RouterError> {
+    Ok((StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string())).into_response())
 }
 
 async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Next) -> Response {
@@ -302,13 +337,9 @@ async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Ne
 }
 
 async fn show_404() -> impl IntoResponse {
-    debug!("show_404 called");
-
-    match fs::read_to_string("../../web/404.html") {
-        Ok(content) => (StatusCode::NOT_FOUND, Html(content)),
-        Err(err) => {
-            debug!("Failed to read 404.html: {err}");
-            (StatusCode::NOT_FOUND, Html("404 Not Found".to_string()))
-        }
-    }
+    warn!("router fallback");
+    (
+        StatusCode::NOT_FOUND,
+        Html("404, stránka nenalezená".to_string()),
+    )
 }

@@ -1,5 +1,6 @@
 /*
  * Lazybones!
+ * cargo clippy
  */
 #![forbid(unsafe_code)]
 #![forbid(clippy::unwrap_used)]
