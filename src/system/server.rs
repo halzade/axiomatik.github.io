@@ -1,10 +1,11 @@
+use crate::system::router::ApplicationRouter;
 use axum::Router;
 use chrono::{DateTime, Local};
-use std::sync::{Arc, RwLock};
+use parking_lot::RwLock;
+use std::sync::Arc;
 use thiserror::Error;
 use ApplicationStatus::{Off, Started, Unknown};
-use ServerError::{ServerAlreadyStarted, ServerStatusError, UnknownServerStatus};
-use crate::system::router::ApplicationRouter;
+use ServerError::{ServerAlreadyStarted, UnknownServerStatus};
 
 pub const AUTH_COOKIE: &str = "axiomatik_auth";
 
@@ -36,16 +37,16 @@ pub struct Server {
 impl Server {
     pub async fn start_server(&self) -> Result<Router, ServerError> {
         // setup status
-        let status_c = self.status();
+        let application_status = self.status();
 
-        match status_c {
+        match application_status {
             Started => Err(ServerAlreadyStarted),
             Off => {
                 // server is off, start it
                 self.status_start()?;
 
-                // setup router
-                Ok(self.router.clone().start_router(status_c).await)
+                // set up router
+                Ok(self.router.clone().start_router(application_status).await)
             }
             Unknown => Err(UnknownServerStatus),
         }
@@ -67,15 +68,11 @@ impl Server {
     }
 
     pub fn status(&self) -> ApplicationStatus {
-        self.status
-            .read()
-            .map(|guard| guard.clone())
-            .unwrap_or(Unknown)
+        self.status.read().clone()
     }
 
     fn status_start(&self) -> Result<(), ServerError> {
-        let mut status = self.status.write().map_err(|_| ServerStatusError)?;
-        *status = Started;
+        *self.status.write() = Started;
         Ok(())
     }
 }

@@ -156,7 +156,6 @@ impl ApplicationRouter {
          */
 
         let ret = Router::new()
-            .route("/", get(|| async { Redirect::to("/index.html") }))
             .route("/login",
                 get(form_login::show_login)
                .post(form_login::handle_login),
