@@ -186,11 +186,11 @@ impl ApplicationRouter {
     }
 
     /**
-     * Serve all static files for web
+     * serve all static files for web
      * 1. HTML file requests
-     * - serve static html file if valid
+     * - serve static HTML file if valid
      * - rebuild the html file if invalid
-     * 2. Image, Video, CSS, JS requests
+     * 2. image, Video, CSS, JS requests
      * - serve static files
      */
     pub async fn serve_html_content(
