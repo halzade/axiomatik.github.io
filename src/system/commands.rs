@@ -63,6 +63,6 @@ pub async fn create_editor_user(username: &str, password: &str) -> Result<(), Co
         role: Role::Editor,
     };
 
-    database_user::create_user(user).await;
+    assert!(database_user::create_user(user).await.is_ok());
     Ok(())
 }

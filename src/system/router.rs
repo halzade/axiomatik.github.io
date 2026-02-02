@@ -316,24 +316,30 @@ async fn serve_404() -> Result<Response, RouterError> {
 
 async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Next) -> Response {
     let req = req;
+    info!("auth_middleware: user={:?}, path={}", auth_session.user, req.uri().path());
     match auth_session.user {
         Some(user) => {
             // change password
             if user.needs_password_change && req.uri().path() != "/change-password" {
+                info!("auth_middleware: needs_password_change redirect");
                 return Redirect::to("/change-password").into_response();
             }
 
             // continue
             if user.role == database_user::Role::Editor {
+                info!("auth_middleware: role=Editor, continue");
                 return next.run(req).await;
             }
+            info!("auth_middleware: role NOT Editor: {:?}", user.role);
         }
         None => {
+            info!("auth_middleware: No user in session");
             return Redirect::to("/login").into_response();
         }
     }
 
     // login
+    info!("auth_middleware: default redirect to /login");
     Redirect::to("/login").into_response()
 }
 
