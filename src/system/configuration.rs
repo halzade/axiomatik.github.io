@@ -50,7 +50,7 @@ pub struct ApplicationSettings {
 pub fn get_config() -> Result<ApplicationSettings, ConfigurationError> {
     let base_path = std::env::current_dir().map_err(CurrentDirectoryError)?;
     let config_path = base_path
-        .join("../../configuration")
+        .join("configuration")
         .join(format!("{}.toml", my_env_is().text()));
 
     let settings = Config::builder()

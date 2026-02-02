@@ -3,7 +3,7 @@ mod tests {
     use axiomatik_web::trust::article_builder::ArticleBuilder;
     use axiomatik_web::trust::script_base;
     use axiomatik_web::trust::script_base::{
-        content_type_with_boundary, response_to_body, serialize, CLEANUP,
+        content_type_with_boundary, response_to_body, serialize,
     };
     use axiomatik_web::trust::script_base_data::PNG;
     use axum::http::{header, Request, StatusCode};
