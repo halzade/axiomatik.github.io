@@ -85,19 +85,11 @@ async fn change_password(username: &str, new_password: &str) -> Result<(), Chang
     if new_password.len() < 3 {
         return Err(ChangePasswordError::PasswordTooShort);
     }
-
-    let user_o = database_user::get_user_by_name(username).await;
-    match user_o {
-        None => Err(ChangePasswordError::UserNotFound),
-        Some(mut user) => {
-            let password_hash = hash(new_password, DEFAULT_COST)?;
-            user.password_hash = password_hash;
-            user.needs_password_change = false;
-            database_user::update_user(user).await.map_err(|e| {
-                error!("Failed to update user password: {}", e);
-                ChangePasswordError::UserNotFound
-            })?;
-            Ok(())
-        }
-    }
+    database_user::update_user_password(username, &hash(new_password, DEFAULT_COST)?)
+        .await
+        .map_err(|e| {
+            error!("Failed to update user password: {}", e);
+            ChangePasswordError::UserNotFound
+        })?;
+    Ok(())
 }

@@ -1,3 +1,5 @@
+use crate::data::text_validator::validate_input_simple;
+use crate::db::database_article_data::Article;
 use crate::db::{database_article, database_user};
 use crate::system::router::AuthSession;
 use askama::Template;
@@ -7,8 +9,6 @@ use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::error;
-use crate::data::text_validator::validate_input_simple;
-use crate::db::database_article_data::Article;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -73,15 +73,11 @@ pub async fn handle_update_author_name(
 }
 
 async fn update_author_name(username: &str, author_name: &str) -> Result<(), AccountError> {
-    match database_user::get_user_by_name(username).await {
-        Some(mut user) => {
-            user.author_name = author_name.to_string();
-            database_user::update_user(user).await.map_err(|e| {
-                error!("Failed to update user: {}", e);
-                AccountError::UserNotFound // Zachovat stávající chybové typy pro jednoduchost
-            })?;
-            Ok(())
-        }
-        None => Err(AccountError::UserNotFound),
-    }
+    database_user::update_user_author_name(username, author_name)
+        .await
+        .map_err(|e| {
+            error!("Failed to update user: {}", e);
+            AccountError::UserNotFound
+        })?;
+    Ok(())
 }

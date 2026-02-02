@@ -44,7 +44,7 @@ pub struct FormTemplate {
 
 pub async fn show_article_create_form(jar: CookieJar) -> Response {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let user_o = database_user::get_user(cookie.value()).await;
+        let user_o = database_user::get_user_by_name(cookie.value()).await;
         match user_o {
             None => {}
             Some(user) => {

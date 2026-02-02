@@ -95,11 +95,32 @@ impl axum_login::AuthnBackend for Backend {
     }
 }
 
-pub async fn update_user(user: User) -> Result<(), DatabaseUserError> {
+pub async fn update_user_author_name(
+    user_name: &str,
+    new_author_name: &str,
+) -> Result<(), DatabaseUserError> {
     let sdb = db_write().await.map_err(UpdateUserDatabaseError)?;
     let _: Option<User> = sdb
-        .update(("user", user.username.clone()))
-        .content(user)
+        .update(("user", user_name))
+        .merge(serde_json::json!({
+            "author_name": new_author_name,
+        }))
+        .await
+        .map_err(UpdateUserExecutionError)?;
+    Ok(())
+}
+
+pub async fn update_user_password(
+    user_name: &str,
+    new_password_hash: &str,
+) -> Result<(), DatabaseUserError> {
+    let sdb = db_write().await.map_err(UpdateUserDatabaseError)?;
+    let _: Option<User> = sdb
+        .update(("user", user_name))
+        .merge(serde_json::json!({
+            "password_hash": new_password_hash,
+            "needs_password_change": false,
+        }))
         .await
         .map_err(UpdateUserExecutionError)?;
     Ok(())
@@ -133,9 +154,68 @@ pub async fn delete_user(user_name: &str) -> Result<(), DatabaseUserError> {
     }
 }
 
+// TODO X Result
 pub async fn get_user_by_name(user_id: &str) -> Option<User> {
     if let Ok(sdb) = db_read().await {
-        return sdb.select(("user", user_id)).await.unwrap();
+        return sdb.select(("user", user_id)).await.ok().flatten();
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::database::initialize_in_memory_database;
+
+    async fn setup() {
+        initialize_in_memory_database().await;
+    }
+
+    #[tokio::test]
+    async fn test_create_update_delete_user() {
+        setup().await;
+        let user = User {
+            username: "testuser_x".to_string(),
+            author_name: "Test Author".to_string(),
+            password_hash: "hash".to_string(),
+            needs_password_change: false,
+            role: Role::Editor,
+        };
+
+        // create
+        create_user(user.clone())
+            .await
+            .expect("Failed to create user");
+
+        let fetched_user = get_user_by_name("testuser_x")
+            .await
+            .expect("User not found");
+        assert_eq!(fetched_user.username, "testuser_x");
+        assert_eq!(fetched_user.author_name, "Test Author");
+
+        // update
+        update_user_author_name("testuser_x", "New Author Name")
+            .await
+            .expect("Failed to update user");
+
+        let fetched_user = get_user_by_name("testuser_x")
+            .await
+            .expect("User not found");
+        assert_eq!(fetched_user.author_name, "New Author Name");
+
+        // delete
+        delete_user("testuser_x")
+            .await
+            .expect("Failed to delete user");
+
+        let fetched_user = get_user_by_name("deleteuser").await;
+        assert!(fetched_user.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_get_nonexistent_user() {
+        setup().await;
+        let fetched_user = get_user_by_name("nonexistent").await;
+        assert!(fetched_user.is_none());
+    }
 }

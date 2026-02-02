@@ -70,7 +70,7 @@ mod tests {
         );
 
         // Verify change in DB
-        let user = database_user::get_user("user1").await.unwrap();
+        let user = database_user::get_user_by_name("user1").await.unwrap();
         assert_eq!(user.author_name, "user1");
         assert!(!user.needs_password_change);
     }

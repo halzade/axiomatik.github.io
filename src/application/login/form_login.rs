@@ -72,7 +72,7 @@ pub async fn handle_login(
 }
 
 pub async fn authenticate_user(username: &str, password: &str) -> Result<User, AuthError> {
-    let user_o = database_user::get_user(username).await;
+    let user_o = database_user::get_user_by_name(username).await;
     match user_o {
         None => Err(AuthError::UserNotFound),
         Some(user) => {

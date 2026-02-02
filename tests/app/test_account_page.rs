@@ -57,7 +57,7 @@ mod tests {
         );
 
         // Verify update in DB
-        let user = database_user::get_user("user8").await.unwrap();
+        let user = database_user::get_user_by_name("user8").await.unwrap();
         assert_eq!(user.author_name, "Updated Author");
 
         // Create an article with this user
