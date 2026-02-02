@@ -5,7 +5,7 @@ mod tests {
     use reqwest::Body;
 
     #[tokio::test]
-    async fn test_serve_static_html() {
+    async fn test_serve_static() {
         script_base::setup_before_tests_once().await;
 
         let response = script_base::one_shot(

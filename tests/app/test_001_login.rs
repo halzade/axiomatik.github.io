@@ -5,6 +5,7 @@ mod tests {
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use axiomatik_web::system::commands;
+    use header::{CONTENT_TYPE, LOCATION, SET_COOKIE};
 
     #[tokio::test]
     async fn test_login() {
@@ -22,7 +23,7 @@ mod tests {
             Request::builder()
                 .method("POST")
                 .uri("/login")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
                 .body(Body::from(login_body))
                 .unwrap(),
         )
@@ -30,11 +31,11 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::SEE_OTHER);
         assert_eq!(
-            response.headers().get(header::LOCATION).unwrap(),
+            response.headers().get(LOCATION).unwrap(),
             "/change-password"
         );
-        assert!(response.headers().get(header::SET_COOKIE).is_some());
-        let cookie_header = response.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap();
+        assert!(response.headers().get(SET_COOKIE).is_some());
+        let cookie_header = response.headers().get(SET_COOKIE).unwrap().to_str().unwrap();
         assert!(cookie_header.contains("HttpOnly"));
         assert!(cookie_header.contains("Secure"));
         assert!(cookie_header.contains("SameSite=Strict"));

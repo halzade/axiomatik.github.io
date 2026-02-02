@@ -96,3 +96,12 @@ async fn main() -> Result<(), ApplicationError> {
     info!("end.");
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn text_context_load() {
+        // the smokiest test
+    }
+}

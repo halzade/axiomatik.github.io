@@ -40,6 +40,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
+use tower_sessions::cookie::SameSite::Strict;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 use tracing::{info, warn};
 
@@ -126,10 +127,14 @@ impl ApplicationRouter {
 
         let self_a1 = self.clone();
         let self_a2 = self.clone();
-        let session_store = MemoryStore::default();
-        let session_layer = SessionManagerLayer::new(session_store)
-            .with_secure(false)
-            .with_same_site(tower_sessions::cookie::SameSite::Lax);
+
+        // TODO don't use default memory story, use redis or something
+        let session_layer = SessionManagerLayer::new(MemoryStore::default())
+            // true only https
+            .with_secure(true)
+            .with_http_only(true)
+            // creating articles doesn't require any clos site features
+            .with_same_site(Strict);
 
         let auth_layer = AuthManagerLayerBuilder::new(Backend, session_layer).build();
 
