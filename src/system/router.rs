@@ -30,7 +30,7 @@ use axum::body::Body;
 use axum::extract::OriginalUri;
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
-use axum::routing::{get, get_service, post};
+use axum::routing::{get, post};
 use axum::{middleware, Router};
 use axum_core::extract::Request;
 use axum_login::AuthManagerLayerBuilder;
@@ -163,14 +163,14 @@ impl ApplicationRouter {
             )
             .route("/search", get(search::handle_search))
             .route("/ping", get("ping success"))
-            // serve static content
-            .nest_service("/css", ServeDir::new("../../web/css"))
-            .nest_service("/js", ServeDir::new("../../web/js"))
-            .nest_service("/u", ServeDir::new("web/u"))
-            // other files
-            .nest_service("/favicon.ico", get_service(ServeFile::new("../../web/favicon.ico")))
-            // HTML files
-            .route("/*.html", get(move |ori_uri: OriginalUri, request| async move {
+            // serve static files
+            .nest_service("/web/", ServeDir::new("/web/"))
+            /*
+             * catch web requests and maybe updat invalid HTML file
+             * redirect the request to the web directory
+             */
+            .route("/", get(move |ori_uri: OriginalUri, request|
+                async move {
                     self_a2.serve_html_content(ori_uri, request).await
                 }
             ))
@@ -185,6 +185,14 @@ impl ApplicationRouter {
         ret
     }
 
+    /**
+     * Serve all static files for web
+     * 1. HTML file requests
+     * - serve static html file if valid
+     * - rebuild the html file if invalid
+     * 2. Image, Video, CSS, JS requests
+     * - serve static files
+     */
     pub async fn serve_html_content(
         &self,
         ori_uri: OriginalUri,
@@ -193,9 +201,23 @@ impl ApplicationRouter {
         // TODO X validate ori_uri contain only alphanumeric and dash, and one dot
         // TODO X re-renders should be somehow one thread only
 
+        let path = ori_uri.path().to_string();
+
         /*
          * What kind of content is it?
          */
+        if path.starts_with("/css/")
+            || path.starts_with("/js/")
+            || path.starts_with("/u/")
+            || path == "/favicon.ico"
+        {
+            return Ok(ServeFile::new(format!("web/{}", path))
+                .oneshot(request)
+                .await?
+                .into_response());
+        }
+        // it is an HTML file request, HTML content may need refresh
+
         match &ori_uri {
             OriginalUri(uri) => match uri.path() {
                 "/index.html" => {
@@ -224,8 +246,8 @@ impl ApplicationRouter {
                 }
                 "/technologie.html" => {
                     if !self.data_updates_a.technologie_valid() {
-                        technologie::render_technologie(&self.data_system).await?;
                         self.data_updates_a.technologie_validate();
+                        technologie::render_technologie(&self.data_system).await?;
                     }
                 }
                 "/veda.html" => {
