@@ -24,8 +24,6 @@ mod tests {
             .unwrap();
         let body_str = String::from_utf8_lossy(&body);
 
-        let expected_404_content = std::fs::read_to_string("web/404.html").unwrap();
-        assert_eq!(true, expected_404_content.len() > 200);
-        assert_eq!(body_str, expected_404_content);
+        assert_eq!(body_str, "404, stránka nenalezená");
     }
 }

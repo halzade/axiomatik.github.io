@@ -196,9 +196,9 @@ impl ApplicationRouter {
         ori_uri: OriginalUri,
         request: Request<Body>,
     ) -> Result<Response, RouterError> {
-        // TODO X validate ori_uri contain only alphanumeric and dash, and one dot
-        // TODO X re-renders should be somehow one thread only
-
+        /*
+         * request url
+         */
         let url = ori_uri.path().to_string();
 
         /*
@@ -209,9 +209,9 @@ impl ApplicationRouter {
             || url.starts_with("/u/")
             || url == "/favicon.ico"
         {
-           return serve_this(url, request).await;
+            return serve_this(url, request).await;
         }
-        // it is an HTML file request, HTML content may need refresh
+        // it is a HTML file request, HTML content may need refresh
 
         match url.as_str() {
             "/index.html" => {
@@ -219,65 +219,56 @@ impl ApplicationRouter {
                     self.data_updates_a.index_validate();
 
                     index::render_index(&self.data_system).await?;
-
-                    return serve_this(url, request).await;
                 }
+                serve_this(url, request).await
             }
             "/finance.html" => {
                 if !self.data_updates_a.finance_valid() {
                     self.data_updates_a.finance_validate();
 
                     finance::render_finance(&self.data_system).await?;
-
-                    serve_this(url, request).await
                 }
+                serve_this(url, request).await
             }
             "/news.html" => {
                 if !self.data_updates_a.news_valid() {
                     self.data_updates_a.news_validate();
 
                     news::render_news(&self.data_system).await?;
-
-                    serve_this(url, request).await
                 }
+                serve_this(url, request).await
             }
             "/republika.html" => {
                 if !self.data_updates_a.republika_valid() {
                     self.data_updates_a.republika_validate();
 
                     republika::render_republika(&self.data_system).await?;
-
-                    serve_this(url, request).await
                 }
-
-                // TODO serve the file
+                serve_this(url, request).await
             }
             "/technologie.html" => {
                 if !self.data_updates_a.technologie_valid() {
                     self.data_updates_a.technologie_validate();
 
                     technologie::render_technologie(&self.data_system).await?;
-
-                    serve_this(url, request).await
                 }
+                serve_this(url, request).await
             }
             "/veda.html" => {
                 if !self.data_updates_a.veda_valid() {
                     self.data_updates_a.veda_validate();
 
                     veda::render_veda(&self.data_system).await?;
-
-                    serve_this(url, request).await
                 }
+                serve_this(url, request).await
             }
             "/zahranici.html" => {
                 if !self.data_updates_a.zahranici_valid() {
                     self.data_updates_a.zahranici_validate();
 
                     zahranici::render_zahranici(&self.data_system).await?;
-
-                    serve_this(url, request).await
                 }
+                serve_this(url, request).await
             }
             _ => {
                 // 404 or Article
@@ -287,14 +278,15 @@ impl ApplicationRouter {
                         serve_this(url, request).await
                     }
                     ArticleStatus::Invalid => {
-                        // article was invalidated, render article html
+                        // article was invalidated, render article HTML
                         // new article was u
                         article::render_article(&url, &self.data_system).await?;
                         self.data_updates_a.article_validate(&url);
                         serve_this(url, request).await
                     }
                     ArticleStatus::DoesntExist => {
-                        serve_404()
+                        // requested url doesn't exist
+                        serve_404().await
                     }
                 }
             }
@@ -310,7 +302,11 @@ async fn serve_this(path: String, request: Request<Body>) -> Result<Response, Ro
 }
 
 async fn serve_404() -> Result<Response, RouterError> {
-    Ok((StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string())).into_response())
+    Ok((
+        StatusCode::NOT_FOUND,
+        Html("404, stránka nenalezená".to_string()),
+    )
+        .into_response())
 }
 
 async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Next) -> Response {
