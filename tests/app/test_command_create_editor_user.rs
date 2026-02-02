@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::application::login::form_login;
+    use axiomatik_web::db::database_user::delete_user;
     use axiomatik_web::db::database_user::Role::Editor;
     use axiomatik_web::system::commands::create_editor_user;
     use axiomatik_web::trust::script_base;
@@ -22,7 +23,10 @@ mod tests {
 
         let user = auth_result.unwrap();
         assert_eq!(user.username, username);
-        assert!(user.needs_password_change);
         assert_eq!(user.role, Editor);
+        assert!(user.needs_password_change);
+
+        // clean up
+        assert!(delete_user("user11").await.is_ok());
     }
 }

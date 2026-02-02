@@ -1,16 +1,19 @@
 use crate::db::database_user;
-use crate::db::database_user::{Role, User};
+use crate::db::database_user::{DatabaseUserError, Role, User};
 use bcrypt::{hash, DEFAULT_COST};
 use thiserror::Error;
 use tracing::{error, info};
 
 #[derive(Debug, Error)]
 pub enum CommandError {
-    #[error("Password too short")]
+    #[error("password too short")]
     PasswordTooShort,
 
-    #[error("Bcrypt error: {0}")]
+    #[error("bcrypt error: {0}")]
     Bcrypt(String),
+
+    #[error("user database error: {0}")]
+    DatabaseError(#[from] DatabaseUserError),
 }
 
 pub async fn create_user(args: &Vec<String>) {
@@ -34,14 +37,15 @@ pub async fn create_user(args: &Vec<String>) {
     }
 }
 
-pub async fn delete_user(args: &Vec<String>) {
+pub async fn delete_user(args: &Vec<String>) -> Result<(), CommandError> {
     if args.len() != 3 {
         info!("Usage: cargo run -- delete-user <username>");
         std::process::exit(1);
     }
     let username = &args[2];
 
-    database_user::delete_user(username).await
+    database_user::delete_user(username).await?;
+    Ok(())
 }
 
 pub async fn create_editor_user(username: &str, password: &str) -> Result<(), CommandError> {

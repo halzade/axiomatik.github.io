@@ -2,6 +2,7 @@ pub mod app {
     pub mod test_001_login;
     pub mod test_002_login_username;
     pub mod test_003_login_password;
+    pub mod test_004_login_rejection;
     pub mod test_account_page;
     pub mod test_article_is_exclusive_tests;
     pub mod test_change_password;
@@ -11,7 +12,6 @@ pub mod app {
     pub mod test_create_article_republika_integration;
     pub mod test_create_article_validation;
     pub mod test_create_article_zahranici_integration;
-    pub mod test_login_rejection;
 }
 pub mod db {
     pub mod test_malicious_keyword;
