@@ -167,13 +167,10 @@ mod tests {
     use super::*;
     use crate::db::database::initialize_in_memory_database;
 
-    async fn setup() {
-        initialize_in_memory_database().await;
-    }
-
     #[tokio::test]
     async fn test_create_update_delete_user() {
-        setup().await;
+        initialize_in_memory_database().await;
+
         let user = User {
             username: "testuser_x".to_string(),
             author_name: "Test Author".to_string(),
@@ -208,14 +205,16 @@ mod tests {
             .await
             .expect("Failed to delete user");
 
-        let fetched_user = get_user_by_name("deleteuser").await;
+        let fetched_user = get_user_by_name("testuser_x").await;
         assert!(fetched_user.is_none());
     }
 
     #[tokio::test]
     async fn test_get_nonexistent_user() {
-        setup().await;
+        initialize_in_memory_database().await;
+
         let fetched_user = get_user_by_name("nonexistent").await;
+
         assert!(fetched_user.is_none());
     }
 }

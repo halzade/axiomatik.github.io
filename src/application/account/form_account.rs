@@ -8,7 +8,7 @@ use axum::Form;
 use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
-use tracing::error;
+use tracing::{debug, error};
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -45,10 +45,10 @@ pub async fn show_account(auth_session: AuthSession) -> Response {
                     author_name: user.author_name,
                     articles,
                 }
-                .render()
-                .unwrap(),
+                    .render()
+                    .unwrap(),
             )
-            .into_response()
+                .into_response()
         }
     }
 }
@@ -57,18 +57,26 @@ pub async fn handle_update_author_name(
     auth_session: AuthSession,
     Form(payload): Form<UpdateAuthorNamePayload>,
 ) -> Response {
+    debug!("handle_update_author_name()");
     match auth_session.user {
         Some(user) => {
-            let username = &user.username;
+            debug!("session user: {}", user.username);
             if validate_input_simple(&payload.author_name).is_err() {
+                debug!("validation failed");
                 return StatusCode::BAD_REQUEST.into_response();
             }
-            match update_author_name(username, &payload.author_name).await {
-                Ok(_) => Redirect::to("/account").into_response(),
-                Err(_) => Redirect::to("/account").into_response(), // Simple error handling for now
+            debug!("validation ok");
+            match update_author_name(&user.username, &payload.author_name).await {
+                _ => {
+                    debug!("always redirect to account");
+                    Redirect::to("/account").into_response()
+                }
             }
         }
-        None => Redirect::to("/login").into_response(),
+        None => {
+            debug!("failed");
+            Redirect::to("/login").into_response()
+        }
     }
 }
 

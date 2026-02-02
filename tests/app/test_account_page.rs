@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use axiomatik_web::db::database_user;
     use axiomatik_web::trust::article_builder::ArticleBuilder;
     use axiomatik_web::trust::script_base;
     use axiomatik_web::trust::script_base::{
@@ -9,7 +10,6 @@ mod tests {
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs::remove_file;
-    use axiomatik_web::db::database_user;
 
     #[tokio::test]
     async fn test_account_page() {
@@ -134,7 +134,10 @@ mod tests {
         assert!(body.contains("Test User Article"));
         assert!(body.contains("Second Update"));
 
-        // Cleanup files
+        // cleanup DB
+        assert!(database_user::delete_user("user8").await.is_ok());
+
+        // cleanup files
         assert!(remove_file("web/test-user-article.html").is_ok());
         assert!(remove_file("web/u/test-user-article_image_820.png").is_ok());
         assert!(remove_file("web/u/test-user-article_image_50.png").is_ok());

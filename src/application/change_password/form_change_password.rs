@@ -1,10 +1,9 @@
 use crate::data::text_validator::validate_input_simple;
 use crate::db::database_user;
-use crate::system::server::AUTH_COOKIE;
+use crate::system::router::AuthSession;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
-use axum_extra::extract::CookieJar;
 use bcrypt::{hash, DEFAULT_COST};
 use http::StatusCode;
 use serde::Deserialize;
@@ -35,13 +34,12 @@ pub struct ChangePasswordTemplate {
     pub username: String,
 }
 
-pub async fn show_change_password(jar: CookieJar) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let username = cookie.value().to_string();
+pub async fn show_change_password(auth_session: AuthSession) -> Response {
+    if let Some(user) = auth_session.user {
         Html(
             ChangePasswordTemplate {
                 error: false,
-                username,
+                username: user.username.clone(),
             }
             .render()
             .unwrap(),
@@ -53,22 +51,28 @@ pub async fn show_change_password(jar: CookieJar) -> Response {
 }
 
 pub async fn handle_change_password(
-    jar: CookieJar,
+    mut auth_session: AuthSession,
     Form(payload): Form<ChangePasswordPayload>,
 ) -> Response {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let username = cookie.value();
+    if let Some(ref user) = auth_session.user {
+        let username = user.username.clone();
         if validate_input_simple(&payload.new_password).is_err() {
             return StatusCode::BAD_REQUEST.into_response();
         }
-        match change_password(username, &payload.new_password).await {
-            Ok(_) => Redirect::to("/account").into_response(),
+        match change_password(&username, &payload.new_password).await {
+            Ok(_) => {
+                // re-login user to update session with new user data (needs_password_change=false)
+                if let Some(updated_user) = database_user::get_user_by_name(&username).await {
+                    let _ = auth_session.login(&updated_user).await;
+                }
+                Redirect::to("/account").into_response()
+            }
             Err(e) => {
                 error!("{:?}", e);
                 Html(
                     ChangePasswordTemplate {
                         error: true,
-                        username: username.to_string(),
+                        username,
                     }
                     .render()
                     .unwrap(),
