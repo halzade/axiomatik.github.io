@@ -14,6 +14,7 @@ pub mod app {
     pub mod test_create_article_zahranici_integration;
 }
 pub mod db {
+    pub mod test_001_db;
     pub mod test_malicious_keyword;
     pub mod test_search_articles;
 }

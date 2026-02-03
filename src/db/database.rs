@@ -25,7 +25,7 @@ pub async fn initialize_database() {
 }
 
 pub async fn initialize_in_memory_database() {
-    DATABASE.get_or_init(database_internal::init_mem_db).await;
+    DATABASE.get_or_init(database_internal::init_db_test).await;
 }
 
 pub(crate) async fn db_read<'lt>() -> Result<RwLockReadGuard<'lt, Surreal<Any>>, DatabaseError> {
