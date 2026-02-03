@@ -2,12 +2,16 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 struct Trivial {
-    value: String,
+    pub id: String,
+    pub value: String,
 }
 
 impl Trivial {
     fn new(value: String) -> Self {
-        Self { value }
+        Self {
+            id: String::new(),
+            value,
+        }
     }
 }
 
@@ -25,35 +29,41 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_create_read_delete() -> Result<(), Box<dyn std::error::Error>> {
+    async fn test_create_update_read_delete() {
         // --- 1. Init in‑memory SurrealDB ---
         let db = init_db_test().await;
 
-        // --- 3. CREATE ---
-        let x = Trivial::new("hello".to_string());
-        let id = db
-            .write_struct("test_entity", Some("1"), &x)
+        let table = "trivial";
+
+        // 1️⃣ Create
+        let new = Trivial::new("ok".into());
+        let id = db.create_struct(table, &new).await.expect("create failed");
+
+        // 2️⃣ Read
+        let mut read: Trivial = db.read_by_id(table, &id).await.expect("read failed");
+
+        assert_eq!(read.value, "ok");
+
+        // 3️⃣ Update
+        read.value = "ok, updated".into();
+
+        db.update_struct(table, &read).await.expect("update failed");
+
+        // 4️⃣ Read again
+        let updated: Trivial = db
+            .read_by_id(table, &id)
             .await
-            .map_err(|e| format!("{:?}", e))?;
-        assert!(id.contains("test_entity:1") || id.contains("1"));
+            .expect("read after update failed");
 
-        // --- 4. READ ---
-        let read: Trivial = db
-            .read_by_id("test_entity", "1")
+        assert_eq!(updated.value, "ok, updated");
+
+        // 5️⃣ Delete
+        db.delete_struct(table, updated)
             .await
-            .map_err(|e| format!("{:?}", e))?;
-        assert_eq!(read, x);
+            .expect("delete failed");
 
-        // --- 5. DELETE ---
-        {
-            let db_inner = db.db.write().await;
-            let _: Option<serde_json::Value> = db_inner.delete(("test_entity", "1")).await?;
-        }
-
-        // --- 6. VERIFY NONE ---
-        let check: Result<Trivial, _> = db.read_by_id("test_entity", "1").await;
-        assert!(check.is_err());
-
-        Ok(())
+        // 6️⃣ Verify deletion
+        let deleted = db.read_by_id::<Trivial>(table, &id).await;
+        assert!(deleted.is_err());
     }
 }

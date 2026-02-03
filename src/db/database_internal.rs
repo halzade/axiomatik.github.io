@@ -1,7 +1,9 @@
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde_json::{from_value, to_value};
 use surrealdb::engine::any::Any;
-use surrealdb::types::{SurrealValue, Value};
+use surrealdb::types::Value;
+use surrealdb::types::Value::RecordId;
 use surrealdb::{opt::Resource, Surreal};
 use thiserror::Error;
 use tokio::sync::RwLock;
@@ -41,26 +43,36 @@ impl DatabaseSurreal {
         })
     }
 
-    pub async fn create_struct<NewT>(&self, table: &str, value: &NewT) -> Result<(), SurrealError>
+    pub async fn create_struct<NewT>(
+        &self,
+        table: &str,
+        value: &NewT,
+    ) -> Result<String, SurrealError>
     where
-        NewT: Serialize + SurrealValue + Clone,
+        NewT: Serialize,
     {
         let db = self.db.write().await;
 
-        let created_o: Option<Value> = db.create(table).content(value.clone()).await?;
+        // Serialize struct to JSON first
+        let json = to_value(value)?;
 
-        match created_o {
-            None => Ok(()),
-            Some(_) => Err(InvalidStatement),
+        let created: Option<Value> = db.create(table).content(json).await?;
+
+        match created {
+            Some(Value::Object(obj)) => {
+                let id_val = obj.get("id").ok_or(InvalidStatement)?;
+                value_to_id_string(id_val)
+            }
+            _ => Err(InvalidStatement),
         }
     }
 
     pub async fn update_struct<T>(&self, table: &str, value: &T) -> Result<(), SurrealError>
     where
-        T: Serialize + SurrealValue + Clone,
+        T: Serialize + Clone,
     {
         // Extract id from struct via JSON
-        let json = serde_json::to_value(value)?;
+        let json = to_value(value)?;
         let id = json.get("id").ok_or(InvalidStatement)?;
 
         let id_str = match id {
@@ -71,7 +83,9 @@ impl DatabaseSurreal {
         let resource = Resource::from((table, id_str.as_str()));
         let db = self.db.write().await;
 
-        let updated: Value = db.update(resource).content(value.clone()).await?;
+        let json = to_value(value)?;
+
+        let updated: Value = db.update(resource).content(json).await?;
 
         match updated {
             Value::Object(_) => Ok(()),
@@ -88,7 +102,7 @@ impl DatabaseSurreal {
         T: Serialize,
     {
         // Extract `id` from struct via JSON
-        let json = serde_json::to_value(&struct_to_delete)?;
+        let json = to_value(&struct_to_delete)?;
         let id = json.get("id").ok_or(InvalidStatement)?;
 
         let id_str = match id {
@@ -116,11 +130,22 @@ impl DatabaseSurreal {
         match value {
             Value::None | Value::Null => Err(RecordNotFound(table.to_string(), id.to_string())),
             other => {
-                let json = serde_json::to_value(other)?;
-                let t: T = serde_json::from_value(json)?;
+                let json = to_value(other)?;
+                let t: T = from_value(json)?;
                 Ok(t)
             }
         }
+    }
+}
+
+fn value_to_id_string(v: &Value) -> Result<String, SurrealError> {
+    match v {
+        RecordId(rid) => {
+            let s = serde_json::to_string(rid)?;
+            Ok(s)
+        }
+        Value::String(s) => Ok(s.clone()),
+        _ => Err(InvalidStatement),
     }
 }
 
