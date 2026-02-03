@@ -64,7 +64,7 @@ mod tests {
         // Delete all test_entity records before starting
         {
             let w0 = db.write().await;
-            let _: Vec<serde_json::Value> = w0
+            let _: Vec<surrealdb::types::Value> = w0
                 .delete("test_entity")
                 .await
                 .expect("Failed to delete all test_entity before test");
@@ -73,34 +73,24 @@ mod tests {
 
         info!("2");
         // write
-        {
+        let created: surrealdb::types::Value = {
             let w1 = db.write().await;
-            let _created: Option<serde_json::Value> = w1
+
+            let res: Option<surrealdb::types::Value> = w1
                 .create(("test_entity", "1"))
-                .content(serde_json::json!({"value": "ok"}))
+                .content(serde_json::json!({ "value": "ok" }))
                 .await
                 .expect("Failed to create ok entity");
-            // w1 dropped here
-        }
 
-        info!("3");
-        // read
-        let v: Option<serde_json::Value> = {
-            let r1 = db.read().await;
-            let res: Option<serde_json::Value> = r1
-                .select(("test_entity", "1"))
-                .await
-                .expect("Failed to read ok entity");
-            // r1 dropped here
-            res
+            res.expect("Expected created record")
+            // w1 dropped here
         };
 
-        info!("{:?}", v);
+        let created_json: serde_json::Value =
+            serde_json::to_value(&created).expect("serialize created Value to JSON");
 
         assert_eq!(
-            v.as_ref()
-                .and_then(|x| x.get("value"))
-                .and_then(|x| x.as_str()),
+            created_json.get("value").and_then(|v| v.as_str()),
             Some("ok")
         );
 
@@ -108,7 +98,7 @@ mod tests {
         // delete
         {
             let w2 = db.write().await;
-            let _deleted: Option<serde_json::Value> = w2
+            let _: Option<surrealdb::types::Value> = w2
                 .delete(("test_entity", "1"))
                 .await
                 .expect("Failed to delete ok entity");
@@ -116,9 +106,9 @@ mod tests {
         }
 
         // cleaned up
-        let v2: Option<serde_json::Value> = {
+        let v2: Option<surrealdb::types::Value> = {
             let r2 = db.read().await;
-            let res: Option<serde_json::Value> = r2
+            let res: Option<surrealdb::types::Value> = r2
                 .select(("test_entity", "1"))
                 .await
                 .expect("Failed to read ok entity");
