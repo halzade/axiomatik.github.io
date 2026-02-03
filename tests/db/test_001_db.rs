@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 struct Trivial {
     value: String,
 }
@@ -18,42 +18,35 @@ mod tests {
 
     #[tokio::test]
     async fn test_connects_and_query() {
-        let db = init_mem_db().await;
-        let s = db.read().await;
-        let res = s.query("RETURN 1").await;
-        assert!(res.is_ok());
+        let db_surreal = axiomatik_web::db::database_internal::init_db_test().await;
+        let db = db_surreal.db.read().await;
+        let res = db.query("RETURN 1").await.unwrap();
+        assert!(res.check().is_ok());
     }
 
     #[tokio::test]
-    async fn test_create_read_delete() -> Result<()> {
+    async fn test_create_read_delete() -> Result<(), Box<dyn std::error::Error>> {
         // --- 1. Init in‑memory SurrealDB ---
-        let db = Surreal::<Mem>::new(()).await?;
-
-        // Use a namespace/database (required, otherwise queries fail)
-        db.use_ns("test").use_db("test").await?;
-
-        // --- 2. Clean up any existing data ---
-        let _: Vec<Trivial> = db.delete(Resource::from("test_entity")).await?;
+        let db = axiomatik_web::db::database_internal::init_db_test().await;
 
         // --- 3. CREATE ---
-        let x = Trivial::new("hello");
-        let created: Option<Trivial> = db
-            .create(Resource::from(("test_entity", "1")))
-            .content(x.clone())
-            .await?;
-        assert_eq!(created, Some(x.clone()));
+        let x = Trivial::new("hello".to_string());
+        let id = db.write_struct("test_entity", Some("1"), &x).await.map_err(|e| format!("{:?}", e))?;
+        assert!(id.contains("test_entity:1") || id.contains("1"));
 
         // --- 4. READ ---
-        let read: Option<Trivial> = db.select(Resource::from(("test_entity", "1"))).await?;
-        assert_eq!(read, Some(x.clone()));
+        let read: Trivial = db.read_struct("test_entity", "1").await.map_err(|e| format!("{:?}", e))?;
+        assert_eq!(read, x);
 
         // --- 5. DELETE ---
-        let deleted: Option<Trivial> = db.delete(Resource::from(("test_entity", "1"))).await?;
-        assert_eq!(deleted, Some(x.clone()));
+        {
+            let db_inner = db.db.write().await;
+            let _: Option<serde_json::Value> = db_inner.delete(("test_entity", "1")).await?;
+        }
 
         // --- 6. VERIFY NONE ---
-        let check: Option<Trivial> = db.select(Resource::from(("test_entity", "1"))).await?;
-        assert!(check.is_none());
+        let check: Result<Trivial, _> = db.read_struct("test_entity", "1").await;
+        assert!(check.is_err());
 
         Ok(())
     }

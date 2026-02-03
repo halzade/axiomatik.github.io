@@ -1,8 +1,8 @@
+use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
-use serde::Serialize;
 use surrealdb::engine::any::Any;
-use surrealdb::opt::Resource;
-use surrealdb::Surreal;
+use surrealdb::{Surreal, opt::Resource};
+use surrealdb::types::Value;
 use tokio::sync::RwLock;
 
 const DATABASE: &str = "file://axiomatik.db";
@@ -37,6 +37,8 @@ impl DatabaseSurreal {
         })
     }
 
+    /// Write a struct into a table, optionally specifying an ID.
+    /// Returns the created record's ID as String
     pub async fn write_struct<T>(
         &self,
         table: &str,
@@ -51,13 +53,12 @@ impl DatabaseSurreal {
             None => Resource::from(table),
         };
 
-        let db = self.db.write().await;
-        let created: surrealdb::sql::Value = db.create(resource).content(value).await?;
+        let mut db = self.db.write().await;
+        let created: Value = db.create(resource).content(value).await?;
 
-        // SurrealDB returns the record ID under "id"
         match created {
-            surrealdb::sql::Value::Object(obj) => {
-                if let Some(id_val) = obj.get("id") {
+            Value::Object(obj) => {
+                if let Some(id_val) = obj.get("id").and_then(|v| v.as_str()) {
                     Ok(id_val.to_string())
                 } else {
                     Err(SurrealError::InvalidStatement(
@@ -65,8 +66,11 @@ impl DatabaseSurreal {
                     ))
                 }
             }
-            _ => Err(SurrealError::InvalidStatement(
+            Some(_) => Err(SurrealError::InvalidStatement(
                 "Failed to create record - unexpected return value".into(),
+            )),
+            None => Err(SurrealError::InvalidStatement(
+                "Failed to create record - no value returned".into(),
             )),
         }
     }
@@ -78,19 +82,20 @@ impl DatabaseSurreal {
     {
         let resource = Resource::from((table, id));
         let db = self.db.read().await;
-        let value: surrealdb::sql::Value = db.select(resource).await?;
+        let value: Option<Value> = db.select(resource).await?;
 
         match value {
-            surrealdb::sql::Value::None | surrealdb::sql::Value::Null => {
-                Err(SurrealError::RecordNotFound(table.to_string(), id.to_string()))
-            }
-            _ => {
-                let json = serde_json::to_value(value)
+            Some(v) => {
+                let json = serde_json::to_value(v)
                     .map_err(|e| SurrealError::InvalidStatement(e.to_string()))?;
                 let t = serde_json::from_value(json)
                     .map_err(|e| SurrealError::InvalidStatement(e.to_string()))?;
                 Ok(t)
             }
+            None => Err(SurrealError::RecordNotFound(format!(
+                "{}:{}",
+                table, id
+            ))),
         }
     }
 }
