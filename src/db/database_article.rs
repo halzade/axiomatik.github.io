@@ -1,10 +1,11 @@
 use crate::db::database::DatabaseError;
-use crate::db::database_article_data::{Article, MiniArticleData, ShortArticleData};
+use crate::db::database_article_data::{
+    Article, ArticlePublicData, MiniArticleData, NewArticle, ShortArticleData,
+};
 use tracing::error;
 
 // TODO
-
-pub async fn create_article(article: Article) -> Option<Article> {
+pub async fn create_article(article: NewArticle) -> Option<Article> {
     let sdb_wg = crate::db::database::db_write().await.ok()?;
     let res = sdb_wg
         .create("article")
@@ -23,7 +24,7 @@ pub async fn create_article(article: Article) -> Option<Article> {
 pub async fn articles_by_username(
     username: &str,
     limit: u32,
-) -> Result<Vec<Article>, DatabaseError> {
+) -> Result<Vec<ArticlePublicData>, DatabaseError> {
     let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
         .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC LIMIT $limit")
@@ -31,13 +32,13 @@ pub async fn articles_by_username(
         .bind(("limit", limit))
         .await?;
     let vals: Vec<serde_json::Value> = response.take(0)?;
-    let mut articles = Vec::with_capacity(vals.len());
+    let mut articles_public: Vec<ArticlePublicData> = Vec::with_capacity(vals.len());
     for v in vals {
         if let Ok(a) = serde_json::from_value::<Article>(v) {
-            articles.push(a);
+            articles_public.push(ArticlePublicData::from(a));
         }
     }
-    Ok(articles)
+    Ok(articles_public)
 }
 
 pub async fn articles_by_author(username: &str, limit: u32) -> Result<Vec<Article>, DatabaseError> {

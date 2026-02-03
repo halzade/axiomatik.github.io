@@ -3,6 +3,7 @@ use crate::data::library;
 use crate::data::text_processor::{process_short_text, process_text};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use surrealdb::types::Uuid;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -11,26 +12,72 @@ pub enum DataProcessorError {
     ArticleProcessor(String),
 }
 
+/**
+ * create Article database object
+ */
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NewArticle {
     pub data: ArticleData,
 }
 
 /**
- * Article object used in the Application
+ * Article database object
  */
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Article {
     pub id: u64,
+    pub uuid: Uuid,
     pub data: ArticleData,
 }
 
 /**
- * Common struct for various Article use
+ * Use in Templates
  */
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ArticleData {
+    pub author: String,
+    pub user: String,
+
+    #[serde(with = "chrono::serde::ts_seconds")]
+    pub date: DateTime<Utc>,
+    pub date_str: String,
+
+    pub title: String,
+
+    pub text: String,
+    pub short_text: String,
+    pub mini_text: String,
+
+    pub file_base: String,
+
+    pub image_desc: String,
+    pub image_50_path: String,
+    pub image_288_path: String,
+    pub image_440_path: String,
+    pub image_820_path: String,
+
+    pub has_video: bool,
+    pub video_path: String,
+
+    pub has_audio: bool,
+    pub audio_path: String,
+
+    pub category: String,
+    pub related_articles: Vec<String>,
+
+    pub is_main: bool,
+    pub is_exclusive: bool,
+
+    pub views: i64,
+}
+
+/**
+ * Use in Templates
+ */
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ArticlePublicData {
+    pub uuid: String,
+
     pub author: String,
     pub user: String,
 
@@ -148,5 +195,39 @@ impl TryFrom<ArticleUpload> for NewArticle {
                 views: 0,
             },
         })
+    }
+}
+
+use std::convert::TryFrom;
+
+impl From<Article> for ArticlePublicData {
+    fn from(article: Article) -> Self {
+        ArticlePublicData {
+            uuid: article.uuid.to_string(),
+
+            author: article.data.author,
+            user: article.data.user,
+            date: article.data.date,
+            date_str: article.data.date_str,
+            title: article.data.title,
+            text: article.data.text,
+            short_text: article.data.short_text,
+            mini_text: article.data.mini_text,
+            file_base: article.data.file_base,
+            image_desc: article.data.image_desc,
+            image_50_path: article.data.image_50_path,
+            image_288_path: article.data.image_288_path,
+            image_440_path: article.data.image_440_path,
+            image_820_path: article.data.image_820_path,
+            has_video: article.data.has_video,
+            video_path: article.data.video_path,
+            has_audio: article.data.has_audio,
+            audio_path: article.data.audio_path,
+            category: article.data.category,
+            related_articles: article.data.related_articles,
+            is_main: article.data.is_main,
+            is_exclusive: article.data.is_exclusive,
+            views: article.data.views,
+        }
     }
 }

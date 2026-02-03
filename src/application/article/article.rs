@@ -8,7 +8,7 @@ use crate::data::{audio_processor, image_processor, processor, video_processor};
 use crate::db::database::DatabaseError;
 use crate::db::database_article;
 use crate::db::database_article_data::{
-    Article, DataProcessorError, MiniArticleData, ShortArticleData,
+    DataProcessorError, MiniArticleData, NewArticle, ShortArticleData,
 };
 use crate::system::data_system::DataSystem;
 use crate::system::data_updates::DataUpdates;
@@ -99,7 +99,7 @@ pub async fn create_article(
 
     // TODO X Validate text fields, use validator framework instead
 
-    let article_db = Article::try_from(article_data.clone())?;
+    let article_db = NewArticle::try_from(article_data.clone())?;
 
     // process data image
     image_processor::process_images(
@@ -165,13 +165,13 @@ pub async fn render_article(
     article_file_name: &str,
     data_system: &DataSystem,
 ) -> Result<(), ArticleError> {
-    let data_o = database_article::article_by_file_name(article_file_name).await?;
+    let article_o = database_article::article_by_file_name(article_file_name).await?;
 
-    match data_o {
+    match article_o {
         None => Err(ArticleNotFound),
-        Some(data) => {
+        Some(article) => {
             let related_articles =
-                database_article::related_articles(&data.related_articles).await?;
+                database_article::related_articles(&article.data.related_articles).await?;
             let articles_most_read = database_article::articles_most_read(3).await?;
 
             let article_template = ArticleTemplate {
@@ -179,25 +179,25 @@ pub async fn render_article(
                 weather: data_system.weather(),
                 name_day: data_system.name_day(),
 
-                author: data.author,
-                title: data.title,
+                author: article.data.author,
+                title: article.data.title,
 
-                text: data.text,
+                text: article.data.text,
 
-                image_path: data.image_820_path,
-                image_desc: data.image_desc,
-                video_path: if data.has_video {
-                    Some(data.video_path)
+                image_path: article.data.image_820_path,
+                image_desc: article.data.image_desc,
+                video_path: if article.data.has_video {
+                    Some(article.data.video_path)
                 } else {
                     None
                 },
-                audio_path: if data.has_audio {
-                    Some(data.audio_path)
+                audio_path: if article.data.has_audio {
+                    Some(article.data.audio_path)
                 } else {
                     None
                 },
-                category: data.category.clone(),
-                category_display: processor::process_category(data.category.as_str())?,
+                category: article.data.category.clone(),
+                category_display: processor::process_category(article.data.category.as_str())?,
                 related_articles,
                 articles_most_read,
             };

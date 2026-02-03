@@ -1,5 +1,5 @@
 use crate::data::text_validator;
-use crate::db::database_article_data::Article;
+use crate::db::database_article_data::ArticlePublicData;
 use crate::db::{database_article, database_user};
 use crate::system::router::AuthSession;
 use askama::Template;
@@ -34,7 +34,7 @@ pub struct UpdateAuthorNamePayload {
 pub struct AccountTemplate {
     pub username: String,
     pub author_name: String,
-    pub articles: Vec<Article>,
+    pub articles: Vec<ArticlePublicData>,
 }
 
 pub async fn show_account(auth_session: AuthSession) -> Response {

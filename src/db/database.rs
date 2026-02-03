@@ -1,3 +1,4 @@
+use std::convert::Infallible;
 use crate::db::database_internal;
 use crate::db::database_internal::DatabaseSurreal;
 use surrealdb::engine::any::Any;
@@ -12,6 +13,15 @@ pub enum DatabaseError {
 
     #[error("SurrealDB error: {0}")]
     Surreal(#[from] surrealdb::Error),
+
+    #[error("SurrealDB infallible {0}")]
+    SurrealInfallible(Infallible)
+}
+
+impl From<Infallible> for DatabaseError {
+    fn from(_: Infallible) -> Self {
+        unreachable!()
+    }
 }
 
 static DATABASE: OnceCell<DatabaseSurreal> = OnceCell::const_new();
