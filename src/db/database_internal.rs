@@ -1,4 +1,3 @@
-use crate::db::database_internal::SurrealError::InvalidStatement;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use surrealdb::engine::any::Any;
@@ -6,7 +5,7 @@ use surrealdb::types::{SurrealValue, Value};
 use surrealdb::{opt::Resource, Surreal};
 use thiserror::Error;
 use tokio::sync::RwLock;
-use SurrealError::RecordNotFound;
+use SurrealError::{InvalidStatement, RecordNotFound};
 
 const DATABASE: &str = "file://axiomatik.db";
 const DATABASE_TEST: &str = "memory://axiomatik.test";
@@ -14,22 +13,16 @@ const DATABASE_TEST: &str = "memory://axiomatik.test";
 #[derive(Debug, Error)]
 pub enum SurrealError {
     #[error("surreal db error {0}")]
-    Surreal(surrealdb::Error),
+    Surreal(#[from] surrealdb::Error),
 
     #[error("serde json error {0}")]
-    Serde(serde_json::Error),
+    Serde(#[from] serde_json::Error),
 
     #[error("invalid statement")]
     InvalidStatement,
 
     #[error("record not found {0}, id {1}")]
     RecordNotFound(String, String),
-}
-
-impl From<surrealdb::Error> for SurrealError {
-    fn from(err: surrealdb::Error) -> Self {
-        SurrealError::Surreal(err)
-    }
 }
 
 pub struct DatabaseSurreal {
@@ -96,15 +89,10 @@ impl DatabaseSurreal {
         let value: Value = db.select(resource).await?;
 
         match value {
-            Value::None | Value::Null => Err(RecordNotFound(
-                table.to_string(),
-                id.to_string(),
-            )),
+            Value::None | Value::Null => Err(RecordNotFound(table.to_string(), id.to_string())),
             other => {
-                let json =
-                    serde_json::to_value(other).map_err(|e| InvalidStatement(e.to_string()))?;
-                let t: T =
-                    serde_json::from_value(json).map_err(|e| InvalidStatement(e.to_string()))?;
+                let json = serde_json::to_value(other)?;
+                let t: T = serde_json::from_value(json)?;
                 Ok(t)
             }
         }
