@@ -9,8 +9,8 @@ use thiserror::Error;
 use tokio::sync::RwLock;
 use SurrealError::{InvalidStatement, RecordNotFound};
 
-const DATABASE: &str = "file://axiomatik.db";
-const DATABASE_TEST: &str = "memory://axiomatik.test";
+const DATABASE: &str = "rocksdb://axiomatik.db";
+const DATABASE_TEST: &str = "memory://";
 
 #[derive(Debug, Error)]
 pub enum SurrealError {
@@ -152,11 +152,11 @@ fn value_to_id_string(v: &Value) -> Result<String, SurrealError> {
 pub async fn init_db() -> DatabaseSurreal {
     DatabaseSurreal::new(DATABASE)
         .await
-        .expect("Failed to initialize SurrealKV database")
+        .expect("Failed to initialize database")
 }
 
 pub async fn init_db_test() -> DatabaseSurreal {
     DatabaseSurreal::new(DATABASE_TEST)
         .await
-        .expect("Failed to initialize SurrealKV test database")
+        .expect("Failed to initialize test database")
 }
