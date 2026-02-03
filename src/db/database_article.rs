@@ -4,7 +4,10 @@ use tracing::error;
 
 pub async fn create_article(article: Article) -> Option<Article> {
     let sdb_wg = crate::db::database::db_write().await.ok()?;
-    let res = sdb_wg.create("article").content(article).await;
+    let res = sdb_wg
+        .create("article")
+        .content(serde_json::to_value(&article).ok()?)
+        .await;
     match res {
         Ok(Some(v)) => serde_json::from_value::<Article>(v).ok(),
         Ok(None) => None,
@@ -25,7 +28,13 @@ pub async fn articles_by_username(
         .bind(("username", username.to_string()))
         .bind(("limit", limit))
         .await?;
-    let articles = response.take(0)?;
+    let vals: Vec<serde_json::Value> = response.take(0)?;
+    let mut articles = Vec::with_capacity(vals.len());
+    for v in vals {
+        if let Ok(a) = serde_json::from_value::<Article>(v) {
+            articles.push(a);
+        }
+    }
     Ok(articles)
 }
 

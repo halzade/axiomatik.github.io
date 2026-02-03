@@ -51,21 +51,21 @@ mod tests {
 
     #[test]
     fn test_formatted_today_name_day() {
-        let dt = Local.with_ymd_and_hms(2024, 10, 18, 12, 0, 0).unwrap();
+        let dt = Utc.with_ymd_and_hms(2024, 10, 18, 12, 0, 0).unwrap();
         let name_day = formatted_today_name_day(dt);
         assert_eq!(name_day, "Svátek má Lukáš");
     }
 
     #[test]
     fn test_formatted_today_holiday() {
-        let dt = Local.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap();
+        let dt = Utc.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap();
         let name_day = formatted_today_name_day(dt);
         assert_eq!(name_day, "je Nový rok, státní svátek");
     }
 
     #[test]
     fn test_today_name_day_leap_year() {
-        let dt = Local.with_ymd_and_hms(2023, 2, 29, 12, 0, 0);
+        let dt = Utc.with_ymd_and_hms(2023, 2, 29, 12, 0, 0);
         // chrono might not even allow creating 2023-02-29
         if let Some(dt) = dt.single() {
             assert_eq!(today_name_day(dt), LEEP_YEAR_NAME_DAY);
