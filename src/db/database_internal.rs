@@ -3,14 +3,13 @@ use serde::Serialize;
 use serde_json::{from_value, to_value};
 use surrealdb::engine::any::Any;
 use surrealdb::types::Value;
-use surrealdb::types::Value::RecordId;
 use surrealdb::{opt::Resource, Surreal};
 use thiserror::Error;
 use tokio::sync::RwLock;
 use SurrealError::{InvalidStatement, RecordNotFound};
 
 const DATABASE: &str = "rocksdb://axiomatik.db";
-const DATABASE_TEST: &str = "memory://";
+const DATABASE_TEST: &str = "mem://";
 
 #[derive(Debug, Error)]
 pub enum SurrealError {
@@ -23,7 +22,7 @@ pub enum SurrealError {
     #[error("invalid statement")]
     InvalidStatement,
 
-    #[error("record not found {0}, id {1}")]
+    #[error("record not found in table {0} by key {1}")]
     RecordNotFound(String, String),
 }
 
@@ -43,11 +42,7 @@ impl DatabaseSurreal {
         })
     }
 
-    pub async fn create_struct<NewT>(
-        &self,
-        table: &str,
-        value: &NewT,
-    ) -> Result<String, SurrealError>
+    pub async fn create_struct<NewT>(&self, table: &str, value: &NewT) -> Result<(), SurrealError>
     where
         NewT: Serialize,
     {
@@ -56,15 +51,9 @@ impl DatabaseSurreal {
         // Serialize struct to JSON first
         let json = to_value(value)?;
 
-        let created: Option<Value> = db.create(table).content(json).await?;
+        let _: Option<Value> = db.create(table).content(json).await?;
 
-        match created {
-            Some(Value::Object(obj)) => {
-                let id_val = obj.get("id").ok_or(InvalidStatement)?;
-                value_to_id_string(id_val)
-            }
-            _ => Err(InvalidStatement),
-        }
+        Ok(())
     }
 
     pub async fn update_struct<T>(&self, table: &str, value: &T) -> Result<(), SurrealError>
@@ -118,34 +107,22 @@ impl DatabaseSurreal {
         Ok(())
     }
 
-    /// Read a record by table + id and deserialize to struct T
-    pub async fn read_by_id<T>(&self, table: &str, id: &str) -> Result<T, SurrealError>
+    pub async fn read_by_key<T>(&self, table: &str, key: &str) -> Result<T, SurrealError>
     where
         T: DeserializeOwned,
     {
-        let resource = Resource::from((table, id));
+        let resource = Resource::from((table, key));
         let db = self.db.read().await;
         let value: Value = db.select(resource).await?;
 
         match value {
-            Value::None | Value::Null => Err(RecordNotFound(table.to_string(), id.to_string())),
+            Value::None | Value::Null => Err(RecordNotFound(table.to_string(), key.to_string())),
             other => {
                 let json = to_value(other)?;
                 let t: T = from_value(json)?;
                 Ok(t)
             }
         }
-    }
-}
-
-fn value_to_id_string(v: &Value) -> Result<String, SurrealError> {
-    match v {
-        RecordId(rid) => {
-            let s = serde_json::to_string(rid)?;
-            Ok(s)
-        }
-        Value::String(s) => Ok(s.clone()),
-        _ => Err(InvalidStatement),
     }
 }
 

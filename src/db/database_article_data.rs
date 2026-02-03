@@ -25,7 +25,6 @@ pub struct NewArticle {
  */
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Article {
-    pub id: u64,
     pub uuid: Uuid,
     pub data: ArticleData,
 }

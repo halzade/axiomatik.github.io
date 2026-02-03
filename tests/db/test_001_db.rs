@@ -2,22 +2,22 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 struct Trivial {
-    pub id: String,
+    pub key: String,
     pub value: String,
 }
 
 impl Trivial {
-    fn new(value: String) -> Self {
+    fn new(key: &str, value: &str) -> Self {
         Self {
-            id: String::new(),
-            value,
+            key: key.into(),
+            value: value.into(),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::db::test_001_db::Trivial;
     use axiomatik_web::db::database_internal::init_db_test;
 
     #[tokio::test]
@@ -30,40 +30,41 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_update_read_delete() {
-        // --- 1. Init in‑memory SurrealDB ---
         let db = init_db_test().await;
 
+        let key = "1";
         let table = "trivial";
 
-        // 1️⃣ Create
-        let new = Trivial::new("ok".into());
-        let id = db.create_struct(table, &new).await.expect("create failed");
+        // 1. Create
+        let new = Trivial::new(key, "ok");
+        db.create_struct(table, &new).await.expect("create failed");
 
-        // 2️⃣ Read
-        let mut read: Trivial = db.read_by_id(table, &id).await.expect("read failed");
+        // 2. Read
+        let mut read: Trivial = db.read_by_key(table, key).await.expect("read failed");
 
         assert_eq!(read.value, "ok");
+        assert_eq!(read.key, "1");
 
-        // 3️⃣ Update
+        // 3. Update
         read.value = "ok, updated".into();
-
         db.update_struct(table, &read).await.expect("update failed");
 
-        // 4️⃣ Read again
+        // 4. Read again
         let updated: Trivial = db
-            .read_by_id(table, &id)
+            .read_by_key(table, key)
             .await
             .expect("read after update failed");
 
         assert_eq!(updated.value, "ok, updated");
+        assert_eq!(read.key, key);
 
-        // 5️⃣ Delete
+        // 5. Delete
         db.delete_struct(table, updated)
             .await
             .expect("delete failed");
 
-        // 6️⃣ Verify deletion
-        let deleted = db.read_by_id::<Trivial>(table, &id).await;
+        // 6. Verify deletion
+        let deleted = db.read_by_key::<Trivial>(table, key).await;
         assert!(deleted.is_err());
     }
 }
