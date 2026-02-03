@@ -45,6 +45,7 @@ pub async fn init_mem_db() -> DatabaseSurreal {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tracing::info;
 
     #[tokio::test]
     async fn test_connects_and_query() {
@@ -56,39 +57,75 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_read_delete() {
+        info!("test_create_read_delete()");
         let db = init_mem_db().await;
 
+        info!("1");
+        // Delete all test_entity records before starting
+        {
+            let w0 = db.write().await;
+            let _: Vec<serde_json::Value> = w0
+                .delete("test_entity")
+                .await
+                .expect("Failed to delete all test_entity before test");
+            // w0 dropped here
+        }
+
+        info!("2");
         // write
-        let w1 = db.write().await;
-        w1.create("test_entity")
-            .content(serde_json::to_value("ok").ok())
-            .await
-            .expect("Failed to create ok entity");
+        {
+            let w1 = db.write().await;
+            let _created: Option<serde_json::Value> = w1
+                .create(("test_entity", "1"))
+                .content(serde_json::json!({"value": "ok"}))
+                .await
+                .expect("Failed to create ok entity");
+            // w1 dropped here
+        }
 
+        info!("3");
         // read
-        let r1 = db.read().await;
-        let v = r1
-            .query("test_entity")
-            .await
-            .expect("Failed to read ok entity")
-            .take(0).ok();
+        let v: Option<serde_json::Value> = {
+            let r1 = db.read().await;
+            let res: Option<serde_json::Value> = r1
+                .select(("test_entity", "1"))
+                .await
+                .expect("Failed to read ok entity");
+            // r1 dropped here
+            res
+        };
 
-        assert_eq!(v, Some("ok"));
+        info!("{:?}", v);
 
+        assert_eq!(
+            v.as_ref()
+                .and_then(|x| x.get("value"))
+                .and_then(|x| x.as_str()),
+            Some("ok")
+        );
+
+        info!("4");
         // delete
-        let w2 = db.write().await;
-        w2.delete("test_entity")
-            .await
-            .expect("Failed to delet ok entity");
+        {
+            let w2 = db.write().await;
+            let _deleted: Option<serde_json::Value> = w2
+                .delete(("test_entity", "1"))
+                .await
+                .expect("Failed to delete ok entity");
+            // w2 dropped here
+        }
 
         // cleaned up
-        let r1 = db.read().await;
-        let v = r1
-            .query("test_entity")
-            .await
-            .expect("Failed to read ok entity")
-            .take(0).is_err();
+        let v2: Option<serde_json::Value> = {
+            let r2 = db.read().await;
+            let res: Option<serde_json::Value> = r2
+                .select(("test_entity", "1"))
+                .await
+                .expect("Failed to read ok entity");
+            // r2 dropped here
+            res
+        };
 
-        // assert_eq!(v, None);
+        assert!(v2.is_none());
     }
 }
