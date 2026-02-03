@@ -2,6 +2,8 @@ use crate::db::database::DatabaseError;
 use crate::db::database_article_data::{Article, MiniArticleData, ShortArticleData};
 use tracing::error;
 
+// TODO
+
 pub async fn create_article(article: Article) -> Option<Article> {
     let sdb_wg = crate::db::database::db_write().await.ok()?;
     let res = sdb_wg

@@ -3,7 +3,7 @@ mod tests {
     use axiomatik_web::db::database_article;
     use axiomatik_web::db::database_article_data::Article;
     use axiomatik_web::trust::script_base;
-    use chrono::Local;
+    use chrono::Utc;
 
     #[tokio::test]
     async fn test_db_search_logic() {
@@ -66,13 +66,15 @@ mod tests {
         database_article::create_article(article1).await;
         database_article::create_article(article2).await;
 
-        let articles = database_article::articles_by_words(vec!["match".into()], 3).await.unwrap();
+        let articles = database_article::articles_by_words(vec!["match".into()], 3)
+            .await
+            .unwrap();
 
         assert_eq!(articles.len(), 2);
         // articles_by_words returns Vec<ShortArticleData> which has url, title, short_text, image_288_path, image_desc
-        // In database_article.rs it seems it selects * from article which might be mapped to ShortArticleData
+        // In database_article.rs it seems it selects * from an article which might be mapped to ShortArticleData
         // Let's check how they are ordered. Ordered by date DESC.
-        
+
         let titles: Vec<String> = articles.iter().map(|a| a.title.clone()).collect();
         assert!(titles.contains(&"Title 1".to_string()));
         assert!(titles.contains(&"Title 2".to_string()));
