@@ -98,8 +98,11 @@ pub async fn article_data(
     let mut related_articles = Vec::new();
 
     while let Ok(Some(field)) = multipart.next_field().await {
+
+        // TODO
         let field_name = field.name().unwrap().to_string();
         let content_type = field.content_type().unwrap();
+
 
         debug!("Processing: {}, type: {:?}", field_name, content_type);
 

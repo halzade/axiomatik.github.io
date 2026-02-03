@@ -1,4 +1,5 @@
-use crate::data::text_validator::validate_input_simple;
+use crate::data;
+use crate::data::text_validator;
 use crate::db::database_article_data::Article;
 use crate::db::{database_article, database_user};
 use crate::system::router::AuthSession;
@@ -9,6 +10,7 @@ use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::{debug, error};
+use validator::Validate;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -16,8 +18,9 @@ pub enum AccountError {
     UserNotFound,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct UpdateAuthorNamePayload {
+    #[validate(custom(function = "text_validator::validate_author_name"))]
     pub author_name: String,
 }
 
@@ -45,10 +48,10 @@ pub async fn show_account(auth_session: AuthSession) -> Response {
                     author_name: user.author_name,
                     articles,
                 }
-                    .render()
-                    .unwrap(),
+                .render()
+                .unwrap(),
             )
-                .into_response()
+            .into_response()
         }
     }
 }
@@ -61,10 +64,12 @@ pub async fn handle_update_author_name(
     match auth_session.user {
         Some(user) => {
             debug!("session user: {}", user.username);
-            if validate_input_simple(&payload.author_name).is_err() {
-                debug!("validation failed");
+
+            if let Err(errors) = payload.validate() {
+                println!("{:#?}", errors);
                 return StatusCode::BAD_REQUEST.into_response();
             }
+
             debug!("validation ok");
             match update_author_name(&user.username, &payload.author_name).await {
                 _ => {

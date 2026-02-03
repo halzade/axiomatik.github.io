@@ -6,6 +6,7 @@ use axiomatik_web::system::{configuration, heartbeat, logger};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
+use std::io::Error;
 use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::signal;
@@ -17,7 +18,7 @@ pub enum ApplicationError {
     Configuration(#[from] ConfigurationError),
 
     #[error("io error")]
-    Io(#[from] std::io::Error),
+    Io(#[from] Error),
 }
 
 // TODO X try, crate: validator

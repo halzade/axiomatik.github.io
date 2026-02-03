@@ -1,8 +1,25 @@
+use lazy_static::lazy_static;
+use regex::Regex;
 use thiserror::Error;
 use TextValidationError::{
     InvalidCharacter, InvalidLength, RequiredFieldMissing, SearchOnlyAlphanumeric,
     SearchOnlyAlphanumericAndSpaces, SimpleInputIncorrectCharacter,
 };
+use validator::ValidationError;
+
+lazy_static! {
+    pub static ref AUTHOR_NAME_REGEX: Regex = Regex::new(r"^[\p{L}0-9_ ]{1,100}$").unwrap();
+}
+
+pub fn validate_author_name(value: &str) -> Result<(), ValidationError> {
+    if AUTHOR_NAME_REGEX.is_match(value) {
+        Ok(())
+    } else {
+        let mut err = ValidationError::new("author_name");
+        err.message = Some("author_name may contain only Latin letters, numbers, spaces, or underscores and must be 1–100 characters long".into());
+        Err(err)
+    }
+}
 
 #[derive(Debug, Error)]
 pub enum TextValidationError {
@@ -18,8 +35,8 @@ pub enum TextValidationError {
     #[error("Only alphanumeric characters are allowed in search")]
     SearchOnlyAlphanumeric,
 
-    #[error("Incorrect character detected")]
-    SimpleInputIncorrectCharacter,
+    #[error("Incorrect character detected {0}")]
+    SimpleInputIncorrectCharacter(char),
 
     #[error("is required but not set")]
     RequiredFieldMissing,
@@ -113,7 +130,7 @@ pub fn validate_input_simple(input: &str) -> Result<(), TextValidationError> {
     for c in input.chars() {
         if !c.is_ascii_alphanumeric() {
             if c != '_' {
-                return Err(SimpleInputIncorrectCharacter);
+                return Err(SimpleInputIncorrectCharacter(c));
             }
         }
     }
