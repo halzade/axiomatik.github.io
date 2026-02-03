@@ -1,18 +1,29 @@
-use serde::{Deserialize, Serialize};
+use crate::db::database_internal::SurrealError::InvalidStatement;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 use surrealdb::engine::any::Any;
-use surrealdb::{Surreal, opt::Resource};
-use surrealdb::types::Value;
+use surrealdb::types::{SurrealValue, Value};
+use surrealdb::{opt::Resource, Surreal};
+use thiserror::Error;
 use tokio::sync::RwLock;
+use SurrealError::RecordNotFound;
 
 const DATABASE: &str = "file://axiomatik.db";
 const DATABASE_TEST: &str = "memory://axiomatik.test";
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 pub enum SurrealError {
-    InvalidStatement(String),
-    RecordNotFound(String, String),
+    #[error("surreal db error {0}")]
     Surreal(surrealdb::Error),
+
+    #[error("serde json error {0}")]
+    Serde(serde_json::Error),
+
+    #[error("invalid statement")]
+    InvalidStatement,
+
+    #[error("record not found {0}, id {1}")]
+    RecordNotFound(String, String),
 }
 
 impl From<surrealdb::Error> for SurrealError {
@@ -46,32 +57,32 @@ impl DatabaseSurreal {
         value: &T,
     ) -> Result<String, SurrealError>
     where
-        T: Serialize,
+        T: Serialize + SurrealValue + Clone,
     {
         let resource = match id {
             Some(id) => Resource::from((table, id)),
             None => Resource::from(table),
         };
 
-        let mut db = self.db.write().await;
-        let created: Value = db.create(resource).content(value).await?;
+        let db = self.db.write().await;
+        // Pass owned value so it implements the expected SurrealValue (not &T)
+        let created: Value = db.create(resource).content(value.clone()).await?;
 
         match created {
             Value::Object(obj) => {
-                if let Some(id_val) = obj.get("id").and_then(|v| v.as_str()) {
-                    Ok(id_val.to_string())
+                if let Some(id_val) = obj.get("id") {
+                    // Try to extract a string id; if not a string, fall back to JSON string
+                    let id_json = serde_json::to_value(id_val)?;
+                    let id_str = match id_json {
+                        serde_json::Value::String(s) => s,
+                        other => other.to_string(),
+                    };
+                    Ok(id_str)
                 } else {
-                    Err(SurrealError::InvalidStatement(
-                        "No id returned from create".into(),
-                    ))
+                    Err(InvalidStatement)
                 }
             }
-            Some(_) => Err(SurrealError::InvalidStatement(
-                "Failed to create record - unexpected return value".into(),
-            )),
-            None => Err(SurrealError::InvalidStatement(
-                "Failed to create record - no value returned".into(),
-            )),
+            _ => Err(InvalidStatement),
         }
     }
 
@@ -82,20 +93,20 @@ impl DatabaseSurreal {
     {
         let resource = Resource::from((table, id));
         let db = self.db.read().await;
-        let value: Option<Value> = db.select(resource).await?;
+        let value: Value = db.select(resource).await?;
 
         match value {
-            Some(v) => {
-                let json = serde_json::to_value(v)
-                    .map_err(|e| SurrealError::InvalidStatement(e.to_string()))?;
-                let t = serde_json::from_value(json)
-                    .map_err(|e| SurrealError::InvalidStatement(e.to_string()))?;
+            Value::None | Value::Null => Err(RecordNotFound(
+                table.to_string(),
+                id.to_string(),
+            )),
+            other => {
+                let json =
+                    serde_json::to_value(other).map_err(|e| InvalidStatement(e.to_string()))?;
+                let t: T =
+                    serde_json::from_value(json).map_err(|e| InvalidStatement(e.to_string()))?;
                 Ok(t)
             }
-            None => Err(SurrealError::RecordNotFound(format!(
-                "{}:{}",
-                table, id
-            ))),
         }
     }
 }
