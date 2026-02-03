@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use surrealdb::engine::any::Any;
 use surrealdb::Surreal;
 use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -42,6 +43,17 @@ pub async fn init_mem_db() -> DatabaseSurreal {
         .expect("Failed to initialize SurrealKV test database")
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+struct Trivial {
+    value: String,
+}
+
+impl Trivial {
+    fn new(value: String) -> Self {
+        Self { value }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -58,64 +70,74 @@ mod tests {
     #[tokio::test]
     async fn test_create_read_delete() {
         info!("test_create_read_delete()");
+
         let db = init_mem_db().await;
 
-        info!("1");
-        // Delete all test_entity records before starting
+        // --- 1. Delete all test_entity records ---
+        info!("1 - cleaning old records");
         {
             let w0 = db.write().await;
-            let _: Vec<surrealdb::types::Value> = w0
+            let _: Vec<serde_json::Value> = w0
                 .delete("test_entity")
                 .await
-                .expect("Failed to delete all test_entity before test");
-            // w0 dropped here
+                .expect("Failed to delete test_entity");
         }
 
-        info!("2");
-        // write
-        let created: surrealdb::types::Value = {
+        // --- 2. Create a new record ---
+        info!("2 - creating a record");
+
+        let write_trivial: Trivial = Trivial::new("ok".into());
+        let created_json: serde_json::Value = {
             let w1 = db.write().await;
-
-            let res: Option<surrealdb::types::Value> = w1
-                .create(("test_entity", "1"))
-                .content(serde_json::json!({ "value": "ok" }))
+            w1.create(("test_entity", "1"))
+                .content(
+                    serde_json::to_value(&write_trivial)
+                        .expect("Failed to convert Trivial to JSON"),
+                )
                 .await
-                .expect("Failed to create ok entity");
-
-            res.expect("Expected created record")
-            // w1 dropped here
+                .expect("Failed to create record")
+                .expect("Record was not created")
         };
 
-        let created_json: serde_json::Value =
-            serde_json::to_value(&created).expect("serialize created Value to JSON");
+        // --- 3. Convert JSON to Trivial struct ---
+        let created_trivial: Trivial = serde_json::from_value(created_json.clone())
+            .expect("Failed to deserialize JSON into Trivial");
+        info!("Created record: {:?}", created_trivial);
 
-        assert_eq!(
-            created_json.get("value").and_then(|v| v.as_str()),
-            Some("ok")
-        );
+        assert_eq!(created_trivial, Trivial::new("ok".into()));
 
-        info!("4");
-        // delete
+        // --- 4. Read the record back ---
+        info!("3 - reading the record");
+        let read_json: serde_json::Value = {
+            let r = db.read().await;
+            r.select(("test_entity", "1"))
+                .await
+                .expect("Failed to read record")
+                .expect("Record not found")
+        };
+
+        let read_trivial: Trivial =
+            serde_json::from_value(read_json.clone()).expect("Deserialize read record");
+        assert_eq!(read_trivial, Trivial::new("ok".into()));
+
+        // --- 5. Delete the record ---
+        info!("4 - deleting the record");
         {
             let w2 = db.write().await;
-            let _: Option<surrealdb::types::Value> = w2
+            let _: Option<serde_json::Value> = w2
                 .delete(("test_entity", "1"))
                 .await
-                .expect("Failed to delete ok entity");
-            // w2 dropped here
+                .expect("Failed to delete record");
         }
 
-        // cleaned up
-        let v2: Option<surrealdb::types::Value> = {
-            let r2 = db.read().await;
-            let res: Option<surrealdb::types::Value> = r2
-                .select(("test_entity", "1"))
+        // --- 6. Verify deletion ---
+        let check_deleted: Option<serde_json::Value> = {
+            let r = db.read().await;
+            r.select(("test_entity", "1"))
                 .await
-                .expect("Failed to read ok entity");
-            // r2 dropped here
-            res
+                .expect("Failed to read after delete")
         };
-
-        assert!(v2.is_none());
+        assert!(check_deleted.is_none());
+        info!("Test completed successfully");
     }
 }
