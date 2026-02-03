@@ -1,6 +1,6 @@
 use crate::data::library;
 use crate::feature::{name_days, weather};
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Utc};
 use parking_lot::RwLock;
 use thiserror::Error;
 
@@ -15,12 +15,12 @@ pub struct DataSystem {
     name_day: RwLock<String>,
     weather: RwLock<String>,
 
-    date_last_update: RwLock<DateTime<Local>>,
-    weather_last_update: RwLock<DateTime<Local>>,
+    date_last_update: RwLock<DateTime<Utc>>,
+    weather_last_update: RwLock<DateTime<Utc>>,
 }
 
 pub fn new() -> DataSystem {
-    let now = Local::now();
+    let now = Utc::now();
     DataSystem {
         date: RwLock::new("".into()),
         name_day: RwLock::new("".into()),
@@ -43,21 +43,21 @@ impl DataSystem {
         self.weather.read().clone()
     }
 
-    pub fn date_last_update(&self) -> DateTime<Local> {
+    pub fn date_last_update(&self) -> DateTime<Utc> {
         self.date_last_update.read().clone()
     }
 
-    pub fn weather_last_update(&self) -> DateTime<Local> {
+    pub fn weather_last_update(&self) -> DateTime<Utc> {
         self.weather_last_update.read().clone()
     }
 
     pub fn update_date(&self) {
-        let d = library::formatted_article_date(Local::now());
+        let d = library::formatted_article_date(Utc::now());
         *self.date.write() = d;
     }
 
     pub fn update_name_day(&self) {
-        let nd = name_days::formatted_today_name_day(Local::now());
+        let nd = name_days::formatted_today_name_day(Utc::now());
         *self.name_day.write() = nd;
     }
 

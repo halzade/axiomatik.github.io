@@ -4,11 +4,15 @@ use tracing::error;
 
 pub async fn create_article(article: Article) -> Option<Article> {
     let sdb_wg = crate::db::database::db_write().await.ok()?;
-    let article_r: Result<Option<Article>, _> = sdb_wg.create("article").content(article).await;
-    article_r.unwrap_or_else(|e| {
-        error!("Failed to create article: {}", e);
-        None
-    })
+    let res = sdb_wg.create("article").content(article).await;
+    match res {
+        Ok(Some(v)) => serde_json::from_value::<Article>(v).ok(),
+        Ok(None) => None,
+        Err(e) => {
+            error!("Failed to create article: {}", e);
+            None
+        }
+    }
 }
 
 pub async fn articles_by_username(
@@ -21,7 +25,7 @@ pub async fn articles_by_username(
         .bind(("username", username.to_string()))
         .bind(("limit", limit))
         .await?;
-    let articles: Vec<Article> = response.take(0)?;
+    let articles = response.take(0)?;
     Ok(articles)
 }
 
@@ -32,7 +36,13 @@ pub async fn articles_by_author(username: &str, limit: u32) -> Result<Vec<Articl
         .bind(("username", username.to_string()))
         .bind(("limit", limit))
         .await?;
-    let articles: Vec<Article> = response.take(0)?;
+    let vals: Vec<serde_json::Value> = response.take(0)?;
+    let mut articles = Vec::with_capacity(vals.len());
+    for v in vals {
+        if let Ok(a) = serde_json::from_value::<Article>(v) {
+            articles.push(a);
+        }
+    }
     Ok(articles)
 }
 
@@ -42,8 +52,13 @@ pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, Dat
         .query("SELECT * FROM article WHERE article_file_name = $filename")
         .bind(("filename", filename.to_string()))
         .await?;
-    let articles: Vec<Article> = response.take(0)?;
-    Ok(articles.into_iter().next())
+    let vals: Vec<serde_json::Value> = response.take(0)?;
+    for v in vals {
+        if let Ok(a) = serde_json::from_value::<Article>(v) {
+            return Ok(Some(a));
+        }
+    }
+    Ok(None)
 }
 
 pub async fn related_articles(related: &[String]) -> Result<Vec<ShortArticleData>, DatabaseError> {
@@ -59,7 +74,13 @@ pub async fn related_articles(related: &[String]) -> Result<Vec<ShortArticleData
         )
         .bind(("related", related.to_vec()))
         .await?;
-    let articles: Vec<ShortArticleData> = response.take(0)?;
+    let vals: Vec<serde_json::Value> = response.take(0)?;
+    let mut articles = Vec::with_capacity(vals.len());
+    for v in vals {
+        if let Ok(a) = serde_json::from_value::<ShortArticleData>(v) {
+            articles.push(a);
+        }
+    }
     Ok(articles)
 }
 
@@ -73,7 +94,13 @@ pub async fn articles_by_category(
         .bind(("category", category.to_string()))
         .bind(("limit", limit))
         .await?;
-    let articles: Vec<ShortArticleData> = response.take(0)?;
+    let vals: Vec<serde_json::Value> = response.take(0)?;
+    let mut articles = Vec::with_capacity(vals.len());
+    for v in vals {
+        if let Ok(a) = serde_json::from_value::<ShortArticleData>(v) {
+            articles.push(a);
+        }
+    }
     Ok(articles)
 }
 
@@ -84,7 +111,13 @@ pub async fn articles_most_read(limit: u32) -> Result<Vec<MiniArticleData>, Data
         .query("SELECT * FROM article WHERE ORDER BY date DESC LIMIT $limit")
         .bind(("limit", limit))
         .await?;
-    let articles: Vec<MiniArticleData> = response.take(0)?;
+    let vals: Vec<serde_json::Value> = response.take(0)?;
+    let mut articles = Vec::with_capacity(vals.len());
+    for v in vals {
+        if let Ok(a) = serde_json::from_value::<MiniArticleData>(v) {
+            articles.push(a);
+        }
+    }
     Ok(articles)
 }
 
@@ -118,7 +151,13 @@ pub async fn articles_by_words(
     q = q.bind(("limit", limit));
 
     let mut response = q.await?;
-    let articles: Vec<ShortArticleData> = response.take(0)?;
+    let vals: Vec<serde_json::Value> = response.take(0)?;
+    let mut articles = Vec::with_capacity(vals.len());
+    for v in vals {
+        if let Ok(a) = serde_json::from_value::<ShortArticleData>(v) {
+            articles.push(a);
+        }
+    }
 
     Ok(articles)
 }

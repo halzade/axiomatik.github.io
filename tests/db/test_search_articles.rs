@@ -9,7 +9,7 @@ mod tests {
     async fn test_db_search_logic() {
         script_base::setup_before_tests_once().await;
 
-        let now = Local::now();
+        let now = Utc::now();
 
         let article1 = Article {
             author: "author".to_string(),

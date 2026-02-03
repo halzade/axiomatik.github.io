@@ -3,7 +3,6 @@ use crate::db::database_user::DatabaseUserError::*;
 use axum_login::AuthUser;
 use serde::{Deserialize, Serialize};
 use std::convert::Infallible;
-use surrealdb::Error;
 use thiserror::Error;
 use tracing::debug;
 
@@ -16,7 +15,7 @@ pub enum DatabaseUserError {
     DeleteUserDatabaseError(#[from] DatabaseError),
 
     #[error("user deletion failed, error while writing into database, {0}")]
-    DeleteUserDeletionError(#[from] Error),
+    DeleteUserDeletionError(#[from] surrealdb::Error),
 
     #[error("user update failed, {0}")]
     UpdateUserError(String),
@@ -25,7 +24,7 @@ pub enum DatabaseUserError {
     UpdateUserDatabaseError(DatabaseError),
 
     #[error("user update failed, error while writing into database, {0}")]
-    UpdateUserExecutionError(Error),
+    UpdateUserExecutionError(surrealdb::Error),
 
     #[error("user creation failed, {0}")]
     CreateUserError(String),
@@ -34,7 +33,7 @@ pub enum DatabaseUserError {
     CreateUserDatabaseError(DatabaseError),
 
     #[error("user creation failed, error while writing into database, {0}")]
-    CreateUserExecutionError(Error),
+    CreateUserExecutionError(surrealdb::Error),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -100,7 +99,7 @@ pub async fn update_user_author_name(
     new_author_name: &str,
 ) -> Result<(), DatabaseUserError> {
     let sdb = db_write().await.map_err(UpdateUserDatabaseError)?;
-    let _: Option<User> = sdb
+    let _: Option<serde_json::Value> = sdb
         .update(("user", user_name))
         .merge(serde_json::json!({
             "author_name": new_author_name,
@@ -115,7 +114,7 @@ pub async fn update_user_password(
     new_password_hash: &str,
 ) -> Result<(), DatabaseUserError> {
     let sdb = db_write().await.map_err(UpdateUserDatabaseError)?;
-    let _: Option<User> = sdb
+    let _: Option<serde_json::Value> = sdb
         .update(("user", user_name))
         .merge(serde_json::json!({
             "password_hash": new_password_hash,
@@ -128,9 +127,9 @@ pub async fn update_user_password(
 
 pub async fn create_user(user: User) -> Result<(), DatabaseUserError> {
     let sdb = db_write().await.map_err(CreateUserDatabaseError)?;
-    let _: Option<User> = sdb
+    let _: Option<serde_json::Value> = sdb
         .create(("user", user.username.clone()))
-        .content(user)
+        .content(serde_json::to_value(&user).map_err(|e| CreateUserError(e.to_string()))?)
         .await
         .map_err(CreateUserExecutionError)?;
     debug!("User created successfully.");
@@ -141,7 +140,7 @@ pub async fn delete_user(user_name: &str) -> Result<(), DatabaseUserError> {
     let sdb_r = db_write().await;
     match sdb_r {
         Ok(sdb) => {
-            let res: Result<Option<User>, Error> = sdb.delete(("user", user_name)).await;
+            let res: Result<Option<serde_json::Value>, surrealdb::Error> = sdb.delete(("user", user_name)).await;
             match res {
                 Ok(_) => {
                     debug!("User {} deleted successfully.", user_name);
@@ -157,7 +156,11 @@ pub async fn delete_user(user_name: &str) -> Result<(), DatabaseUserError> {
 // TODO X Result
 pub async fn get_user_by_name(user_id: &str) -> Option<User> {
     if let Ok(sdb) = db_read().await {
-        return sdb.select(("user", user_id)).await.ok().flatten();
+        if let Ok(opt_val) = sdb.select(("user", user_id)).await {
+            if let Some(val) = opt_val {
+                return serde_json::from_value::<User>(val).ok();
+            }
+        }
     }
     None
 }

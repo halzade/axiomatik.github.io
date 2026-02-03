@@ -1,7 +1,11 @@
 [package]
 name = "axiomatik-web"
-version = "0.1.0"
 edition = "2024"
+version = "0.1.0"
+description = "nexo news server"
+authors = ["Lukas"]
+keywords = ["nexo"]
+categories = ["nexo"]
 
 [dependencies]
 askama = { version = "0.15" }
@@ -10,17 +14,19 @@ axum-core = "0.5.6"
 axum-login = { version = "0.18.0" }
 axum-extra = { version = "0.12.5", features = ["cookie"] }
 bcrypt = "0.18.0"
-chrono = "0.4.42"
+chrono = { version = "0.4", features = ["serde"] }
 config = "0.15"
 infer = "0.19"
 http = "1.4.0"
-image = "0.25.5"
+image = "0.25"
+lazy_static = "1.5"
 parking_lot = "0.12"
 regex = "1"
-reqwest = { version = "0.13.1", features = ["json"] }
-serde = { version = "1.0.228", features = ["derive"] }
+reqwest = { version = "0.13", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-surrealdb = { version = "2.4.0", features = ["kv-rocksdb", "kv-mem", "protocol-ws", "rustls"] }
+surrealdb = { version = "3.0.0-beta.2", features = ["kv-surrealkv"] }
+surrealkv = "0.17"
 thiserror = "2.0"
 tokio = { version = "1.49", features = ["full"] }
 tower = { version = "0.5.2" }
@@ -30,4 +36,3 @@ tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "chrono"] }
 url = "2.5.7"
 validator = { version = "0.18", features = ["derive"] }
-lazy_static = "1.4"

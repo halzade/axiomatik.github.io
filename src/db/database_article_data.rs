@@ -1,7 +1,7 @@
 use crate::application::form::form_article_data_parser::ArticleData;
 use crate::data::library;
 use crate::data::text_processor::{process_short_text, process_text};
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -16,7 +16,8 @@ pub struct Article {
     pub author: String,
     pub user: String,
 
-    pub date: DateTime<Local>,
+    #[serde(with = "chrono::serde::ts_seconds")]
+    pub date: DateTime<Utc>,
     pub date_str: String,
 
     pub title: String,
@@ -77,7 +78,7 @@ impl TryFrom<ArticleData> for Article {
     type Error = DataProcessorError;
 
     fn try_from(data: ArticleData) -> Result<Self, Self::Error> {
-        let now = Local::now();
+        let now = Utc::now();
         Ok(Article {
             author: data.author,
             user: data.user,

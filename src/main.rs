@@ -41,6 +41,10 @@ async fn main() -> Result<(), ApplicationError> {
         delete_user(&args).await;
     }
 
+    if args.len() > 0 {
+        // TODO X stop
+    }
+
     /*
      * Server
      */

@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, Local, Weekday};
+use chrono::{DateTime, Datelike, Utc, Weekday};
 
 pub const CZECH_MONTHS_CAPITAL: [&str; 12] = [
     "Leden",
@@ -50,7 +50,10 @@ fn get_czech_month_genitive(month: u32) -> &'static str {
     CZECH_MONTHS_GENITIVE[(month - 1) as usize]
 }
 
-pub fn day_of_week(dtl: DateTime<Local>) -> &'static str {
+pub fn day_of_week(dtl: DateTime<Utc>) -> &'static str {
+
+    // TODO Utc to Prague timezone
+
     match dtl.weekday() {
         Weekday::Mon => "Pondělí",
         Weekday::Tue => "Úterý",
@@ -92,7 +95,7 @@ pub fn safe_article_file_name(title: &String) -> String {
         .collect::<String>()
 }
 
-pub fn formatted_article_date(now: DateTime<Local>) -> String {
+pub fn formatted_article_date(now: DateTime<Utc>) -> String {
     let day_name = day_of_week(now);
     let month_name_genitive = get_czech_month_genitive(now.month());
 
@@ -130,9 +133,9 @@ mod tests {
 
     #[test]
     fn test_day_of_week() {
-        let dt = Local.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap(); // Monday
+        let dt = Utc.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap(); // Monday
         assert_eq!(day_of_week(dt), "Pondělí");
-        let dt = Local.with_ymd_and_hms(2024, 1, 7, 12, 0, 0).unwrap(); // Sunday
+        let dt = Utc.with_ymd_and_hms(2024, 1, 7, 12, 0, 0).unwrap(); // Sunday
         assert_eq!(day_of_week(dt), "Neděle");
     }
 
@@ -150,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_formatted_article_date() {
-        let dt = Local.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap();
+        let dt = Utc.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap();
         assert_eq!(formatted_article_date(dt), "Pondělí 1. ledna 2024");
     }
 }

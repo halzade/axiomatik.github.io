@@ -1,6 +1,6 @@
 use crate::system::router::ApplicationRouter;
 use axum::Router;
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Utc};
 use parking_lot::RwLock;
 use std::sync::Arc;
 use thiserror::Error;
@@ -30,7 +30,7 @@ pub enum ApplicationStatus {
 
 pub struct Server {
     status: RwLock<ApplicationStatus>,
-    start_time: DateTime<Local>,
+    start_time: DateTime<Utc>,
     router: Arc<ApplicationRouter>,
 }
 
@@ -57,7 +57,7 @@ impl Server {
     }
 
     pub fn run_time(&self) -> String {
-        let duration = Local::now().signed_duration_since(self.start_time);
+        let duration = Utc::now().signed_duration_since(self.start_time);
 
         let total_seconds = duration.num_seconds();
         let hours = total_seconds / 3600;
@@ -80,7 +80,7 @@ impl Server {
 pub fn new() -> Server {
     Server {
         status: RwLock::new(Off),
-        start_time: Local::now(),
+        start_time: Utc::now(),
         router: Arc::new(ApplicationRouter::new()),
     }
 }
