@@ -3,7 +3,7 @@ pub mod app {
     pub mod test_002_login_username;
     pub mod test_003_login_password;
     pub mod test_004_login_rejection;
-    pub mod test_account_page;
+    pub mod test_account_update_author_name;
     pub mod test_article_is_exclusive_tests;
     pub mod test_005_change_password;
     pub mod test_command_create_editor_user;

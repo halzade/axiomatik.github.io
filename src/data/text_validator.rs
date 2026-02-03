@@ -5,20 +5,10 @@ use TextValidationError::{
     InvalidCharacter, InvalidLength, RequiredFieldMissing, SearchOnlyAlphanumeric,
     SearchOnlyAlphanumericAndSpaces, SimpleInputIncorrectCharacter,
 };
-use validator::ValidationError;
 
 lazy_static! {
-    pub static ref AUTHOR_NAME_REGEX: Regex = Regex::new(r"^[\p{L}0-9_ ]{1,100}$").unwrap();
-}
-
-pub fn validate_author_name(value: &str) -> Result<(), ValidationError> {
-    if AUTHOR_NAME_REGEX.is_match(value) {
-        Ok(())
-    } else {
-        let mut err = ValidationError::new("author_name");
-        err.message = Some("author_name may contain only Latin letters, numbers, spaces, or underscores and must be 1–100 characters long".into());
-        Err(err)
-    }
+    pub static ref AUTHOR_NAME_REGEX: Regex =
+        Regex::new(r"^[\p{L}\p{N}]+(?: [\p{L}\p{N}]+)*$").unwrap();
 }
 
 #[derive(Debug, Error)]

@@ -216,7 +216,7 @@ impl ApplicationRouter {
         {
             return serve_this(url, request).await;
         }
-        // it is a HTML file request, HTML content may need refresh
+        // it is an HTML file request, HTML content may need refresh
 
         match url.as_str() {
             "/index.html" => {
