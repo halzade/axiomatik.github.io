@@ -39,7 +39,7 @@ pub enum ArticleCreateError {
  * Text will be processed only for the Template
  */
 #[derive(Debug, Clone)]
-pub struct ArticleData {
+pub struct ArticleUpload {
     pub is_main: bool,
     pub is_exclusive: bool,
     pub author: String,
@@ -73,7 +73,7 @@ pub struct ArticleData {
 pub async fn article_data(
     auth_session: crate::system::router::AuthSession,
     mut multipart: Multipart,
-) -> Result<ArticleData, ArticleCreateError> {
+) -> Result<ArticleUpload, ArticleCreateError> {
     let user = auth_session.user.unwrap().username.clone();
     // required
     let mut author = String::new();
@@ -165,7 +165,7 @@ pub async fn article_data(
         }
     }
 
-    let ad = ArticleData {
+    let ad = ArticleUpload {
         is_main,
         is_exclusive,
         author,

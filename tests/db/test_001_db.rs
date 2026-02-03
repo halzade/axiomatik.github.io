@@ -15,10 +15,11 @@ impl Trivial {
 mod tests {
     use super::*;
     use tracing::info;
+    use axiomatik_web::db::database_internal::init_db_test;
 
     #[tokio::test]
     async fn test_connects_and_query() {
-        let db_surreal = axiomatik_web::db::database_internal::init_db_test().await;
+        let db_surreal = init_db_test().await;
         let db = db_surreal.db.read().await;
         let res = db.query("RETURN 1").await.unwrap();
         assert!(res.check().is_ok());
@@ -27,7 +28,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_read_delete() -> Result<(), Box<dyn std::error::Error>> {
         // --- 1. Init in‑memory SurrealDB ---
-        let db = axiomatik_web::db::database_internal::init_db_test().await;
+        let db = init_db_test().await;
 
         // --- 3. CREATE ---
         let x = Trivial::new("hello".to_string());

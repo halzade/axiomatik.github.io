@@ -1,4 +1,4 @@
-use crate::application::form::form_article_data_parser::ArticleData;
+use crate::application::form::form_article_data_parser::ArticleUpload;
 use crate::data::library;
 use crate::data::text_processor::{process_short_text, process_text};
 use chrono::{DateTime, Utc};
@@ -12,7 +12,25 @@ pub enum DataProcessorError {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct NewArticle {
+    pub data: ArticleData,
+}
+
+/**
+ * Article object used in the Application
+ */
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Article {
+    pub id: u64,
+    pub data: ArticleData,
+}
+
+/**
+ * Common struct for various Article use
+ */
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ArticleData {
     pub author: String,
     pub user: String,
 
@@ -74,50 +92,61 @@ pub struct ArticleViews {
     pub views: i64,
 }
 
-impl TryFrom<ArticleData> for Article {
+impl TryFrom<ArticleUpload> for NewArticle {
     type Error = DataProcessorError;
 
-    fn try_from(data: ArticleData) -> Result<Self, Self::Error> {
+    fn try_from(data: ArticleUpload) -> Result<Self, Self::Error> {
         let now = Utc::now();
-        Ok(Article {
-            author: data.author,
-            user: data.user,
-            date: now,
-            date_str: library::formatted_article_date(now),
+        Ok(NewArticle {
+            data: ArticleData {
+                author: data.author,
+                user: data.user,
+                date: now,
+                date_str: library::formatted_article_date(now),
 
-            title: data.title,
-            text: process_text(&data.text_raw),
-            short_text: process_short_text(&data.short_text_raw),
-            mini_text: process_short_text(&data.mini_text_raw),
+                title: data.title,
+                text: process_text(&data.text_raw),
+                short_text: process_short_text(&data.short_text_raw),
+                mini_text: process_short_text(&data.mini_text_raw),
 
-            file_base: data.base_file_name.clone(),
-            image_desc: data.image_desc,
-            image_50_path: format!("web/u/{}_image_50.{}", data.base_file_name, data.image_ext),
-            image_288_path: format!("web/u/{}_image_288.{}", data.base_file_name, data.image_ext),
-            image_440_path: format!("web/u/{}_image_440.{}", data.base_file_name, data.image_ext),
-            image_820_path: format!("web/u/{}_image_820.{}", data.base_file_name, data.image_ext),
+                file_base: data.base_file_name.clone(),
+                image_desc: data.image_desc,
+                image_50_path: format!("web/u/{}_image_50.{}", data.base_file_name, data.image_ext),
+                image_288_path: format!(
+                    "web/u/{}_image_288.{}",
+                    data.base_file_name, data.image_ext
+                ),
+                image_440_path: format!(
+                    "web/u/{}_image_440.{}",
+                    data.base_file_name, data.image_ext
+                ),
+                image_820_path: format!(
+                    "web/u/{}_image_820.{}",
+                    data.base_file_name, data.image_ext
+                ),
 
-            has_video: data.has_video,
-            video_path: if data.has_video {
-                "".into()
-            } else {
-                format!("web/u/{}_video.{}", data.base_file_name, data.video_ext)
+                has_video: data.has_video,
+                video_path: if data.has_video {
+                    "".into()
+                } else {
+                    format!("web/u/{}_video.{}", data.base_file_name, data.video_ext)
+                },
+
+                has_audio: data.has_audio,
+                audio_path: if data.has_audio {
+                    "".into()
+                } else {
+                    format!("web/u/{}_audio.{}", data.base_file_name, data.audio_ext)
+                },
+
+                category: data.category,
+                related_articles: data.related_articles,
+
+                is_main: data.is_main,
+                is_exclusive: data.is_exclusive,
+
+                views: 0,
             },
-
-            has_audio: data.has_audio,
-            audio_path: if data.has_audio {
-                "".into()
-            } else {
-                format!("web/u/{}_audio.{}", data.base_file_name, data.audio_ext)
-            },
-
-            category: data.category,
-            related_articles: data.related_articles,
-
-            is_main: data.is_main,
-            is_exclusive: data.is_exclusive,
-
-            views: 0,
         })
     }
 }
