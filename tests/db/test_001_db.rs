@@ -14,7 +14,6 @@ impl Trivial {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tracing::info;
     use axiomatik_web::db::database_internal::init_db_test;
 
     #[tokio::test]
@@ -32,11 +31,17 @@ mod tests {
 
         // --- 3. CREATE ---
         let x = Trivial::new("hello".to_string());
-        let id = db.write_struct("test_entity", Some("1"), &x).await.map_err(|e| format!("{:?}", e))?;
+        let id = db
+            .write_struct("test_entity", Some("1"), &x)
+            .await
+            .map_err(|e| format!("{:?}", e))?;
         assert!(id.contains("test_entity:1") || id.contains("1"));
 
         // --- 4. READ ---
-        let read: Trivial = db.read_struct("test_entity", "1").await.map_err(|e| format!("{:?}", e))?;
+        let read: Trivial = db
+            .read_by_id("test_entity", "1")
+            .await
+            .map_err(|e| format!("{:?}", e))?;
         assert_eq!(read, x);
 
         // --- 5. DELETE ---
@@ -46,7 +51,7 @@ mod tests {
         }
 
         // --- 6. VERIFY NONE ---
-        let check: Result<Trivial, _> = db.read_struct("test_entity", "1").await;
+        let check: Result<Trivial, _> = db.read_by_id("test_entity", "1").await;
         assert!(check.is_err());
 
         Ok(())

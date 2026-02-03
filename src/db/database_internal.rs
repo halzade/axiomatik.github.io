@@ -41,46 +41,71 @@ impl DatabaseSurreal {
         })
     }
 
-    /// Write a struct into a table, optionally specifying an ID.
-    /// Returns the created record's ID as String
-    pub async fn write_struct<T>(
-        &self,
-        table: &str,
-        id: Option<&str>,
-        value: &T,
-    ) -> Result<String, SurrealError>
+    pub async fn create_struct<NewT>(&self, table: &str, value: &NewT) -> Result<(), SurrealError>
+    where
+        NewT: Serialize + SurrealValue + Clone,
+    {
+        let db = self.db.write().await;
+
+        let created_o: Option<Value> = db.create(table).content(value.clone()).await?;
+
+        match created_o {
+            None => Ok(()),
+            Some(_) => Err(InvalidStatement),
+        }
+    }
+
+    pub async fn update_struct<T>(&self, table: &str, value: &T) -> Result<(), SurrealError>
     where
         T: Serialize + SurrealValue + Clone,
     {
-        let resource = match id {
-            Some(id) => Resource::from((table, id)),
-            None => Resource::from(table),
+        // Extract id from struct via JSON
+        let json = serde_json::to_value(value)?;
+        let id = json.get("id").ok_or(InvalidStatement)?;
+
+        let id_str = match id {
+            serde_json::Value::String(s) => s.clone(),
+            other => other.to_string(),
         };
 
+        let resource = Resource::from((table, id_str.as_str()));
         let db = self.db.write().await;
-        // Pass owned value so it implements the expected SurrealValue (not &T)
-        let created: Value = db.create(resource).content(value.clone()).await?;
 
-        match created {
-            Value::Object(obj) => {
-                if let Some(id_val) = obj.get("id") {
-                    // Try to extract a string id; if not a string, fall back to JSON string
-                    let id_json = serde_json::to_value(id_val)?;
-                    let id_str = match id_json {
-                        serde_json::Value::String(s) => s,
-                        other => other.to_string(),
-                    };
-                    Ok(id_str)
-                } else {
-                    Err(InvalidStatement)
-                }
-            }
+        let updated: Value = db.update(resource).content(value.clone()).await?;
+
+        match updated {
+            Value::Object(_) => Ok(()),
             _ => Err(InvalidStatement),
         }
     }
 
+    pub async fn delete_struct<T>(
+        &self,
+        table: &str,
+        struct_to_delete: T,
+    ) -> Result<(), SurrealError>
+    where
+        T: Serialize,
+    {
+        // Extract `id` from struct via JSON
+        let json = serde_json::to_value(&struct_to_delete)?;
+        let id = json.get("id").ok_or(InvalidStatement)?;
+
+        let id_str = match id {
+            serde_json::Value::String(s) => s.clone(),
+            other => other.to_string(),
+        };
+
+        let resource = Resource::from((table, id_str.as_str()));
+        let db = self.db.write().await;
+
+        let _idempotent: Value = db.delete(resource).await?;
+
+        Ok(())
+    }
+
     /// Read a record by table + id and deserialize to struct T
-    pub async fn read_struct<T>(&self, table: &str, id: &str) -> Result<T, SurrealError>
+    pub async fn read_by_id<T>(&self, table: &str, id: &str) -> Result<T, SurrealError>
     where
         T: DeserializeOwned,
     {
