@@ -4,7 +4,7 @@ mod tests {
     use axiomatik_web::trust::article_builder::ArticleBuilder;
     use axiomatik_web::trust::script_base;
     use axiomatik_web::trust::script_base::{
-        content_type_with_boundary, response_to_body, serialize,
+        content_type_with_boundary, response_to_body, serialize, TrustError,
     };
     use axiomatik_web::trust::script_base_data::PNG;
     use axum::http::{header, Request, StatusCode};
@@ -12,7 +12,7 @@ mod tests {
     use std::fs::remove_file;
 
     #[tokio::test]
-    async fn test_account_page() {
+    async fn test_account_page() -> Result<(), TrustError> {
         script_base::setup_before_tests_once().await;
 
         // Create user
@@ -24,8 +24,7 @@ mod tests {
                 .method("GET")
                 .uri("/account")
                 .header(header::COOKIE, &cookie)
-                .body(Body::default())
-                .unwrap(),
+                .body(Body::default())?,
         )
         .await;
 
@@ -42,8 +41,7 @@ mod tests {
                 .uri("/account/update-author")
                 .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(serialize(&update_params)))
-                .unwrap(),
+                .body(Body::from(serialize(&update_params)))?,
         )
         .await;
 
@@ -57,7 +55,7 @@ mod tests {
         );
 
         // Verify update in DB
-        let user = database_user::get_user_by_name("user8").await.unwrap();
+        let user = database_user::get_user_by_name("user8").await?.unwrap();
         assert_eq!(user.author_name, "Updated Author");
 
         // Create an article with this user
@@ -79,8 +77,7 @@ mod tests {
                 .uri("/create")
                 .header(header::CONTENT_TYPE, content_type_with_boundary())
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(body.unwrap()))
-                .unwrap(),
+                .body(Body::from(body?))?,
         )
         .await;
 
@@ -92,8 +89,7 @@ mod tests {
                 .method("GET")
                 .uri("/account")
                 .header(header::COOKIE, &cookie)
-                .body(Body::default())
-                .unwrap(),
+                .body(Body::default())?,
         )
         .await;
 
@@ -110,8 +106,7 @@ mod tests {
                 .uri("/account/update-author")
                 .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(serialize(&update_params)))
-                .unwrap(),
+                .body(Body::from(serialize(&update_params)))?,
         )
         .await;
 
@@ -123,8 +118,7 @@ mod tests {
                 .method("GET")
                 .uri("/account")
                 .header(header::COOKIE, &cookie)
-                .body(Body::default())
-                .unwrap(),
+                .body(Body::default())?,
         )
         .await;
 
@@ -143,5 +137,7 @@ mod tests {
         assert!(remove_file("web/u/test-user-article_image_50.png").is_ok());
         assert!(remove_file("web/u/test-user-article_image_288.png").is_ok());
         assert!(remove_file("web/u/test-user-article_image_440.png").is_ok());
+
+        Ok(())
     }
 }

@@ -4,13 +4,13 @@ mod tests {
 
     use axiomatik_web::trust::article_builder::ArticleBuilder;
     use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::content_type_with_boundary;
+    use axiomatik_web::trust::script_base::{content_type_with_boundary, TrustError};
     use axiomatik_web::trust::script_base_data::PNG;
     use reqwest::Body;
     use std::fs;
 
     #[tokio::test]
-    async fn test_republika_article_creation_and_limit() {
+    async fn test_republika_article_creation_and_limit() -> Result<(), TrustError> {
         script_base::setup_before_tests_once().await;
 
         let cookie = script_base::setup_user_and_login("user5").await;
@@ -51,5 +51,7 @@ mod tests {
         assert!(fs::remove_file("web/u/test-newest-republika_image_50.jpg").is_ok());
         assert!(fs::remove_file("web/u/test-newest-republika_image_288.jpg").is_ok());
         assert!(fs::remove_file("web/u/test-newest-republika_image_440.jpg").is_ok());
+
+        Ok(())
     }
 }

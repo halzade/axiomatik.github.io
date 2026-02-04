@@ -3,9 +3,10 @@ mod tests {
     use askama::Template;
     use axiomatik_web::application::article::article::ArticleTemplate;
     use axiomatik_web::db::database_article_data::{MiniArticleData, ShortArticleData};
+    use axiomatik_web::trust::script_base::TrustError;
 
     #[test]
-    fn test_article_build_from_template() {
+    fn test_article_build_from_template() -> Result<(), TrustError> {
         let related_articles = vec![
             ShortArticleData {
                 url: "related-1.html".to_string(),
@@ -23,15 +24,13 @@ mod tests {
             },
         ];
 
-        let most_read = vec![
-            MiniArticleData {
-                url: "most-read-1.html".to_string(),
-                image_50_path: "images/placeholder_50.png".to_string(),
-                title: "Most Read 1".to_string(),
-                mini_text: "Text for most read 1".to_string(),
-                image_desc: "desc".to_string(),
-            }
-        ];
+        let most_read = vec![MiniArticleData {
+            url: "most-read-1.html".to_string(),
+            image_50_path: "images/placeholder_50.png".to_string(),
+            title: "Most Read 1".to_string(),
+            mini_text: "Text for most read 1".to_string(),
+            image_desc: "desc".to_string(),
+        }];
 
         let template = ArticleTemplate {
             date: "Sobota 24. Ledna 2026".to_string(),
@@ -41,7 +40,8 @@ mod tests {
             author: "Lukáš ze Sametu".to_string(),
 
             title: "Jeden tisíc dnů".to_string(),
-            text: "<p>Pouhých tisíc dnů nás dělí od vzestupu krajní pravice v Německu.</p>".to_string(),
+            text: "<p>Pouhých tisíc dnů nás dělí od vzestupu krajní pravice v Německu.</p>"
+                .to_string(),
             image_path: "fasces-white.jpg".to_string(),
             image_desc: "Vlakové nádraží v ulici Baker Street".to_string(),
             video_path: Some("fasces-one.mp4".to_string()),
@@ -53,7 +53,7 @@ mod tests {
         };
 
         let rendered = template.render().expect("Failed to render template");
-        
+
         // Basic content verification
         assert!(rendered.contains("Jeden tisíc dnů"));
         assert!(rendered.contains("Lukáš ze Sametu"));
@@ -62,11 +62,13 @@ mod tests {
         assert!(rendered.contains("Related Article 1"));
         assert!(rendered.contains("Related Article 2"));
         assert!(rendered.contains("Most Read 1"));
-        
+
         // Structure verification
         assert!(rendered.contains("<header class=\"w8 topbar\">"));
         assert!(rendered.contains("<nav class=\"w8 main-nav\">"));
         assert!(rendered.contains("<div class=\"w8 most\">"));
         assert!(rendered.contains("<section class=\"related-section\">"));
+
+        Ok(())
     }
 }

@@ -14,6 +14,7 @@ use crate::system::{data_updates, logger, server};
 use crate::trust::article_builder::BOUNDARY;
 use tokio::sync::OnceCell;
 use tracing::log::debug;
+use crate::system::commands::CommandError;
 
 // TODO X, proper test framework
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
@@ -32,6 +33,33 @@ pub enum TrustError {
 
     #[error("test surrealdb error {0}")]
     TestError(#[from] surrealdb::Error),
+
+    #[error("test command error {0}")]
+    TrustCommandError(#[from] CommandError),
+
+    #[error("io error {0}")]
+    IoError(#[from] std::io::Error),
+
+    #[error("reqwest error {0}")]
+    ReqwestError(#[from] reqwest::Error),
+
+    #[error("http error {0}")]
+    HttpError(#[from] http::Error),
+
+    #[error("serde_json error {0}")]
+    SerdeJsonError(#[from] serde_json::Error),
+
+    #[error("axum error {0}")]
+    AxumError(String),
+
+    #[error("bcrypt error {0}")]
+    BcryptError(#[from] bcrypt::BcryptError),
+
+    #[error("axum framework error {0}")]
+    AxumFrameworkError(#[from] axum::Error),
+
+    #[error("header to_str error {0}")]
+    HeaderToStrError(#[from] http::header::ToStrError),
 }
 
 pub async fn setup_before_tests_once() {

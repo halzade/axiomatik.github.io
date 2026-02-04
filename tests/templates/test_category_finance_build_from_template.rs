@@ -3,9 +3,10 @@ mod tests {
     use askama::Template;
     use axiomatik_web::application::finance::finance::FinanceTemplate;
     use axiomatik_web::db::database_article_data::ShortArticleData;
+    use axiomatik_web::trust::script_base::TrustError;
 
     #[test]
-    fn test_finance_build_from_template() {
+    fn test_finance_build_from_template() -> Result<(), TrustError> {
         let articles_left = vec![ShortArticleData {
             url: "finance-1.html".to_string(),
             title: "Finance Article 1".to_string(),
@@ -31,5 +32,7 @@ mod tests {
         assert!(rendered.contains("Finance Article 1"));
         assert!(rendered.contains("Short text for finance 1"));
         assert!(rendered.contains("Wednesday, January 21, 2026"));
+
+        Ok(())
     }
 }

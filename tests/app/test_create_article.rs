@@ -2,7 +2,7 @@
 mod tests {
     use axiomatik_web::trust::article_builder::ArticleBuilder;
     use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::content_type_with_boundary;
+    use axiomatik_web::trust::script_base::{content_type_with_boundary, TrustError};
     use axiomatik_web::trust::script_base_data::{FAKE_AUDIO_DATA_MP3, MP3, PNG};
     use axum::http::{header, Request, StatusCode};
     use header::{CONTENT_TYPE, COOKIE};
@@ -10,7 +10,7 @@ mod tests {
     use std::fs::read_to_string;
 
     #[tokio::test]
-    async fn test_create_article() {
+    async fn test_create_article() -> Result<(), TrustError> {
         script_base::setup_before_tests_once().await;
 
         let cookie = script_base::setup_user_and_login("user6").await;
@@ -34,8 +34,7 @@ mod tests {
                 .uri("/create")
                 .header(CONTENT_TYPE, content_type_with_boundary())
                 .header(COOKIE, &cookie)
-                .body(Body::from(body.unwrap()))
-                .unwrap(),
+                .body(Body::from(body?))?,
         )
         .await;
 
@@ -52,8 +51,7 @@ mod tests {
         let response_article = script_base::one_shot(
             Request::builder()
                 .uri("/test-article.html")
-                .body(Body::default())
-                .unwrap(),
+                .body(Body::default())?,
         )
         .await;
         assert_eq!(response_article.status(), StatusCode::OK);
@@ -64,15 +62,14 @@ mod tests {
                 .method("GET")
                 .uri("/account")
                 .header(COOKIE, &cookie)
-                .body(Body::default())
-                .unwrap(),
+                .body(Body::default())?,
         )
         .await;
 
         assert_eq!(account_resp.status(), StatusCode::OK);
 
         // Verify audio player placement
-        let article_content = read_to_string("web/test-article.html").unwrap();
+        let article_content = read_to_string("web/test-article.html")?;
         let audio_pos = article_content
             .find("<audio")
             .expect("Audio player not found");
@@ -91,5 +88,7 @@ mod tests {
         assert!(std::fs::remove_file("web/u/test-article_image_440.jpg").is_ok());
         assert!(std::fs::remove_file("web/u/test-article_image_820.jpg").is_ok());
         assert!(std::fs::remove_file("web/u/test-article_audio.mp3").is_ok());
+
+        Ok(())
     }
 }

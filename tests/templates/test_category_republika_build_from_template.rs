@@ -3,9 +3,10 @@ mod tests {
     use askama::Template;
     use axiomatik_web::application::republika::republika::RepublikaTemplate;
     use axiomatik_web::db::database_article_data::ShortArticleData;
+    use axiomatik_web::trust::script_base::TrustError;
 
     #[test]
-    fn test_republika_build_from_template() {
+    fn test_republika_build_from_template() -> Result<(), TrustError> {
         let articles_left = vec![ShortArticleData {
             url: "rep-1.html".to_string(),
             title: "Republika Article 1".to_string(),
@@ -24,12 +25,14 @@ mod tests {
         };
 
         let rendered = template.render().expect("Failed to render template");
-        
+
         // Basic content verification
         assert!(rendered.contains("Republika"));
         assert!(rendered.contains("Z naší republiky"));
         assert!(rendered.contains("Republika Article 1"));
         assert!(rendered.contains("Short text for republica 1"));
         assert!(rendered.contains("Wednesday, January 21, 2026"));
+
+        Ok(())
     }
 }

@@ -3,10 +3,11 @@ mod tests {
     use axiomatik_web::db::database_article;
     use axiomatik_web::db::database_article_data::NewArticle;
     use axiomatik_web::trust::script_base;
+    use axiomatik_web::trust::script_base::TrustError;
     use chrono::Utc;
 
     #[tokio::test]
-    async fn test_db_search_logic() {
+    async fn test_db_search_logic() -> Result<(), TrustError> {
         script_base::setup_before_tests_once().await;
 
         let now = Utc::now();
@@ -78,5 +79,7 @@ mod tests {
         let titles: Vec<String> = articles.iter().map(|a| a.title.clone()).collect();
         assert!(titles.contains(&"Title 1".to_string()));
         assert!(titles.contains(&"Title 2".to_string()));
+
+        Ok(())
     }
 }

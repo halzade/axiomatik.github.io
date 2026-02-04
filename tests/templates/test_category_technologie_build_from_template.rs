@@ -3,9 +3,10 @@ mod tests {
     use askama::Template;
     use axiomatik_web::application::technologie::technologie::TechnologieTemplate;
     use axiomatik_web::db::database_article_data::ShortArticleData;
+    use axiomatik_web::trust::script_base::TrustError;
 
     #[test]
-    fn test_technologie_build_from_template() {
+    fn test_technologie_build_from_template() -> Result<(), TrustError> {
         let articles_left = vec![ShortArticleData {
             url: "tech-1.html".to_string(),
             title: "Technology Article 1".to_string(),
@@ -30,5 +31,7 @@ mod tests {
         assert!(rendered.contains("Technology Article 1"));
         assert!(rendered.contains("Short text for technology 1"));
         assert!(rendered.contains("Wednesday, January 21, 2026"));
+
+        Ok(())
     }
 }

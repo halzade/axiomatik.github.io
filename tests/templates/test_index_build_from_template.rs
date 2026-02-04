@@ -1,11 +1,14 @@
 #[cfg(test)]
 mod tests {
     use askama::Template;
-    use axiomatik_web::application::index::index::{IndexTemplate, MainArticleData, TopArticleData};
+    use axiomatik_web::application::index::index::{
+        IndexTemplate, MainArticleData, TopArticleData,
+    };
     use axiomatik_web::db::database_article_data::ShortArticleData;
+    use axiomatik_web::trust::script_base::TrustError;
 
     #[test]
-    fn test_index_build_from_template() {
+    fn test_index_build_from_template() -> Result<(), TrustError> {
         let template = IndexTemplate {
             date: "Wednesday, January 21, 2026".to_string(),
             weather: "5°C | Prague".to_string(),
@@ -65,5 +68,7 @@ mod tests {
 
         // Cleanup
         assert!(std::fs::remove_file("test-index.html").is_ok());
+
+        Ok(())
     }
 }

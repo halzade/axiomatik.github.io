@@ -8,6 +8,7 @@ pub mod app {
     pub mod test_article_is_exclusive_tests;
     pub mod test_command_create_editor_user;
     pub mod test_create_article;
+    pub mod test_create_article_account_integration;
     pub mod test_create_article_image_upload;
     pub mod test_create_article_republika_integration;
     pub mod test_create_article_validation;

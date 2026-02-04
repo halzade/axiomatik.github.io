@@ -30,8 +30,7 @@ mod tests {
                 .method("POST")
                 .uri("/login")
                 .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(serialize(&login_params1)))
-                .unwrap(),
+                .body(Body::from(serialize(&login_params1)))?,
         )
         .await;
 
@@ -57,8 +56,7 @@ mod tests {
                 .uri("/change-password")
                 .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                 .header(header::COOKIE, &cookie1)
-                .body(Body::from(serialize(&change_params)))
-                .unwrap(),
+                .body(Body::from(serialize(&change_params)))?,
         )
         .await;
 

@@ -19,8 +19,7 @@ mod tests {
                 .method("GET")
                 .uri("/account")
                 .header(header::COOKIE, &cookie)
-                .body(Body::default())
-                .unwrap(),
+                .body(Body::default())?,
         )
         .await;
 
@@ -37,8 +36,7 @@ mod tests {
                 .uri("/account/update-author")
                 .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                 .header(header::COOKIE, &cookie)
-                .body(Body::from(serialize(&update_params)))
-                .unwrap(),
+                .body(Body::from(serialize(&update_params)))?,
         )
         .await;
 
