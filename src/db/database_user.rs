@@ -6,7 +6,6 @@ use std::convert::Infallible;
 use surrealdb_types::SurrealValue;
 use thiserror::Error;
 use tracing::{debug, info};
-use crate::application::change_password::form_change_password::ChangePasswordError;
 
 #[derive(Debug, Error)]
 pub enum SurrealUserError {
@@ -132,7 +131,7 @@ pub async fn update_user_author_name(
 pub async fn update_user_password(
     user_name: String,
     new_password_hash: String,
-) -> Result<(), ChangePasswordError> {
+) -> Result<(), SurrealUserError> {
     let sdb = db_write().await?;
     let _: Option<User> = sdb
         .update(("user", user_name))

@@ -3,19 +3,36 @@ use http::{header, Request, Response};
 use std::convert::Into;
 
 use std::string::ToString;
+use thiserror::Error;
 use tower::ServiceExt;
 
+use crate::db::database::SurrealError;
 use crate::db::database_user::Role::Editor;
-use crate::db::database_user::User;
+use crate::db::database_user::{SurrealUserError, User};
 use crate::db::{database, database_user};
 use crate::system::{data_updates, logger, server};
+use crate::trust::article_builder::BOUNDARY;
 use tokio::sync::OnceCell;
 use tracing::log::debug;
-use crate::trust::article_builder::BOUNDARY;
 
 // TODO X, proper test framework
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";
+
+#[derive(Debug, Error)]
+pub enum TrustError {
+    #[error("test failed: {0}")]
+    TestFailed(String),
+
+    #[error("surreal error: {0}")]
+    TestSurrealError(#[from] SurrealError),
+
+    #[error("surreal user error {0}")]
+    TestSurrealUserError(#[from] SurrealUserError),
+
+    #[error("test surrealdb error {0}")]
+    TestError(#[from] surrealdb::Error),
+}
 
 pub async fn setup_before_tests_once() {
     debug!("only once");

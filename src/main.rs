@@ -1,5 +1,6 @@
 use axiomatik_web::db::database;
-use axiomatik_web::system::commands::{create_user, delete_user};
+use axiomatik_web::db::database::SurrealError;
+use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
 use axiomatik_web::system::server;
 use axiomatik_web::system::{configuration, heartbeat, logger};
@@ -15,10 +16,16 @@ use tracing::{error, info};
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error("configuration error")]
-    Configuration(#[from] ConfigurationError),
+    ApplicationConfiguration(#[from] ConfigurationError),
 
     #[error("io error")]
-    Io(#[from] Error),
+    ApplicationIo(#[from] Error),
+
+    #[error("command error")]
+    ApplicationCommand(#[from] CommandError),
+
+    #[error("sureal error")]
+    ApplicationSurreal(#[from] SurrealError),
 }
 
 // TODO X try, crate: validator
@@ -38,7 +45,7 @@ async fn main() -> Result<(), ApplicationError> {
         create_user(&args).await;
     }
     if args.len() > 1 && args[1] == "delete-user" {
-        delete_user(&args).await;
+        delete_user(&args).await?;
     }
 
     if args.len() > 0 {
@@ -73,7 +80,7 @@ async fn main() -> Result<(), ApplicationError> {
     /*
      * Database
      */
-    database::initialize_database().await;
+    database::initialize_database().await?;
 
     /*
      * Router

@@ -1,5 +1,5 @@
 use crate::data::text_validator::validate_input_simple;
-use crate::db::database_user::{self, User};
+use crate::db::database_user::{self, SurrealUserError, User};
 use crate::system::router::AuthSession;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -12,10 +12,14 @@ use tracing::{error, info, warn};
 
 #[derive(Debug, Error)]
 pub enum AuthError {
-    #[error("User not found")]
+    #[error("user not found")]
     UserNotFound,
-    #[error("Invalid password")]
+
+    #[error("invalid password")]
     InvalidPassword,
+
+    #[error("surreal user error")]
+    AuthSurrealUserError(#[from] SurrealUserError),
 }
 
 #[derive(Deserialize)]
@@ -72,7 +76,7 @@ pub async fn handle_login(
 }
 
 pub async fn authenticate_user(username: &str, password: &str) -> Result<User, AuthError> {
-    let user_o = database_user::get_user_by_name(username).await;
+    let user_o = database_user::get_user_by_name(username).await?;
     match user_o {
         None => Err(AuthError::UserNotFound),
         Some(user) => {

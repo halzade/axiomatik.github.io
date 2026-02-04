@@ -5,6 +5,7 @@ use crate::data::image_processor::ImageProcessorError;
 use crate::data::video_processor::VideoProcessorError;
 use crate::db::database::SurrealError;
 use crate::db::database_user;
+use crate::db::database_user::SurrealUserError;
 use crate::system::server::AUTH_COOKIE;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -30,6 +31,9 @@ pub enum FormArticleCreateError {
 
     #[error("database error")]
     DatabaseError(#[from] SurrealError),
+
+    #[error("surreal user error")]
+    FormArticleSurrealUserError(#[from] SurrealUserError),
 }
 
 #[derive(Template)]
@@ -38,22 +42,22 @@ pub struct FormTemplate {
     pub author_name: String,
 }
 
-pub async fn show_article_create_form(jar: CookieJar) -> Response {
+pub async fn show_article_create_form(jar: CookieJar) -> Result<Response, FormArticleCreateError> {
     if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let user_o = database_user::get_user_by_name(cookie.value()).await;
+        let user_o = database_user::get_user_by_name(cookie.value()).await?;
         match user_o {
             None => {}
             Some(user) => {
-                return Html(
+                return Ok(Html(
                     FormTemplate {
                         author_name: user.author_name,
                     }
                     .render()
                     .unwrap(),
                 )
-                .into_response();
+                .into_response());
             }
         }
     }
-    Redirect::to("/login").into_response()
+    Ok(Redirect::to("/login").into_response())
 }

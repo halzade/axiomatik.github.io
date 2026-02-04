@@ -2,12 +2,12 @@
 mod tests {
     use axiomatik_web::db::database_user;
     use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::{response_to_body, serialize};
+    use axiomatik_web::trust::script_base::{response_to_body, serialize, TrustError};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
 
     #[tokio::test]
-    async fn test_account_page() {
+    async fn test_account_page() -> Result<(), TrustError> {
         script_base::setup_before_tests_once().await;
 
         // Create user
@@ -57,10 +57,12 @@ mod tests {
         assert!(body_account_updated.contains("Updated Author"));
 
         // Verify update in DB
-        let user = database_user::get_user_by_name("user8").await.unwrap();
+        let user = database_user::get_user_by_name("user8").await?.unwrap();
         assert_eq!(user.author_name, "Updated Author");
 
         // cleanup DB
         assert!(database_user::delete_user("user8").await.is_ok());
+
+        Ok(())
     }
 }

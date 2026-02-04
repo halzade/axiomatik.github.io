@@ -1,5 +1,8 @@
+use crate::application::change_password::form_change_password::ChangePasswordError::UserNotFound;
 use crate::data::text_validator::validate_input_simple;
+use crate::db::database::SurrealError;
 use crate::db::database_user;
+use crate::db::database_user::SurrealUserError;
 use crate::system::router::AuthSession;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -7,22 +10,26 @@ use axum::Form;
 use bcrypt::{hash, DEFAULT_COST};
 use serde::Deserialize;
 use thiserror::Error;
-use tracing::error;
-use crate::application::change_password::form_change_password::ChangePasswordError::UserNotFound;
 
 #[derive(Debug, Error)]
 pub enum ChangePasswordError {
-    #[error("Password too short")]
+    #[error("password too short")]
     PasswordTooShort,
 
-    #[error("Password validation failed")]
+    #[error("password validation failed")]
     PasswordValidation,
 
-    #[error("User not found")]
+    #[error("user not found")]
     UserNotFound,
 
-    #[error("Bcrypt error: {0}")]
+    #[error("bcrypt error: {0}")]
     Bcrypt(#[from] bcrypt::BcryptError),
+
+    #[error("surreal user error: {0}")]
+    SurrealUserChangePasswordError(#[from] SurrealUserError),
+
+    #[error("surreal change password error: {0}")]
+    SurrealChangePasswordError(#[from] SurrealError),
 }
 
 #[derive(Deserialize)]
@@ -44,10 +51,10 @@ pub async fn show_change_password(auth_session: AuthSession) -> Response {
                 error: false,
                 username: user.username.clone(),
             }
-                .render()
-                .unwrap(),
+            .render()
+            .unwrap(),
         )
-            .into_response()
+        .into_response()
     } else {
         Redirect::to("/login").into_response()
     }
@@ -64,28 +71,21 @@ pub async fn handle_change_password(
         }
         change_password(&username, &payload.new_password).await?;
         /*
-         * successfully changed password
+         * successfully changed the password
          */
         /*
-         * internally re-login user to update session with new user data
+         * internally re-login user to update the session with new user data
          */
         let updated_user_o = database_user::get_user_by_name(&username).await?;
-        match updated_user_o {
-            None => {
-                Err(UserNotFound)
-            }
+        return match updated_user_o {
+            None => Err(UserNotFound),
             Some(updated_user) => {
                 let _ = auth_session.login(&updated_user).await;
-                return Ok(Redirect::to("/account").into_response());
+                Ok(Redirect::to("/account").into_response())
             }
-        }
-        Ok(Html(
-            ChangePasswordTemplate { error: true, username }
-                .render()
-                .unwrap())
-            .into_response())
+        };
     }
-    return Ok(Redirect::to("/login").into_response()););
+    Ok(Redirect::to("/login").into_response())
 }
 
 async fn change_password(username: &str, new_password: &str) -> Result<(), ChangePasswordError> {

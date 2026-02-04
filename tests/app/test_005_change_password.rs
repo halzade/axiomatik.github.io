@@ -4,12 +4,12 @@ mod tests {
     use axiomatik_web::db::database_user::Role::Editor;
     use axiomatik_web::db::database_user::User;
     use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::serialize;
+    use axiomatik_web::trust::script_base::{serialize, TrustError};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
 
     #[tokio::test]
-    async fn test_change_password() {
+    async fn test_change_password() -> Result<(), TrustError> {
         script_base::setup_before_tests_once().await;
 
         // Create user who needs password change
@@ -21,8 +21,7 @@ mod tests {
             needs_password_change: true,
             role: Editor,
         })
-        .await
-        .unwrap();
+        .await?;
 
         // Login as user1
         let login_params1 = [("username", "user1"), ("password", "pass1234")];
@@ -70,8 +69,10 @@ mod tests {
         );
 
         // Verify change in DB
-        let user = database_user::get_user_by_name("user1").await.unwrap();
+        let user = database_user::get_user_by_name("user1").await?.unwrap();
         assert_eq!(user.author_name, "user1");
         assert!(!user.needs_password_change);
+
+        Ok(())
     }
 }
