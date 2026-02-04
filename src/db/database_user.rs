@@ -123,7 +123,7 @@ pub async fn update_user_author_name(
     let sdb = db_write().await?;
     let _: Option<User> = sdb
         .update(("user", user_name.to_string()))
-        .merge(("author_name", new_author_name.to_string()))
+        .merge(json!({"author_name": new_author_name.to_string()}))
         .await?;
     Ok(())
 }
@@ -194,9 +194,7 @@ mod tests {
         // TODO update_user_password
 
         // update
-        update_user_author_name("tester", "New Author Name")
-            .await
-            .expect("Failed to update user");
+        update_user_author_name("tester", "New Author Name").await?;
 
         let fetched_user = get_user_by_name("tester").await?.unwrap();
         assert_eq!(fetched_user.author_name, "New Author Name");
@@ -214,9 +212,24 @@ mod tests {
     async fn test_get_nonexistent_user() -> Result<(), SurrealUserError> {
         initialize_in_memory_database().await?;
 
-        let fetched_user = get_user_by_name("nonexistent").await?;
+        let user = User {
+            username: "tester1".to_string(),
+            author_name: "Test Author".to_string(),
+            password_hash: "hash".to_string(),
+            needs_password_change: false,
+            role: Role::Editor,
+        };
 
+        // create some user (create user table)
+        create_user(user.clone()).await?;
+
+        // nonexistent user
+        let fetched_user = get_user_by_name("nonexistent").await?;
         assert!(fetched_user.is_none());
+
+        // delete first user
+        delete_user("tester1").await?;
+
         Ok(())
     }
 }

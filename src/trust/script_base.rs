@@ -10,11 +10,11 @@ use crate::db::database::SurrealError;
 use crate::db::database_user::Role::Editor;
 use crate::db::database_user::{SurrealUserError, User};
 use crate::db::{database, database_user};
+use crate::system::commands::CommandError;
 use crate::system::{data_updates, logger, server};
 use crate::trust::article_builder::BOUNDARY;
 use tokio::sync::OnceCell;
 use tracing::log::debug;
-use crate::system::commands::CommandError;
 
 // TODO X, proper test framework
 static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
@@ -59,21 +59,22 @@ pub enum TrustError {
     AxumFrameworkError(#[from] axum::Error),
 
     #[error("header to_str error {0}")]
-    HeaderToStrError(#[from] http::header::ToStrError),
+    HeaderToStrError(#[from] header::ToStrError),
 }
 
-pub async fn setup_before_tests_once() {
+pub async fn setup_before_tests_once() -> Result<(), TrustError> {
     debug!("only once");
 
     logger::config();
     data_updates::new();
-    database::initialize_in_memory_database().await;
+    database::initialize_in_memory_database().await?;
 
     let s = server::new();
     let r = s.start_server().await;
     let _ = APP_ROUTER.set(r.unwrap());
 
     debug!("test initialized");
+    Ok(())
 }
 
 pub async fn one_shot(request: Request<reqwest::Body>) -> Response<axum::body::Body> {
