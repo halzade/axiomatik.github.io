@@ -5,16 +5,25 @@ use crate::db::database_article_data::{
 
 // TODO
 pub async fn create_article(article: NewArticle) -> Result<(), SurrealError> {
-    let db_instance = crate::db::database::db().ok_or(InvalidStatement)?;
-    db_instance.create_struct("article", &article).await
+    let sdb = crate::db::database::db()?;
+
+    sdb.db
+        .write()
+        .await
+        .create("article")
+        .content(article)
+        .await?;
+
+    Ok(())
 }
 
 pub async fn articles_by_username(
     username: &str,
     limit: u32,
 ) -> Result<Vec<ArticlePublicData>, SurrealError> {
-    let sdb = crate::db::database::db_read().await?;
+    let sdb = crate::db::database::db()?;
     let mut response = sdb
+        .read()
         .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC LIMIT $limit")
         .bind(("username", username.to_string()))
         .bind(("limit", limit))
@@ -47,8 +56,9 @@ pub async fn articles_by_author(username: &str, limit: u32) -> Result<Vec<Articl
 }
 
 pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, SurrealError> {
-    let sdb = crate::db::database::db();
+    let sdb = crate::db::database::db()?;
     let mut response = sdb
+        .read()
         .query("SELECT * FROM article WHERE article_file_name = $filename")
         .bind(("filename", filename.to_string()))
         .await?;
@@ -61,7 +71,7 @@ pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, Sur
     Ok(None)
 }
 
-pub async fn related_articles(related: &[String]) -> Result<Vec<ShortArticleData>, DatabaseError> {
+pub async fn related_articles(related: &[String]) -> Result<Vec<ShortArticleData>, SurrealError> {
     if related.is_empty() {
         return Ok(Vec::new());
     }
@@ -105,7 +115,7 @@ pub async fn articles_by_category(
 }
 
 // TODO X actually most read
-pub async fn articles_most_read(limit: u32) -> Result<Vec<MiniArticleData>, DatabaseError> {
+pub async fn articles_most_read(limit: u32) -> Result<Vec<MiniArticleData>, SurrealError> {
     let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
         .query("SELECT * FROM article WHERE ORDER BY date DESC LIMIT $limit")
@@ -124,7 +134,7 @@ pub async fn articles_most_read(limit: u32) -> Result<Vec<MiniArticleData>, Data
 pub async fn articles_by_words(
     search_words: Vec<String>,
     limit: u32,
-) -> Result<Vec<ShortArticleData>, DatabaseError> {
+) -> Result<Vec<ShortArticleData>, SurrealError> {
     if search_words.is_empty() {
         return Ok(Vec::new());
     }

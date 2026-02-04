@@ -78,9 +78,8 @@ pub async fn initialize_in_memory_database() -> Result<(), SurrealError> {
 }
 
 pub fn db() -> Result<Arc<DatabaseSurreal>, SurrealError> {
-    let always_db = DATABASE.get();
-    match always_db {
+    match DATABASE.get() {
         None => Err(NotInitialized),
-        Some(db) => Ok(db),
+        Some(db) => Ok(Arc::clone(db)),
     }
 }

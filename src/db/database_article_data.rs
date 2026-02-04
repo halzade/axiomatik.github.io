@@ -17,7 +17,40 @@ pub enum DataProcessorError {
  */
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NewArticle {
-    pub data: ArticleData,
+    pub author: String,
+    pub user: String,
+
+    // #[serde(with = "chrono::serde::ts_seconds")]
+    // pub date: DateTime<Utc>,
+    pub date_str: String,
+
+    pub title: String,
+
+    pub text: String,
+    pub short_text: String,
+    pub mini_text: String,
+
+    pub file_base: String,
+
+    pub image_desc: String,
+    pub image_50_path: String,
+    pub image_288_path: String,
+    pub image_440_path: String,
+    pub image_820_path: String,
+
+    pub has_video: bool,
+    pub video_path: String,
+
+    pub has_audio: bool,
+    pub audio_path: String,
+
+    pub category: String,
+    pub related_articles: Vec<String>,
+
+    pub is_main: bool,
+    pub is_exclusive: bool,
+
+    pub views: i64,
 }
 
 /**
