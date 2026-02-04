@@ -21,9 +21,10 @@ mod tests {
     use crate::db::test_001_db::Trivial;
     use axiomatik_web::db::database;
     use axiomatik_web::db::database::initialize_in_memory_database;
+    use database::SurrealError;
 
     #[tokio::test]
-    async fn test_connects_and_query() -> Result<(), database::SurrealError> {
+    async fn test_connects_and_query() -> Result<(), SurrealError> {
         initialize_in_memory_database().await?;
         let r = database::db_write().await?;
         let res = r.query("RETURN 1").await?;
@@ -32,7 +33,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_create_update_read_delete() -> Result<(), database::SurrealError> {
+    async fn test_create_update_read_delete() -> Result<(), SurrealError> {
         initialize_in_memory_database().await?;
         {
             // 1. Create
@@ -77,9 +78,7 @@ mod tests {
         {
             // 5. Delete
             let w3 = database::db_write().await?;
-            let deleted: Option<Trivial> = w3
-                .delete(("trivial", "1")) // specify record ID
-                .await?;
+            let deleted: Option<Trivial> = w3.delete(("trivial", "1")).await?;
 
             let deleted = deleted.unwrap();
             assert_eq!(deleted.key, "secret 2"); // or whatever the key was before

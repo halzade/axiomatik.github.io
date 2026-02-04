@@ -1,5 +1,5 @@
 use crate::db::database_user;
-use crate::db::database_user::{DatabaseUserError, Role, User};
+use crate::db::database_user::{SurrealUserError, Role, User};
 use bcrypt::{hash, DEFAULT_COST};
 use thiserror::Error;
 use tracing::{error, info};
@@ -13,7 +13,7 @@ pub enum CommandError {
     Bcrypt(String),
 
     #[error("user database error: {0}")]
-    DatabaseError(#[from] DatabaseUserError),
+    DatabaseError(#[from] SurrealUserError),
 }
 
 pub async fn create_user(args: &Vec<String>) {

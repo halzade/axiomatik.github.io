@@ -2,6 +2,7 @@ use crate::application::account::form_account;
 use crate::application::article::article;
 use crate::application::article::article::ArticleError;
 use crate::application::change_password::form_change_password;
+use crate::application::change_password::form_change_password::ChangePasswordError;
 use crate::application::finance::finance;
 use crate::application::finance::finance::FinanceError;
 use crate::application::form::form_article_create;
@@ -86,6 +87,9 @@ pub enum RouterError {
 
     #[error("response infallible: {0}")]
     RouterInfallible(#[from] Infallible),
+
+    #[error("change password error: {0}")]
+    RouterChangePasswordError(#[from] ChangePasswordError),
 }
 
 pub struct ApplicationRouter {
@@ -115,6 +119,12 @@ impl IntoResponse for ArticleError {
 }
 
 impl IntoResponse for FormArticleCreateError {
+    fn into_response(self) -> Response {
+        (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+    }
+}
+
+impl IntoResponse for ChangePasswordError {
     fn into_response(self) -> Response {
         (StatusCode::BAD_REQUEST, self.to_string()).into_response()
     }
@@ -316,7 +326,11 @@ async fn serve_404() -> Result<Response, RouterError> {
 
 async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Next) -> Response {
     let req = req;
-    info!("auth_middleware: user={:?}, path={}", auth_session.user, req.uri().path());
+    info!(
+        "auth_middleware: user={:?}, path={}",
+        auth_session.user,
+        req.uri().path()
+    );
     match auth_session.user {
         Some(user) => {
             // change password
