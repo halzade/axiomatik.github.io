@@ -57,7 +57,6 @@ pub mod db {
     pub mod database;
     pub mod database_article;
     pub mod database_article_data;
-    pub mod database_internal;
     pub mod database_system;
     pub mod database_user;
 }

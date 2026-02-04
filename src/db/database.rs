@@ -1,13 +1,21 @@
+use crate::db::database::SurrealError::NotInitialized;
+use lazy_static::lazy_static;
 use std::convert::Infallible;
-use crate::db::database_internal;
-use crate::db::database_internal::DatabaseSurreal;
+use std::sync::Arc;
 use surrealdb::engine::any::Any;
 use surrealdb::Surreal;
 use thiserror::Error;
-use tokio::sync::{OnceCell, RwLockReadGuard, RwLockWriteGuard};
+use tokio::sync::{OnceCell, RwLock};
+
+const DATABASE_DEV: &str = "rocksdb://axiomatik.db";
+const DATABASE_TEST: &str = "mem://";
+
+lazy_static! {
+    pub static ref DATABASE: OnceCell<Arc<DatabaseSurreal>> = OnceCell::const_new();
+}
 
 #[derive(Debug, Error)]
-pub enum DatabaseError {
+pub enum SurrealError {
     #[error("Database not initialized")]
     NotInitialized,
 
@@ -15,35 +23,64 @@ pub enum DatabaseError {
     Surreal(#[from] surrealdb::Error),
 
     #[error("SurrealDB infallible {0}")]
-    SurrealInfallible(Infallible)
+    SurrealInfallible(Infallible),
+
+    #[error("invalid statement")]
+    InvalidStatement,
+
+    #[error("record not found in table {0} by key {1}")]
+    RecordNotFound(String, String),
 }
 
-impl From<Infallible> for DatabaseError {
+pub struct DatabaseSurreal {
+    // Any is for {Local, Remote}
+    pub db: RwLock<Surreal<Any>>,
+}
+
+impl DatabaseSurreal {
+    pub async fn new(path: &str) -> surrealdb::Result<Self> {
+        // infer db engine
+        let surreal = surrealdb::engine::any::connect(path).await?;
+        surreal.use_ns("axiomatik").use_db("axiomatik").await?;
+
+        Ok(Self {
+            db: RwLock::new(surreal),
+        })
+    }
+}
+
+async fn init(db_path: &str) -> Arc<DatabaseSurreal> {
+    Arc::new(
+        DatabaseSurreal::new(db_path)
+            .await
+            .expect("Failed to initialize database"),
+    )
+}
+
+impl From<Infallible> for SurrealError {
     fn from(_: Infallible) -> Self {
         unreachable!()
     }
 }
 
-static DATABASE: OnceCell<DatabaseSurreal> = OnceCell::const_new();
-
-/*
- * Technical Methods
- */
-
-pub async fn initialize_database() {
-    DATABASE.get_or_init(database_internal::init_db).await;
+pub async fn initialize_database() -> Result<(), SurrealError> {
+    DATABASE
+        .get_or_init(|| async { init(DATABASE_DEV).await })
+        .await;
+    Ok(())
 }
 
-pub async fn initialize_in_memory_database() {
-    DATABASE.get_or_init(database_internal::init_db_test).await;
+pub async fn initialize_in_memory_database() -> Result<(), SurrealError> {
+    DATABASE
+        .get_or_init(|| async { init(DATABASE_TEST).await })
+        .await;
+    Ok(())
 }
 
-pub(crate) async fn db_read<'lt>() -> Result<RwLockReadGuard<'lt, Surreal<Any>>, DatabaseError> {
-    let sdb = DATABASE.get().ok_or(DatabaseError::NotInitialized)?;
-    Ok(sdb.db.read().await)
-}
-
-pub(crate) async fn db_write<'lt>() -> Result<RwLockWriteGuard<'lt, Surreal<Any>>, DatabaseError> {
-    let sdb = DATABASE.get().ok_or(DatabaseError::NotInitialized)?;
-    Ok(sdb.db.write().await)
+pub fn db() -> Result<Arc<DatabaseSurreal>, SurrealError> {
+    let always_db = DATABASE.get();
+    match always_db {
+        None => Err(NotInitialized),
+        Some(db) => Ok(db),
+    }
 }

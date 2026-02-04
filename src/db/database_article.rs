@@ -1,30 +1,18 @@
-use crate::db::database::DatabaseError;
+use crate::db::database::SurrealError;
 use crate::db::database_article_data::{
     Article, ArticlePublicData, MiniArticleData, NewArticle, ShortArticleData,
 };
-use tracing::error;
 
 // TODO
-pub async fn create_article(article: NewArticle) -> Option<Article> {
-    let sdb_wg = crate::db::database::db_write().await.ok()?;
-    let res = sdb_wg
-        .create("article")
-        .content(serde_json::to_value(&article).ok()?)
-        .await;
-    match res {
-        Ok(Some(v)) => serde_json::from_value::<Article>(v).ok(),
-        Ok(None) => None,
-        Err(e) => {
-            error!("Failed to create article: {}", e);
-            None
-        }
-    }
+pub async fn create_article(article: NewArticle) -> Result<(), SurrealError> {
+    let db_instance = crate::db::database::db().ok_or(InvalidStatement)?;
+    db_instance.create_struct("article", &article).await
 }
 
 pub async fn articles_by_username(
     username: &str,
     limit: u32,
-) -> Result<Vec<ArticlePublicData>, DatabaseError> {
+) -> Result<Vec<ArticlePublicData>, SurrealError> {
     let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
         .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC LIMIT $limit")
@@ -41,7 +29,7 @@ pub async fn articles_by_username(
     Ok(articles_public)
 }
 
-pub async fn articles_by_author(username: &str, limit: u32) -> Result<Vec<Article>, DatabaseError> {
+pub async fn articles_by_author(username: &str, limit: u32) -> Result<Vec<Article>, SurrealError> {
     let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
         .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC LIMIT $limit")
@@ -58,8 +46,8 @@ pub async fn articles_by_author(username: &str, limit: u32) -> Result<Vec<Articl
     Ok(articles)
 }
 
-pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, DatabaseError> {
-    let sdb = crate::db::database::db_read().await?;
+pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, SurrealError> {
+    let sdb = crate::db::database::db();
     let mut response = sdb
         .query("SELECT * FROM article WHERE article_file_name = $filename")
         .bind(("filename", filename.to_string()))
