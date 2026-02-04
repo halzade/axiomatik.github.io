@@ -83,3 +83,13 @@ pub fn db() -> Result<Arc<DatabaseSurreal>, SurrealError> {
         Some(db) => Ok(Arc::clone(db)),
     }
 }
+
+pub async fn db_write() -> Result<Surreal<Any>, SurrealError> {
+    let sdb = db()?;
+    Ok(sdb.db.write().await.clone())
+}
+
+pub async fn db_read() -> Result<Surreal<Any>, SurrealError> {
+    let sdb = db()?;
+    Ok(sdb.db.read().await.clone())
+}

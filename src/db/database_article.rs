@@ -2,17 +2,22 @@ use crate::db::database::SurrealError;
 use crate::db::database_article_data::{
     Article, ArticlePublicData, MiniArticleData, NewArticle, ShortArticleData,
 };
+use tracing::info;
 
 // TODO
 pub async fn create_article(article: NewArticle) -> Result<(), SurrealError> {
-    let sdb = crate::db::database::db()?;
+    let sdb = crate::db::database::db_write().await?;
 
-    sdb.db
-        .write()
-        .await
-        .create("article")
-        .content(article)
-        .await?;
+    let o: Option<NewArticle> = sdb.create("article").content(article).await?;
+
+    match o {
+        None => {
+            info!("none")
+        }
+        Some(s) => {
+            info!("created {}", s.file_base)
+        }
+    }
 
     Ok(())
 }
@@ -21,9 +26,8 @@ pub async fn articles_by_username(
     username: &str,
     limit: u32,
 ) -> Result<Vec<ArticlePublicData>, SurrealError> {
-    let sdb = crate::db::database::db()?;
+    let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
-        .read()
         .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC LIMIT $limit")
         .bind(("username", username.to_string()))
         .bind(("limit", limit))
@@ -56,9 +60,8 @@ pub async fn articles_by_author(username: &str, limit: u32) -> Result<Vec<Articl
 }
 
 pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, SurrealError> {
-    let sdb = crate::db::database::db()?;
+    let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
-        .read()
         .query("SELECT * FROM article WHERE article_file_name = $filename")
         .bind(("filename", filename.to_string()))
         .await?;
@@ -97,7 +100,7 @@ pub async fn related_articles(related: &[String]) -> Result<Vec<ShortArticleData
 pub async fn articles_by_category(
     category: &str,
     limit: u32,
-) -> Result<Vec<ShortArticleData>, DatabaseError> {
+) -> Result<Vec<ShortArticleData>, SurrealError> {
     let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
         .query("SELECT * FROM article WHERE category = $category ORDER BY date DESC LIMIT $limit")
