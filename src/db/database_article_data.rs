@@ -3,15 +3,15 @@ use crate::data::library;
 use crate::data::text_processor::{process_short_text, process_text};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use surrealdb::types::Uuid;
+use surrealdb::types::{SurrealValue, Uuid};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
 pub struct NewArticle {
     pub author: String,
     pub user: String,
 
     // #[serde(with = "chrono::serde::ts_seconds")]
-    // pub date: DateTime<Utc>,
+    pub date: DateTime<Utc>,
     pub date_str: String,
 
     pub title: String,
@@ -169,6 +169,7 @@ impl TryFrom<ArticleUpload> for NewArticle {
         Ok(NewArticle {
             author: data.author,
             user: data.user,
+            date: now,
             date_str: library::formatted_article_date(now),
 
             title: data.title,

@@ -1,6 +1,6 @@
 use crate::data::processor;
 use crate::data::processor::ProcessorError;
-use crate::db::database::DatabaseError;
+use crate::db::database::SurrealError;
 use crate::db::database_article;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 use crate::system::data_system::DataSystem;
@@ -17,7 +17,7 @@ pub enum TechnologieError {
     ProcessorError(#[from] ProcessorError),
 
     #[error("create category database error {0}")]
-    DatabaseError(#[from] DatabaseError),
+    DatabaseError(#[from] SurrealError),
 }
 
 #[derive(Template)]

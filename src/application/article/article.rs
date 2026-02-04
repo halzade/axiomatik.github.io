@@ -5,11 +5,9 @@ use crate::data::audio_processor::AudioProcessorError;
 use crate::data::image_processor::ImageProcessorError;
 use crate::data::video_processor::VideoProcessorError;
 use crate::data::{audio_processor, image_processor, processor, video_processor};
-use crate::db::database::DatabaseError;
+use crate::db::database::SurrealError;
 use crate::db::database_article;
-use crate::db::database_article_data::{
-    DataProcessorError, MiniArticleData, NewArticle, ShortArticleData,
-};
+use crate::db::database_article_data::{MiniArticleData, NewArticle, ShortArticleData};
 use crate::system::data_system::DataSystem;
 use crate::system::data_updates::DataUpdates;
 use crate::system::router::AuthSession;
@@ -18,7 +16,7 @@ use axum::extract::Multipart;
 use axum::response::{IntoResponse, Redirect};
 use std::sync::Arc;
 use thiserror::Error;
-use ArticleError::{ArticleCreationInDbFailed, CategoryFailed};
+use ArticleError::CategoryFailed;
 
 #[derive(Debug, Error)]
 pub enum ArticleError {
@@ -27,9 +25,6 @@ pub enum ArticleError {
 
     #[error("article creation failed: {0}")]
     ArticleCreate(#[from] ArticleCreateError),
-
-    #[error("data processing failed: {0}")]
-    DataProcessor(#[from] DataProcessorError),
 
     #[error("image processing failed: {0}")]
     ImageProcessor(#[from] ImageProcessorError),
@@ -41,7 +36,7 @@ pub enum ArticleError {
     VideoProcessor(#[from] VideoProcessorError),
 
     #[error("database error: {0}")]
-    DatabaseError(#[from] DatabaseError),
+    DatabaseError(#[from] SurrealError),
 
     #[error("processor error: {0}")]
     ProcessorError(#[from] processor::ProcessorError),
@@ -145,9 +140,7 @@ pub async fn create_article(
     /*
      * Store Article data
      */
-    database_article::create_article(article_db)
-        .await
-        .ok_or(ArticleCreationInDbFailed)?;
+    database_article::create_article(article_db).await?;
 
     /*
      * don't render anything

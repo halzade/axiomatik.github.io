@@ -77,13 +77,6 @@ pub async fn initialize_in_memory_database() -> Result<(), SurrealError> {
     Ok(())
 }
 
-pub fn db() -> Result<Arc<DatabaseSurreal>, SurrealError> {
-    match DATABASE.get() {
-        None => Err(NotInitialized),
-        Some(db) => Ok(Arc::clone(db)),
-    }
-}
-
 pub async fn db_write() -> Result<Surreal<Any>, SurrealError> {
     let sdb = db()?;
     Ok(sdb.db.write().await.clone())
@@ -92,4 +85,11 @@ pub async fn db_write() -> Result<Surreal<Any>, SurrealError> {
 pub async fn db_read() -> Result<Surreal<Any>, SurrealError> {
     let sdb = db()?;
     Ok(sdb.db.read().await.clone())
+}
+
+fn db() -> Result<Arc<DatabaseSurreal>, SurrealError> {
+    match DATABASE.get() {
+        None => Err(NotInitialized),
+        Some(db) => Ok(Arc::clone(db)),
+    }
 }

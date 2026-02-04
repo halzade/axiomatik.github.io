@@ -1,10 +1,9 @@
-use crate::db::database::DatabaseError;
+use crate::application::article::article::ArticleError;
+use crate::application::form::form_article_data_parser::ArticleCreateError;
 use crate::data::audio_processor::AudioProcessorError;
 use crate::data::image_processor::ImageProcessorError;
 use crate::data::video_processor::VideoProcessorError;
-use crate::db::database_article_data::DataProcessorError;
-use crate::application::article::article::ArticleError;
-use crate::application::form::form_article_data_parser::ArticleCreateError;
+use crate::db::database::SurrealError;
 use crate::db::database_user;
 use crate::system::server::AUTH_COOKIE;
 use askama::Template;
@@ -29,11 +28,8 @@ pub enum FormArticleCreateError {
     #[error("video processor error")]
     VideoProcessorError(#[from] VideoProcessorError),
 
-    #[error("data processor error")]
-    DataProcessorError(#[from] DataProcessorError),
-
     #[error("database error")]
-    DatabaseError(#[from] DatabaseError),
+    DatabaseError(#[from] SurrealError),
 }
 
 #[derive(Template)]

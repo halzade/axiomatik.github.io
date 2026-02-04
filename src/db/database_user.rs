@@ -1,4 +1,4 @@
-use crate::db::database::{db_read, db_write, DatabaseError};
+use crate::db::database::{db_read, db_write, SurrealError};
 use crate::db::database_user::DatabaseUserError::*;
 use axum_login::AuthUser;
 use serde::{Deserialize, Serialize};
@@ -12,7 +12,7 @@ pub enum DatabaseUserError {
     DeleteUserError,
 
     #[error("user deletion failed, couldn't write into database, {0}")]
-    DeleteUserDatabaseError(#[from] DatabaseError),
+    DeleteUserDatabaseError(#[from] SurrealError),
 
     #[error("user deletion failed, error while writing into database, {0}")]
     DeleteUserDeletionError(#[from] surrealdb::Error),
@@ -21,7 +21,7 @@ pub enum DatabaseUserError {
     UpdateUserError(String),
 
     #[error("user update failed, couldn't write into database, {0}")]
-    UpdateUserDatabaseError(DatabaseError),
+    UpdateUserDatabaseError(SurrealError),
 
     #[error("user update failed, error while writing into database, {0}")]
     UpdateUserExecutionError(surrealdb::Error),
@@ -30,7 +30,7 @@ pub enum DatabaseUserError {
     CreateUserError(String),
 
     #[error("user creation failed, couldn't write into database, {0}")]
-    CreateUserDatabaseError(DatabaseError),
+    CreateUserDatabaseError(SurrealError),
 
     #[error("user creation failed, error while writing into database, {0}")]
     CreateUserExecutionError(surrealdb::Error),
