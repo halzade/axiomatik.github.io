@@ -17,7 +17,7 @@ mod tests {
             articles_most_read: vec![],
 
             main_article: MainArticleData {
-                url: "main-url".to_string(),
+                article_file_name: "main-url".to_string(),
                 title: "Main Title".to_string(),
                 is_exclusive: false,
                 short_text: "Main short text".to_string(),
@@ -25,12 +25,12 @@ mod tests {
                 image_desc: "image_desc".to_string(),
             },
             second_article: TopArticleData {
-                url: "second-url".to_string(),
+                article_file_name: "second-url".to_string(),
                 title: "Second Title".to_string(),
                 short_text: "Second short text".to_string(),
             },
             third_article: TopArticleData {
-                url: "third-url".to_string(),
+                article_file_name: "third-url".to_string(),
                 title: "Third Title".to_string(),
                 short_text: "Third short text".to_string(),
             },

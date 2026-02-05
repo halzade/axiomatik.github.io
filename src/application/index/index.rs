@@ -16,7 +16,7 @@ pub enum IndexError {
  * Main Article
  */
 pub struct MainArticleData {
-    pub url: String,
+    pub article_file_name: String,
     pub title: String,
     pub is_exclusive: bool,
     pub short_text: String,
@@ -28,7 +28,7 @@ pub struct MainArticleData {
  * Second and Third Article
  */
 pub struct TopArticleData {
-    pub url: String,
+    pub article_file_name: String,
     pub title: String,
     pub short_text: String,
 }
@@ -60,7 +60,7 @@ pub async fn render_index(data_system: &DataSystem) -> Result<(), IndexError> {
     let ze_zahranici_articles = vec![];
 
     let main_article = MainArticleData {
-        url: "".into(),
+        article_file_name: "".into(),
         title: "".into(),
         is_exclusive: false,
         short_text: "".into(),
@@ -68,12 +68,12 @@ pub async fn render_index(data_system: &DataSystem) -> Result<(), IndexError> {
         image_desc: "".into(),
     };
     let second_article = TopArticleData {
-        url: "".into(),
+        article_file_name: "".into(),
         title: "".into(),
         short_text: "".into(),
     };
     let third_article = TopArticleData {
-        url: "".into(),
+        article_file_name: "".into(),
         title: "".into(),
         short_text: "".into(),
     };

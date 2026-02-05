@@ -59,33 +59,33 @@
         <div class="top-sections">
             <section class="main-article">
                 <div class="main-article-text">
-                    <a href="{{ main_article.url }}">
+                    <a href="{{ main_article.article_file_name }}">
                         <h2>
                             {% if main_article.is_exclusive %}<span class="red">EXKLUZIVNĚ:</span>{% endif %}
                             {{ main_article.title }}
                         </h2>
                     </a>
                     <a class="category" href="republika.html">Republika</a>
-                    <a href="{{ main_article.url }}">
+                    <a href="{{ main_article.article_file_name }}">
                         <p>{{ main_article.short_text }}</p>
                     </a>
                 </div>
-                <a href="{{ main_article.url }}"><img src="u/{{ main_article.image_path }}" alt="{{ main_article.image_desc }}"></a>
+                <a href="{{ main_article.article_file_name }}"><img src="u/{{ main_article.image_path }}" alt="{{ main_article.image_desc }}"></a>
             </section>
 
             <section class="right-articles">
                 <div class="first-article border-right text">
 
-                    <a href="{{ second_article.url }}"><h2>{{ second_article.title }}</h2></a>
-                    <a href="{{ second_article.url }}">
+                    <a href="{{ second_article.article_file_name }}"><h2>{{ second_article.title }}</h2></a>
+                    <a href="{{ second_article.article_file_name }}">
                         <p>{{ second_article.short_text }}</p>
                     </a>
                 </div>
 
                 <div class="second-article relative text">
 
-                    <a href="{{ third_article.url }}"><h2>{{ third_article.title }}</h2></a>
-                    <a href="{{ third_article.url }}">
+                    <a href="{{ third_article.article_file_name }}"><h2>{{ third_article.title }}</h2></a>
+                    <a href="{{ third_article.article_file_name }}">
                         <p>{{ third_article.short_text }}</p>
                     </a>
 
@@ -104,17 +104,17 @@
                     {% for article in z_republiky_articles %}
                     <article class="card {% if loop.first %}first{% endif %}">
                         {% if loop.first %}
-                        <a href="{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                        <a href="{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
-                            <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a><br/>
+                            <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a><br/>
                             <a class="category always-white" href="republika.html">Republika</a><br/>
-                            <a href="{{ article.url }}">
+                            <a href="{{ article.article_file_name }}">
                                 <p>{{ article.short_text }}</p>
                             </a>
                         </div>
                         {% else %}
-                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
-                        <a href="{{ article.url }}">
+                        <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.article_file_name }}">
                             <p>{{ article.short_text }}</p>
                         </a>
                         {% endif %}
@@ -133,17 +133,17 @@
                     {% for article in ze_zahranici_articles %}
                     <article class="card {% if loop.first %}first{% endif %}">
                         {% if loop.first %}
-                        <a href="{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                        <a href="{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
-                            <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a><br/>
+                            <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a><br/>
                             <a class="category always-white" href="zahranici.html">Zahraničí</a><br/>
-                            <a href="{{ article.url }}">
+                            <a href="{{ article.article_file_name }}">
                                 <p>{{ article.short_text }}</p>
                             </a>
                         </div>
                         {% else %}
-                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
-                        <a href="{{ article.url }}">
+                        <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.article_file_name }}">
                             <p>{{ article.short_text }}</p>
                         </a>
                         {% endif %}

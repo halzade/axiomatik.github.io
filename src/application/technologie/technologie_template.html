@@ -70,7 +70,7 @@
                 <section class="article-grid text">
                     {% for article in articles_left %}
                     <article class="card first">
-                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                        <a href="#{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
                             <a href="#"><h2>{{ article.title }}</h2></a><br/>
                             <span class="category always-white">Technologie</span><br/>
@@ -86,8 +86,8 @@
                 <section class="article-grid text">
                     {% for article in articles_right %}
                     <article class="card">
-                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
-                        <a href="{{ article.url }}">
+                        <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.article_file_name }}">
                             {{ article.short_text }}
                         </a>
                     </article>

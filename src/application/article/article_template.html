@@ -105,32 +105,32 @@
                 <div class="split-column r20">
                     <section class="article-grid text">
                         {% for article in related_articles %}
-                            {% if loop.index0 % 2 == 0 %}
-                            <article class="card first">
-                                <a href="{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
-                                <div class="article-right">
-                                    <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a><br/>
-                                    <span class="category always-white">{{ category_display }}</span><br/>
-                                    <a href="{{ article.url }}">
-                                        {{ article.short_text }}
-                                    </a>
-                                </div>
-                            </article>
-                            {% endif %}
+                        {% if loop.index0 % 2 == 0 %}
+                        <article class="card first">
+                            <a href="{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                            <div class="article-right">
+                                <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a><br/>
+                                <span class="category always-white">{{ category_display }}</span><br/>
+                                <a href="{{ article.article_file_name }}">
+                                    {{ article.short_text }}
+                                </a>
+                            </div>
+                        </article>
+                        {% endif %}
                         {% endfor %}
                     </section>
                 </div>
                 <div class="split-column">
                     <section class="article-grid text">
                         {% for article in related_articles %}
-                            {% if loop.index0 % 2 != 0 %}
-                            <article class="card">
-                                <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
-                                <a href="{{ article.url }}">
-                                    {{ article.short_text }}
-                                </a>
-                            </article>
-                            {% endif %}
+                        {% if loop.index0 % 2 != 0 %}
+                        <article class="card">
+                            <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a>
+                            <a href="{{ article.article_file_name }}">
+                                {{ article.short_text }}
+                            </a>
+                        </article>
+                        {% endif %}
                         {% endfor %}
                         <div class="right">
                             <a class="button" href="index.html">K přehledu zpráv</a>

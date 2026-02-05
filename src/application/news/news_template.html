@@ -70,7 +70,7 @@
                     {% for article in z_republiky %}
                     {% if loop.index0 == 0 %}
                     <article class="card first">
-                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                        <a href="#{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
                             <a href="#"><h2>{{ article.title }}</h2></a><br/>
                             <span class="category always-white">Republika</span><br/>
@@ -88,8 +88,8 @@
                     {% for article in z_republiky %}
                     {% if loop.index0 > 0 %}
                     <article class="card">
-                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
-                        <a href="{{ article.url }}">
+                        <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.article_file_name }}">
                             {{ article.short_text }}
                         </a>
                     </article>
@@ -119,7 +119,7 @@
                     {% for article in technologie %}
                     {% if loop.index0 == 0 %}
                     <article class="card first">
-                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                        <a href="#{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
                             <a href="#"><h2>{{ article.title }}</h2></a><br/>
                             <span class="category always-white">Technologie</span><br/>
@@ -137,8 +137,8 @@
                     {% for article in technologie %}
                     {% if loop.index0 > 0 %}
                     <article class="card">
-                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
-                        <a href="{{ article.url }}">
+                        <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.article_file_name }}">
                             {{ article.short_text }}
                         </a>
                     </article>
@@ -167,7 +167,7 @@
                     {% for article in veda %}
                     {% if loop.index0 == 0 %}
                     <article class="card first">
-                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                        <a href="#{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
                             <a href="#"><h2>{{ article.title }}</h2></a><br/>
                             <span class="category always-white">Věda</span><br/>
@@ -185,8 +185,8 @@
                     {% for article in veda %}
                     {% if loop.index0 > 0 %}
                     <article class="card">
-                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
-                        <a href="{{ article.url }}">
+                        <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.article_file_name }}">
                             {{ article.short_text }}
                         </a>
                     </article>
@@ -214,7 +214,7 @@
                     {% for article in ze_zahranici %}
                     {% if loop.index0 == 0 %}
                     <article class="card first">
-                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                        <a href="#{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
                             <a href="#"><h2>{{ article.title }}</h2></a><br/>
                             <span class="category always-white">Zahraničí</span><br/>
@@ -232,8 +232,8 @@
                     {% for article in ze_zahranici %}
                     {% if loop.index0 > 0 %}
                     <article class="card">
-                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
-                        <a href="{{ article.url }}">
+                        <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.article_file_name }}">
                             {{ article.short_text }}
                         </a>
                     </article>
@@ -261,7 +261,7 @@
                     {% for article in finance %}
                     {% if loop.index0 == 0 %}
                     <article class="card first">
-                        <a href="#{{ article.url }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                        <a href="#{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
                             <a href="#"><h2>{{ article.title }}</h2></a><br/>
                             <span class="category always-white">Finance</span><br/>
@@ -279,8 +279,8 @@
                     {% for article in finance %}
                     {% if loop.index0 > 0 %}
                     <article class="card">
-                        <a href="{{ article.url }}"><h2>{{ article.title }}</h2></a>
-                        <a href="{{ article.url }}">
+                        <a href="{{ article.article_file_name }}"><h2>{{ article.title }}</h2></a>
+                        <a href="{{ article.article_file_name }}">
                             {{ article.short_text }}
                         </a>
                     </article>

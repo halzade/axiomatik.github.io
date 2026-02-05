@@ -46,7 +46,7 @@
         <section class="article-grid">
             {% for article in articles %}
             <article class="embedded-article">
-                <a href="{{ article.url }}">
+                <a href="{{ article.article_file_name }}">
                     <img src="{{ article.image_288_path }}"
                          alt="{{ article.image_desc }}"
                          loading="lazy">

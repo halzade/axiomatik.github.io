@@ -93,6 +93,7 @@ pub mod system {
 }
 pub mod trust {
     pub mod article_builder;
+    pub mod article_easy_builder;
     pub mod script_base;
     pub mod script_base_data;
 }
