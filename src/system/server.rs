@@ -1,4 +1,5 @@
-use crate::system::router::ApplicationRouter;
+use crate::system::router_app::ApplicationRouter;
+use crate::system::router_web::WebRouter;
 use axum::Router;
 use chrono::{DateTime, Utc};
 use parking_lot::RwLock;
@@ -31,11 +32,12 @@ pub enum ApplicationStatus {
 pub struct Server {
     status: RwLock<ApplicationStatus>,
     start_time: DateTime<Utc>,
-    router: Arc<ApplicationRouter>,
+    router_app: Arc<ApplicationRouter>,
+    router_web: Arc<WebRouter>,
 }
 
 impl Server {
-    pub async fn start_server(&self) -> Result<Router, ServerError> {
+    pub async fn start_server(&self) -> Result<(Router, Router), ServerError> {
         // setup status
         let application_status = self.status();
 
@@ -46,7 +48,18 @@ impl Server {
                 self.status_start()?;
 
                 // set up router
-                Ok(self.router.clone().start_router(application_status).await)
+                let app = self
+                    .router_app
+                    .clone()
+                    .start_app_router(application_status)
+                    .await;
+
+                let web = self
+                    .router_web
+                    .clone()
+                    .start_web_router(application_status)
+                    .await;
+                Ok((app, web))
             }
             Unknown => Err(UnknownServerStatus),
         }
@@ -81,6 +94,7 @@ pub fn new() -> Server {
     Server {
         status: RwLock::new(Off),
         start_time: Utc::now(),
-        router: Arc::new(ApplicationRouter::new()),
+        router_app: Arc::new(ApplicationRouter::new()),
+        router_web: Arc::new(WebRouter::new()),
     }
 }

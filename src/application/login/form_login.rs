@@ -1,6 +1,6 @@
 use crate::data::text_validator::validate_input_simple;
 use crate::db::database_user::{self, SurrealUserError, User};
-use crate::system::router::AuthSession;
+use crate::system::router_app::AuthSession;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;

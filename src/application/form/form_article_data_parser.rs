@@ -71,7 +71,7 @@ pub struct ArticleUpload {
  * return raw Article data
  */
 pub async fn article_data(
-    auth_session: crate::system::router::AuthSession,
+    auth_session: crate::system::router_app::AuthSession,
     mut multipart: Multipart,
 ) -> Result<ArticleUpload, ArticleCreateError> {
     let user = auth_session.user.unwrap().username.clone();

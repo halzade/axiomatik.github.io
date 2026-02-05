@@ -1,24 +1,18 @@
-use crate::system::configuration::ConfigurationError::{
-    ConfigBuildError, CurrentDirectoryError, DeserializationError,
-};
 use config::{Config, ConfigError, File};
 use serde::Deserialize;
 use std::env::VarError;
 use thiserror::Error;
-use tracing::{info, warn};
+use tracing::{error, warn};
 use AppEnvironment::{Dev, Prod, Test};
 use VarError::{NotPresent, NotUnicode};
 
 #[derive(Error, Debug)]
 pub enum ConfigurationError {
-    #[error("Failed to determine current working directory")]
-    CurrentDirectoryError(#[source] std::io::Error),
+    #[error("failed to determine current working directory")]
+    CurrentDirectoryError(#[from] std::io::Error),
 
-    #[error("Failed to build configuration")]
-    ConfigBuildError(#[source] ConfigError),
-
-    #[error("Failed to deserialize application settings")]
-    DeserializationError(#[source] ConfigError),
+    #[error("failed to build configuration")]
+    ConfigBuildError(#[from] ConfigError),
 }
 
 #[derive(Debug)]
@@ -41,24 +35,23 @@ impl AppEnvironment {
 #[derive(Deserialize, Clone)]
 pub struct ApplicationSettings {
     pub host: String,
-    pub port: u16,
+    pub port_app: u16,
+    pub port_web: u16,
 }
 
 /*
  * Read configuration from ~/configuration/abc.toml
  */
 pub fn get_config() -> Result<ApplicationSettings, ConfigurationError> {
-    let base_path = std::env::current_dir().map_err(CurrentDirectoryError)?;
+    let base_path = std::env::current_dir()?;
     let config_path = base_path
         .join("configuration")
         .join(format!("{}.toml", my_env_is().text()));
 
     let settings = Config::builder()
         .add_source(File::from(config_path))
-        .build()
-        .map_err(ConfigBuildError)?
-        .get::<ApplicationSettings>("application")
-        .map_err(DeserializationError)?;
+        .build()?
+        .get::<ApplicationSettings>("application")?;
 
     Ok(settings)
 }
@@ -76,11 +69,11 @@ fn my_env_is() -> AppEnvironment {
             Dev
         }
         Err(NotPresent) => {
-            info!("APP_ENVIRONMENT not set, defaulting to 'dev'");
+            warn!("APP_ENVIRONMENT not set, defaulting to 'dev'");
             Dev
         }
         Err(NotUnicode(_)) => {
-            warn!("APP_ENVIRONMENT contains invalid Unicode, defaulting to 'dev'");
+            error!("APP_ENVIRONMENT contains invalid Unicode, defaulting to 'dev'");
             Dev
         }
     }

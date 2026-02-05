@@ -10,7 +10,7 @@ use crate::db::database_article;
 use crate::db::database_article_data::{MiniArticleData, Article, ShortArticleData};
 use crate::system::data_system::DataSystem;
 use crate::system::data_updates::DataUpdates;
-use crate::system::router::AuthSession;
+use crate::system::router_app::AuthSession;
 use askama::Template;
 use axum::extract::Multipart;
 use axum::response::{IntoResponse, Redirect};

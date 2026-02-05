@@ -6,7 +6,11 @@ use axum::response::{Html, IntoResponse, Response};
 use axum::Form;
 use http::StatusCode;
 use serde::Deserialize;
+use thiserror::Error;
 use tracing::error;
+
+#[derive(Debug, Error)]
+pub enum SerchError {}
 
 #[derive(Deserialize)]
 pub struct SearchPayload {

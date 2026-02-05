@@ -83,27 +83,29 @@ async fn main() -> Result<(), ApplicationError> {
     database::initialize_database().await?;
 
     /*
-     * Router
+     * Routers
+     * - web application router
+     * - static web router
      */
-    let router = server.start_server().await.expect("Failed to start server");
+    let (router_app, router_web) = server.start_server().await.expect("Failed to start server");
 
     let config = configuration::get_config()?;
-    let addr = format!("{}:{}", config.host, config.port);
-    info!("listening on {}", addr);
+    let addr_app = format!("{}:{}", config.host, config.port_app);
+    let addr_web = format!("{}:{}", config.host, config.port_web);
+    info!("listening on {}", addr_app);
+    info!("listening on {}", addr_web);
 
     /*
      * Listener
      */
-    let listener = TcpListener::bind(&addr)
-        .await
-        .expect(&format!("Failed to bind to {}", addr));
+    let app_listener = TcpListener::bind(&addr_app).await?;
+    let web_listener = TcpListener::bind(&addr_web).await?;
 
     /*
      * Start Application
      */
-    if let Err(err) = axum::serve(listener, router).await {
-        error!("axum server exited: {:?}", err);
-    };
+    axum::serve(app_listener, router_app).await?;
+    axum::serve(web_listener, router_web).await?;
 
     info!("end.");
     Ok(())
