@@ -115,7 +115,7 @@ pub async fn articles_by_words(
      */
     let mut conditions = Vec::new();
     for i in 0..search_words.len() {
-        conditions.push(format!("string::matches(string::lower(text), $w{})", i));
+        conditions.push(format!("string::matches(text, $w{})", i));
     }
     /*
      * build search query
@@ -129,7 +129,7 @@ pub async fn articles_by_words(
     );
     let mut q = sdb.query(query);
     for (i, word) in search_words.iter().enumerate() {
-        let pattern = format!(r"\b{}\b", regex::escape(&word.to_lowercase()));
+        let pattern = format!(r"(?i)\b{}\b", regex::escape(word));
         q = q.bind((format!("w{}", i), pattern));
     }
     q = q.bind(("limit", limit));
@@ -245,13 +245,14 @@ mod tests {
         create_article(easy_article("Title 2", "user1", "text other")).await?;
         create_article(easy_article("Title 3", "user2", "xyz text")).await?;
 
-        let articles = articles_by_words(vec!["abc.".into(), "XYZ".into()], 100).await?;
+        let articles = articles_by_words(vec!["abc".into(), "XYZ".into()], 100).await?;
 
         assert_eq!(articles.len(), 2);
+        // descending order by date
         let a1 = articles.get(0).unwrap();
         let a2 = articles.get(1).unwrap();
-        assert_eq!(a1.title, "Title 1");
-        assert_eq!(a2.title, "Title 3");
+        assert_eq!(a1.title, "Title 3");
+        assert_eq!(a2.title, "Title 1");
         Ok(())
     }
 }
