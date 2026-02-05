@@ -16,7 +16,6 @@ pub mod app {
 }
 pub mod db {
     pub mod test_001_db;
-    pub mod test_search_articles;
 }
 pub mod templates {
     pub mod test_article_build_from_template;

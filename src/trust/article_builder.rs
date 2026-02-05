@@ -1,3 +1,4 @@
+use crate::data::library::safe_article_file_name;
 use crate::db::database_article_data::Article;
 use chrono::Utc;
 use std::io::Write;
@@ -152,8 +153,9 @@ impl<'a> ArticleBuilder<'a> {
     }
 }
 
-pub fn easy_article(title: &str, author: &str) -> Article {
+pub fn easy_article(title: &str, author: &str, text: &str) -> Article {
     let now = Utc::now();
+    let base = safe_article_file_name(&title.to_string());
     Article {
         uuid: Uuid::new(),
         author: author.to_string(),
@@ -161,15 +163,15 @@ pub fn easy_article(title: &str, author: &str) -> Article {
         date: now,
         date_str: "date".to_string(),
         title: title.to_string(),
-        text: "One word match here.".to_string(),
-        short_text: "short".to_string(),
-        mini_text: "mini".to_string(),
-        file_base: "article1".to_string(),
+        text: text.to_string(),
+        short_text: "short text here".to_string(),
+        mini_text: "mini text".to_string(),
+        file_base: base.clone(),
         image_desc: "desc".to_string(),
-        image_50_path: "img50".to_string(),
-        image_288_path: "img288".to_string(),
-        image_440_path: "img440".to_string(),
-        image_820_path: "img820".to_string(),
+        image_50_path: format!("{}_image_50.jpg", base),
+        image_288_path: format!("{}_image_288.jpg", base),
+        image_440_path: format!("{}_image_440.jpg", base),
+        image_820_path: format!("{}_image_820.jpg", base),
         has_video: false,
         video_path: "".to_string(),
         has_audio: false,

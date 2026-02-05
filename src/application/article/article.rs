@@ -164,7 +164,7 @@ pub async fn render_article(
         None => Err(ArticleNotFound),
         Some(article) => {
             let related_articles =
-                database_article::related_articles(&article.related_articles).await?;
+                database_article::related_articles(article.related_articles).await?;
             let articles_most_read = database_article::articles_most_read(3).await?;
 
             let article_template = ArticleTemplate {

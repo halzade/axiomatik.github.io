@@ -164,6 +164,7 @@ impl ApplicationRouter {
          * Protected routes
          */
         let protected_routes = Router::new()
+            // TODO these shouldn't be in root
             .route("/form", get(form_article_create::show_article_create_form))
             .route("/create", post(move |auth, multipart| {
                 article::create_article(self_a1.data_updates_a.clone(), auth, multipart)

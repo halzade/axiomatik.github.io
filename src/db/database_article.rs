@@ -94,6 +94,10 @@ pub async fn articles_most_read(limit: u32) -> Result<Vec<MiniArticleData>, Surr
     Ok(most_read_articles)
 }
 
+/*
+ * used for
+ * - search query in topbar
+ */
 pub async fn articles_by_words(
     search_words: Vec<String>,
     limit: u32,
@@ -108,7 +112,11 @@ pub async fn articles_by_words(
      */
     let mut conditions = Vec::new();
     for i in 0..search_words.len() {
-        conditions.push(format!("string::contains(text, $w{})", i));
+        // TODO X this may needs some optimization
+        conditions.push(format!(
+            "string::contains(string::lowercase(text), string::lowercase($w{}))",
+            i
+        ));
     }
     /*
      * build search query
@@ -118,7 +126,7 @@ pub async fn articles_by_words(
          WHERE {} \
          ORDER BY date DESC \
          LIMIT $limit",
-        conditions.join(" AND ")
+        conditions.join(" OR ")
     );
     let mut q = sdb.query(query);
     for (i, word) in search_words.iter().enumerate() {
@@ -144,7 +152,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {
         initialize_in_memory_database().await?;
-        let a = easy_article("user_x", "Test Title 1");
+        let a = easy_article("user_x", "Test Title 1", "");
         create_article(a).await?;
         Ok(())
     }
@@ -191,8 +199,18 @@ mod tests {
     #[tokio::test]
     async fn test_articles_by_words() -> Result<(), TrustError> {
         initialize_in_memory_database().await?;
-        let articles = articles_by_words(vec!["one.".into(), "two".into()], 100).await?;
 
+        create_article(easy_article("user1", "Title 1", "abc")).await;
+        create_article(easy_article("user1", "Title 2", "other")).await;
+        create_article(easy_article("user2", "Title 3", "zyz")).await;
+
+        let articles = articles_by_words(vec!["abc.".into(), "xyz".into()], 100).await?;
+
+        assert_eq!(articles.len(), 2);
+        let a1 = articles.get(0).unwrap();
+        let a2 = articles.get(1).unwrap();
+        assert_eq!(a1.title, "Title 1");
+        assert_eq!(a2.title, "Title 2");
         Ok(())
     }
 }
