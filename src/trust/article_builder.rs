@@ -1,4 +1,7 @@
+use crate::db::database_article_data::Article;
+use chrono::Utc;
 use std::io::Write;
+use surrealdb_types::Uuid;
 
 pub const BOUNDARY: &str = "---------------------------123456789012345678901234567";
 
@@ -76,6 +79,9 @@ impl<'a> ArticleBuilder<'a> {
         self
     }
 
+    /*
+     * build Article data u8 for new article request
+     */
     pub fn build(self) -> std::io::Result<Vec<u8>> {
         let mut body: Vec<u8> = Vec::new();
 
@@ -143,5 +149,35 @@ impl<'a> ArticleBuilder<'a> {
 
         write!(body, "--{}--\r\n", BOUNDARY)?;
         Ok(body)
+    }
+}
+
+pub fn easy_article(title: &str, author: &str) -> Article {
+    let now = Utc::now();
+    Article {
+        uuid: Uuid::new(),
+        author: author.to_string(),
+        user: author.to_string(),
+        date: now,
+        date_str: "date".to_string(),
+        title: title.to_string(),
+        text: "One word match here.".to_string(),
+        short_text: "short".to_string(),
+        mini_text: "mini".to_string(),
+        file_base: "article1".to_string(),
+        image_desc: "desc".to_string(),
+        image_50_path: "img50".to_string(),
+        image_288_path: "img288".to_string(),
+        image_440_path: "img440".to_string(),
+        image_820_path: "img820".to_string(),
+        has_video: false,
+        video_path: "".to_string(),
+        has_audio: false,
+        audio_path: "".to_string(),
+        category: "cat".to_string(),
+        related_articles: vec![],
+        is_main: false,
+        is_exclusive: false,
+        views: 0,
     }
 }

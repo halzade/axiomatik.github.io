@@ -13,7 +13,7 @@ pub async fn create_article(article: Article) -> Result<(), SurrealError> {
 
 /**
  * used for
- * - articles on account page
+ * - articles on the account page
  */
 pub async fn articles_by_username(
     username: &str,
@@ -50,9 +50,9 @@ pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, Sur
 
 /**
  * used for
- * - related articles on Article page
+ * - related articles on the Article page
  */
-pub async fn related_articles(related: &[String]) -> Result<Vec<ShortArticleData>, SurrealError> {
+pub async fn related_articles(related: Vec<String>) -> Result<Vec<ShortArticleData>, SurrealError> {
     if related.is_empty() {
         return Ok(Vec::new());
     }
@@ -132,4 +132,67 @@ pub async fn articles_by_words(
     let mut response = q.await?;
     let matching_articles: Vec<ShortArticleData> = response.take(0)?;
     Ok(matching_articles)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::database::initialize_in_memory_database;
+    use crate::trust::article_builder::easy_article;
+    use crate::trust::script_base::TrustError;
+
+    #[tokio::test]
+    async fn test_create_article() -> Result<(), TrustError> {
+        initialize_in_memory_database().await?;
+        let a = easy_article("user_x", "Test Title 1");
+        create_article(a).await?;
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_articles_by_username() -> Result<(), TrustError> {
+        initialize_in_memory_database().await?;
+        let articles = articles_by_username("user_x", 100).await?;
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_article_by_file_name() -> Result<(), TrustError> {
+        initialize_in_memory_database().await?;
+        let article_o = article_by_file_name("file").await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_related_articles() -> Result<(), TrustError> {
+        initialize_in_memory_database().await?;
+        let articles = related_articles(vec!["file".into()]).await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_articles_by_category() -> Result<(), TrustError> {
+        initialize_in_memory_database().await?;
+        let articles = articles_by_category("category", 100).await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_articles_most_read() -> Result<(), TrustError> {
+        initialize_in_memory_database().await?;
+        let a = articles_most_read(100).await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_articles_by_words() -> Result<(), TrustError> {
+        initialize_in_memory_database().await?;
+        let articles = articles_by_words(vec!["one.".into(), "two".into()], 100).await?;
+
+        Ok(())
+    }
 }

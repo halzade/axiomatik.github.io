@@ -1,4 +1,5 @@
 use crate::application::account::form_account;
+use crate::application::account::form_account::AccountError;
 use crate::application::article::article;
 use crate::application::article::article::ArticleError;
 use crate::application::change_password::form_change_password;
@@ -90,6 +91,9 @@ pub enum RouterError {
 
     #[error("change password error: {0}")]
     RouterChangePasswordError(#[from] ChangePasswordError),
+
+    #[error("account error: {0}")]
+    RouterAccountError(#[from] AccountError),
 }
 
 pub struct ApplicationRouter {
@@ -105,6 +109,8 @@ impl ApplicationRouter {
         }
     }
 }
+
+// TODO macro derive these things
 
 impl IntoResponse for RouterError {
     fn into_response(self) -> Response {
@@ -125,6 +131,12 @@ impl IntoResponse for FormArticleCreateError {
 }
 
 impl IntoResponse for ChangePasswordError {
+    fn into_response(self) -> Response {
+        (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+    }
+}
+
+impl IntoResponse for AccountError {
     fn into_response(self) -> Response {
         (StatusCode::BAD_REQUEST, self.to_string()).into_response()
     }
