@@ -13,7 +13,7 @@ mod tests {
             name_day: "Milena".to_string(),
             articles_most_read: vec![],
             z_republiky: vec![ShortArticleData {
-                url: "news-1.html".to_string(),
+                article_file_name: "news-1.html".to_string(),
                 title: "Republika News 1".to_string(),
                 short_text: "Short text for republica".to_string(),
                 image_288_path: "img.jpg".to_string(),

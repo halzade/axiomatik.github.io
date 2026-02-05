@@ -8,7 +8,7 @@ mod tests {
     #[test]
     fn test_republika_build_from_template() -> Result<(), TrustError> {
         let articles_left = vec![ShortArticleData {
-            url: "rep-1.html".to_string(),
+            article_file_name: "rep-1.html".to_string(),
             title: "Republika Article 1".to_string(),
             short_text: "Short text for republica 1".to_string(),
             image_288_path: "rep.jpg".to_string(),

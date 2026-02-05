@@ -9,14 +9,14 @@ mod tests {
     fn test_article_build_from_template() -> Result<(), TrustError> {
         let related_articles = vec![
             ShortArticleData {
-                url: "related-1.html".to_string(),
+                article_file_name: "related-1.html".to_string(),
                 title: "Related Article 1".to_string(),
                 short_text: "Short text for related 1".to_string(),
                 image_288_path: "img1.jpg".to_string(),
                 image_desc: "image_desc".to_string(),
             },
             ShortArticleData {
-                url: "related-2.html".to_string(),
+                article_file_name: "related-2.html".to_string(),
                 title: "Related Article 2".to_string(),
                 short_text: "Short text for related 2".to_string(),
                 image_288_path: "img2.jpg".to_string(),
@@ -25,7 +25,7 @@ mod tests {
         ];
 
         let most_read = vec![MiniArticleData {
-            url: "most-read-1.html".to_string(),
+            article_file_name: "most-read-1.html".to_string(),
             image_50_path: "images/placeholder_50.png".to_string(),
             title: "Most Read 1".to_string(),
             mini_text: "Text for most read 1".to_string(),

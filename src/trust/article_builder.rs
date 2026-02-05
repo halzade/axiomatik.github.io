@@ -166,7 +166,7 @@ pub fn easy_article(title: &str, author: &str, text: &str) -> Article {
         text: text.to_string(),
         short_text: "short text here".to_string(),
         mini_text: "mini text".to_string(),
-        file_base: base.clone(),
+        article_file_name: format!("{}.html", base.clone()),
         image_desc: "desc".to_string(),
         image_50_path: format!("{}_image_50.jpg", base),
         image_288_path: format!("{}_image_288.jpg", base),

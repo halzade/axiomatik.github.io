@@ -8,7 +8,7 @@ mod tests {
     #[test]
     fn test_veda_build_from_template() -> Result<(), TrustError> {
         let articles_left = vec![ShortArticleData {
-            url: "veda-1.html".to_string(),
+            article_file_name: "veda-1.html".to_string(),
             title: "Veda Article 1".to_string(),
             short_text: "Short text for veda 1".to_string(),
             image_288_path: "veda.jpg".to_string(),

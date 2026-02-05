@@ -23,7 +23,7 @@ pub async fn articles_by_username(
     let mut response = sdb
         .query(
             "SELECT * FROM article \
-             WHERE created_by = $username \
+             WHERE user = $username \
              ORDER BY date DESC \
              LIMIT $limit",
         )
@@ -96,7 +96,7 @@ pub async fn articles_most_read(limit: u32) -> Result<Vec<MiniArticleData>, Surr
 
 /*
  * used for
- * - search query in topbar
+ * - search query in the topbar
  */
 pub async fn articles_by_words(
     search_words: Vec<String>,
@@ -112,25 +112,22 @@ pub async fn articles_by_words(
      */
     let mut conditions = Vec::new();
     for i in 0..search_words.len() {
-        // TODO X this may needs some optimization
-        conditions.push(format!(
-            "string::contains(string::lowercase(text), string::lowercase($w{}))",
-            i
-        ));
+        conditions.push(format!("string::matches(text, $w{})", i));
     }
     /*
      * build search query
      */
     let query = format!(
-        "SELECT * FROM article \
-         WHERE {} \
-         ORDER BY date DESC \
+        "SELECT * FROM article
+         WHERE {}
+         ORDER BY date DESC
          LIMIT $limit",
         conditions.join(" OR ")
     );
     let mut q = sdb.query(query);
     for (i, word) in search_words.iter().enumerate() {
-        q = q.bind((format!("w{}", i), word.clone()));
+        let pattern = format!(r"(?i)\b{}\b", regex::escape(word));
+        q = q.bind((format!("w{}", i), pattern));
     }
     q = q.bind(("limit", limit));
 
@@ -160,15 +157,26 @@ mod tests {
     #[tokio::test]
     async fn test_articles_by_username() -> Result<(), TrustError> {
         initialize_in_memory_database().await?;
-        let articles = articles_by_username("user_x", 100).await?;
+        // prepare user article
+        create_article(easy_article("Test Title 1", "userN", "text")).await?;
+
+        let articles = articles_by_username("userN", 100).await?;
+        assert_eq!(articles.len(), 1);
+        let a = articles.get(0).unwrap();
+        assert_eq!(a.title, "Test Title 1");
         Ok(())
     }
 
     #[tokio::test]
     async fn test_article_by_file_name() -> Result<(), TrustError> {
         initialize_in_memory_database().await?;
-        let article_o = article_by_file_name("file").await?;
 
+        // prepare the article
+        create_article(easy_article("Test Title X", "userN", "text")).await?;
+
+        let article_o = article_by_file_name("test-title-x.html").await?;
+        assert!(article_o.is_some());
+        assert_eq!(article_o.unwrap().title, "Test Title X");
         Ok(())
     }
 
@@ -200,11 +208,11 @@ mod tests {
     async fn test_articles_by_words() -> Result<(), TrustError> {
         initialize_in_memory_database().await?;
 
-        create_article(easy_article("user1", "Title 1", "abc")).await;
-        create_article(easy_article("user1", "Title 2", "other")).await;
-        create_article(easy_article("user2", "Title 3", "zyz")).await;
+        create_article(easy_article("user1", "Title 1", "abc")).await?;
+        create_article(easy_article("user1", "Title 2", "other")).await?;
+        create_article(easy_article("user2", "Title 3", "zyz")).await?;
 
-        let articles = articles_by_words(vec!["abc.".into(), "xyz".into()], 100).await?;
+        let articles = articles_by_words(vec!["abc.".into(), "XYZ".into()], 100).await?;
 
         assert_eq!(articles.len(), 2);
         let a1 = articles.get(0).unwrap();

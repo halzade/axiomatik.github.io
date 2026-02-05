@@ -8,7 +8,7 @@ mod tests {
     #[test]
     fn test_zahranici_build_from_template() -> Result<(), TrustError> {
         let articles_left = vec![ShortArticleData {
-            url: "zahranici-1.html".to_string(),
+            article_file_name: "zahranici-1.html".to_string(),
             title: "Zahranici Article 1".to_string(),
             short_text: "Short text for zahranici 1".to_string(),
             image_288_path: "zahranici.jpg".to_string(),

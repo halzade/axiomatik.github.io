@@ -35,14 +35,14 @@ mod tests {
                 short_text: "Third short text".to_string(),
             },
             z_republiky_articles: vec![ShortArticleData {
-                url: "rep-1".to_string(),
+                article_file_name: "rep-1".to_string(),
                 title: "Rep 1".to_string(),
                 short_text: "Rep 1 text".to_string(),
                 image_288_path: "rep1.jpg".to_string(),
                 image_desc: "image_desc".to_string(),
             }],
             ze_zahranici_articles: vec![ShortArticleData {
-                url: "for-1".to_string(),
+                article_file_name: "for-1".to_string(),
                 title: "For 1".to_string(),
                 short_text: "For 1 text".to_string(),
                 image_288_path: "for1.jpg".to_string(),
