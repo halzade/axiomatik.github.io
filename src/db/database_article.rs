@@ -115,7 +115,7 @@ pub async fn articles_by_words(
      */
     let mut conditions = Vec::new();
     for i in 0..search_words.len() {
-        conditions.push(format!("string::matches(text, $w{})", i));
+        conditions.push(format!("string::matches(string::lower(text), $w{})", i));
     }
     /*
      * build search query
@@ -129,7 +129,7 @@ pub async fn articles_by_words(
     );
     let mut q = sdb.query(query);
     for (i, word) in search_words.iter().enumerate() {
-        let pattern = format!(r"(?i)\b{}\b", regex::escape(word));
+        let pattern = format!(r"\b{}\b", regex::escape(&word.to_lowercase()));
         q = q.bind((format!("w{}", i), pattern));
     }
     q = q.bind(("limit", limit));
@@ -241,9 +241,9 @@ mod tests {
     async fn test_articles_by_words() -> Result<(), TrustError> {
         initialize_in_memory_database().await?;
 
-        create_article(easy_article("user1", "Title 1", "text abc")).await?;
-        create_article(easy_article("user1", "Title 2", "text other")).await?;
-        create_article(easy_article("user2", "Title 3", "zyz text")).await?;
+        create_article(easy_article("Title 1", "user1", "text abc")).await?;
+        create_article(easy_article("Title 2", "user1", "text other")).await?;
+        create_article(easy_article("Title 3", "user2", "xyz text")).await?;
 
         let articles = articles_by_words(vec!["abc.".into(), "XYZ".into()], 100).await?;
 
