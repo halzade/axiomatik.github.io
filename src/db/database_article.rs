@@ -1,79 +1,57 @@
 use crate::db::database::SurrealError;
 use crate::db::database_article_data::{
-    Article, ArticlePublicData, MiniArticleData, NewArticle, ShortArticleData,
+    AccountArticleData, Article, MiniArticleData, ShortArticleData,
 };
-use tracing::info;
 
-// TODO
-pub async fn create_article(article: NewArticle) -> Result<(), SurrealError> {
+pub async fn create_article(article: Article) -> Result<(), SurrealError> {
     let sdb = crate::db::database::db_write().await?;
 
-    let o: Option<NewArticle> = sdb.create("article").content(article).await?;
-
-    match o {
-        None => {
-            info!("none")
-        }
-        Some(s) => {
-            info!("created {}", s.file_base)
-        }
-    }
-
+    // TODO Id, file name won't work for requests, need uuid.
+    let _: Option<Article> = sdb.create("article").content(article).await?;
     Ok(())
 }
 
+/**
+ * used for
+ * - articles on account page
+ */
 pub async fn articles_by_username(
     username: &str,
     limit: u32,
-) -> Result<Vec<ArticlePublicData>, SurrealError> {
+) -> Result<Vec<AccountArticleData>, SurrealError> {
     let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
-        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC LIMIT $limit")
+        .query(
+            "SELECT * FROM article \
+             WHERE created_by = $username \
+             ORDER BY date DESC \
+             LIMIT $limit",
+        )
         .bind(("username", username.to_string()))
         .bind(("limit", limit))
         .await?;
-    let vals: Vec<serde_json::Value> = response.take(0)?;
-    let mut articles_public: Vec<ArticlePublicData> = Vec::with_capacity(vals.len());
-    for v in vals {
-        if let Ok(a) = serde_json::from_value::<Article>(v) {
-            articles_public.push(ArticlePublicData::from(a));
-        }
-    }
-    Ok(articles_public)
+    let account_articles: Vec<AccountArticleData> = response.take(0)?;
+    Ok(account_articles)
 }
 
-pub async fn articles_by_author(username: &str, limit: u32) -> Result<Vec<Article>, SurrealError> {
-    let sdb = crate::db::database::db_read().await?;
-    let mut response = sdb
-        .query("SELECT * FROM article WHERE created_by = $username ORDER BY date DESC LIMIT $limit")
-        .bind(("username", username.to_string()))
-        .bind(("limit", limit))
-        .await?;
-    let vals: Vec<serde_json::Value> = response.take(0)?;
-    let mut articles = Vec::with_capacity(vals.len());
-    for v in vals {
-        if let Ok(a) = serde_json::from_value::<Article>(v) {
-            articles.push(a);
-        }
-    }
-    Ok(articles)
-}
-
+/**
+ * used for
+ * - rendering Article template
+ */
 pub async fn article_by_file_name(filename: &str) -> Result<Option<Article>, SurrealError> {
     let sdb = crate::db::database::db_read().await?;
     let mut response = sdb
         .query("SELECT * FROM article WHERE article_file_name = $filename")
         .bind(("filename", filename.to_string()))
         .await?;
-    let vals: Vec<serde_json::Value> = response.take(0)?;
-    for v in vals {
-        if let Ok(a) = serde_json::from_value::<Article>(v) {
-            return Ok(Some(a));
-        }
-    }
-    Ok(None)
+    let article_o: Option<Article> = response.take(0)?;
+    Ok(article_o)
 }
 
+/**
+ * used for
+ * - related articles on Article page
+ */
 pub async fn related_articles(related: &[String]) -> Result<Vec<ShortArticleData>, SurrealError> {
     if related.is_empty() {
         return Ok(Vec::new());
@@ -87,14 +65,8 @@ pub async fn related_articles(related: &[String]) -> Result<Vec<ShortArticleData
         )
         .bind(("related", related.to_vec()))
         .await?;
-    let vals: Vec<serde_json::Value> = response.take(0)?;
-    let mut articles = Vec::with_capacity(vals.len());
-    for v in vals {
-        if let Ok(a) = serde_json::from_value::<ShortArticleData>(v) {
-            articles.push(a);
-        }
-    }
-    Ok(articles)
+    let short_article_data: Vec<ShortArticleData> = response.take(0)?;
+    Ok(short_article_data)
 }
 
 pub async fn articles_by_category(
@@ -107,14 +79,8 @@ pub async fn articles_by_category(
         .bind(("category", category.to_string()))
         .bind(("limit", limit))
         .await?;
-    let vals: Vec<serde_json::Value> = response.take(0)?;
-    let mut articles = Vec::with_capacity(vals.len());
-    for v in vals {
-        if let Ok(a) = serde_json::from_value::<ShortArticleData>(v) {
-            articles.push(a);
-        }
-    }
-    Ok(articles)
+    let category_articles: Vec<ShortArticleData> = response.take(0)?;
+    Ok(category_articles)
 }
 
 // TODO X actually most read
@@ -124,14 +90,8 @@ pub async fn articles_most_read(limit: u32) -> Result<Vec<MiniArticleData>, Surr
         .query("SELECT * FROM article WHERE ORDER BY date DESC LIMIT $limit")
         .bind(("limit", limit))
         .await?;
-    let vals: Vec<serde_json::Value> = response.take(0)?;
-    let mut articles = Vec::with_capacity(vals.len());
-    for v in vals {
-        if let Ok(a) = serde_json::from_value::<MiniArticleData>(v) {
-            articles.push(a);
-        }
-    }
-    Ok(articles)
+    let most_read_articles: Vec<MiniArticleData> = response.take(0)?;
+    Ok(most_read_articles)
 }
 
 pub async fn articles_by_words(
@@ -142,12 +102,17 @@ pub async fn articles_by_words(
         return Ok(Vec::new());
     }
     let sdb = crate::db::database::db_read().await?;
-    // Build WHERE conditions like:
-    // string::contains(text, $w0) AND string::contains(text, $w1) ...
+
+    /*
+     * build search condition
+     */
     let mut conditions = Vec::new();
     for i in 0..search_words.len() {
         conditions.push(format!("string::contains(text, $w{})", i));
     }
+    /*
+     * build search query
+     */
     let query = format!(
         "SELECT * FROM article \
          WHERE {} \
@@ -155,22 +120,16 @@ pub async fn articles_by_words(
          LIMIT $limit",
         conditions.join(" AND ")
     );
-
     let mut q = sdb.query(query);
-
     for (i, word) in search_words.iter().enumerate() {
         q = q.bind((format!("w{}", i), word.clone()));
     }
     q = q.bind(("limit", limit));
 
+    /*
+     * execute search query
+     */
     let mut response = q.await?;
-    let vals: Vec<serde_json::Value> = response.take(0)?;
-    let mut articles = Vec::with_capacity(vals.len());
-    for v in vals {
-        if let Ok(a) = serde_json::from_value::<ShortArticleData>(v) {
-            articles.push(a);
-        }
-    }
-
-    Ok(articles)
+    let matching_articles: Vec<ShortArticleData> = response.take(0)?;
+    Ok(matching_articles)
 }

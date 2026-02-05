@@ -7,7 +7,7 @@ use crate::data::video_processor::VideoProcessorError;
 use crate::data::{audio_processor, image_processor, processor, video_processor};
 use crate::db::database::SurrealError;
 use crate::db::database_article;
-use crate::db::database_article_data::{MiniArticleData, NewArticle, ShortArticleData};
+use crate::db::database_article_data::{MiniArticleData, Article, ShortArticleData};
 use crate::system::data_system::DataSystem;
 use crate::system::data_updates::DataUpdates;
 use crate::system::router::AuthSession;
@@ -94,7 +94,7 @@ pub async fn create_article(
 
     // TODO X Validate text fields, use validator framework instead
 
-    let article_db = NewArticle::try_from(article_data.clone())?;
+    let article_db = Article::try_from(article_data.clone())?;
 
     // process data image
     image_processor::process_images(
@@ -144,7 +144,7 @@ pub async fn create_article(
 
     /*
      * don't render anything
-     * redirect to new article
+     * redirect to the new article
      * trigger to render from template will be handled by router
      */
     Ok(Redirect::to(&article_url).into_response())
@@ -152,7 +152,7 @@ pub async fn create_article(
 
 /**
  * This will process and store the new Article and related files
- * But wont render any html
+ * But won't render any HTML
  */
 pub async fn render_article(
     article_file_name: &str,
@@ -164,7 +164,7 @@ pub async fn render_article(
         None => Err(ArticleNotFound),
         Some(article) => {
             let related_articles =
-                database_article::related_articles(&article.data.related_articles).await?;
+                database_article::related_articles(&article.related_articles).await?;
             let articles_most_read = database_article::articles_most_read(3).await?;
 
             let article_template = ArticleTemplate {
@@ -172,25 +172,25 @@ pub async fn render_article(
                 weather: data_system.weather(),
                 name_day: data_system.name_day(),
 
-                author: article.data.author,
-                title: article.data.title,
+                author: article.author,
+                title: article.title,
 
-                text: article.data.text,
+                text: article.text,
 
-                image_path: article.data.image_820_path,
-                image_desc: article.data.image_desc,
-                video_path: if article.data.has_video {
-                    Some(article.data.video_path)
+                image_path: article.image_820_path,
+                image_desc: article.image_desc,
+                video_path: if article.has_video {
+                    Some(article.video_path)
                 } else {
                     None
                 },
-                audio_path: if article.data.has_audio {
-                    Some(article.data.audio_path)
+                audio_path: if article.has_audio {
+                    Some(article.audio_path)
                 } else {
                     None
                 },
-                category: article.data.category.clone(),
-                category_display: processor::process_category(article.data.category.as_str())?,
+                category: article.category.clone(),
+                category_display: processor::process_category(article.category.as_str())?,
                 related_articles,
                 articles_most_read,
             };

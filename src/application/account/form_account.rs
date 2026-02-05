@@ -1,5 +1,6 @@
 use crate::data::text_validator;
-use crate::db::database_article_data::ArticlePublicData;
+use crate::db::database::SurrealError;
+use crate::db::database_article_data::AccountArticleData;
 use crate::db::{database_article, database_user};
 use crate::system::router::AuthSession;
 use askama::Template;
@@ -14,7 +15,10 @@ use validator::Validate;
 #[derive(Debug, Error)]
 pub enum AccountError {
     #[error("User not found")]
-    UserNotFound,
+    AccountUserNotFound,
+
+    #[error("Surreal error")]
+    AccountSurreal(#[from] SurrealError),
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -34,29 +38,25 @@ pub struct UpdateAuthorNamePayload {
 pub struct AccountTemplate {
     pub username: String,
     pub author_name: String,
-    pub articles: Vec<ArticlePublicData>,
+    pub articles: Vec<AccountArticleData>,
 }
 
-pub async fn show_account(auth_session: AuthSession) -> Response {
+pub async fn show_account(auth_session: AuthSession) -> Result<Response, AccountError> {
     match auth_session.user {
-        None => Redirect::to("/login").into_response(),
+        None => Ok(Redirect::to("/login").into_response()),
         Some(user) => {
-            let articles_r = database_article::articles_by_username(&user.username, 100).await;
-            let articles = articles_r.unwrap_or_else(|e| {
-                error!("Failed to fetch articles for user {}: {}", user.username, e);
-                Vec::new()
-            });
-
-            Html(
+            let account_articles =
+                database_article::articles_by_username(&user.username, 100).await?;
+            Ok(Html(
                 AccountTemplate {
                     username: user.username,
                     author_name: user.author_name,
-                    articles,
+                    articles: account_articles,
                 }
                 .render()
                 .unwrap(),
             )
-            .into_response()
+            .into_response())
         }
     }
 }
@@ -95,7 +95,7 @@ async fn update_author_name(username: &str, author_name: &str) -> Result<(), Acc
         .await
         .map_err(|e| {
             error!("Failed to update user: {}", e);
-            AccountError::UserNotFound
+            AccountError::AccountUserNotFound
         })?;
     Ok(())
 }

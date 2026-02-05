@@ -4,7 +4,7 @@ use surrealdb_types::SurrealValue;
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
 pub struct ArticleViews {
     pub article_file_name: String,
-    pub views: i64,
+    pub views: u64,
 }
 
 /*

@@ -1,10 +1,11 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::db::database_article;
-    use axiomatik_web::db::database_article_data::NewArticle;
+    use axiomatik_web::db::database_article_data::Article;
     use axiomatik_web::trust::script_base;
     use axiomatik_web::trust::script_base::TrustError;
     use chrono::Utc;
+    use surrealdb_types::Uuid;
 
     #[tokio::test]
     async fn test_db_search_logic() -> Result<(), TrustError> {
@@ -12,7 +13,8 @@ mod tests {
 
         let now = Utc::now();
 
-        let article1 = NewArticle {
+        let article1 = Article {
+            uuid: Uuid::new(),
             author: "author".to_string(),
             user: "user".to_string(),
             date: now,
@@ -38,7 +40,8 @@ mod tests {
             views: 0,
         };
 
-        let article2 = NewArticle {
+        let article2 = Article {
+            uuid: Uuid::new(),
             author: "author".to_string(),
             user: "user".to_string(),
             date: now,
