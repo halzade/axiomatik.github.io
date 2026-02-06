@@ -91,28 +91,28 @@ async fn main() -> Result<(), ApplicationError> {
      * - application router
      * - web router
      */
-    let router_app = server.start_app_server().await?;
-    let router_web = server.start_web_server().await?;
+    let app_router = server.start_app_server().await?;
+    let web_router = server.start_web_server().await?;
     server.status_start()?;
 
     let config = configuration::get_config()?;
-    let addr_app = format!("{}:{}", config.host, config.port_app);
-    let addr_web = format!("{}:{}", config.host, config.port_web);
+    let app_address = format!("{}:{}", config.host, config.port_app);
+    let web_address = format!("{}:{}", config.host, config.port_web);
 
     /*
      * Listeners
      */
-    let app_listener = TcpListener::bind(&addr_app).await?;
-    info!("listening on {}", addr_app);
+    let app_listener = TcpListener::bind(&app_address).await?;
+    info!("listening on {}", app_address);
 
-    let web_listener = TcpListener::bind(&addr_web).await?;
-    info!("listening on {}", addr_web);
+    let web_listener = TcpListener::bind(&web_address).await?;
+    info!("listening on {}", web_address);
 
     /*
      * Start Application
      */
-    axum::serve(app_listener, router_app).await?;
-    axum::serve(web_listener, router_web).await?;
+    axum::serve(app_listener, app_router).await?;
+    axum::serve(web_listener, web_router).await?;
 
     info!("end.");
     Ok(())

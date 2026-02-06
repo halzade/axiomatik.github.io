@@ -4,17 +4,22 @@ use axum::Router;
 use http::{header, Request};
 use parking_lot::RwLock;
 use std::sync::Arc;
+use tokio::net::TcpListener;
 use tower::ServiceExt;
+use tracing::info;
+use crate::system::{configuration, server};
 
 pub struct NexoApp {
     app_router: Arc<Router>,
-    user_cookie: RwLock<String>,
+    user_cookie: RwLock<Option<String>>,
 }
 
 impl NexoApp {
-    pub fn new() -> Self {
+    pub fn new(app_router: Router) -> Self {
+
         Self {
-            
+            app_router: Arc::new(app_router),
+            user_cookie: Default::default(),
         }
     }
 

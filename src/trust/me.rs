@@ -1,13 +1,16 @@
-use std::convert::Infallible;
 use crate::db::database::SurrealError;
 use crate::db::database_user::{Role, SurrealUserError, User};
 use crate::db::{database, database_user};
 use crate::system::commands::CommandError;
-use crate::system::{data_updates, logger};
+use crate::system::configuration::ConfigurationError;
+use crate::system::server::ServerError;
+use crate::system::{data_updates, logger, server};
 use crate::trust::nexo_app::NexoApp;
 use crate::trust::nexo_web::NexoWeb;
 use bcrypt::{hash, DEFAULT_COST};
 use http::header;
+use std::convert::Infallible;
+use std::sync::Arc;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -35,7 +38,7 @@ pub enum TrustError {
 
     #[error("http error {0}")]
     HttpError(#[from] http::Error),
-    
+
     #[error("infallible error {0}")]
     TrustInfallible(#[from] Infallible),
 
@@ -53,11 +56,17 @@ pub enum TrustError {
 
     #[error("header to_str error {0}")]
     HeaderToStrError(#[from] header::ToStrError),
+
+    #[error("configuration error")]
+    TrustConfiguration(#[from] ConfigurationError),
+
+    #[error("server error")]
+    TrustServerError(#[from] ServerError),
 }
 
 pub struct TrustMe {
-    nexo_app: Option<NexoApp>,
-    nexo_web: Option<NexoWeb>,
+    nexo_app: Arc<NexoApp>,
+    nexo_web: Arc<NexoWeb>,
 }
 
 pub async fn setup() -> Result<(), TrustError> {
@@ -67,14 +76,26 @@ pub async fn setup() -> Result<(), TrustError> {
     Ok(())
 }
 
-pub fn nexo_app() -> Result<NexoApp, TrustError> {
-    let na = NexoApp::new();
-    Ok(na)
+pub async fn server() -> Result<(TrustMe), TrustError> {
+    let server = server::new();
+    let app_router = server.start_app_server().await?;
+    let web_router = server.start_web_server().await?;
+    server.status_start()?;
+
+    Ok(TrustMe {
+        nexo_app: Arc::new(NexoApp::new(app_router)),
+        nexo_web: Arc::new(NexoWeb::new(web_router)),
+    })
 }
 
-pub fn nexo_web() -> Result<NexoWeb, TrustError> {
-    let nw = NexoWeb::new();
-    Ok(nw)
+impl TrustMe {
+    pub fn nexo_app(&self) -> Result<Arc<NexoApp>, TrustError> {
+        Ok(self.nexo_app.clone())
+    }
+
+    pub fn nexo_web(&self) -> Result<Arc<NexoWeb>, TrustError> {
+        Ok(self.nexo_web.clone())
+    }
 }
 
 pub fn path_exists(path: &str) {

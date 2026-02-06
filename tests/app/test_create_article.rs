@@ -13,7 +13,9 @@ mod tests {
         // db, create user
         trust::me::db_setup_user("user6").await?;
 
-        let app = trust::me::nexo_app()?;
+        let server = trust::me::server()?;
+        let app = server.nexo_app()?;
+        let web = server.nexo_web()?;
 
         app.post_login("user6").await?;
 
