@@ -1,4 +1,5 @@
-use crate::db::database::DatabaseSurreal;
+use crate::db::database;
+use crate::db::database::{DatabaseSurreal, SurrealError};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use surrealdb_types::SurrealValue;
@@ -9,11 +10,18 @@ pub struct ArticleViews {
     pub views: u64,
 }
 
-pub struct DatabaseSystem {}
+pub struct DatabaseSystem {
+    db: Arc<DatabaseSurreal>,
+}
 
 impl DatabaseSystem {
-    pub fn new(p0: Arc<DatabaseSurreal>) -> DatabaseSystem {
-        todo!()
+    pub fn new(db: Arc<DatabaseSurreal>) -> DatabaseSystem {
+        DatabaseSystem { db }
+    }
+
+    pub async fn new_from_scratch() -> Result<DatabaseSystem, SurrealError> {
+        let db = Arc::new(database::initialize_in_memory_database().await?);
+        Ok(DatabaseSystem { db })
     }
 }
 

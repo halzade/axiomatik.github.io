@@ -1,3 +1,4 @@
+use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
 use crate::db::database_article_data::{
     AccountArticleData, Article, MiniArticleData, ShortArticleData,
@@ -14,13 +15,13 @@ pub struct DatabaseArticle {
 }
 
 impl DatabaseArticle {
-
     pub fn new(db: Arc<DatabaseSurreal>) -> DatabaseArticle {
         DatabaseArticle { db }
     }
 
-    pub fn new_from_scratch() -> DatabaseArticle {
-        DatabaseArticle { db }
+    pub async fn new_from_scratch() -> Result<DatabaseArticle, SurrealError> {
+        let db = Arc::new(database::initialize_in_memory_database().await?);
+        Ok(DatabaseArticle { db })
     }
 
     pub async fn create_article(&self, article: Article) -> Result<(), SurrealError> {
@@ -59,7 +60,10 @@ impl DatabaseArticle {
      * used for
      * - rendering Article template
      */
-    pub async fn article_by_file_name(&self, filename: &str) -> Result<Option<Article>, SurrealError> {
+    pub async fn article_by_file_name(
+        &self,
+        filename: &str,
+    ) -> Result<Option<Article>, SurrealError> {
         let sdb = self.db.db_read().await?;
         let mut response = sdb
             .query("SELECT * FROM article WHERE article_file_name = $filename")
@@ -73,7 +77,10 @@ impl DatabaseArticle {
      * used for
      * - related articles on the Article page
      */
-    pub async fn related_articles(&self, related: Vec<String>) -> Result<Vec<ShortArticleData>, SurrealError> {
+    pub async fn related_articles(
+        &self,
+        related: Vec<String>,
+    ) -> Result<Vec<ShortArticleData>, SurrealError> {
         if related.is_empty() {
             return Ok(Vec::new());
         }
@@ -98,7 +105,9 @@ impl DatabaseArticle {
     ) -> Result<Vec<ShortArticleData>, SurrealError> {
         let sdb = self.db.db_read().await?;
         let mut response = sdb
-            .query("SELECT * FROM article WHERE category = $category ORDER BY date DESC LIMIT $limit")
+            .query(
+                "SELECT * FROM article WHERE category = $category ORDER BY date DESC LIMIT $limit",
+            )
             .bind(("category", category.to_string()))
             .bind(("limit", limit))
             .await?;
@@ -108,7 +117,10 @@ impl DatabaseArticle {
 
     // TODO X actually most read
     // TODO only wanted data
-    pub async fn articles_most_read(&self, limit: u32) -> Result<Vec<MiniArticleData>, SurrealError> {
+    pub async fn articles_most_read(
+        &self,
+        limit: u32,
+    ) -> Result<Vec<MiniArticleData>, SurrealError> {
         let sdb = self.db.db_read().await?;
         let mut response = sdb
             .query("SELECT * FROM article ORDER BY date DESC LIMIT $limit")
@@ -167,14 +179,15 @@ impl DatabaseArticle {
 
 #[cfg(test)]
 mod tests {
-    use crate::db::database::initialize_in_memory_database;
+    use crate::db::database_article::DatabaseArticle;
     use crate::trust::article_builder::easy_article;
     use crate::trust::article_easy_builder::ArticleBuilder;
     use crate::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {
-        let db = initialize_in_memory_database().await?;
+        let db = DatabaseArticle::new_from_scratch().await?;
+
         let a = easy_article("Test Title 1", "user_x", "text");
         db.create_article(a).await?;
         Ok(())
@@ -182,11 +195,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_articles_by_username() -> Result<(), TrustError> {
-        initialize_in_memory_database().await?;
+        let db = DatabaseArticle::new_from_scratch().await?;
         // prepare user article
-        create_article(easy_article("Test Title 1", "user_xx", "text")).await?;
+        db.create_article(easy_article("Test Title 1", "user_xx", "text")).await?;
 
-        let articles = articles_by_username("user_xx", 100).await?;
+        let articles = db.articles_by_username("user_xx", 100).await?;
         assert_eq!(articles.len(), 1);
         let a = articles.get(0).unwrap();
         assert_eq!(a.title, "Test Title 1");
@@ -195,12 +208,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_article_by_file_name() -> Result<(), TrustError> {
-        initialize_in_memory_database().await?;
+        let db = DatabaseArticle::new_from_scratch().await?;
 
         // prepare the article
-        create_article(easy_article("Test Title X", "userN", "text")).await?;
+        db.create_article(easy_article("Test Title X", "userN", "text")).await?;
 
-        let article_o = article_by_file_name("test-title-x.html").await?;
+        let article_o = db.article_by_file_name("test-title-x.html").await?;
         assert!(article_o.is_some());
         assert_eq!(article_o.unwrap().title, "Test Title X");
         Ok(())
@@ -208,15 +221,15 @@ mod tests {
 
     #[tokio::test]
     async fn test_related_articles() -> Result<(), TrustError> {
-        initialize_in_memory_database().await?;
+        let db = DatabaseArticle::new_from_scratch().await?;
 
         // prepare the article
-        create_article(easy_article("Related 1", "userB", "text")).await?;
-        create_article(easy_article("Related 2", "userC", "text")).await?;
+        db.create_article(easy_article("Related 1", "userB", "text")).await?;
+        db.create_article(easy_article("Related 2", "userC", "text")).await?;
 
         // execute
         let related_articles =
-            related_articles(vec!["related-1.html".into(), "related-2.html".into()]).await?;
+            db.related_articles(vec!["related-1.html".into(), "related-2.html".into()]).await?;
 
         assert_eq!(related_articles.len(), 2);
         // descending order by date
@@ -227,18 +240,15 @@ mod tests {
 
     #[tokio::test]
     async fn test_articles_by_category() -> Result<(), TrustError> {
-        initialize_in_memory_database().await?;
+        let db = DatabaseArticle::new_from_scratch().await?;
 
         // prepare the article
-        create_article(
-            ArticleBuilder::article()
-                .title("Article 1")
-                .category("republika")
-                .build(),
+        db.create_article(
+            ArticleBuilder::article().title("Article 1").category("republika").build(),
         )
-            .await?;
+        .await?;
 
-        let articles = articles_by_category("republika", 100).await?;
+        let articles = db.articles_by_category("republika", 100).await?;
 
         assert_eq!(articles.len(), 1);
         assert_eq!(articles[0].title, "Article 1");
@@ -247,12 +257,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_articles_most_read() -> Result<(), TrustError> {
-        initialize_in_memory_database().await?;
+        let db = DatabaseArticle::new_from_scratch().await?;
 
         // prepare the article
-        create_article(easy_article("Test Title 7", "userN", "text")).await?;
+        db.create_article(easy_article("Test Title 7", "userN", "text")).await?;
 
-        let most_red = articles_most_read(1).await?;
+        let most_red = db.articles_most_read(1).await?;
 
         assert_eq!(most_red.len(), 1);
         Ok(())
@@ -260,13 +270,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_articles_by_words() -> Result<(), TrustError> {
-        initialize_in_memory_database().await?;
+        let db = DatabaseArticle::new_from_scratch().await?;
 
-        create_article(easy_article("Title 1", "user1", "text abc")).await?;
-        create_article(easy_article("Title 2", "user1", "text other")).await?;
-        create_article(easy_article("Title 3", "user2", "xyz text")).await?;
+        db.create_article(easy_article("Title 1", "user1", "text abc")).await?;
+        db.create_article(easy_article("Title 2", "user1", "text other")).await?;
+        db.create_article(easy_article("Title 3", "user2", "xyz text")).await?;
 
-        let articles = articles_by_words(vec!["abc".into(), "XYZ".into()], 100).await?;
+        let articles = db.articles_by_words(vec!["abc".into(), "XYZ".into()], 100).await?;
 
         assert_eq!(articles.len(), 2);
         // descending order by date

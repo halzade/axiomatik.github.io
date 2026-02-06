@@ -9,7 +9,7 @@ mod tests {
         let server = trust::me::server()?;
         let app = server.nexo_app()?;
         let web = server.nexo_web()?;
-        let db = server.db()?;
+        let db = server.surreal()?;
 
         db.setup_user("user6").await?;
         app.post_login("user6").await?;

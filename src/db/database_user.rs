@@ -1,4 +1,6 @@
-use crate::db::database::{db_read, db_write, DatabaseSurreal, SurrealError};
+use crate::db::database;
+use crate::db::database::{DatabaseSurreal, SurrealError};
+use crate::db::database_article::DatabaseArticle;
 use axum_login::AuthUser;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -126,8 +128,13 @@ pub struct DatabaseUser {
 }
 
 impl DatabaseUser {
-    pub fn new(p0: Arc<DatabaseSurreal>) -> DatabaseUser {
-        todo!()
+    pub fn new(db: Arc<DatabaseSurreal>) -> DatabaseUser {
+        DatabaseUser { db }
+    }
+
+    pub async fn new_from_scratch() -> Result<DatabaseUser, SurrealError> {
+        let db = Arc::new(database::initialize_in_memory_database().await?);
+        Ok(DatabaseUser { db })
     }
 
     pub async fn update_user_author_name(
@@ -135,7 +142,7 @@ impl DatabaseUser {
         user_name: &str,
         new_author_name: &str,
     ) -> Result<(), SurrealUserError> {
-        let sdb = db_write().await?;
+        let sdb = self.db.db_read().await?;
         let _: Option<User> = sdb
             .update(("user", user_name.to_string()))
             .merge(json!({"author_name": new_author_name.to_string()}))
@@ -148,7 +155,7 @@ impl DatabaseUser {
         user_name: String,
         new_password_hash: String,
     ) -> Result<(), SurrealUserError> {
-        let sdb = db_write().await?;
+        let sdb = self.db.db_read().await?;
         let _: Option<User> = sdb
             .update(("user", user_name))
             .merge(json!({
@@ -160,14 +167,14 @@ impl DatabaseUser {
     }
 
     pub async fn create_user(&self, user: User) -> Result<(), SurrealUserError> {
-        let sdb = db_write().await?;
+        let sdb = self.db.db_read().await?;
         let _: Option<User> = sdb.create(("user", user.username.clone())).content(user).await?;
         info!("User created successfully.");
         Ok(())
     }
 
     pub async fn delete_user(&self, user_name: &str) -> Result<(), SurrealUserError> {
-        let sdb = db_write().await?;
+        let sdb = self.db.db_read().await?;
         let _: Option<User> = sdb.delete(("user", user_name)).await?;
         info!("User {} deleted successfully.", user_name);
         Ok(())
@@ -175,7 +182,7 @@ impl DatabaseUser {
 
     // TODO Result
     pub async fn get_user_by_name(&self, user_id: &str) -> Result<Option<User>, SurrealUserError> {
-        let sdb = db_read().await?;
+        let sdb = self.db.db_read().await?;
         let user_o = sdb.select(("user", user_id)).await?;
         Ok(user_o)
     }
@@ -184,11 +191,10 @@ impl DatabaseUser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::db::database::initialize_in_memory_database;
 
     #[tokio::test]
     async fn test_create_update_delete_user() -> Result<(), SurrealUserError> {
-        initialize_in_memory_database().await?;
+        let db = DatabaseUser::new_from_scratch().await?;
 
         let user = User {
             username: "tester".to_string(),
@@ -199,24 +205,24 @@ mod tests {
         };
 
         // create
-        create_user(user.clone()).await?;
+        db.create_user(user.clone()).await?;
 
-        let fetched_user = get_user_by_name("tester").await?.unwrap();
+        let fetched_user = db.get_user_by_name("tester").await?.unwrap();
         assert_eq!(fetched_user.username, "tester");
         assert_eq!(fetched_user.author_name, "Test Author");
 
         // TODO update_user_password
 
         // update
-        update_user_author_name("tester", "New Author Name").await?;
+        db.update_user_author_name("tester", "New Author Name").await?;
 
-        let fetched_user = get_user_by_name("tester").await?.unwrap();
+        let fetched_user = db.get_user_by_name("tester").await?.unwrap();
         assert_eq!(fetched_user.author_name, "New Author Name");
 
         // delete
-        delete_user("tester").await.expect("Failed to delete user");
+        db.delete_user("tester").await.expect("Failed to delete user");
 
-        let fetched_user = get_user_by_name("tester").await?;
+        let fetched_user = db.get_user_by_name("tester").await?;
         assert!(fetched_user.is_none());
 
         Ok(())
@@ -224,7 +230,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_nonexistent_user() -> Result<(), SurrealUserError> {
-        initialize_in_memory_database().await?;
+        let db = DatabaseUser::new_from_scratch().await?;
 
         let user = User {
             username: "tester1".to_string(),
@@ -235,14 +241,14 @@ mod tests {
         };
 
         // create some user (create user table)
-        create_user(user.clone()).await?;
+        db.create_user(user.clone()).await?;
 
         // nonexistent user
-        let fetched_user = get_user_by_name("nonexistent").await?;
+        let fetched_user = db.get_user_by_name("nonexistent").await?;
         assert!(fetched_user.is_none());
 
         // delete first user
-        delete_user("tester1").await?;
+        db.delete_user("tester1").await?;
 
         Ok(())
     }

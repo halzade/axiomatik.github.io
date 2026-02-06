@@ -95,7 +95,7 @@ impl TrustMe {
         Ok(self.nexo_web.clone())
     }
 
-    pub fn nexo_db(&self) -> Result<Arc<NexoDb>, TrustError> {
+    pub fn surreal(&self) -> Result<Arc<NexoDb>, TrustError> {
         Ok(self.nexo_db.clone())
     }
 }
