@@ -6,10 +6,8 @@ use crate::data::video_processor::VideoProcessorError;
 use crate::db::database::SurrealError;
 use crate::db::database_user;
 use crate::db::database_user::SurrealUserError;
-use crate::system::server::AUTH_COOKIE;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};
-use axum_extra::extract::CookieJar;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -42,21 +40,22 @@ pub struct FormTemplate {
     pub author_name: String,
 }
 
-pub async fn show_article_create_form(jar: CookieJar) -> Result<Response, FormArticleCreateError> {
-    if let Some(cookie) = jar.get(AUTH_COOKIE) {
-        let user_o = database_user::get_user_by_name(cookie.value()).await?;
-        match user_o {
-            None => {}
-            Some(user) => {
-                return Ok(Html(
-                    FormTemplate {
-                        author_name: user.author_name,
-                    }
-                    .render()
-                    .unwrap(),
-                )
-                .into_response());
-            }
+pub async fn show_article_create_form() -> Result<Response, FormArticleCreateError> {
+
+    // TODO username from session
+
+    let user_o = database_user::get_user_by_name("").await?;
+    match user_o {
+        None => {}
+        Some(user) => {
+            return Ok(Html(
+                FormTemplate {
+                    author_name: user.author_name,
+                }
+                .render()
+                .unwrap(),
+            )
+            .into_response());
         }
     }
     Ok(Redirect::to("/login").into_response())

@@ -15,62 +15,16 @@ use crate::system::{data_updates, logger, server};
 use crate::trust::article_builder::BOUNDARY;
 use tokio::sync::OnceCell;
 use tracing::log::debug;
-
-// TODO X, proper test framework
-static APP_ROUTER: OnceCell<Router> = OnceCell::const_new();
 const PASSWORD: &str = "password123";
 
-#[derive(Debug, Error)]
-pub enum TrustError {
-    #[error("test failed: {0}")]
-    TestFailed(String),
-
-    #[error("surreal error: {0}")]
-    TestSurrealError(#[from] SurrealError),
-
-    #[error("surreal user error {0}")]
-    TestSurrealUserError(#[from] SurrealUserError),
-
-    #[error("test surrealdb error {0}")]
-    TestError(#[from] surrealdb::Error),
-
-    #[error("test command error {0}")]
-    TrustCommandError(#[from] CommandError),
-
-    #[error("io error {0}")]
-    IoError(#[from] std::io::Error),
-
-    #[error("reqwest error {0}")]
-    ReqwestError(#[from] reqwest::Error),
-
-    #[error("http error {0}")]
-    HttpError(#[from] http::Error),
-
-    #[error("serde_json error {0}")]
-    SerdeJsonError(#[from] serde_json::Error),
-
-    #[error("axum error {0}")]
-    AxumError(String),
-
-    #[error("bcrypt error {0}")]
-    BcryptError(#[from] bcrypt::BcryptError),
-
-    #[error("axum framework error {0}")]
-    AxumFrameworkError(#[from] axum::Error),
-
-    #[error("header to_str error {0}")]
-    HeaderToStrError(#[from] header::ToStrError),
-}
 
 pub async fn setup_before_tests_once() -> Result<(), TrustError> {
     debug!("only once");
 
-    logger::config();
-    data_updates::new();
-    database::initialize_in_memory_database().await?;
+
 
     let s = server::new();
-    let r = s.start_server().await;
+    let r : (Router, Router) = s.start_server().await;
     let _ = APP_ROUTER.set(r.unwrap());
 
     debug!("test initialized");

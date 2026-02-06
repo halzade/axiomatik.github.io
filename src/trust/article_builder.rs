@@ -2,7 +2,12 @@ use crate::data::library::safe_article_file_name;
 use crate::db::database_article_data::Article;
 use chrono::Utc;
 use std::io::Write;
+use axum_core::response::Response;
 use surrealdb_types::Uuid;
+use crate::trust::me::TrustError;
+use crate::trust::response_verifier::ResponseVerifier;
+use crate::trust::script_base;
+use crate::trust::script_base_data::PNG;
 
 pub const BOUNDARY: &str = "---------------------------123456789012345678901234567";
 
@@ -80,10 +85,17 @@ impl<'a> ArticleBuilder<'a> {
         self
     }
 
+    pub fn image_any_png(mut self) -> Self {
+        // TODO image data and image desc
+        self.image("test.jpg", script_base::get_test_image_data(), PNG);
+        self.image_desc("test description");
+        self
+    }
     /*
      * build Article data u8 for new article request
+     * And Execute
      */
-    pub fn build(self) -> std::io::Result<Vec<u8>> {
+    pub fn execute(self) -> Result<ResponseVerifier, TrustError>{
         let mut body: Vec<u8> = Vec::new();
 
         macro_rules! text_part {

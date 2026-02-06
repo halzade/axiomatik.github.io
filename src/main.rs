@@ -3,6 +3,7 @@ use axiomatik_web::db::database::SurrealError;
 use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
 use axiomatik_web::system::server;
+use axiomatik_web::system::server::ServerError;
 use axiomatik_web::system::{configuration, heartbeat, logger};
 use fs::create_dir_all;
 use std::env;
@@ -26,6 +27,9 @@ pub enum ApplicationError {
 
     #[error("sureal error")]
     ApplicationSurreal(#[from] SurrealError),
+
+    #[error("server error")]
+    ApplicationServerError(#[from] ServerError),
 }
 
 // TODO X try, crate: validator
@@ -84,22 +88,25 @@ async fn main() -> Result<(), ApplicationError> {
 
     /*
      * Routers
-     * - web application router
-     * - static web router
+     * - application router
+     * - web router
      */
-    let (router_app, router_web) = server.start_server().await.expect("Failed to start server");
+    let router_app = server.start_app_server().await?;
+    let router_web = server.start_web_server().await?;
+    server.status_start()?;
 
     let config = configuration::get_config()?;
     let addr_app = format!("{}:{}", config.host, config.port_app);
     let addr_web = format!("{}:{}", config.host, config.port_web);
-    info!("listening on {}", addr_app);
-    info!("listening on {}", addr_web);
 
     /*
-     * Listener
+     * Listeners
      */
     let app_listener = TcpListener::bind(&addr_app).await?;
+    info!("listening on {}", addr_app);
+
     let web_listener = TcpListener::bind(&addr_web).await?;
+    info!("listening on {}", addr_web);
 
     /*
      * Start Application
