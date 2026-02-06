@@ -98,6 +98,7 @@ pub mod trust {
     pub mod me;
     pub mod nexo_app;
     pub mod nexo_web;
+    pub mod nexo_db;
     pub mod response_verifier;
     pub mod script_base;
     pub mod script_base_data;

@@ -1,13 +1,12 @@
 use crate::db::database::SurrealError;
-use crate::db::database_user::{Role, SurrealUserError, User};
-use crate::db::{database, database_user};
+use crate::db::database_user::SurrealUserError;
 use crate::system::commands::CommandError;
 use crate::system::configuration::ConfigurationError;
 use crate::system::server::ServerError;
 use crate::system::{data_updates, logger, server};
 use crate::trust::nexo_app::NexoApp;
+use crate::trust::nexo_db::NexoDb;
 use crate::trust::nexo_web::NexoWeb;
-use bcrypt::{hash, DEFAULT_COST};
 use http::header;
 use std::convert::Infallible;
 use std::sync::Arc;
@@ -67,24 +66,23 @@ pub enum TrustError {
 pub struct TrustMe {
     nexo_app: Arc<NexoApp>,
     nexo_web: Arc<NexoWeb>,
+    nexo_db: Arc<NexoDb>,
 }
 
-pub async fn setup() -> Result<(), TrustError> {
+pub async fn server() -> Result<TrustMe, TrustError> {
     logger::config();
     data_updates::new();
-    database::initialize_in_memory_database().await?;
-    Ok(())
-}
-
-pub async fn server() -> Result<(TrustMe), TrustError> {
     let server = server::new();
+    // app
     let app_router = server.start_app_server().await?;
+    // web
     let web_router = server.start_web_server().await?;
     server.status_start()?;
 
     Ok(TrustMe {
         nexo_app: Arc::new(NexoApp::new(app_router)),
         nexo_web: Arc::new(NexoWeb::new(web_router)),
+        nexo_db: Arc::new(NexoDb::new().await?),
     })
 }
 
@@ -96,6 +94,10 @@ impl TrustMe {
     pub fn nexo_web(&self) -> Result<Arc<NexoWeb>, TrustError> {
         Ok(self.nexo_web.clone())
     }
+
+    pub fn nexo_db(&self) -> Result<Arc<NexoDb>, TrustError> {
+        Ok(self.nexo_db.clone())
+    }
 }
 
 pub fn path_exists(path: &str) {
@@ -104,18 +106,5 @@ pub fn path_exists(path: &str) {
 
 pub fn remove_file(path: &str) -> Result<(), TrustError> {
     assert!(std::fs::remove_file(path).is_ok());
-    Ok(())
-}
-
-pub async fn db_setup_user(username: &str) -> Result<(), TrustError> {
-    // db create user
-    database_user::create_user(User {
-        username: username.to_string(),
-        author_name: username.to_string(),
-        password_hash: hash("password", DEFAULT_COST)?,
-        needs_password_change: false,
-        role: Role::Editor,
-    })
-    .await?;
     Ok(())
 }

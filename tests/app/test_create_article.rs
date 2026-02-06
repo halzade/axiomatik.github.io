@@ -6,17 +6,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {
-
-        // configuration
-        trust::me::setup()?;
-
-        // db, create user
-        trust::me::db_setup_user("user6").await?;
-
         let server = trust::me::server()?;
         let app = server.nexo_app()?;
         let web = server.nexo_web()?;
+        let db = server.db()?;
 
+        db.setup_user("user6").await?;
         app.post_login("user6").await?;
 
         #[rustfmt::skip]
@@ -34,7 +29,6 @@ mod tests {
 
         trust::me::path_exists("web/test-article.html");
 
-        let web = trust::me::nexo_web()?;
         // Request the article
         #[rustfmt::skip]
         web.get_url("/test-article.html").await?
