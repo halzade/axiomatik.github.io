@@ -1,4 +1,4 @@
-use crate::system::router_app::ApplicationRouter;
+use crate::system::router_app::{AppRouterError, ApplicationRouter};
 use crate::system::router_web::WebRouter;
 use axum::Router;
 use chrono::{DateTime, TimeDelta, Utc};
@@ -12,14 +12,17 @@ pub const AUTH_COOKIE: &str = "axiomatik_auth";
 
 #[derive(Debug, Error)]
 pub enum ServerError {
-    #[error("Handling server status error")]
+    #[error("handling server status error")]
     ServerStatusError,
 
-    #[error("Server already started")]
+    #[error("server already started")]
     ServerAlreadyStarted,
 
-    #[error("Unknown server status")]
+    #[error("unknown server status")]
     UnknownServerStatus,
+
+    #[error("router error")]
+    ApplicationRouter(#[from] AppRouterError),
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -32,14 +35,14 @@ pub enum ApplicationStatus {
 pub struct Server {
     status_web: RwLock<ApplicationStatus>,
     status_app: RwLock<ApplicationStatus>,
-    start_time_web: DateTime<Utc>,
-    start_time_app: DateTime<Utc>,
     router_app: Arc<ApplicationRouter>,
+    start_time_app: DateTime<Utc>,
     router_web: Arc<WebRouter>,
+    start_time_web: DateTime<Utc>,
 }
 
 impl Server {
-    pub async fn start_app_server(&self) -> Result<Router, ServerError> {
+    pub async fn start_app_router(&self) -> Result<Router, ServerError> {
         // setup status
         let application_status = self.status_app();
 
@@ -49,29 +52,21 @@ impl Server {
                 // server is off, start it
 
                 // set up router
-                let app = self
-                    .router_app
-                    .clone()
-                    .start_app_router(application_status)
-                    .await;
+                let app = self.router_app.clone().start_app_router(application_status).await;
                 Ok(app)
             }
             Unknown => Err(UnknownServerStatus),
         }
     }
 
-    pub async fn start_web_server(&self) -> Result<Router, ServerError> {
+    pub async fn start_web_router(&self) -> Result<Router, ServerError> {
         // setup status
         let application_status = self.status_web();
 
         match application_status {
             Started => Err(ServerAlreadyStarted),
             Off => {
-                let web = self
-                    .router_web
-                    .clone()
-                    .start_web_router(application_status)
-                    .await;
+                let web = self.router_web.clone().start_web_router(application_status).await;
                 Ok(web)
             }
             Unknown => Err(UnknownServerStatus),
@@ -115,13 +110,13 @@ fn duration_str(duration: TimeDelta) -> String {
     format!("{}h {}m {}s", hours, minutes, seconds)
 }
 
-pub fn new() -> Server {
-    Server {
+pub async fn new() -> Result<Server, ServerError> {
+    Ok(Server {
         status_web: RwLock::new(Off),
         status_app: RwLock::new(Off),
+        router_app: Arc::new(ApplicationRouter::init().await?),
         start_time_app: Utc::now(),
-        start_time_web: Utc::now(),
-        router_app: Arc::new(ApplicationRouter::new()),
         router_web: Arc::new(WebRouter::new()),
-    }
+        start_time_web: Utc::now(),
+    })
 }

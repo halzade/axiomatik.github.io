@@ -2,6 +2,7 @@ use axiomatik_web::db::database;
 use axiomatik_web::db::database::SurrealError;
 use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
+use axiomatik_web::system::configuration::Mode::{ApplicationRun, Testing};
 use axiomatik_web::system::server;
 use axiomatik_web::system::server::ServerError;
 use axiomatik_web::system::{configuration, heartbeat, logger};
@@ -37,6 +38,8 @@ pub enum ApplicationError {
 
 #[tokio::main]
 async fn main() -> Result<(), ApplicationError> {
+    configuration::MODE.set(ApplicationRun).expect("failed to set mode");
+
     /*
      * Command arguments if any
      */
@@ -84,7 +87,7 @@ async fn main() -> Result<(), ApplicationError> {
     /*
      * Database
      */
-    database::initialize_database().await?;
+    database::init_db_connection().await?;
 
     /*
      * Routers

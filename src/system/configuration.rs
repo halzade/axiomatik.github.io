@@ -39,6 +39,19 @@ pub struct ApplicationSettings {
     pub port_web: u16,
 }
 
+use once_cell::sync::OnceCell;
+
+#[derive(Debug, Clone, Copy)]
+pub enum Mode {
+    Testing,
+    ApplicationRun,
+}
+
+/*
+ * Used to decide which DB should be initialized
+ */
+pub static MODE: OnceCell<Mode> = OnceCell::new();
+
 /*
  * Read configuration from ~/configuration/abc.toml
  */

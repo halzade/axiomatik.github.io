@@ -20,12 +20,12 @@ impl Trivial {
 mod tests {
     use crate::db::test_001_db::Trivial;
     use axiomatik_web::db::database;
-    use axiomatik_web::db::database::initialize_in_memory_database;
+    use axiomatik_web::db::database::ini_in_memory_db_connection;
     use axiomatik_web::trust::script_base::TrustError;
 
     #[tokio::test]
     async fn test_connects_and_query() -> Result<(), TrustError> {
-        initialize_in_memory_database().await?;
+        ini_in_memory_db_connection().await?;
         let r = database::db_write().await?;
         let res = r.query("RETURN 1").await?;
         assert!(res.check().is_ok());
@@ -34,7 +34,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_update_read_delete() -> Result<(), TrustError> {
-        initialize_in_memory_database().await?;
+        ini_in_memory_db_connection().await?;
         {
             // 1. Create
             let w1 = database::db_write().await?;

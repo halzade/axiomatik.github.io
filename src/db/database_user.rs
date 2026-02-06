@@ -1,6 +1,5 @@
 use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
-use crate::db::database_article::DatabaseArticle;
 use axum_login::AuthUser;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -87,7 +86,7 @@ impl axum_login::AuthnBackend for Backend {
         let (username, password) = creds;
 
         debug!("Authenticating user {:?}", username);
-        let user_r = get_user_by_name(&username).await;
+        let user_r = self.get_user(&username).await;
         match user_r {
             Ok(user_o) => {
                 match user_o {
@@ -111,10 +110,20 @@ impl axum_login::AuthnBackend for Backend {
         &self,
         user_name: &axum_login::UserId<Self>,
     ) -> Result<Option<Self::User>, Self::Error> {
-        let user_r = get_user_by_name(user_name).await;
-        match user_r {
-            Ok(user_o) => Ok(user_o),
-            _ => Ok(None),
+        // TODO X ?
+        let db_user_r = DatabaseUser::new_from_scratch().await;
+        match db_user_r {
+            Ok(db_user) => {
+                let user_ro = db_user.get_user_by_name(user_name).await;
+                match user_ro {
+                    Ok(user_o) => match user_o {
+                        Some(user) => Ok(Some(user)),
+                        None => Ok(None),
+                    },
+                    Err(_) => Ok(None),
+                }
+            }
+            Err(_) => Ok(None),
         }
     }
 }
@@ -123,6 +132,7 @@ impl axum_login::AuthnBackend for Backend {
  * access to database
  * - anything user related
  */
+#[derive(Debug)]
 pub struct DatabaseUser {
     db: Arc<DatabaseSurreal>,
 }
@@ -133,7 +143,7 @@ impl DatabaseUser {
     }
 
     pub async fn new_from_scratch() -> Result<DatabaseUser, SurrealError> {
-        let db = Arc::new(database::initialize_in_memory_database().await?);
+        let db = Arc::new(database::ini_in_memory_db_connection().await?);
         Ok(DatabaseUser { db })
     }
 

@@ -20,7 +20,7 @@ impl DatabaseSystem {
     }
 
     pub async fn new_from_scratch() -> Result<DatabaseSystem, SurrealError> {
-        let db = Arc::new(database::initialize_in_memory_database().await?);
+        let db = Arc::new(database::ini_in_memory_db_connection().await?);
         Ok(DatabaseSystem { db })
     }
 }

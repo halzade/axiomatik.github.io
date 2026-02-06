@@ -3,6 +3,8 @@ use surrealdb::engine::any::Any;
 use surrealdb::Surreal;
 use thiserror::Error;
 use tokio::sync::RwLock;
+use crate::system::configuration;
+use crate::system::configuration::Mode;
 
 const DATABASE_DEV: &str = "rocksdb://axiomatik.db";
 const DATABASE_TEST: &str = "mem://";
@@ -21,10 +23,14 @@ pub enum SurrealError {
     #[error("invalid statement")]
     InvalidStatement,
 
+    #[error("application run mode not set")]
+    UnknownApplicationRunMode,
+
     #[error("record not found in table {0} by key {1}")]
     RecordNotFound(String, String),
 }
 
+#[derive(Debug)]
 pub struct DatabaseSurreal {
     // Any is for {Local, Remote}
     pub db: RwLock<Surreal<Any>>,
@@ -54,10 +60,29 @@ impl From<Infallible> for SurrealError {
     }
 }
 
-pub async fn initialize_database() -> Result<DatabaseSurreal, SurrealError> {
+pub async fn init_db_connection() -> Result<DatabaseSurreal, SurrealError> {
     Ok(DatabaseSurreal::new(DATABASE_DEV).await?)
 }
 
-pub async fn initialize_in_memory_database() -> Result<DatabaseSurreal, SurrealError> {
+pub async fn init_in_memory_db_connection() -> Result<DatabaseSurreal, SurrealError> {
     Ok(DatabaseSurreal::new(DATABASE_TEST).await?)
+}
+
+pub async fn db_by_mode() -> Result<DatabaseSurreal, SurrealError> {
+    match configuration::MODE.get() {
+        None => {
+            Err(SurrealError::UnknownApplicationRunMode)
+        }
+        Some(mode) => {
+            match mode {
+                Mode::Testing => {
+                    init_in_memory_db_connection().await
+                }
+                Mode::ApplicationRun => {
+                    init_db_connection().await
+                }
+            }
+        }
+    }
+
 }

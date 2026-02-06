@@ -14,7 +14,7 @@ pub struct NexoDb {
 
 impl NexoDb {
     pub async fn new() -> Result<NexoDb, TrustError> {
-        let db_a = Arc::new(database::initialize_in_memory_database().await?);
+        let db_a = Arc::new(database::ini_in_memory_db_connection().await?);
         let db_article = DatabaseArticle::new(db_a.clone());
         let db_system = DatabaseSystem::new(db_a.clone());
         let db_user = DatabaseUser::new(db_a.clone());

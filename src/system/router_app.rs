@@ -1,5 +1,5 @@
 use crate::application::account::form_account;
-use crate::application::account::form_account::AccountError;
+use crate::application::account::form_account::{AccountError, FormAccount};
 use crate::application::article::article;
 use crate::application::article::article::ArticleError;
 use crate::application::change_password::form_change_password;
@@ -18,8 +18,9 @@ use crate::application::zahranici::zahranici::ZahraniciError;
 use crate::db::database_user::{self, Backend};
 use crate::system::data_system::{DataSystem, DataSystemError};
 use crate::system::data_updates::{DataUpdates, DataUpdatesError};
-use crate::system::{data_system, data_updates, heartbeat};
+use crate::system::router_web::WebRouter;
 use crate::system::server::ApplicationStatus;
+use crate::system::{data_system, data_updates, heartbeat};
 use axum::body::Body;
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
@@ -34,7 +35,7 @@ use thiserror::Error;
 use tower_sessions::cookie::SameSite::Strict;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 use tracing::{info, warn};
-use crate::system::router_web::WebRouter;
+use crate::db::database::DatabaseSurreal;
 
 pub type AuthSession = axum_login::AuthSession<Backend>;
 
@@ -89,16 +90,18 @@ pub enum AppRouterError {
 pub struct ApplicationRouter {
     data_system: DataSystem,
     data_updates_a: Arc<DataUpdates>,
+
+    form_account: Arc<FormAccount>,
 }
 
 impl ApplicationRouter {
-    pub fn new() -> ApplicationRouter {
-        ApplicationRouter {
-
+    pub async fn init() -> Result<ApplicationRouter, AppRouterError> {
+        Ok(ApplicationRouter {
             // TODO shared data
             data_system: data_system::new(),
             data_updates_a: Arc::new(data_updates::new()),
-        }
+            form_account: Arc::new(FormAccount::init().await?),
+        })
     }
 }
 
@@ -163,8 +166,8 @@ impl ApplicationRouter {
                 get(form_change_password::show_change_password)
                .post(form_change_password::handle_change_password),
             )
-            .route("/account", get(form_account::show_account))
-            .route("/account/update-author", post(form_account::handle_update_author_name))
+            .route("/account", get(self.form_account.show_account()))
+            .route("/account/update-author", post(self.form_account.handle_update_author_name))
             .route("/heartbeat", get(heartbeat::handle_heartbeat))
             .layer(middleware::from_fn(auth_middleware));
 
@@ -219,8 +222,5 @@ async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Ne
 
 async fn show_404() -> impl IntoResponse {
     warn!("router fallback");
-    (
-        StatusCode::NOT_FOUND,
-        Html("404, stránka nenalezená".to_string()),
-    )
+    (StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string()))
 }
