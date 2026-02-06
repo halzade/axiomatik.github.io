@@ -22,8 +22,8 @@ pub struct ArticleBuilder<'a> {
     image_desc_o: Option<String>,
     is_main_o: Option<bool>,
     is_exclusive_o: Option<bool>,
-    image_o: Option<(String, &'a [u8], String)>,
-    audio_o: Option<(String, &'a [u8], String)>,
+    image_o: Option<(String, Vec<u8>, String)>,
+    audio_o: Option<(String, Vec<u8>, String)>,
 }
 
 impl<'a> ArticleBuilder<'a> {
@@ -76,18 +76,20 @@ impl<'a> ArticleBuilder<'a> {
         self
     }
 
-    pub fn image(mut self, filename: &str, data: &'a [u8], content_type: &str) -> Self {
+    pub fn image(mut self, filename: &str, data: Vec<u8>, content_type: &str) -> Self {
         self.image_o = Some((filename.into(), data, content_type.into()));
         self
     }
-    pub fn audio(mut self, filename: &str, data: &'a [u8], content_type: &str) -> Self {
+    pub fn audio(mut self, filename: &str, data: Vec<u8>, content_type: &str) -> Self {
         self.audio_o = Some((filename.into(), data, content_type.into()));
         self
     }
 
-    pub fn image_any_png(mut self) -> Self {
+    pub fn image_any_png(&self) -> &Self {
         // TODO image data and image desc
-        self.image("test.jpg", script_base::get_test_image_data(), PNG);
+        self.image("test.jpg",
+                   std::fs::read("tests/data/image_1024.png")?
+                   , PNG);
         self.image_desc("test description");
         self
     }

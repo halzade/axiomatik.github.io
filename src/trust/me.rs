@@ -1,12 +1,12 @@
-use crate::db::database;
+use std::convert::Infallible;
 use crate::db::database::SurrealError;
-use crate::db::database_user::SurrealUserError;
+use crate::db::database_user::{Role, SurrealUserError, User};
+use crate::db::{database, database_user};
 use crate::system::commands::CommandError;
 use crate::system::{data_updates, logger};
 use crate::trust::nexo_app::NexoApp;
 use crate::trust::nexo_web::NexoWeb;
-use crate::trust::response_verifier::ResponseVerifier;
-use axum_core::response::Response;
+use bcrypt::{hash, DEFAULT_COST};
 use http::header;
 use thiserror::Error;
 
@@ -35,6 +35,9 @@ pub enum TrustError {
 
     #[error("http error {0}")]
     HttpError(#[from] http::Error),
+    
+    #[error("infallible error {0}")]
+    TrustInfallible(#[from] Infallible),
 
     #[error("serde_json error {0}")]
     SerdeJsonError(#[from] serde_json::Error),
@@ -50,6 +53,11 @@ pub enum TrustError {
 
     #[error("header to_str error {0}")]
     HeaderToStrError(#[from] header::ToStrError),
+}
+
+pub struct TrustMe {
+    nexo_app: Option<NexoApp>,
+    nexo_web: Option<NexoWeb>,
 }
 
 pub async fn setup() -> Result<(), TrustError> {
@@ -69,17 +77,24 @@ pub fn nexo_web() -> Result<NexoWeb, TrustError> {
     Ok(nw)
 }
 
-pub async fn setup_user_and_login(username: &str) -> Result<(), TrustError> {
-    todo!();
-
-    Ok(())
-}
-
 pub fn path_exists(path: &str) {
     assert!(std::path::Path::new(path).exists());
 }
 
 pub fn remove_file(path: &str) -> Result<(), TrustError> {
     assert!(std::fs::remove_file(path).is_ok());
+    Ok(())
+}
+
+pub async fn db_setup_user(username: &str) -> Result<(), TrustError> {
+    // db create user
+    database_user::create_user(User {
+        username: username.to_string(),
+        author_name: username.to_string(),
+        password_hash: hash("password", DEFAULT_COST)?,
+        needs_password_change: false,
+        role: Role::Editor,
+    })
+    .await?;
     Ok(())
 }

@@ -11,7 +11,7 @@ impl NexoWeb {
         Self {}
     }
 
-    pub async fn get_uri(&self, url: &str) -> Result<ResponseVerifier, TrustError> {
+    pub async fn get_url(&self, url: &str) -> Result<ResponseVerifier, TrustError> {
         todo!()
     }
 }

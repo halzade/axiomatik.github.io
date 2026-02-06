@@ -6,6 +6,7 @@ mod tests {
     use axum::http::{header, Request, StatusCode};
     use header::{CONTENT_TYPE, LOCATION, SET_COOKIE};
     use reqwest::Body;
+    use axiomatik_web::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_login() -> Result<(), TrustError> {

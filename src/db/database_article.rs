@@ -148,7 +148,7 @@ mod tests {
     use crate::db::database::initialize_in_memory_database;
     use crate::trust::article_builder::easy_article;
     use crate::trust::article_easy_builder::ArticleBuilder;
-    use crate::trust::script_base::TrustError;
+    use crate::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {

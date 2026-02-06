@@ -1,2 +1,1 @@
-wrap_comments = true
-comment_width = 200
+use_small_heuristics = "Max"

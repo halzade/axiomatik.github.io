@@ -6,14 +6,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {
+
+        // configuration
         trust::me::setup()?;
-        trust::me::setup_user_and_login("user6").await?;
 
-        let nexo_app = trust::me::nexo_app()?;
-        let nexo_web = trust::me::nexo_web()?;
+        // db, create user
+        trust::me::db_setup_user("user6").await?;
 
-        nexo_app
-            .post_create_article()
+        let app = trust::me::nexo_app()?;
+
+        app.post_login("user6").await?;
+
+        #[rustfmt::skip]
+        app.post_create_article()
             .title("Test Article")
             .author("Test Author")
             .category("republika")
@@ -22,15 +27,15 @@ mod tests {
             .image_any_png()
             .execute()?
             .must_see_response(StatusCode::SEE_OTHER)
-            .headers_location("test-article.html")
-            .verify();
+                .headers_location("test-article.html")
+                .verify();
 
         trust::me::path_exists("web/test-article.html");
 
+        let web = trust::me::nexo_web()?;
         // Request the article
-        nexo_web
-            .get_uri("/test-article.html")
-            .await?
+        #[rustfmt::skip]
+        web.get_url("/test-article.html").await?
             .must_see_response(StatusCode::OK)
             .verify();
 
