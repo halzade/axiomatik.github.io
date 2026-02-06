@@ -1,5 +1,5 @@
 use crate::application::account::form_account;
-use crate::application::account::form_account::{AccountError, FormAccount};
+use crate::application::account::form_account::{AccountError, FormAccount, UpdateAuthorNamePayload};
 use crate::application::article::article;
 use crate::application::article::article::ArticleError;
 use crate::application::change_password::form_change_password;
@@ -15,7 +15,7 @@ use crate::application::republika::republika::RepublikaError;
 use crate::application::technologie::technologie::TechnologieError;
 use crate::application::veda::veda::VedaError;
 use crate::application::zahranici::zahranici::ZahraniciError;
-use crate::db::database_user::{self, Backend};
+use crate::db::{database, database_user::{self, Backend, DatabaseUser}};
 use crate::system::data_system::{DataSystem, DataSystemError};
 use crate::system::data_updates::{DataUpdates, DataUpdatesError};
 use crate::system::router_web::WebRouter;
@@ -25,7 +25,7 @@ use axum::body::Body;
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::routing::{get, post};
-use axum::{middleware, Router};
+use axum::{middleware, Router, Form};
 use axum_core::extract::Request;
 use axum_login::AuthManagerLayerBuilder;
 use http::StatusCode;
@@ -35,7 +35,7 @@ use thiserror::Error;
 use tower_sessions::cookie::SameSite::Strict;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 use tracing::{info, warn};
-use crate::db::database::DatabaseSurreal;
+use crate::db::database::{DatabaseSurreal, SurrealError};
 
 pub type AuthSession = axum_login::AuthSession<Backend>;
 
@@ -85,21 +85,30 @@ pub enum AppRouterError {
 
     #[error("account error: {0}")]
     RouterAccountError(#[from] AccountError),
+    
+    #[error("surreal db error: {0}")]
+    SurrealRouter(#[from] SurrealError),
 }
 
 pub struct ApplicationRouter {
     data_system: DataSystem,
     data_updates_a: Arc<DataUpdates>,
 
+    db_user: Arc<DatabaseUser>,
     form_account: Arc<FormAccount>,
 }
 
 impl ApplicationRouter {
     pub async fn init() -> Result<ApplicationRouter, AppRouterError> {
+        let db = database::db_by_mode().await?;
+        let db_a = Arc::new(db);
+        let db_user = Arc::new(DatabaseUser::new(db_a.clone()));
+
         Ok(ApplicationRouter {
             // TODO shared data
             data_system: data_system::new(),
             data_updates_a: Arc::new(data_updates::new()),
+            db_user,
             form_account: Arc::new(FormAccount::init().await?),
         })
     }
@@ -142,6 +151,7 @@ impl ApplicationRouter {
         info!("start_router()");
 
         let self_a1 = self.clone();
+        let form_account = self.form_account.clone();
 
         // TODO don't use default memory storage, use redis or something
         let session_layer = SessionManagerLayer::new(MemoryStore::default())
@@ -151,7 +161,7 @@ impl ApplicationRouter {
             // creating articles doesn't require any clos site features
             .with_same_site(Strict);
 
-        let auth_layer = AuthManagerLayerBuilder::new(Backend, session_layer).build();
+        let auth_layer = AuthManagerLayerBuilder::new(Backend { db_user: self.db_user.clone() }, session_layer).build();
 
         /*
          * Protected routes
@@ -166,8 +176,14 @@ impl ApplicationRouter {
                 get(form_change_password::show_change_password)
                .post(form_change_password::handle_change_password),
             )
-            .route("/account", get(self.form_account.show_account()))
-            .route("/account/update-author", post(self.form_account.handle_update_author_name))
+            .route("/account", get(move |auth_session: AuthSession| {
+                let form_account = form_account.clone();
+                async move { form_account.show_account(auth_session).await }
+            }))
+            .route("/account/update-author", post(move |auth_session: AuthSession, payload: Form<UpdateAuthorNamePayload>| {
+                let form_account = form_account.clone();
+                async move { form_account.handle_update_author_name(auth_session, payload).await }
+            }))
             .route("/heartbeat", get(heartbeat::handle_heartbeat))
             .layer(middleware::from_fn(auth_middleware));
 

@@ -1,5 +1,6 @@
-use crate::db::database_user;
-use crate::db::database_user::{SurrealUserError, Role, User};
+use crate::db::database;
+use crate::db::database_user::{DatabaseUser, SurrealUserError, Role, User};
+use std::sync::Arc;
 use bcrypt::{hash, DEFAULT_COST};
 use thiserror::Error;
 use tracing::{error, info};
@@ -44,7 +45,9 @@ pub async fn delete_user(args: &Vec<String>) -> Result<(), CommandError> {
     }
     let username = &args[2];
 
-    database_user::delete_user(username).await?;
+    let db = database::init_db_connection().await?;
+    let db_user = DatabaseUser::new(Arc::new(db));
+    db_user.delete_user(username).await?;
     Ok(())
 }
 

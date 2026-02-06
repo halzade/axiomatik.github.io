@@ -1,8 +1,9 @@
 use crate::application::change_password::form_change_password::ChangePasswordError::UserNotFound;
 use crate::data::text_validator::validate_input_simple;
 use crate::db::database::SurrealError;
-use crate::db::database_user;
-use crate::db::database_user::SurrealUserError;
+use crate::db::database;
+use crate::db::database_user::{DatabaseUser, SurrealUserError};
+use std::sync::Arc;
 use crate::system::router_app::AuthSession;
 use askama::Template;
 use axum::response::{Html, IntoResponse, Redirect, Response};

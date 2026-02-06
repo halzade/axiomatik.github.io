@@ -69,7 +69,9 @@ pub enum Role {
 }
 
 #[derive(Clone, Debug)]
-pub struct Backend;
+pub struct Backend {
+    pub db_user: Arc<DatabaseUser>,
+}
 
 /**
  * user authentication
