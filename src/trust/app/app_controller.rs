@@ -59,6 +59,7 @@ impl AppController {
             login: Arc::new(LoginController::new(Arc::new(app_router))),
             db_article_controller: Arc::new(DatabaseArticleController::new(dba.clone())),
             db_user_controller: Arc::new(DatabaseUserController::new(dbu.clone())),
+            db_system_controller: Arc::new(DatabaseSystemController::new(dbs.clone())),
         })
     }
 
