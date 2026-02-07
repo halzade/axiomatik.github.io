@@ -1,4 +1,4 @@
-use crate::trust::app::article::create_article_data::ArticleData;
+use crate::trust::app::article::create_article_data::ArticleFluent;
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
 use axum::Router;
@@ -8,12 +8,12 @@ use tower::ServiceExt;
 #[derive(Debug, Clone)]
 pub struct CreateArticleController {
     app_router: Arc<Router>,
-    input: ArticleData,
+    input: ArticleFluent,
 }
 
 impl CreateArticleController {
     pub fn new(app_router: Arc<Router>) -> Self {
-        Self { app_router, input: ArticleData::new() }
+        Self { app_router, input: ArticleFluent::new() }
     }
 
     pub fn title(&self, title: &str) -> &Self {
@@ -27,7 +27,6 @@ impl CreateArticleController {
     }
 
     pub fn execute(&self) -> Result<(ResponseVerifier), TrustError> {
-
         // TODO
         self.app_router.oneshot();
 
