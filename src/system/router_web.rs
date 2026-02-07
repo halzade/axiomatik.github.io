@@ -19,7 +19,7 @@ use crate::system::data_system::DataSystemError;
 use crate::system::data_updates::{ArticleStatus, DataUpdatesError};
 use crate::system::server::TheState;
 use axum::body::Body;
-use axum::extract::OriginalUri;
+use axum::extract::{OriginalUri, State};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
@@ -89,8 +89,6 @@ impl WebRouter {
     pub async fn start_web_router(&self) -> Router {
         info!("start_web_router()");
 
-        let self_a2 = self.clone();
-
         /*
          * Unprotected routes
          */
@@ -102,14 +100,10 @@ impl WebRouter {
              * catch web requests and maybe updat invalid HTML file
              * redirect the request to the web directory
              */
-            .route("/", get(move |ori_uri: OriginalUri, request|
-                async move {
-                    self_a2.serve_static_content(ori_uri, request).await
-                }
-            ))
+            .route("/", get(Self::serve_static_content))
             // everything already served, user requested for non-existent content
             .fallback(show_404)
-            .with_state(self.state);
+            .with_state(self.state.clone());
 
         info!("start_router() finished");
         ret
@@ -124,7 +118,7 @@ impl WebRouter {
      * - serve static files
      */
     pub async fn serve_static_content(
-        &self,
+        state: State<TheState>,
         ori_uri: OriginalUri,
         request: Request<Body>,
     ) -> Result<Response, WebRouterError> {
@@ -147,64 +141,64 @@ impl WebRouter {
 
         match url.as_str() {
             "/index.html" => {
-                if !self.state.dv.index_valid() {
-                    self.state.dv.index_validate();
+                if !state.dv.index_valid() {
+                    state.dv.index_validate();
 
-                    index::render_index(&self.state).await?;
+                    index::render_index(&state).await?;
                 }
                 serve_this(url, request).await
             }
             "/finance.html" => {
-                if !self.state.dv.finance_valid() {
-                    self.state.dv.finance_validate();
+                if !state.dv.finance_valid() {
+                    state.dv.finance_validate();
 
-                    finance::render_finance(&self.state).await?;
+                    finance::render_finance(&state).await?;
                 }
                 serve_this(url, request).await
             }
             "/news.html" => {
-                if !self.state.dv.news_valid() {
-                    self.state.dv.news_validate();
+                if !state.dv.news_valid() {
+                    state.dv.news_validate();
 
-                    news::render_news(&self.state).await?;
+                    news::render_news(&state).await?;
                 }
                 serve_this(url, request).await
             }
             "/republika.html" => {
-                if !self.state.dv.republika_valid() {
-                    self.state.dv.republika_validate();
+                if !state.dv.republika_valid() {
+                    state.dv.republika_validate();
 
-                    republika::render_republika(&self.state).await?;
+                    republika::render_republika(&state).await?;
                 }
                 serve_this(url, request).await
             }
             "/technologie.html" => {
-                if !self.state.dv.technologie_valid() {
-                    self.state.dv.technologie_validate();
+                if !state.dv.technologie_valid() {
+                    state.dv.technologie_validate();
 
-                    technologie::render_technologie(&self.state).await?;
+                    technologie::render_technologie(&state).await?;
                 }
                 serve_this(url, request).await
             }
             "/veda.html" => {
-                if !self.state.dv.veda_valid() {
-                    self.state.dv.veda_validate();
+                if !state.dv.veda_valid() {
+                    state.dv.veda_validate();
 
-                    veda::render_veda(&self.state).await?;
+                    veda::render_veda(&state).await?;
                 }
                 serve_this(url, request).await
             }
             "/zahranici.html" => {
-                if !self.state.dv.zahranici_valid() {
-                    self.state.dv.zahranici_validate();
+                if !state.dv.zahranici_valid() {
+                    state.dv.zahranici_validate();
 
-                    zahranici::render_zahranici(&self.state).await?;
+                    zahranici::render_zahranici(&state).await?;
                 }
                 serve_this(url, request).await
             }
             _ => {
                 // 404 or Article
-                match self.state.dv.article_valid(&url) {
+                match state.dv.article_valid(&url) {
                     ArticleStatus::Valid => {
                         // no change, serve the file
                         serve_this(url, request).await
@@ -212,8 +206,8 @@ impl WebRouter {
                     ArticleStatus::Invalid => {
                         // article was invalidated, render article HTML
                         // new article was u
-                        article::render_article(&url, &self.state).await?;
-                        self.state.dv.article_validate(&url);
+                        article::render_article(&url, &state).await?;
+                        state.dv.article_validate(&url);
                         serve_this(url, request).await
                     }
                     ArticleStatus::DoesntExist => {

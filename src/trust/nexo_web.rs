@@ -10,9 +10,8 @@ pub struct NexoWeb {
 }
 
 impl NexoWeb {
-    pub fn new(web_router: Router ) -> Self {
-        
-        Self {}
+    pub fn new(web_router: Router) -> Self {
+        Self { web_router }
     }
 
     pub async fn get_url(&self, url: &str) -> Result<ResponseVerifier, TrustError> {

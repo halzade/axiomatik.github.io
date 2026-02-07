@@ -1,10 +1,10 @@
 use crate::db::database;
 use crate::db::database::SurrealError;
-use crate::db::database_user::SurrealUserError;
+use crate::db::database_user::{DatabaseUser, SurrealUserError};
 use crate::system::commands::CommandError;
 use crate::system::configuration::{ConfigurationError, Mode};
-use crate::system::server::ServerError;
-use crate::system::{data_updates, logger, server};
+use crate::system::server::{ServerError, TheState};
+use crate::system::{data_system, data_updates, logger, server};
 use crate::trust::nexo_app::NexoApp;
 use crate::trust::nexo_db::NexoDb;
 use crate::trust::nexo_web::NexoWeb;
@@ -12,6 +12,7 @@ use http::header;
 use std::convert::Infallible;
 use std::sync::Arc;
 use thiserror::Error;
+use crate::db::database_article::DatabaseArticle;
 
 #[derive(Debug, Error)]
 pub enum TrustError {
@@ -77,10 +78,22 @@ pub async fn server() -> Result<TrustMe, TrustError> {
     // config
     logger::config();
     data_updates::new();
-    // db
-    let sdb = database::init_in_memory_db_connection().await?;
+
+    // database
+    let db = Arc::new(database::init_in_memory_db_connection().await?);
+    let dba = Arc::new(DatabaseArticle::new(db.clone()));
+    let dbu = Arc::new(DatabaseUser::new(db.clone()));
+    let dbs = Arc::new(crate::db::database_system::DatabaseSystem::new(db.clone()));
+
+    // in memory application data
+    let ds = Arc::new(data_system::new());
+    let dv = Arc::new(data_updates::new());
+
+    // the application state
+    let state = TheState { dba, dbu, dbs, ds, dv };
+
     // server
-    let server = server::connect(sdb).await?;
+    let server = server::connect(state.clone()).await?;
     // app
     let app_router = server.start_app_router().await?;
     // web
@@ -88,9 +101,10 @@ pub async fn server() -> Result<TrustMe, TrustError> {
     server.status_start()?;
 
     Ok(TrustMe {
+        // app and web already have state from server
         nexo_app: Arc::new(NexoApp::new(app_router)),
         nexo_web: Arc::new(NexoWeb::new(web_router)),
-        nexo_db: Arc::new(NexoDb::new().await?),
+        nexo_db: Arc::new(NexoDb::new(state.clone()).await?),
     })
 }
 

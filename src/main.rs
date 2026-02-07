@@ -2,6 +2,7 @@ use crate::ApplicationError::UnrecognizedParameters;
 use axiomatik_web::db::database;
 use axiomatik_web::db::database::SurrealError;
 use axiomatik_web::db::database_article::DatabaseArticle;
+use axiomatik_web::db::database_system::DatabaseSystem;
 use axiomatik_web::db::database_user::DatabaseUser;
 use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
@@ -53,6 +54,7 @@ async fn main() -> Result<(), ApplicationError> {
     let db = Arc::new(database::init_db_connection().await?);
     let dba = Arc::new(DatabaseArticle::new(db.clone()));
     let dbu = Arc::new(DatabaseUser::new(db.clone()));
+    let dbs = Arc::new(DatabaseSystem::new(db.clone()));
 
     /*
      * in memory application data
@@ -63,7 +65,7 @@ async fn main() -> Result<(), ApplicationError> {
     /*
      * the application state
      */
-    let state = TheState { dba, dbu, ds, dv };
+    let state = TheState { dba, dbu, dbs, ds, dv };
 
     /*
      * process the commands

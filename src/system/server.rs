@@ -11,6 +11,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use ApplicationStatus::{Off, Started, Unknown};
 use ServerError::{ServerAlreadyStarted, UnknownServerStatus};
+use crate::db::database_system::DatabaseSystem;
 
 pub const AUTH_COOKIE: &str = "axiomatik_auth";
 
@@ -49,6 +50,7 @@ pub struct TheState {
     // database
     pub dba: Arc<DatabaseArticle>,
     pub dbu: Arc<DatabaseUser>,
+    pub dbs: Arc<DatabaseSystem>,
     // data system e.g.: temperature
     pub ds: Arc<DataSystem>,
     // data updates e.g.: is index.html valid

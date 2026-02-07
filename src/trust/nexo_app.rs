@@ -43,7 +43,7 @@ impl NexoApp {
             .await?;
 
         *self.user_cookie.write() =
-            login_response.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap().to_string();
+            Some(login_response.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap().to_string());
 
         Ok(())
     }

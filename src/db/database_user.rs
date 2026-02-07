@@ -3,11 +3,10 @@ use crate::db::database::{DatabaseSurreal, SurrealError};
 use axum_login::AuthUser;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::convert::Infallible;
 use std::sync::Arc;
 use surrealdb_types::SurrealValue;
 use thiserror::Error;
-use tracing::{debug, info};
+use tracing::info;
 
 #[derive(Debug, Error)]
 pub enum SurrealUserError {
@@ -69,22 +68,22 @@ pub enum Role {
 }
 
 /**
- * access to database
- * - anything user related
+ * access to a database
+ * - anything user-related
  */
 #[derive(Debug)]
 pub struct DatabaseUser {
-    db: Arc<DatabaseSurreal>,
+    surreal: Arc<DatabaseSurreal>,
 }
 
 impl DatabaseUser {
     pub fn new(db: Arc<DatabaseSurreal>) -> DatabaseUser {
-        DatabaseUser { db }
+        DatabaseUser { surreal: db }
     }
 
     pub async fn new_from_scratch() -> Result<DatabaseUser, SurrealError> {
         let db = Arc::new(database::init_in_memory_db_connection().await?);
-        Ok(DatabaseUser { db })
+        Ok(DatabaseUser { surreal: db })
     }
 
     pub async fn update_user_author_name(
@@ -92,8 +91,9 @@ impl DatabaseUser {
         user_name: &str,
         new_author_name: &str,
     ) -> Result<(), SurrealUserError> {
-        let sdb = self.db.db_read().await?;
-        let _: Option<User> = sdb
+        let _: Option<User> = self
+            .surreal
+            .db
             .update(("user", user_name.to_string()))
             .merge(json!({"author_name": new_author_name.to_string()}))
             .await?;
@@ -105,8 +105,9 @@ impl DatabaseUser {
         user_name: String,
         new_password_hash: String,
     ) -> Result<(), SurrealUserError> {
-        let sdb = self.db.db_read().await?;
-        let _: Option<User> = sdb
+        let _: Option<User> = self
+            .surreal
+            .db
             .update(("user", user_name))
             .merge(json!({
                 "password_hash": new_password_hash,
@@ -117,23 +118,21 @@ impl DatabaseUser {
     }
 
     pub async fn create_user(&self, user: User) -> Result<(), SurrealUserError> {
-        let sdb = self.db.db_read().await?;
-        let _: Option<User> = sdb.create(("user", user.username.clone())).content(user).await?;
+        let _: Option<User> =
+            self.surreal.db.create(("user", user.username.clone())).content(user).await?;
         info!("User created successfully.");
         Ok(())
     }
 
     pub async fn delete_user(&self, user_name: &str) -> Result<(), SurrealUserError> {
-        let sdb = self.db.db_read().await?;
-        let _: Option<User> = sdb.delete(("user", user_name)).await?;
+        let _: Option<User> = self.surreal.db.delete(("user", user_name)).await?;
         info!("User {} deleted successfully.", user_name);
         Ok(())
     }
 
     // TODO Result
     pub async fn get_user_by_name(&self, user_id: &str) -> Result<Option<User>, SurrealUserError> {
-        let sdb = self.db.db_read().await?;
-        let user_o = sdb.select(("user", user_id)).await?;
+        let user_o = self.surreal.db.select(("user", user_id)).await?;
         Ok(user_o)
     }
 }

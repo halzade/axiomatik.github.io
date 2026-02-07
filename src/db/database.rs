@@ -62,9 +62,9 @@ pub async fn init_db_connection() -> Result<DatabaseSurreal, SurrealError> {
     Ok(DatabaseSurreal::new(DATABASE_DEV).await?)
 }
 
-/* TODO
- * must be private, only for tests
+/*
+ * only for tests
  */
-async fn init_in_memory_db_connection() -> Result<DatabaseSurreal, SurrealError> {
+pub async fn init_in_memory_db_connection() -> Result<DatabaseSurreal, SurrealError> {
     Ok(DatabaseSurreal::new(DATABASE_TEST).await?)
 }

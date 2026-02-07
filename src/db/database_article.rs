@@ -11,24 +11,22 @@ use std::sync::Arc;
  * - anything article related
  */
 pub struct DatabaseArticle {
-    db: Arc<DatabaseSurreal>,
+    surreal: Arc<DatabaseSurreal>,
 }
 
 impl DatabaseArticle {
     pub fn new(db: Arc<DatabaseSurreal>) -> DatabaseArticle {
-        DatabaseArticle { db }
+        DatabaseArticle { surreal: db }
     }
 
     pub async fn new_from_scratch() -> Result<DatabaseArticle, SurrealError> {
-        let db = Arc::new(database::ini_in_memory_db_connection().await?);
-        Ok(DatabaseArticle { db })
+        let db = Arc::new(database::init_in_memory_db_connection().await?);
+        Ok(DatabaseArticle { surreal: db })
     }
 
+    // TODO Id, file name won't work for requests, need uuid.
     pub async fn create_article(&self, article: Article) -> Result<(), SurrealError> {
-        let sdb = self.db.db_read().await?;
-
-        // TODO Id, file name won't work for requests, need uuid.
-        let _: Option<Article> = sdb.create("article").content(article).await?;
+        let _: Option<Article> = self.surreal.db.create("article").content(article).await?;
         Ok(())
     }
 
@@ -41,8 +39,9 @@ impl DatabaseArticle {
         username: &str,
         limit: u32,
     ) -> Result<Vec<AccountArticleData>, SurrealError> {
-        let sdb = self.db.db_read().await?;
-        let mut response = sdb
+        let mut response = self
+            .surreal
+            .db
             .query(
                 "SELECT * FROM article \
              WHERE user = $username \
@@ -64,8 +63,9 @@ impl DatabaseArticle {
         &self,
         filename: &str,
     ) -> Result<Option<Article>, SurrealError> {
-        let sdb = self.db.db_read().await?;
-        let mut response = sdb
+        let mut response = self
+            .surreal
+            .db
             .query("SELECT * FROM article WHERE article_file_name = $filename")
             .bind(("filename", filename.to_string()))
             .await?;
@@ -84,8 +84,9 @@ impl DatabaseArticle {
         if related.is_empty() {
             return Ok(Vec::new());
         }
-        let sdb = self.db.db_read().await?;
-        let mut response = sdb
+        let mut response = self
+            .surreal
+            .db
             .query(
                 "SELECT article_file_name, title, short_text, image_288_path, image_desc, date \
             FROM article \
@@ -103,8 +104,9 @@ impl DatabaseArticle {
         category: &str,
         limit: u32,
     ) -> Result<Vec<ShortArticleData>, SurrealError> {
-        let sdb = self.db.db_read().await?;
-        let mut response = sdb
+        let mut response = self
+            .surreal
+            .db
             .query(
                 "SELECT * FROM article WHERE category = $category ORDER BY date DESC LIMIT $limit",
             )
@@ -121,8 +123,9 @@ impl DatabaseArticle {
         &self,
         limit: u32,
     ) -> Result<Vec<MiniArticleData>, SurrealError> {
-        let sdb = self.db.db_read().await?;
-        let mut response = sdb
+        let mut response = self
+            .surreal
+            .db
             .query("SELECT * FROM article ORDER BY date DESC LIMIT $limit")
             .bind(("limit", limit))
             .await?;
@@ -142,7 +145,6 @@ impl DatabaseArticle {
         if search_words.is_empty() {
             return Ok(Vec::new());
         }
-        let sdb = self.db.db_read().await?;
 
         /*
          * build search condition
@@ -161,7 +163,7 @@ impl DatabaseArticle {
          LIMIT $limit",
             conditions.join(" OR ")
         );
-        let mut q = sdb.query(query);
+        let mut q = self.surreal.db.query(query);
         for (i, word) in search_words.iter().enumerate() {
             let pattern = format!(r"(?i)\b{}\b", regex::escape(word));
             q = q.bind((format!("w{}", i), pattern));

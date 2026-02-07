@@ -16,7 +16,7 @@ use crate::application::technologie::technologie::TechnologieError;
 use crate::application::veda::veda::VedaError;
 use crate::application::zahranici::zahranici::ZahraniciError;
 use crate::db::database::SurrealError;
-use crate::db::{database_user, database_user::DatabaseUser};
+use crate::db::database_user;
 use crate::system::authentication::Backend;
 use crate::system::data_system::DataSystemError;
 use crate::system::data_updates::DataUpdatesError;
@@ -176,7 +176,7 @@ impl ApplicationRouter {
             // everything already served, user requested for non-existent content
             .fallback(show_404)
             .layer(auth_layer)
-            .with_state(self.state);
+            .with_state(self.state.clone());
 
         info!("start_router() finished");
         ret
