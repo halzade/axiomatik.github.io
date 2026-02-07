@@ -3,6 +3,7 @@ use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
 use axum::Router;
 use std::sync::Arc;
+use http::{header, Request};
 
 #[derive(Debug, Clone)]
 pub struct LoginController {
@@ -19,5 +20,32 @@ impl LoginController {
         // TODO response
 
         Ok(())
+    }
+
+    pub async fn post_login_with_password(
+        &self,
+        username: &str,
+        password: &str,
+    ) -> Result<ResponseVerifier, TrustError> {
+        let login_response = (*self.app_router)
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/login")
+                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .body(reqwest::Body::from(format!(
+                        "username={}&password={}",
+                        username, password
+                    )))?,
+            )
+            .await?;
+
+        let cookie = login_response.headers().get(header::SET_COOKIE).cloned();
+        if let Some(c) = cookie {
+            *self.user_cookie.write() = Some(c.to_str()?.to_string());
+        }
+
+        Ok(ResponseVerifier::new_from_response(login_response).await?)
     }
 }

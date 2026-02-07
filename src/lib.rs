@@ -117,9 +117,8 @@ pub mod trust {
             pub mod login_controller;
             pub mod login_data;
         }
-        pub mod app_controller;
-        pub mod nexo_app;
     }
+    pub mod app_controller;
     pub mod db {
         pub mod db_article_controller;
         pub mod db_article_verifier;
@@ -135,7 +134,6 @@ pub mod trust {
     }
     pub mod me;
     pub mod web {
-        pub mod nexo_web;
         pub mod web_controller;
     }
 }

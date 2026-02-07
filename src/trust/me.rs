@@ -1,16 +1,11 @@
-use crate::db::database;
 use crate::db::database::SurrealError;
-use crate::db::database_article::DatabaseArticle;
-use crate::db::database_user::{DatabaseUser, SurrealUserError};
+use crate::db::database_user::SurrealUserError;
 use crate::system::commands::CommandError;
 use crate::system::configuration::ConfigurationError;
-use crate::system::server::{ServerError, TheState};
-use crate::system::{data_system, data_updates, logger, server};
+use crate::system::server::ServerError;
 use crate::trust::app::article::create_article_request_builder::ArticleBuilderError;
-use axum::Router;
 use http::header;
 use std::convert::Infallible;
-use std::sync::Arc;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

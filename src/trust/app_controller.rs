@@ -14,6 +14,7 @@ use crate::trust::db::db_system_verifier::DatabaseSystemVerifier;
 use crate::trust::db::db_user_controller::DatabaseUserController;
 use crate::trust::me::TrustError;
 use std::sync::Arc;
+use crate::trust::web::web_controller::WebController;
 
 #[derive(Debug)]
 pub struct AppController {
@@ -22,6 +23,7 @@ pub struct AppController {
     article: Arc<CreateArticleController>,
     change_password: Arc<ChangePasswordController>,
     login: Arc<LoginController>,
+    web: Arc<WebController>,
     // db
     db_article_controller: Arc<DatabaseArticleController>,
     db_user_controller: Arc<DatabaseUserController>,
@@ -55,10 +57,14 @@ impl AppController {
         let web_router = server.start_web_router().await?;
         server.status_start()?;
         Ok(AppController {
+            // app
             account: Arc::new(AccountController::new(app_router.clone())),
             article: Arc::new(CreateArticleController::new(app_router.clone())),
             change_password: Arc::new(ChangePasswordController::new(app_router.clone())),
-            login: Arc::new(LoginController::new(app_router.clone())),
+            login: Arc::new(LoginController::new(app_router)),
+            // web
+            web: Arc::new(WebController::new(web_router)),
+            // surreal
             db_article_controller: Arc::new(DatabaseArticleController::new(dba.clone())),
             db_user_controller: Arc::new(DatabaseUserController::new(dbu.clone())),
             db_system_controller: Arc::new(DatabaseSystemController::new(dbs.clone())),
@@ -79,6 +85,10 @@ impl AppController {
 
     pub fn post_login(&self) -> Arc<LoginController> {
         self.login.clone()
+    }
+
+    pub fn get_web(&self) -> Arc<WebController> {
+        self.web.clone()
     }
 
     pub fn db_article_must_see(&self, real_article_url: &str) -> DatabaseArticleVerifier {

@@ -1,41 +1,42 @@
-use crate::trust::article::create_article_data::ArticleData;
-use crate::trust::article::create_article_verifier::CreateArticleVerifier;
+use http::Request;
+use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
+use axum::Router;
+use std::sync::Arc;
+use tower::ServiceExt;
 
 #[derive(Debug)]
-pub struct WebController;
+pub struct WebController {
+    web_router: Arc<Router>,
+}
 
 impl WebController {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(web_router: Router) -> Self {
+        Self {
+            web_router: Arc::new(web_router),
+        }
     }
 
+    pub async fn get_url(&self, url: &str) -> Result<ResponseVerifier, TrustError> {
+        let response = (*self.web_router)
+            .clone()
+            .oneshot(Request::builder().method("GET").uri(url).body(axum::body::Body::empty())?)
+            .await?;
 
-
-    // app controller
-    // create_article
-    // change_password
-    // account_update_author
-    // login
+        Ok(ResponseVerifier::new(response))
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn test_article_framework() -> Result<(), TrustError> {
-        let article_controller = ArticleController::new();
+    use super::*;
 
-        #[rustfmt::skip]
-        let resp = article_controller
-            .title("title")
-            .text("text")
-            .execute()?;
+    #[tokio::test]
+    async fn test_web_controller() -> Result<(), TrustError> {
+        let ac = crate::trust::app_controller::AppController::new().await?;
+        let web = ac.get_web();
 
-        #[rustfmt::skip]
-        article_controller.must_see(resp)
-            .title("title")
-            .text("text")
-            .verify();
+        web.get_url("/").await?;
 
         Ok(())
     }
