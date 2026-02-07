@@ -10,14 +10,22 @@ mod tests {
         let ac = AppController::new().await?;
 
         // create user
-        ac.db_user().db_setup_user_with_password("admin1", "password123").await?;
+        ac.db_user()
+            .username("admin1")
+            .password("password123")
+            .execute()
+            .await?;
 
-        // Try login
-        ac.login().post_login_with_password("admin1", "password123").await?
+        //  login
+        #[rustfmt::skip]
+        ac.login()
+            .username("admin1")
+            .password("password123")
+            .post_login_with_password().await?
             .must_see_response(StatusCode::SEE_OTHER)
-            .header_location("/change-password")
-            .header_cookie(&["HttpOnly", "Secure", "SameSite=Strict", "Path=/"])
-            .verify();
+                .header_location("/change-password")
+                .header_cookie(&["HttpOnly", "Secure", "SameSite=Strict", "Path=/"])
+                .verify()?;
 
         Ok(())
     }

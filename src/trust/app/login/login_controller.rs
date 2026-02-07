@@ -1,4 +1,4 @@
-use crate::trust::app::login::login_data::LoginData;
+use crate::trust::app::login::login_data::LoginFluent;
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
 use axum::body::Body;
@@ -12,20 +12,30 @@ use tower::ServiceExt;
 #[derive(Debug)]
 pub struct LoginController {
     app_router: Arc<Router>,
-    input: LoginData,
+    input: LoginFluent,
     user_cookie: RwLock<Option<String>>,
 }
 
 impl LoginController {
     pub fn new(app_router: Arc<Router>) -> Self {
-        Self { app_router, input: LoginData::new(), user_cookie: RwLock::new(None) }
+        Self { app_router, input: LoginFluent::new(), user_cookie: RwLock::new(None) }
     }
 
-    pub async fn post_login_with_password(
-        &self,
-        username: &str,
-        password: &str,
-    ) -> Result<ResponseVerifier, TrustError> {
+    pub fn username(&self, username: &str) -> &Self {
+        self.input.username(username);
+        self
+    }
+
+    pub fn password(&self, password: &str) -> &Self {
+        self.input.password(password);
+        self
+    }
+
+    pub async fn post_login_with_password(&self) -> Result<ResponseVerifier, TrustError> {
+        let data = self.input.get_data();
+        let username = data.username.unwrap_or_default();
+        let password = data.password.unwrap_or_default();
+
         let login_response = self
             .app_router
             .as_ref()

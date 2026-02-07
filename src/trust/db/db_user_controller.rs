@@ -1,5 +1,6 @@
 use crate::db::database_user::{DatabaseUser, Role, User};
 use crate::system::logger;
+use crate::trust::app::login::login_data::LoginFluent;
 use crate::trust::db::db_user_verifier::DatabaseUserVerifier;
 use crate::trust::me::TrustError;
 use bcrypt::{hash, DEFAULT_COST};
@@ -8,11 +9,12 @@ use std::sync::Arc;
 #[derive(Debug)]
 pub struct DatabaseUserController {
     dbu: Arc<DatabaseUser>,
+    input: LoginFluent,
 }
 
 impl DatabaseUserController {
     pub fn new(dbu: Arc<DatabaseUser>) -> Self {
-        Self { dbu }
+        Self { dbu, input: LoginFluent::new() }
     }
 
     /*
@@ -21,7 +23,17 @@ impl DatabaseUserController {
     pub async fn new_local() -> Result<Self, TrustError> {
         logger::config();
         let dbu = Arc::new(DatabaseUser::new_from_scratch().await?);
-        Ok(Self { dbu })
+        Ok(Self { dbu, input: LoginFluent::new() })
+    }
+
+    pub fn username(&self, username: &str) -> &Self {
+        self.input.username(username);
+        self
+    }
+
+    pub fn password(&self, password: &str) -> &Self {
+        self.input.password(password);
+        self
     }
 
     pub async fn must_see(&self, username: &str) -> Result<DatabaseUserVerifier, TrustError> {
@@ -38,11 +50,11 @@ impl DatabaseUserController {
         }
     }
 
-    pub async fn db_setup_user_with_password(
-        &self,
-        username: &str,
-        password: &str,
-    ) -> Result<(), TrustError> {
+    pub async fn execute(&self) -> Result<(), TrustError> {
+        let data = self.input.get_data();
+        let username = data.username.unwrap_or_default();
+        let password = data.password.unwrap_or_default();
+
         // db create user
         self.dbu
             .create_user(User {
@@ -68,7 +80,10 @@ mod tests {
     async fn test_user_verifier_pass() -> Result<(), TrustError> {
         let uc = DatabaseUserController::new_local().await?;
 
-        uc.db_setup_user_with_password("tester", "password").await?;
+        uc.username("tester")
+            .password("password")
+            .execute()
+            .await?;
 
         #[rustfmt::skip]
         uc.must_see("tester").await?
@@ -84,7 +99,10 @@ mod tests {
     async fn test_user_verifier_fail() -> Result<(), TrustError> {
         let uc = DatabaseUserController::new_local().await?;
 
-        uc.db_setup_user_with_password("tester", "password").await?;
+        uc.username("tester")
+            .password("password")
+            .execute()
+            .await?;
 
         #[rustfmt::skip]
         let err = uc.must_see("tester").await?

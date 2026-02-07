@@ -144,7 +144,10 @@ mod tests {
          * create user in the database
          */
         #[rustfmt::skip]
-        ac.db_user().db_setup_user_with_password("tester", "password").await?;
+        ac.db_user().setup_user()
+            .username("tester")
+            .password("password")
+            .execute().await?;
 
         /*
          * verify user in the database
