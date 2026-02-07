@@ -1,16 +1,15 @@
-use crate::trust::article::article_data::ArticleData;
+use crate::trust::app::article::create_article_data::ArticleData;
 use crate::trust::data::utils::error;
 use crate::trust::me::TrustError;
 use TrustError::{RealData, Validation};
 
 #[derive(Debug)]
-pub struct ArticleVerifier {
+pub struct CreateArticleVerifier {
     pub real: ArticleData,
     pub expected: ArticleData,
 }
 
-impl ArticleVerifier {
-    
+impl CreateArticleVerifier {
     pub fn title(mut self, title: &str) -> Self {
         self.expected = self.expected.title(title);
         self

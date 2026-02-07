@@ -5,7 +5,6 @@ use http::{header, Request};
 use parking_lot::RwLock;
 use std::sync::Arc;
 use tower::ServiceExt;
-use crate::trust::article::article_request_builder::ArticleBuilder;
 
 pub struct NexoApp {
     app_router: Arc<Router>,
