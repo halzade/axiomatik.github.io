@@ -1,10 +1,12 @@
 use crate::db::database;
 use crate::db::database::SurrealError;
+use crate::db::database_article::DatabaseArticle;
 use crate::db::database_user::{DatabaseUser, SurrealUserError};
 use crate::system::commands::CommandError;
-use crate::system::configuration::{ConfigurationError, Mode};
+use crate::system::configuration::ConfigurationError;
 use crate::system::server::{ServerError, TheState};
 use crate::system::{data_system, data_updates, logger, server};
+use crate::trust::article_builder::ArticleBuilderError;
 use crate::trust::nexo_app::NexoApp;
 use crate::trust::nexo_db::NexoDb;
 use crate::trust::nexo_web::NexoWeb;
@@ -12,7 +14,6 @@ use http::header;
 use std::convert::Infallible;
 use std::sync::Arc;
 use thiserror::Error;
-use crate::db::database_article::DatabaseArticle;
 
 #[derive(Debug, Error)]
 pub enum TrustError {
@@ -64,8 +65,8 @@ pub enum TrustError {
     #[error("server error")]
     TrustServerError(#[from] ServerError),
 
-    #[error("application mode error")]
-    ModeError(Mode),
+    #[error("article builder error")]
+    ArticleBuilder(#[from] ArticleBuilderError),
 }
 
 pub struct TrustMe {

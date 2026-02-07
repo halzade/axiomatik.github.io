@@ -100,7 +100,7 @@ impl ArticleBuilder {
      * build Article data u8 for new article request
      * And Execute
      */
-    pub fn execute(self) -> Result<ResponseVerifier, TrustError> {
+    pub fn execute(&self) -> Result<ResponseVerifier, TrustError> {
         let mut body: Vec<u8> = Vec::new();
 
         macro_rules! text_part {
@@ -113,25 +113,25 @@ impl ArticleBuilder {
             };
         }
 
-        if let Some(v) = self.title_o {
+        if let Some(v) = self.title_o.clone() {
             text_part!("title", v);
         }
-        if let Some(v) = self.author_o {
+        if let Some(v) = self.author_o.clone() {
             text_part!("author", v);
         }
-        if let Some(v) = self.category_o {
+        if let Some(v) = self.category_o.clone() {
             text_part!("category", v);
         }
-        if let Some(v) = self.text_o {
+        if let Some(v) = self.text_o.clone() {
             text_part!("text", v);
         }
-        if let Some(v) = self.short_text_o {
+        if let Some(v) = self.short_text_o.clone() {
             text_part!("short_text", v);
         }
-        if let Some(v) = self.related_articles_o {
+        if let Some(v) = self.related_articles_o.clone() {
             text_part!("related_articles", v);
         }
-        if let Some(v) = self.image_desc_o {
+        if let Some(v) = self.image_desc_o.clone() {
             text_part!("image_desc", v);
         }
         if let Some(v) = self.is_main_o {
@@ -142,31 +142,31 @@ impl ArticleBuilder {
         }
 
         // image
-        if let Some((filename, data, content_type)) = self.image_o {
+        if let Some((filename, data, content_type)) = self.image_o.clone() {
             write!(
                 body,
                 "--{}\r\nContent-Disposition: form-data; name=\"image\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n",
                 BOUNDARY, filename, content_type
             )?;
-            body.extend_from_slice(data);
+            body.extend_from_slice(&data);
             body.extend_from_slice(b"\r\n");
         }
 
         // audio
-        if let Some((filename, data, content_type)) = self.audio_o {
+        if let Some((filename, data, content_type)) = self.audio_o.clone() {
             write!(
                 body,
                 "--{}\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"{}\"\r\nContent-Type: {}\r\n\r\n",
                 BOUNDARY, filename, content_type
             )?;
-            body.extend_from_slice(data);
+            body.extend_from_slice(&data);
             body.extend_from_slice(b"\r\n");
         }
 
         // TODO do video and write test
 
         write!(body, "--{}--\r\n", BOUNDARY)?;
-        Ok(body)
+        Ok(ResponseVerifier::new(body))
     }
 }
 

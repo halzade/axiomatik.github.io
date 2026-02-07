@@ -66,8 +66,6 @@ pub struct Server {
     // web
     router_web: WebRouter,
     start_time_web: DateTime<Utc>,
-    // state with global gadgets
-    app_state: TheState,
 }
 
 impl Server {
@@ -148,6 +146,5 @@ pub async fn connect(state: TheState) -> Result<Server, ServerError> {
         // web
         router_web: WebRouter::init(state.clone())?,
         start_time_web: Utc::now(),
-        app_state: state,
     })
 }

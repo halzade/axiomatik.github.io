@@ -39,12 +39,6 @@ pub struct ApplicationSettings {
     pub port_web: u16,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum Mode {
-    Testing,
-    ApplicationRun,
-}
-
 /*
  * Read configuration from ~/configuration/abc.toml
  */

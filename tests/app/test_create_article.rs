@@ -6,12 +6,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {
-        let server = trust::me::server()?;
+        // setup
+        let server = trust::me::server().await?;
         let app = server.nexo_app()?;
         let web = server.nexo_web()?;
-        let db = server.surreal()?;
+        let surreal = server.surreal()?;
 
-        db.setup_user("user6").await?;
+        // create user and login
+        surreal.db_setup_user("user6").await?;
         app.post_login("user6").await?;
 
         #[rustfmt::skip]

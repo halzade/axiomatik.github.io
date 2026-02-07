@@ -6,7 +6,6 @@ use axiomatik_web::db::database_system::DatabaseSystem;
 use axiomatik_web::db::database_user::DatabaseUser;
 use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
-use axiomatik_web::system::configuration::Mode::{ApplicationRun, Testing};
 use axiomatik_web::system::server::{ServerError, TheState};
 use axiomatik_web::system::{configuration, heartbeat, logger};
 use axiomatik_web::system::{data_system, data_updates, server};
@@ -37,8 +36,8 @@ pub enum ApplicationError {
     #[error("server error")]
     ApplicationServerError(#[from] ServerError),
 
-    #[error("unrecognized parameter: {0}")]
-    UnrecognizedParameters(Vec<String>),
+    #[error("unrecognized parameter")]
+    UnrecognizedParameters,
 }
 
 #[tokio::main]
@@ -78,7 +77,7 @@ async fn main() -> Result<(), ApplicationError> {
     }
 
     if args.len() > 1 {
-        return Err(UnrecognizedParameters(args));
+        return Err(UnrecognizedParameters);
     }
 
     /*
