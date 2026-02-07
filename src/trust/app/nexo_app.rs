@@ -1,14 +1,19 @@
 use crate::trust::me::TrustError;
-use crate::trust::response_verifier::ResponseVerifier;
 use axum::Router;
 use http::{header, Request};
 use parking_lot::RwLock;
 use std::sync::Arc;
 use tower::ServiceExt;
+use crate::db::database_article::DatabaseArticle;
+use crate::db::database_system::DatabaseSystem;
+use crate::db::database_user::DatabaseUser;
 
 pub struct NexoApp {
     app_router: Arc<Router>,
     user_cookie: RwLock<Option<String>>,
+    pub dba: Arc<DatabaseArticle>,
+    pub dbs: Arc<DatabaseSystem>,
+    pub dbu: Arc<DatabaseUser>,
 }
 
 impl NexoApp {

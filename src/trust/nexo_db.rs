@@ -6,16 +6,7 @@ use crate::trust::me::TrustError;
 use bcrypt::{hash, DEFAULT_COST};
 use std::sync::Arc;
 
-pub struct NexoDb {
-    pub dba: Arc<DatabaseArticle>,
-    pub dbs: Arc<DatabaseSystem>,
-    pub dbu: Arc<DatabaseUser>,
-}
-
 impl NexoDb {
-    pub async fn new(state: TheState) -> Result<NexoDb, TrustError> {
-        Ok(NexoDb { dba: state.dba.clone(), dbs: state.dbs.clone(), dbu: state.dbu.clone() })
-    }
 
     pub async fn db_setup_user(&self, username: &str) -> Result<(), TrustError> {
         self.db_setup_user_with_password(username, "password").await

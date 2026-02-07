@@ -93,13 +93,16 @@ pub mod system {
     pub mod router_web;
     pub mod server;
 }
+/*
+ * Test Framework
+ */
 pub mod trust {
     pub mod app {
         pub mod article {
-            pub mod article_easy_builder;
-            pub mod article_request_builder;
             pub mod create_article_controller;
             pub mod create_article_data;
+            pub mod create_article_easy_builder;
+            pub mod create_article_request_builder;
             pub mod create_article_verifier;
         }
         pub mod account {
@@ -117,16 +120,18 @@ pub mod trust {
         pub mod app_controller;
         pub mod nexo_app;
     }
-
+    pub mod db {
+        pub mod db_article_controller;
+        pub mod db_article_verifier;
+    }
     pub mod data {
         pub mod media_data;
         pub mod response_verifier;
         pub mod utils;
     }
     pub mod me;
-    pub mod nexo_db;
-    pub mod nexo_web;
     pub mod web {
+        pub mod nexo_web;
         pub mod web_controller;
     }
 }

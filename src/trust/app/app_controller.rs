@@ -2,6 +2,7 @@ use crate::trust::app::account::account_controller::AccountController;
 use crate::trust::app::article::create_article_controller::CreateArticleController;
 use crate::trust::app::change_password::change_password_controller::ChangePasswordController;
 use crate::trust::app::login::login_controller::LoginController;
+use crate::trust::db::db_article_controller::ArticleDatabaseController;
 use crate::trust::me::TrustError;
 
 #[derive(Debug)]
@@ -12,20 +13,24 @@ impl AppController {
         Self {}
     }
 
-    pub fn create_article(&self) -> CreateArticleController {
+    pub fn post_create_article(&self) -> CreateArticleController {
         CreateArticleController::new()
     }
 
-    pub fn change_password(&self) -> ChangePasswordController {
+    pub fn post_change_password(&self) -> ChangePasswordController {
         ChangePasswordController::new()
     }
 
-    pub fn account_update_author(&self) -> AccountController {
+    pub fn post_account_update_author(&self) -> AccountController {
         AccountController::new()
     }
 
-    pub fn login(&self) -> LoginController {
+    pub fn post_login(&self) -> LoginController {
         LoginController::new()
+    }
+
+    pub(crate) fn db_article_must_see(&self) -> ArticleDatabaseController {
+        ArticleDatabaseController::new()
     }
 }
 
@@ -38,13 +43,13 @@ mod tests {
         let ac = AppController::new();
 
         #[rustfmt::skip]
-        let resp = ac.create_article()
+        ac.post_create_article()
             .title("title")
             .text("text")
             .execute()?;
 
         #[rustfmt::skip]
-        ac.must_see_response(resp)
+        ac.db_article_must_see()
             .title("title")
             .text("text")
             .verify();
