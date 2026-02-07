@@ -1,15 +1,18 @@
 use crate::trust::app::article::create_article_data::ArticleData;
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
+use axum::Router;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct CreateArticleController {
+    app_router: Arc<Router>,
     input: ArticleData,
 }
 
 impl CreateArticleController {
-    pub fn new() -> Self {
-        Self { input: ArticleData::new() }
+    pub fn new(app_router: Arc<Router>) -> Self {
+        Self { app_router, input: ArticleData::new() }
     }
 
     pub fn title(mut self, title: &str) -> Self {

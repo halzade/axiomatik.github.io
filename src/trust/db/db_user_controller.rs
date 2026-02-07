@@ -1,13 +1,16 @@
-use crate::db::database_user::{Role, User};
+use crate::db::database_user::{DatabaseUser, Role, User};
 use crate::trust::me::TrustError;
 use bcrypt::{hash, DEFAULT_COST};
+use std::sync::Arc;
 
 #[derive(Debug)]
-pub struct DatabaseUserController {}
+pub struct DatabaseUserController {
+    dbu: Arc<DatabaseUser>,
+}
 
 impl DatabaseUserController {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(dbu: Arc<DatabaseUser>) -> Self {
+        Self { dbu }
     }
 
     pub fn execute(self) -> Result<(), TrustError> {

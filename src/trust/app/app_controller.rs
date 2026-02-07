@@ -9,6 +9,8 @@ use crate::trust::app::change_password::change_password_controller::ChangePasswo
 use crate::trust::app::login::login_controller::LoginController;
 use crate::trust::db::db_article_controller::DatabaseArticleController;
 use crate::trust::db::db_article_verifier::DatabaseArticleVerifier;
+use crate::trust::db::db_system_controller::DatabaseSystemController;
+use crate::trust::db::db_system_verifier::DatabaseSystemVerifier;
 use crate::trust::db::db_user_controller::DatabaseUserController;
 use crate::trust::me::TrustError;
 use std::sync::Arc;
@@ -43,20 +45,20 @@ impl AppController {
         let dv = Arc::new(data_updates::new());
 
         // the application state
-        let state = TheState { dba, dbu, dbs, ds, dv };
+        let state = TheState { dba: dba.clone(), dbu: dbu.clone(), dbs: dbs.clone(), ds, dv };
 
         // server
         let server = server::connect(state.clone()).await?;
         // app
-        let app_router = server.start_app_router().await?;
+        let app_router = Arc::new(server.start_app_router().await?);
         // web
         let web_router = server.start_web_router().await?;
         server.status_start()?;
         Ok(AppController {
-            account: Arc::new(AccountController::new(Arc::new(app_router))),
-            article: Arc::new(CreateArticleController::new(Arc::new(app_router))),
-            change_password: Arc::new(ChangePasswordController::new(Arc::new(app_router))),
-            login: Arc::new(LoginController::new(Arc::new(app_router))),
+            account: Arc::new(AccountController::new(app_router.clone())),
+            article: Arc::new(CreateArticleController::new(app_router.clone())),
+            change_password: Arc::new(ChangePasswordController::new(app_router.clone())),
+            login: Arc::new(LoginController::new(app_router.clone())),
             db_article_controller: Arc::new(DatabaseArticleController::new(dba.clone())),
             db_user_controller: Arc::new(DatabaseUserController::new(dbu.clone())),
             db_system_controller: Arc::new(DatabaseSystemController::new(dbs.clone())),
@@ -82,6 +84,10 @@ impl AppController {
     pub fn db_article_must_see(&self, real_article_url: &str) -> DatabaseArticleVerifier {
         DatabaseArticleVerifier::new(real_article_url)
     }
+
+    pub fn db_system_must_see(&self, real_article_url: &str) -> DatabaseSystemVerifier {
+        DatabaseSystemVerifier::new(real_article_url)
+    }
 }
 
 #[cfg(test)]
@@ -96,7 +102,7 @@ mod tests {
          * post Article to router
          */
         #[rustfmt::skip]
-        ac.post_create_article()
+        ac.post_create_article().as_ref().clone()
             .title("Title 1")
             .text("text")
             .execute()?;
