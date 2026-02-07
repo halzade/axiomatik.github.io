@@ -2,7 +2,7 @@ use crate::trust::app::login::login_data::LoginData;
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LoginController {
     input: LoginData,
 }

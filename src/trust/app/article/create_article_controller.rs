@@ -2,7 +2,7 @@ use crate::trust::app::article::create_article_data::ArticleData;
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CreateArticleController {
     input: ArticleData,
 }

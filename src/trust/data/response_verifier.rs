@@ -1,18 +1,17 @@
 use axum_core::response::Response;
+use http::HeaderMap;
 
-pub struct ResponseVerifier{
-    response: Response
+pub struct ResponseVerifier {
+    pub headers: HeaderMap,
+    pub response: Response,
 }
 
-
-// TODO use methods and delete this
 impl ResponseVerifier {
     pub fn new(response: Response) -> Self {
-
-        let (parts, body) = response.into_parts();
-        headers: parts.headers
+        let headers = response.headers().clone();
         Self {
-            response
+            headers,
+            response,
         }
     }
 

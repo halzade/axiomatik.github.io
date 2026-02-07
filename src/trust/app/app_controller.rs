@@ -23,6 +23,7 @@ pub struct AppController {
     // db
     db_article_controller: Arc<DatabaseArticleController>,
     db_user_controller: Arc<DatabaseUserController>,
+    db_system_controller: Arc<DatabaseSystemController>,
 }
 
 impl AppController {
@@ -52,12 +53,12 @@ impl AppController {
         let web_router = server.start_web_router().await?;
         server.status_start()?;
         Ok(AppController {
-            account: Arc::new(AccountController::new()),
-            article: Arc::new(CreateArticleController::new()),
-            change_password: Arc::new(ChangePasswordController::new()),
-            login: Arc::new(LoginController::new()),
-            db_article_controller: Arc::new(DatabaseArticleController::new()),
-            db_user_controller: Arc::new(DatabaseUserController::new()),
+            account: Arc::new(AccountController::new(Arc::new(app_router))),
+            article: Arc::new(CreateArticleController::new(Arc::new(app_router))),
+            change_password: Arc::new(ChangePasswordController::new(Arc::new(app_router))),
+            login: Arc::new(LoginController::new(Arc::new(app_router))),
+            db_article_controller: Arc::new(DatabaseArticleController::new(dba.clone())),
+            db_user_controller: Arc::new(DatabaseUserController::new(dbu.clone())),
         })
     }
 
@@ -65,16 +66,16 @@ impl AppController {
         self.article.clone()
     }
 
-    pub fn post_change_password(&self) -> ChangePasswordController {
-        ChangePasswordController::new()
+    pub fn post_change_password(&self) -> Arc<ChangePasswordController> {
+        self.change_password.clone()
     }
 
     pub fn post_account_update_author(&self) -> Arc<AccountController> {
-        self.account
+        self.account.clone()
     }
 
-    pub fn post_login(&self) -> LoginController {
-        LoginController::new()
+    pub fn post_login(&self) -> Arc<LoginController> {
+        self.login.clone()
     }
 
     pub fn db_article_must_see(&self, real_article_url: &str) -> DatabaseArticleVerifier {
@@ -86,9 +87,9 @@ impl AppController {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_create_article() -> Result<(), TrustError> {
-        let ac = AppController::new();
+    #[tokio::test]
+    async fn test_create_article() -> Result<(), TrustError> {
+        let ac = AppController::new().await?;
 
         /*
          * post Article to router

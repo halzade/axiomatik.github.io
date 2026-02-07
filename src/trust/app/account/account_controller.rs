@@ -2,7 +2,7 @@ use crate::trust::app::account::account_data::AccountData;
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AccountController {
     input: AccountData,
 }

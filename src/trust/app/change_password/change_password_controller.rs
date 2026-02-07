@@ -2,7 +2,7 @@ use crate::trust::app::change_password::change_password_data::ChangePasswordData
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChangePasswordController {
     input: ChangePasswordData,
 }
