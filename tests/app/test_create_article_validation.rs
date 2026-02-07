@@ -10,7 +10,21 @@ mod tests {
         let ac = AppController::new().await?;
 
         // 1. Create and login user
-        let cookie = utils::setup_user_and_login("user9").await;
+        #[rustfmt::skip]
+        ac.db_user().setup_user()
+            .username("user9")
+            .password("password123")
+            .execute().await?;
+
+        #[rustfmt::skip]
+        ac.login()
+            .username("user9")
+            .password("password123")
+            .execute().await?
+            .must_see_response(StatusCode::SEE_OTHER)
+            .verify()?;
+
+        let cookie = ac.login().get_cookie().unwrap();
 
         let image_data = utils::get_test_image_data();
 

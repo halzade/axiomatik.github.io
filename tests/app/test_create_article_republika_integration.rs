@@ -11,7 +11,21 @@ mod tests {
     async fn test_republika_article_creation_and_limit() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
-        let cookie = utils::setup_user_and_login("user5").await;
+        #[rustfmt::skip]
+        ac.db_user().setup_user()
+            .username("user5")
+            .password("password123")
+            .execute().await?;
+
+        #[rustfmt::skip]
+        ac.login()
+            .username("user5")
+            .password("password123")
+            .execute().await?
+            .must_see_response(StatusCode::SEE_OTHER)
+            .verify()?;
+
+        let cookie = ac.login().get_cookie().unwrap();
 
         let image_data = utils::get_test_image_data();
         let body = ArticleBuilder::new()

@@ -1,20 +1,31 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::db::database_user;
-        content_type_with_boundary, response_to_body, serialize, TrustError,
-    };
+    use axiomatik_web::trust::app_controller::AppController;
+    use axiomatik_web::trust::me::TrustError;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs::remove_file;
-use axiomatik_web::trust::app_controller::AppController;
-use axiomatik_web::trust::me::TrustError;
 
-#[tokio::test]
+    #[tokio::test]
     async fn test_account_page() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
-        // Create user
-        let cookie = utils::setup_user_and_login("user8").await;
+        // Create user and login
+        #[rustfmt::skip]
+        ac.db_user().setup_user()
+            .username("user8")
+            .password("password123")
+            .execute().await?;
+
+        #[rustfmt::skip]
+        ac.login()
+            .username("user8")
+            .password("password123")
+            .execute().await?
+            .must_see_response(StatusCode::SEE_OTHER)
+            .verify()?;
+
+        let cookie = ac.login().get_cookie().unwrap();
 
         // Access account page
         let response_account = utils::one_shot(
@@ -44,13 +55,7 @@ use axiomatik_web::trust::me::TrustError;
         .await;
 
         assert_eq!(response_update_author.status(), StatusCode::SEE_OTHER);
-        assert_eq!(
-            response_update_author
-                .headers()
-                .get(header::LOCATION)
-                .unwrap(),
-            "/account"
-        );
+        assert_eq!(response_update_author.headers().get(header::LOCATION).unwrap(), "/account");
 
         // Verify update in DB
         let user = database_user::get_user_by_name("user8").await?.unwrap();

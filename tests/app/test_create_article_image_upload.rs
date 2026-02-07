@@ -13,7 +13,21 @@ mod tests {
         let ac = AppController::new().await?;
 
         // 1. Set up user and login
-        let cookie = utils::setup_user_and_login("image_tester").await;
+        #[rustfmt::skip]
+        ac.db_user().setup_user()
+            .username("image_tester")
+            .password("password123")
+            .execute().await?;
+
+        #[rustfmt::skip]
+        ac.login()
+            .username("image_tester")
+            .password("password123")
+            .execute().await?
+            .must_see_response(StatusCode::SEE_OTHER)
+            .verify()?;
+
+        let cookie = ac.login().get_cookie().unwrap();
 
         // 2. Read placeholder image
         let image_data =

@@ -1,17 +1,32 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::db::database_user;
+    use axiomatik_web::trust::app_controller::AppController;
+    use axiomatik_web::trust::data::utils::{response_to_body, serialize};
+    use axiomatik_web::trust::me::TrustError;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
-    use axiomatik_web::trust::app_controller::AppController;
-    use axiomatik_web::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_account_page() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
         // Create user
-        let cookie = utils::setup_user_and_login("user8").await;
+        #[rustfmt::skip]
+        ac.db_user().setup_user()
+            .username("user8")
+            .password("password123")
+            .execute().await?;
+
+        #[rustfmt::skip]
+        ac.login()
+            .username("user8")
+            .password("password123")
+            .execute().await?
+            .must_see_response(StatusCode::SEE_OTHER)
+            .verify()?;
+
+        let cookie = ac.login().get_cookie().unwrap();
 
         // Access account page
         let response_account = utils::one_shot(
@@ -55,11 +70,10 @@ mod tests {
         assert!(body_account_updated.contains("Updated Author"));
 
         // Verify update in DB
-        let user = database_user::get_user_by_name("user8").await?.unwrap();
-        assert_eq!(user.author_name, "Updated Author");
-
-        // cleanup DB
-        assert!(database_user::delete_user("user8").await.is_ok());
+        #[rustfmt::skip]
+        ac.db_user().must_see("user8").await?
+            .author_name("Updated Author")
+            .verify()?;
 
         Ok(())
     }

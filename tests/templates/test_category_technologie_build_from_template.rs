@@ -3,7 +3,7 @@ mod tests {
     use askama::Template;
     use axiomatik_web::application::technologie::technologie::TechnologieTemplate;
     use axiomatik_web::db::database_article_data::ShortArticleData;
-    use axiomatik_web::trust::utils::TrustError;
+    use axiomatik_web::trust::me::TrustError;
 
     #[test]
     fn test_technologie_build_from_template() -> Result<(), TrustError> {
