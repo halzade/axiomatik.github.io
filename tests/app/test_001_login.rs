@@ -10,7 +10,8 @@ mod tests {
         let ac = AppController::new().await?;
 
         // create user
-        ac.db_user()
+        #[rustfmt::skip]
+        ac.db_user().setup_user()
             .username("admin1")
             .password("password123")
             .execute()
@@ -21,7 +22,7 @@ mod tests {
         ac.login()
             .username("admin1")
             .password("password123")
-            .post_login_with_password().await?
+            .execute().await?
             .must_see_response(StatusCode::SEE_OTHER)
                 .header_location("/change-password")
                 .header_cookie(&["HttpOnly", "Secure", "SameSite=Strict", "Path=/"])

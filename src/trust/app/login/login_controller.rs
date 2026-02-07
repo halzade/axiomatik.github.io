@@ -31,7 +31,7 @@ impl LoginController {
         self
     }
 
-    pub async fn post_login_with_password(&self) -> Result<ResponseVerifier, TrustError> {
+    pub async fn execute(&self) -> Result<ResponseVerifier, TrustError> {
         let data = self.input.get_data();
         let username = data.username.unwrap_or_default();
         let password = data.password.unwrap_or_default();

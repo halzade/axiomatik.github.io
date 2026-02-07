@@ -141,7 +141,7 @@ mod tests {
         let ac = AppController::new().await?;
 
         /*
-         * create user in the database
+         * create a user in the database
          */
         #[rustfmt::skip]
         ac.db_user().setup_user()
@@ -152,8 +152,8 @@ mod tests {
         /*
          * verify user in the database
          */
-        ac.db_user()
-            .must_see("tester")
+        #[rustfmt::skip]
+        ac.db_user().must_see("tester")
             .await?
             .username("tester")
             .author_name("tester")

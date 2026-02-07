@@ -9,12 +9,17 @@ use std::sync::Arc;
 #[derive(Debug)]
 pub struct DatabaseUserController {
     dbu: Arc<DatabaseUser>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SetupUserController {
+    dbu: Arc<DatabaseUser>,
     input: LoginFluent,
 }
 
 impl DatabaseUserController {
     pub fn new(dbu: Arc<DatabaseUser>) -> Self {
-        Self { dbu, input: LoginFluent::new() }
+        Self { dbu }
     }
 
     /*
@@ -23,17 +28,11 @@ impl DatabaseUserController {
     pub async fn new_local() -> Result<Self, TrustError> {
         logger::config();
         let dbu = Arc::new(DatabaseUser::new_from_scratch().await?);
-        Ok(Self { dbu, input: LoginFluent::new() })
+        Ok(Self { dbu })
     }
 
-    pub fn username(&self, username: &str) -> &Self {
-        self.input.username(username);
-        self
-    }
-
-    pub fn password(&self, password: &str) -> &Self {
-        self.input.password(password);
-        self
+    pub fn setup_user(&self) -> SetupUserController {
+        SetupUserController::new(self.dbu.clone())
     }
 
     pub async fn must_see(&self, username: &str) -> Result<DatabaseUserVerifier, TrustError> {
@@ -48,6 +47,23 @@ impl DatabaseUserController {
             }
             None => Err(TrustError::RealData),
         }
+    }
+
+}
+
+impl SetupUserController {
+    pub fn new(dbu: Arc<DatabaseUser>) -> Self {
+        Self { dbu, input: LoginFluent::new() }
+    }
+
+    pub fn username(&self, username: &str) -> &Self {
+        self.input.username(username);
+        self
+    }
+
+    pub fn password(&self, password: &str) -> &Self {
+        self.input.password(password);
+        self
     }
 
     pub async fn execute(&self) -> Result<(), TrustError> {
@@ -80,7 +96,8 @@ mod tests {
     async fn test_user_verifier_pass() -> Result<(), TrustError> {
         let uc = DatabaseUserController::new_local().await?;
 
-        uc.username("tester")
+        uc.setup_user()
+            .username("tester")
             .password("password")
             .execute()
             .await?;
@@ -99,7 +116,8 @@ mod tests {
     async fn test_user_verifier_fail() -> Result<(), TrustError> {
         let uc = DatabaseUserController::new_local().await?;
 
-        uc.username("tester")
+        uc.setup_user()
+            .username("tester")
             .password("password")
             .execute()
             .await?;
