@@ -1,3 +1,4 @@
+use tracing::error;
 use crate::db::database_article_data::Article;
 use crate::trust::app::article::create_article_data::ArticleFluent;
 use crate::trust::data::utils::error;
@@ -35,7 +36,14 @@ impl DatabaseArticleVerifier {
             }
         }
 
-        if errors.is_empty() { Ok(()) } else { Err(Validation(errors.join("\n"))) }
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            for e in &errors {
+                error!("{}", e);
+            }
+            Err(Validation(format!("{} incorrect", errors.len())))
+        }
     }
 
     /*
