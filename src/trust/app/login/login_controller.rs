@@ -16,7 +16,8 @@ impl LoginController {
         Self { app_router, input: LoginData::new() }
     }
 
-    pub fn execute(self) -> Result<(ResponseVerifier), TrustError> {
+    // pub fn execute(self) -> Result<(ResponseVerifier), TrustError> {
+    pub fn execute(self) -> Result<(), TrustError> {
         // TODO response
 
         Ok(())
@@ -26,26 +27,27 @@ impl LoginController {
         &self,
         username: &str,
         password: &str,
-    ) -> Result<ResponseVerifier, TrustError> {
-        let login_response = (*self.app_router)
-            .clone()
-            .oneshot(
-                Request::builder()
-                    .method("POST")
-                    .uri("/login")
-                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                    .body(reqwest::Body::from(format!(
-                        "username={}&password={}",
-                        username, password
-                    )))?,
-            )
-            .await?;
+    // ) -> Result<ResponseVerifier, TrustError> {
+    ) -> Result<(), TrustError> {
+        // let login_response = self.app_router
+        //     .oneshot(
+        //         Request::builder()
+        //             .method("POST")
+        //             .uri("/login")
+        //             .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        //             .body(reqwest::Body::from(format!(
+        //                 "username={}&password={}",
+        //                 username, password
+        //             )))?,
+        //     )
+        //     .await?;
 
-        let cookie = login_response.headers().get(header::SET_COOKIE).cloned();
-        if let Some(c) = cookie {
-            *self.user_cookie.write() = Some(c.to_str()?.to_string());
-        }
+        // let cookie = login_response.headers().get(header::SET_COOKIE).cloned();
+        // if let Some(c) = cookie {
+        //     *self.user_cookie.write() = Some(c.to_str()?.to_string());
+        // }
 
-        Ok(ResponseVerifier::new_from_response(login_response).await?)
+        // Ok(ResponseVerifier::new(login_response).await?)
+        Ok(())
     }
 }

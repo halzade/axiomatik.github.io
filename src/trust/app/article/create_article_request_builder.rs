@@ -98,7 +98,8 @@ impl ArticleBuilder {
      * build Article data u8 for new article request
      * And Execute
      */
-    pub fn execute(&self) -> Result<ResponseVerifier, TrustError> {
+    // pub fn execute(&self) -> Result<ResponseVerifier, TrustError> {
+    pub fn execute(&self) -> Result<(), TrustError> {
         let mut body: Vec<u8> = Vec::new();
 
         macro_rules! text_part {
@@ -164,7 +165,8 @@ impl ArticleBuilder {
         // TODO do video and write test
 
         write!(body, "--{}--\r\n", BOUNDARY)?;
-        Ok(ResponseVerifier::new(body))
+        // Ok(ResponseVerifier::new(body))
+        Ok(())
     }
 }
 

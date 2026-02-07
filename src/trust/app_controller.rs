@@ -13,6 +13,7 @@ use crate::trust::db::db_user_controller::DatabaseUserController;
 use crate::trust::me::TrustError;
 use crate::trust::web::web_controller::WebController;
 use std::sync::Arc;
+use tracing::debug;
 
 #[derive(Debug)]
 pub struct AppController {
@@ -31,11 +32,11 @@ pub struct AppController {
 
 impl AppController {
     pub async fn new() -> Result<AppController, TrustError> {
-        // config
+        debug!("config");
         logger::config();
         data_updates::new();
 
-        // database
+        debug!("database");
         let db = Arc::new(database::init_in_memory_db_connection().await?);
         let dba = Arc::new(DatabaseArticle::new(db.clone()));
         let dbu = Arc::new(DatabaseUser::new(db.clone()));
@@ -107,8 +108,8 @@ impl AppController {
 
 #[cfg(test)]
 mod tests {
-    use crate::db::database_user::Role::Editor;
     use super::*;
+    use crate::db::database_user::Role::Editor;
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {

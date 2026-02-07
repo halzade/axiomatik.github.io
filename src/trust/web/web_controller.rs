@@ -1,7 +1,7 @@
-use http::Request;
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
 use axum::Router;
+use http::Request;
 use std::sync::Arc;
 use tower::ServiceExt;
 
@@ -12,9 +12,7 @@ pub struct WebController {
 
 impl WebController {
     pub fn new(web_router: Router) -> Self {
-        Self {
-            web_router: Arc::new(web_router),
-        }
+        Self { web_router: Arc::new(web_router) }
     }
 
     pub async fn get_url(&self, url: &str) -> Result<ResponseVerifier, TrustError> {
@@ -30,13 +28,13 @@ impl WebController {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::trust::app_controller::AppController;
 
     #[tokio::test]
     async fn test_web_controller() -> Result<(), TrustError> {
-        let ac = crate::trust::app_controller::AppController::new().await?;
-        let web = ac.get_web();
+        let ac = AppController::new().await?;
 
-        web.get_url("/").await?;
+        ac.web().get_url("/").await?;
 
         Ok(())
     }

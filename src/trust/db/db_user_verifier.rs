@@ -2,6 +2,7 @@ use crate::db::database_user::User;
 use crate::trust::app::user::user_data::UserFluent;
 use crate::trust::data::utils::error;
 use crate::trust::me::TrustError;
+use tracing::error;
 use TrustError::Validation;
 
 #[derive(Debug)]
@@ -12,10 +13,7 @@ pub struct DatabaseUserVerifier {
 
 impl DatabaseUserVerifier {
     pub fn new(real: User) -> Self {
-        Self {
-            real,
-            expected: UserFluent::new(),
-        }
+        Self { real, expected: UserFluent::new() }
     }
 
     pub fn verify(&self) -> Result<(), TrustError> {
@@ -49,7 +47,10 @@ impl DatabaseUserVerifier {
         if errors.is_empty() {
             Ok(())
         } else {
-            Err(Validation(errors.join("\n")))
+            for e in &errors {
+                error!("{}", e);
+            }
+            Err(Validation(format!("{} incorrect", errors.len())))
         }
     }
 

@@ -103,7 +103,6 @@ pub mod trust {
             pub mod create_article_data;
             pub mod create_article_easy_builder;
             pub mod create_article_request_builder;
-            pub mod create_article_verifier;
         }
         pub mod user {
             pub mod user_data;

@@ -5,7 +5,7 @@ use std::sync::Arc;
  * article fluent interface
  */
 #[derive(Debug)]
-struct ArticleData {
+pub struct ArticleData {
     pub title: Option<String>,
     pub text: Option<String>,
 }
