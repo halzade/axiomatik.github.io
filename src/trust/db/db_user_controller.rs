@@ -66,6 +66,11 @@ impl SetupUserController {
         self
     }
 
+    pub fn needs_password_change(&self, needs: bool) -> &Self {
+        self.input.needs_password_change(needs);
+        self
+    }
+
     pub async fn execute(&self) -> Result<(), TrustError> {
         let data = self.input.get_data();
         let username = data.username.unwrap_or_default();
@@ -77,7 +82,7 @@ impl SetupUserController {
                 username: username.to_string(),
                 author_name: username.to_string(),
                 password_hash: hash(password, DEFAULT_COST)?,
-                needs_password_change: false,
+                needs_password_change: data.needs_password_change,
                 role: Role::Editor,
             })
             .await?;

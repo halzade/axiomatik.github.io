@@ -44,6 +44,14 @@ impl DatabaseUserVerifier {
             }
         }
 
+        // needs_password_change
+        if let Some(exp) = expected.needs_password_change {
+            let real = self.real.needs_password_change;
+            if exp != real {
+                errors.push(error("needs_password_change", exp.to_string(), &real.to_string()));
+            }
+        }
+
         if errors.is_empty() {
             Ok(())
         } else {
@@ -69,6 +77,11 @@ impl DatabaseUserVerifier {
 
     pub fn role(&self, role: crate::db::database_user::Role) -> &Self {
         self.expected.role(role);
+        self
+    }
+
+    pub fn needs_password_change(&self, needs: bool) -> &Self {
+        self.expected.needs_password_change(needs);
         self
     }
 }

@@ -1,19 +1,17 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::db::database_user;
-    use axiomatik_web::trust::article_builder::ArticleBuilder;
-    use axiomatik_web::trust::utils;
-    use axiomatik_web::trust::utils::{
         content_type_with_boundary, response_to_body, serialize, TrustError,
     };
-    use axiomatik_web::trust::media_data::PNG;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs::remove_file;
+use axiomatik_web::trust::app_controller::AppController;
+use axiomatik_web::trust::me::TrustError;
 
-    #[tokio::test]
+#[tokio::test]
     async fn test_account_page() -> Result<(), TrustError> {
-        utils::setup_before_tests_once().await;
+        let ac = AppController::new().await?;
 
         // Create user
         let cookie = utils::setup_user_and_login("user8").await;

@@ -1,18 +1,17 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::trust::article_builder::ArticleBuilder;
-    use axiomatik_web::trust::utils;
-    use axiomatik_web::trust::utils::{content_type_with_boundary, TrustError};
-    use axiomatik_web::trust::media_data::PNG;
     use axum::body::to_bytes;
     use axum::http::{header, StatusCode};
     use axum_core::extract::Request;
     use reqwest::Body;
     use std::fs;
+    use axiomatik_web::trust::app_controller::AppController;
+    use axiomatik_web::trust::data::media_data::PNG;
+    use axiomatik_web::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_exclusive_main_article_finance() -> Result<(), TrustError> {
-        utils::setup_before_tests_once().await;
+        let ac = AppController::new().await?;
 
         let cookie = utils::setup_user_and_login("user2").await;
 

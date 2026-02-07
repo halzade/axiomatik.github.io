@@ -1,50 +1,34 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::db::database_user;
-    use axiomatik_web::db::database_user::Role::Editor;
-    use axiomatik_web::db::database_user::User;
-    use axum::http::{header, Request, StatusCode};
+    use axum::http::{header, Request};
+    use http::StatusCode;
     use reqwest::Body;
+    use axiomatik_web::trust::app_controller::AppController;
+    use axiomatik_web::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_change_password() -> Result<(), TrustError> {
-        utils::setup_before_tests_once().await;
+        let ac = AppController::new().await?;
 
         // Create user who needs password change
-        let password_hash = bcrypt::hash("pass1234", bcrypt::DEFAULT_COST).unwrap();
-        database_user::create_user(User {
-            username: "user1".to_string(),
-            author_name: "user1".to_string(),
-            password_hash,
-            needs_password_change: true,
-            role: Editor,
-        })
-        .await?;
+        #[rustfmt::skip]
+        ac.db_user().setup_user()
+            .username("user1")
+            .password("pass1234")
+            .needs_password_change(true)
+            .execute().await?;
 
         // Login as user1
-        let login_params1 = [("username", "user1"), ("password", "pass1234")];
-        let login_resp1 = utils::one_shot(
-            Request::builder()
-                .method("POST")
-                .uri("/login")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(serialize(&login_params1)))?,
-        )
-        .await;
+        #[rustfmt::skip]
+        ac.login()
+            .username("user1")
+            .password("pass1234")
+            .execute().await?
+            .must_see_response(StatusCode::SEE_OTHER)
+            .header_location("/change-password")
+            .verify()?;
 
-        // Should redirect to change-password
-        assert_eq!(login_resp1.status(), StatusCode::SEE_OTHER);
-        assert_eq!(
-            login_resp1.headers().get(header::LOCATION).unwrap(),
-            "/change-password"
-        );
-        let cookie1 = login_resp1
-            .headers()
-            .get(header::SET_COOKIE)
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
+        let cookie1 = ac.login().get_cookie().unwrap();
 
         // Change password
         let change_params = [("new_password", "new_password_123")];
@@ -65,9 +49,11 @@ mod tests {
         );
 
         // Verify change in DB
-        let user = database_user::get_user_by_name("user1").await?.unwrap();
-        assert_eq!(user.author_name, "user1");
-        assert!(!user.needs_password_change);
+        #[rustfmt::skip]
+        ac.db_user().must_see("user1").await?
+            .username("user1")
+            .needs_password_change(false)
+            .verify()?;
 
         Ok(())
     }

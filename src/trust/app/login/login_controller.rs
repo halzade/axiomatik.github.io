@@ -56,4 +56,8 @@ impl LoginController {
 
         Ok(ResponseVerifier::new(login_response))
     }
+
+    pub fn get_cookie(&self) -> Option<String> {
+        self.user_cookie.read().clone()
+    }
 }

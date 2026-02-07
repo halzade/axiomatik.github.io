@@ -1,26 +1,22 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::trust::utils;
-    use axiomatik_web::trust::utils::{serialize, TrustError};
-    use axum::http::{header, Request, StatusCode};
-    use reqwest::Body;
+    use axiomatik_web::trust::app_controller::AppController;
+    use axiomatik_web::trust::me::TrustError;
+    use axum::http::StatusCode;
 
     #[tokio::test]
     async fn test_validation_login_password() -> Result<(), TrustError> {
-        utils::setup_before_tests_once().await;
+        let ac = AppController::new().await?;
 
         // DEL
-        let login_params = [("username", "admin"), ("password", "passw\x7ford123")];
-        let response = utils::one_shot(
-            Request::builder()
-                .method("POST")
-                .uri("/login")
-                .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-                .body(Body::from(serialize(&login_params)))?,
-        )
-        .await;
+        #[rustfmt::skip]
+        ac.login()
+            .username("admin")
+            .password("passw\x7ford123")
+            .execute().await?
+            .must_see_response(StatusCode::BAD_REQUEST)
+            .verify()?;
 
-        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
         Ok(())
     }
 }

@@ -1,17 +1,16 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::trust::article_builder::ArticleBuilder;
-    use axiomatik_web::trust::utils;
-    use axiomatik_web::trust::utils::{content_type_with_boundary, TrustError};
     use axum::http::{header, Request, StatusCode};
     use image::GenericImageView;
     use reqwest::Body;
     use std::fs;
     use std::path::Path;
+    use axiomatik_web::trust::app_controller::AppController;
+    use axiomatik_web::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_image_upload_resized_copies() -> Result<(), TrustError> {
-        utils::setup_before_tests_once().await;
+        let ac = AppController::new().await?;
 
         // 1. Set up user and login
         let cookie = utils::setup_user_and_login("image_tester").await;

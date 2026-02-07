@@ -1,16 +1,14 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::trust::article_builder::ArticleBuilder;
-    use axiomatik_web::trust::utils;
-    use axiomatik_web::trust::utils::{content_type_with_boundary, TrustError};
-    use axiomatik_web::trust::media_data::PNG;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs;
+    use axiomatik_web::trust::app_controller::AppController;
+    use axiomatik_web::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_zahranici_article_creation_and_limit() -> Result<(), TrustError> {
-        utils::setup_before_tests_once().await;
+        let ac = AppController::new().await?;
 
         let cookie = utils::setup_user_and_login("user7").await;
 

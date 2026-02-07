@@ -5,11 +5,12 @@ use std::sync::Arc;
 pub struct LoginData {
     pub username: Option<String>,
     pub password: Option<String>,
+    pub needs_password_change: bool,
 }
 
 impl LoginData {
     pub(crate) fn new() -> LoginData {
-        LoginData { username: None, password: None }
+        LoginData { username: None, password: None, needs_password_change: false }
     }
 }
 
@@ -35,8 +36,18 @@ impl LoginFluent {
         self
     }
 
+    pub fn needs_password_change(&self, needs: bool) -> &Self {
+        let mut guard = self.data.write();
+        guard.needs_password_change = needs;
+        self
+    }
+
     pub fn get_data(&self) -> LoginData {
         let guard = self.data.read();
-        LoginData { username: guard.username.clone(), password: guard.password.clone() }
+        LoginData {
+            username: guard.username.clone(),
+            password: guard.password.clone(),
+            needs_password_change: guard.needs_password_change,
+        }
     }
 }

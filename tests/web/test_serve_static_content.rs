@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::trust::utils;
-    use axiomatik_web::trust::utils::TrustError;
     use axum::http::{Request, StatusCode};
     use reqwest::Body;
+    use axiomatik_web::trust::app_controller::AppController;
+    use axiomatik_web::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_serve_static_content() -> Result<(), TrustError> {
-        utils::setup_before_tests_once().await;
+        let ac = AppController::new().await?;
 
         let response = utils::one_shot(
             Request::builder()

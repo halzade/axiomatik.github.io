@@ -10,6 +10,7 @@ pub struct UserData {
     pub username: Option<String>,
     pub author_name: Option<String>,
     pub role: Option<Role>,
+    pub needs_password_change: Option<bool>,
 }
 
 #[derive(Clone, Debug)]
@@ -20,7 +21,12 @@ pub struct UserFluent {
 impl UserFluent {
     pub fn new() -> Self {
         Self {
-            data: Arc::new(RwLock::new(UserData { username: None, author_name: None, role: None })),
+            data: Arc::new(RwLock::new(UserData {
+                username: None,
+                author_name: None,
+                role: None,
+                needs_password_change: None,
+            })),
         }
     }
 
@@ -42,6 +48,12 @@ impl UserFluent {
         self
     }
 
+    pub fn needs_password_change(&self, needs: bool) -> &Self {
+        let mut guard = self.data.write();
+        guard.needs_password_change = Some(needs);
+        self
+    }
+
     // Safe read access (no poison, no unwrap)
     pub fn get_data(&self) -> UserData {
         let guard = self.data.read();
@@ -49,6 +61,7 @@ impl UserFluent {
             username: guard.username.clone(),
             author_name: guard.author_name.clone(),
             role: guard.role.clone(),
+            needs_password_change: guard.needs_password_change,
         }
     }
 }

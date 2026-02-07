@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::db::database_user;
-    use axiomatik_web::trust::utils;
-    use axiomatik_web::trust::utils::{response_to_body, serialize, TrustError};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
+    use axiomatik_web::trust::app_controller::AppController;
+    use axiomatik_web::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_account_page() -> Result<(), TrustError> {
-        utils::setup_before_tests_once().await;
+        let ac = AppController::new().await?;
 
         // Create user
         let cookie = utils::setup_user_and_login("user8").await;
