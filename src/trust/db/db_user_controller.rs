@@ -63,7 +63,6 @@ mod tests {
     use crate::trust::db::db_user_controller::DatabaseUserController;
     use crate::trust::me::TrustError;
     use Role::Editor;
-    use crate::trust::me::TrustError::Validation;
 
     #[tokio::test]
     async fn test_user_verifier_pass() -> Result<(), TrustError> {
@@ -95,7 +94,8 @@ mod tests {
             .verify();
 
         assert!(err.is_err());
-        assert_eq!(err.unwrap_err(), Validation("2 incorrect".to_string()));
+        assert_eq!(err.unwrap_err().to_string(), "validation error: 2 incorrect");
+
         Ok(())
     }
 }

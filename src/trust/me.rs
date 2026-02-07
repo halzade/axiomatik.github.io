@@ -64,7 +64,7 @@ pub enum TrustError {
     #[error("real data error")]
     RealData,
 
-    #[error("validation error:/n{0}")]
+    #[error("validation error: {0}")]
     Validation(String),
 }
 
