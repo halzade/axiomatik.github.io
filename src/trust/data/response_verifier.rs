@@ -1,5 +1,5 @@
 use axum_core::response::Response;
-use http::HeaderMap;
+use http::{HeaderMap, StatusCode};
 
 pub struct ResponseVerifier {
     pub headers: HeaderMap,
@@ -33,4 +33,11 @@ impl ResponseVerifier {
 
         self
     }
+
+    pub fn must_see_response(self, status: StatusCode) -> Self {
+        assert_eq!(self.response.status(), status);
+        self
+    }
+
+    pub fn verify(self) {}
 }
