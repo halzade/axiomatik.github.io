@@ -1,32 +1,37 @@
 use crate::data::library::safe_article_file_name;
 use crate::db::database_article_data::Article;
-use chrono::Utc;
-use std::io::Write;
-use axum_core::response::Response;
-use surrealdb_types::Uuid;
 use crate::trust::me::TrustError;
 use crate::trust::response_verifier::ResponseVerifier;
-use crate::trust::script_base;
 use crate::trust::script_base_data::PNG;
+use chrono::Utc;
+use std::io::{Error, Write};
+use surrealdb_types::Uuid;
+use thiserror::Error;
 
 pub const BOUNDARY: &str = "---------------------------123456789012345678901234567";
 
 #[derive(Default)]
-pub struct ArticleBuilder<'a> {
+pub struct ArticleBuilder {
     title_o: Option<String>,
     author_o: Option<String>,
     category_o: Option<String>,
     text_o: Option<String>,
     short_text_o: Option<String>,
     related_articles_o: Option<String>,
-    image_desc_o: Option<String>,
     is_main_o: Option<bool>,
     is_exclusive_o: Option<bool>,
+    image_desc_o: Option<String>,
     image_o: Option<(String, Vec<u8>, String)>,
     audio_o: Option<(String, Vec<u8>, String)>,
 }
 
-impl<'a> ArticleBuilder<'a> {
+#[derive(Debug, Error)]
+pub enum ArticleBuilderError {
+    #[error("read image data error {0}")]
+    ImageData(#[from] Error),
+}
+
+impl ArticleBuilder {
     pub fn new() -> Self {
         Self::default()
     }
@@ -85,19 +90,17 @@ impl<'a> ArticleBuilder<'a> {
         self
     }
 
-    pub fn image_any_png(&self) -> &Self {
-        // TODO image data and image desc
-        self.image("test.jpg",
-                   std::fs::read("tests/data/image_1024.png")?
-                   , PNG);
-        self.image_desc("test description");
-        self
+    pub fn image_any_png(&mut self) -> Result<&Self, ArticleBuilderError> {
+        self.image_o =
+            Some(("test.jpg".into(), std::fs::read("tests/data/image_1024.png")?, PNG.into()));
+        self.image_desc_o = Some("test description".into());
+        Ok(self)
     }
     /*
      * build Article data u8 for new article request
      * And Execute
      */
-    pub fn execute(self) -> Result<ResponseVerifier, TrustError>{
+    pub fn execute(self) -> Result<ResponseVerifier, TrustError> {
         let mut body: Vec<u8> = Vec::new();
 
         macro_rules! text_part {

@@ -21,7 +21,7 @@ mod tests {
             .category("republika")
             .text("This is a test article text.")
             .short_text("Short text.")
-            .image_any_png()
+            .image_any_png()?
             .execute()?
             .must_see_response(StatusCode::SEE_OTHER)
                 .headers_location("test-article.html")

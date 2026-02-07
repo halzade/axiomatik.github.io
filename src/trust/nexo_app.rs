@@ -4,10 +4,7 @@ use axum::Router;
 use http::{header, Request};
 use parking_lot::RwLock;
 use std::sync::Arc;
-use tokio::net::TcpListener;
 use tower::ServiceExt;
-use tracing::info;
-use crate::system::{configuration, server};
 
 pub struct NexoApp {
     app_router: Arc<Router>,
@@ -16,11 +13,7 @@ pub struct NexoApp {
 
 impl NexoApp {
     pub fn new(app_router: Router) -> Self {
-
-        Self {
-            app_router: Arc::new(app_router),
-            user_cookie: Default::default(),
-        }
+        Self { app_router: Arc::new(app_router), user_cookie: Default::default() }
     }
 
     pub fn post_create_article(&self) -> ArticleBuilder {
@@ -28,8 +21,8 @@ impl NexoApp {
     }
 
     pub async fn post_login(&self, username: &str) -> Result<(), TrustError> {
-        let login_response = self
-            .app_router
+        let login_response = (*self.app_router)
+            .clone()
             .oneshot(
                 Request::builder()
                     .method("POST")
@@ -43,7 +36,7 @@ impl NexoApp {
             .await?;
 
         *self.user_cookie.write() =
-            Some(login_response.headers().get(header::SET_COOKIE).unwrap().to_str().unwrap().to_string());
+            Some(login_response.headers().get(header::SET_COOKIE).unwrap().to_str()?.to_string());
 
         Ok(())
     }
