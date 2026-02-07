@@ -123,6 +123,8 @@ pub mod trust {
     pub mod db {
         pub mod db_article_controller;
         pub mod db_article_verifier;
+        pub mod db_user_controller;
+        pub mod db_user_verifier;
     }
     pub mod data {
         pub mod media_data;

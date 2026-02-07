@@ -7,7 +7,7 @@ mod tests {
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {
         // setup
-        let server = trust::me::server().await?;
+        let server = trust::me::init().await?;
         let app = server.nexo_app()?;
         let web = server.nexo_web()?;
         let surreal = server.surreal()?;

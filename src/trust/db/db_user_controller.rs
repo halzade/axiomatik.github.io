@@ -1,15 +1,19 @@
-use crate::db::database_article::DatabaseArticle;
-use crate::db::database_system::DatabaseSystem;
-use crate::db::database_user::{DatabaseUser, Role, User};
-use crate::system::server::TheState;
+use crate::db::database_user::{Role, User};
 use crate::trust::me::TrustError;
 use bcrypt::{hash, DEFAULT_COST};
-use std::sync::Arc;
 
-impl NexoDb {
+#[derive(Debug)]
+pub struct DatabaseUserController {}
 
-    pub async fn db_setup_user(&self, username: &str) -> Result<(), TrustError> {
-        self.db_setup_user_with_password(username, "password").await
+impl DatabaseUserController {
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn execute(self) -> Result<(), TrustError> {
+        // TODO response
+
+        Ok(())
     }
 
     pub async fn db_setup_user_with_password(

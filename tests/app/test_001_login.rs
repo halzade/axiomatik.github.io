@@ -7,7 +7,7 @@ mod tests {
     #[tokio::test]
     async fn test_login() -> Result<(), TrustError> {
         // setup
-        let server = trust::me::server().await?;
+        let server = trust::me::init().await?;
         let app = server.nexo_app()?;
         let surreal = server.surreal()?;
 

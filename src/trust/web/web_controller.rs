@@ -10,7 +10,7 @@ impl WebController {
         Self {}
     }
 
-    pub fn create_article(&self) -> CreateArticleController {}
+
 
     // app controller
     // create_article

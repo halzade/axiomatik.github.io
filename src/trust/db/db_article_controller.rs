@@ -1,9 +1,9 @@
 use crate::trust::me::TrustError;
 
 #[derive(Debug)]
-pub struct ArticleDatabaseController {}
+pub struct DatabaseArticleController {}
 
-impl ArticleDatabaseController {
+impl DatabaseArticleController {
     pub fn new() -> Self {
         Self {}
     }
