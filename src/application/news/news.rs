@@ -1,9 +1,8 @@
 use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
-use crate::db::database_article;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
-use crate::system::data_system::DataSystem;
+use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
 use NewsError::CreateCategoryError;
@@ -34,18 +33,18 @@ pub struct NewsTemplate {
     pub finance: Vec<ShortArticleData>,
 }
 
-pub async fn render_news(data_system: &DataSystem) -> Result<(), NewsError> {
-    let articles_most_read = database_article::articles_most_read(10).await?;
-    let z_republiky = database_article::articles_by_category("republika", 10).await?;
-    let ze_zahranici = database_article::articles_by_category("zahranici", 10).await?;
-    let technologie = database_article::articles_by_category("technologie", 10).await?;
-    let veda = database_article::articles_by_category("veda", 10).await?;
-    let finance = database_article::articles_by_category("finance", 10).await?;
+pub async fn render_news(state: &TheState) -> Result<(), NewsError> {
+    let articles_most_read = state.dba.articles_most_read(10).await?;
+    let z_republiky = state.dba.articles_by_category("republika", 10).await?;
+    let ze_zahranici = state.dba.articles_by_category("zahranici", 10).await?;
+    let technologie = state.dba.articles_by_category("technologie", 10).await?;
+    let veda = state.dba.articles_by_category("veda", 10).await?;
+    let finance = state.dba.articles_by_category("finance", 10).await?;
 
     let news = NewsTemplate {
-        date: data_system.date(),
-        weather: data_system.weather(),
-        name_day: data_system.name_day(),
+        date: state.ds.date(),
+        weather: state.ds.weather(),
+        name_day: state.ds.name_day(),
         articles_most_read,
         z_republiky,
         ze_zahranici,

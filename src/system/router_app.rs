@@ -1,7 +1,5 @@
 use crate::application::account::form_account;
-use crate::application::account::form_account::{
-    AccountError, FormAccount, UpdateAuthorNamePayload,
-};
+use crate::application::account::form_account::AccountError;
 use crate::application::article::article;
 use crate::application::article::article::ArticleError;
 use crate::application::change_password::form_change_password;
@@ -17,25 +15,23 @@ use crate::application::republika::republika::RepublikaError;
 use crate::application::technologie::technologie::TechnologieError;
 use crate::application::veda::veda::VedaError;
 use crate::application::zahranici::zahranici::ZahraniciError;
-use crate::db::database::{DatabaseSurreal, SurrealError};
-use crate::db::{database, database_user, database_user::DatabaseUser};
+use crate::db::database::SurrealError;
+use crate::db::{database_user, database_user::DatabaseUser};
 use crate::system::authentication::Backend;
-use crate::system::data_system::{DataSystem, DataSystemError};
-use crate::system::data_updates::{DataValidHtml, DataUpdatesError};
-use crate::system::router_web::WebRouter;
-use crate::system::server::{ApplicationStatus, TheState};
-use crate::system::{data_system, data_updates, heartbeat};
+use crate::system::data_system::DataSystemError;
+use crate::system::data_updates::DataUpdatesError;
+use crate::system::heartbeat;
+use crate::system::server::TheState;
 use axum::body::Body;
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::routing::{get, post};
-use axum::{middleware, Form, Router};
+use axum::{middleware, Router};
 use axum_core::extract::Request;
 use axum_login::AuthManagerLayerBuilder;
 use database_user::Role::Editor;
 use http::StatusCode;
 use std::convert::Infallible;
-use std::sync::Arc;
 use thiserror::Error;
 use tower_sessions::cookie::SameSite::Strict;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
@@ -140,8 +136,6 @@ impl ApplicationRouter {
     pub async fn start_app_router(&self) -> Router {
         info!("start_app_router()");
 
-        let self_a1 = self.clone();
-
         // TODO don't use default memory storage, use redis or something
         let session_layer = SessionManagerLayer::new(MemoryStore::default())
             // true only https
@@ -150,7 +144,7 @@ impl ApplicationRouter {
             // creating articles doesn't require any clos site features
             .with_same_site(Strict);
 
-        let auth_layer = AuthManagerLayerBuilder::new(Backend, session_layer).build();
+        let auth_layer = AuthManagerLayerBuilder::new(Backend { db_user: self.state.dbu.clone() }, session_layer).build();
 
         /*
          * Protected routes

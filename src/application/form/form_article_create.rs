@@ -4,9 +4,11 @@ use crate::data::audio_processor::AudioProcessorError;
 use crate::data::image_processor::ImageProcessorError;
 use crate::data::video_processor::VideoProcessorError;
 use crate::db::database::SurrealError;
-use crate::db::database_user;
 use crate::db::database_user::SurrealUserError;
+use crate::system::router_app::AuthSession;
+use crate::system::server::TheState;
 use askama::Template;
+use axum::extract::State;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use thiserror::Error;
 
@@ -40,22 +42,27 @@ pub struct FormTemplate {
     pub author_name: String,
 }
 
-pub async fn show_article_create_form() -> Result<Response, FormArticleCreateError> {
-
-    // TODO username from session
-
-    let user_o = database_user::get_user_by_name("").await?;
-    match user_o {
+pub async fn show_article_create_form(
+    State(state): State<TheState>,
+    auth_session: AuthSession,
+) -> Result<Response, FormArticleCreateError> {
+    match auth_session.user {
         None => {}
         Some(user) => {
-            return Ok(Html(
-                FormTemplate {
-                    author_name: user.author_name,
+            let user_o = state.dbu.get_user_by_name(&user.username).await?;
+            match user_o {
+                None => {}
+                Some(user) => {
+                    return Ok(Html(
+                        FormTemplate {
+                            author_name: user.author_name,
+                        }
+                        .render()
+                        .unwrap(),
+                    )
+                    .into_response());
                 }
-                .render()
-                .unwrap(),
-            )
-            .into_response());
+            }
         }
     }
     Ok(Redirect::to("/login").into_response())

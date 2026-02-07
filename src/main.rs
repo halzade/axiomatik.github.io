@@ -48,20 +48,6 @@ async fn main() -> Result<(), ApplicationError> {
     let args: Vec<String> = env::args().collect();
 
     /*
-     * process the commands
-     */
-    if args.len() > 1 && args[1] == "create-user" {
-        create_user(&args).await;
-    }
-    if args.len() > 1 && args[1] == "delete-user" {
-        delete_user(&args).await?;
-    }
-
-    if args.len() > 0 {
-        return Err(UnrecognizedParameters(args));
-    }
-
-    /*
      * databases
      */
     let db = Arc::new(database::init_db_connection().await?);
@@ -78,6 +64,20 @@ async fn main() -> Result<(), ApplicationError> {
      * the application state
      */
     let state = TheState { dba, dbu, ds, dv };
+
+    /*
+     * process the commands
+     */
+    if args.len() > 1 && args[1] == "create-user" {
+        create_user(&args, &state).await;
+    }
+    if args.len() > 1 && args[1] == "delete-user" {
+        delete_user(&args, &state).await?;
+    }
+
+    if args.len() > 1 {
+        return Err(UnrecognizedParameters(args));
+    }
 
     /*
      * server

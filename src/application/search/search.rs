@@ -1,7 +1,8 @@
 use crate::data::text_validator::validate_search_query;
-use crate::db::database_article;
 use crate::db::database_article_data::ShortArticleData;
+use crate::system::server::TheState;
 use askama::Template;
+use axum::extract::State;
 use axum::response::{Html, IntoResponse, Response};
 use axum::Form;
 use http::StatusCode;
@@ -27,7 +28,10 @@ pub struct SearchTemplate {
     pub articles: Vec<ShortArticleData>,
 }
 
-pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
+pub async fn handle_search(
+    State(state): State<TheState>,
+    Form(payload): Form<SearchPayload>,
+) -> Response {
     let query = payload.q.trim();
 
     // Validate and sanitize the search query
@@ -49,15 +53,15 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
         .filter(|w| !w.is_empty())
         .collect();
 
-    let articles_r = database_article::articles_by_words(search_words, 20).await;
+    let articles_r = state.dba.articles_by_words(search_words, 20).await;
 
     match articles_r {
         Ok(articles) => {
             let template = SearchTemplate {
                 title: format!("Výsledky hledání: {}", query),
-                date: "".into(),
-                weather: "".into(),
-                name_day: "".into(),
+                date: state.ds.date(),
+                weather: state.ds.weather(),
+                name_day: state.ds.name_day(),
                 articles,
             };
 
@@ -68,9 +72,9 @@ pub async fn handle_search(Form(payload): Form<SearchPayload>) -> Response {
 
             let template = SearchTemplate {
                 title: format!("Výsledky hledání: {}", query),
-                date: "".into(),
-                weather: "".into(),
-                name_day: "".into(),
+                date: state.ds.date(),
+                weather: state.ds.weather(),
+                name_day: state.ds.name_day(),
                 articles: Vec::new(),
             };
 

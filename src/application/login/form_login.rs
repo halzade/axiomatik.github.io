@@ -1,7 +1,9 @@
 use crate::data::text_validator::validate_input_simple;
-use crate::db::database_user::{self, SurrealUserError, User};
+use crate::db::database_user::{SurrealUserError, User};
 use crate::system::router_app::AuthSession;
+use crate::system::server::TheState;
 use askama::Template;
+use axum::extract::State;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
 use bcrypt::verify;
@@ -39,6 +41,7 @@ pub async fn show_login() -> impl IntoResponse {
 }
 
 pub async fn handle_login(
+    State(state): State<TheState>,
     mut auth_session: AuthSession,
     Form(payload): Form<LoginPayload>,
 ) -> Response {
@@ -75,8 +78,12 @@ pub async fn handle_login(
     }
 }
 
-pub async fn authenticate_user(username: &str, password: &str) -> Result<User, AuthError> {
-    let user_o = database_user::get_user_by_name(username).await?;
+pub async fn authenticate_user(
+    state: &TheState,
+    username: &str,
+    password: &str,
+) -> Result<User, AuthError> {
+    let user_o = state.dbu.get_user_by_name(username).await?;
     match user_o {
         None => Err(AuthError::UserNotFound),
         Some(user) => {

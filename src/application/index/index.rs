@@ -1,5 +1,5 @@
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
-use crate::system::data_system::DataSystem;
+use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
 
@@ -53,7 +53,7 @@ pub struct IndexTemplate {
     pub ze_zahranici_articles: Vec<ShortArticleData>,
 }
 
-pub async fn render_index(data_system: &DataSystem) -> Result<(), IndexError> {
+pub async fn render_index(state: &TheState) -> Result<(), IndexError> {
     // TODO fetch data
     let articles_most_read = vec![];
     let z_republiky_articles = vec![];
@@ -79,9 +79,9 @@ pub async fn render_index(data_system: &DataSystem) -> Result<(), IndexError> {
     };
 
     let template = IndexTemplate {
-        date: data_system.date(),
-        weather: data_system.weather(),
-        name_day: data_system.name_day(),
+        date: state.ds.date(),
+        weather: state.ds.weather(),
+        name_day: state.ds.name_day(),
         articles_most_read,
         main_article,
         second_article,

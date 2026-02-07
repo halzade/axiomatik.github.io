@@ -1,21 +1,17 @@
 use crate::data::text_validator;
-use crate::db::database;
 use crate::db::database::SurrealError;
-use crate::db::database_article::DatabaseArticle;
 use crate::db::database_article_data::AccountArticleData;
-use crate::db::database_user::DatabaseUser;
 use crate::system::router_app::AuthSession;
+use crate::system::server::TheState;
 use askama::Template;
+use axum::extract::State;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
 use http::StatusCode;
 use serde::Deserialize;
-use std::sync::Arc;
-use axum::extract::State;
 use thiserror::Error;
-use tracing::{debug, error};
+use tracing::debug;
 use validator::Validate;
-use crate::system::server::TheState;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -46,26 +42,14 @@ pub struct AccountTemplate {
     pub articles: Vec<AccountArticleData>,
 }
 
-pub struct FormAccount {
-    db_user: Arc<DatabaseUser>,
-    db_article: Arc<DatabaseArticle>,
-}
-
-impl FormAccount {
-    pub async fn init() -> Result<FormAccount, AccountError> {
-        let db_a = Arc::new(db);
-
-        let db_article = DatabaseArticle::new(db_a.clone());
-        let db_user = DatabaseUser::new(db_a.clone());
-        Ok(FormAccount { db_article: Arc::new(db_article), db_user: Arc::new(db_user) })
-    }
-}
-pub async fn show_account(auth_session: AuthSession) -> Result<Response, AccountError> {
+pub async fn show_account(
+    State(state): State<TheState>,
+    auth_session: AuthSession,
+) -> Result<Response, AccountError> {
     match auth_session.user {
         None => Ok(Redirect::to("/login").into_response()),
         Some(user) => {
-            let account_articles =
-                self.db_article.articles_by_username(&user.username, 100).await?;
+            let account_articles = state.dba.articles_by_username(&user.username, 100).await?;
             Ok(Html(
                 AccountTemplate {
                     username: user.username,
@@ -78,14 +62,6 @@ pub async fn show_account(auth_session: AuthSession) -> Result<Response, Account
             .into_response())
         }
     }
-}
-
-async fn update_author_name(&self, username: &str, author_name: &str) -> Result<(), AccountError> {
-    self.state.update_user_author_name(username, author_name).await.map_err(|e| {
-        error!("Failed to update user: {}", e);
-        AccountError::AccountUserNotFound
-    })?;
-    Ok(())
 }
 
 pub async fn handle_update_author_name(
@@ -105,7 +81,7 @@ pub async fn handle_update_author_name(
             }
 
             debug!("validation ok");
-            match state.db.update_user_author_name(&user.username, &payload.author_name).await {
+            match state.dbu.update_user_author_name(&user.username, &payload.author_name).await {
                 _ => {
                     debug!("always redirect to account");
                     Redirect::to("/account").into_response()

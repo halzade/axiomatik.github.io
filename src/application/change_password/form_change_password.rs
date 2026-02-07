@@ -1,11 +1,11 @@
 use crate::application::change_password::form_change_password::ChangePasswordError::UserNotFound;
 use crate::data::text_validator::validate_input_simple;
 use crate::db::database::SurrealError;
-use crate::db::database;
-use crate::db::database_user::{DatabaseUser, SurrealUserError};
-use std::sync::Arc;
+use crate::db::database_user::SurrealUserError;
 use crate::system::router_app::AuthSession;
+use crate::system::server::TheState;
 use askama::Template;
+use axum::extract::State;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
 use bcrypt::{hash, DEFAULT_COST};
@@ -62,6 +62,7 @@ pub async fn show_change_password(auth_session: AuthSession) -> Response {
 }
 
 pub async fn handle_change_password(
+    State(state): State<TheState>,
     mut auth_session: AuthSession,
     Form(payload): Form<ChangePasswordPayload>,
 ) -> Result<Response, ChangePasswordError> {
@@ -70,14 +71,19 @@ pub async fn handle_change_password(
         if validate_input_simple(&payload.new_password).is_err() {
             return Err(ChangePasswordError::PasswordTooShort);
         }
-        change_password(&username, &payload.new_password).await?;
+        
+        if payload.new_password.len() < 3 {
+            return Err(ChangePasswordError::PasswordTooShort);
+        }
+        state.dbu.update_user_password(username.clone(), hash(&payload.new_password, DEFAULT_COST)?).await?;
+
         /*
          * successfully changed the password
          */
         /*
          * internally re-login user to update the session with new user data
          */
-        let updated_user_o = database_user::get_user_by_name(&username).await?;
+        let updated_user_o = state.dbu.get_user_by_name(&username).await?;
         return match updated_user_o {
             None => Err(UserNotFound),
             Some(updated_user) => {
@@ -87,12 +93,4 @@ pub async fn handle_change_password(
         };
     }
     Ok(Redirect::to("/login").into_response())
-}
-
-async fn change_password(username: &str, new_password: &str) -> Result<(), ChangePasswordError> {
-    if new_password.len() < 3 {
-        return Err(ChangePasswordError::PasswordTooShort);
-    }
-    database_user::update_user_password(username.into(), hash(new_password, DEFAULT_COST)?).await?;
-    Ok(())
 }

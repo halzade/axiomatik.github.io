@@ -15,10 +15,9 @@ use crate::application::veda::veda;
 use crate::application::veda::veda::VedaError;
 use crate::application::zahranici::zahranici;
 use crate::application::zahranici::zahranici::ZahraniciError;
-use crate::system::data_system::{DataSystem, DataSystemError};
-use crate::system::data_updates::{ArticleStatus, DataValidHtml, DataUpdatesError};
-use crate::system::server::{ApplicationStatus, TheState};
-use crate::system::{data_system, data_updates};
+use crate::system::data_system::DataSystemError;
+use crate::system::data_updates::{ArticleStatus, DataUpdatesError};
+use crate::system::server::TheState;
 use axum::body::Body;
 use axum::extract::OriginalUri;
 use axum::response::{Html, IntoResponse, Response};
@@ -27,7 +26,6 @@ use axum::Router;
 use axum_core::extract::Request;
 use http::StatusCode;
 use std::convert::Infallible;
-use std::sync::Arc;
 use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
@@ -181,32 +179,32 @@ impl WebRouter {
                 serve_this(url, request).await
             }
             "/technologie.html" => {
-                if !self.state.du.technologie_valid() {
-                    self.state.du.technologie_validate();
+                if !self.state.dv.technologie_valid() {
+                    self.state.dv.technologie_validate();
 
-                    technologie::render_technologie(&self.data_system).await?;
+                    technologie::render_technologie(&self.state).await?;
                 }
                 serve_this(url, request).await
             }
             "/veda.html" => {
-                if !self.state.du.veda_valid() {
-                    self.state.du.veda_validate();
+                if !self.state.dv.veda_valid() {
+                    self.state.dv.veda_validate();
 
                     veda::render_veda(&self.state).await?;
                 }
                 serve_this(url, request).await
             }
             "/zahranici.html" => {
-                if !self.state.du.zahranici_valid() {
-                    self.state.du.zahranici_validate();
+                if !self.state.dv.zahranici_valid() {
+                    self.state.dv.zahranici_validate();
 
-                    zahranici::render_zahranici(self.state).await?;
+                    zahranici::render_zahranici(&self.state).await?;
                 }
                 serve_this(url, request).await
             }
             _ => {
                 // 404 or Article
-                match self.state.du.article_valid(&url) {
+                match self.state.dv.article_valid(&url) {
                     ArticleStatus::Valid => {
                         // no change, serve the file
                         serve_this(url, request).await
@@ -215,7 +213,7 @@ impl WebRouter {
                         // article was invalidated, render article HTML
                         // new article was u
                         article::render_article(&url, &self.state).await?;
-                        self.state.du.article_validate(&url);
+                        self.state.dv.article_validate(&url);
                         serve_this(url, request).await
                     }
                     ArticleStatus::DoesntExist => {

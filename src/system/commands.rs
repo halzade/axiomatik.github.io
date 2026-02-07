@@ -1,6 +1,5 @@
-use crate::db::database;
-use crate::db::database_user::{DatabaseUser, SurrealUserError, Role, User};
-use std::sync::Arc;
+use crate::db::database_user::{Role, SurrealUserError, User};
+use crate::system::server::TheState;
 use bcrypt::{hash, DEFAULT_COST};
 use thiserror::Error;
 use tracing::{error, info};
@@ -17,7 +16,7 @@ pub enum CommandError {
     DatabaseError(#[from] SurrealUserError),
 }
 
-pub async fn create_user(args: &Vec<String>) {
+pub async fn create_user(args: &Vec<String>, state: &TheState) {
     if args.len() != 4 {
         info!("Usage: cargo run -- create-user <username> <password>");
         std::process::exit(1);
@@ -26,7 +25,7 @@ pub async fn create_user(args: &Vec<String>) {
     let username = &args[2];
     let password = &args[3];
 
-    match create_editor_user(username, password).await {
+    match create_editor_user(username, password, state).await {
         Ok(_) => {
             info!("Editor user '{}' created successfully.", username);
             std::process::exit(0);
@@ -38,20 +37,22 @@ pub async fn create_user(args: &Vec<String>) {
     }
 }
 
-pub async fn delete_user(args: &Vec<String>) -> Result<(), CommandError> {
+pub async fn delete_user(args: &Vec<String>, state: &TheState) -> Result<(), CommandError> {
     if args.len() != 3 {
         info!("Usage: cargo run -- delete-user <username>");
         std::process::exit(1);
     }
     let username = &args[2];
 
-    let db = database::init_db_connection().await?;
-    let db_user = DatabaseUser::new(Arc::new(db));
-    db_user.delete_user(username).await?;
+    state.dbu.delete_user(username).await?;
     Ok(())
 }
 
-pub async fn create_editor_user(username: &str, password: &str) -> Result<(), CommandError> {
+pub async fn create_editor_user(
+    username: &str,
+    password: &str,
+    state: &TheState,
+) -> Result<(), CommandError> {
     if password.len() < 3 {
         return Err(CommandError::PasswordTooShort);
     }
@@ -66,6 +67,6 @@ pub async fn create_editor_user(username: &str, password: &str) -> Result<(), Co
         role: Role::Editor,
     };
 
-    assert!(database_user::create_user(user).await.is_ok());
+    state.dbu.create_user(user).await?;
     Ok(())
 }

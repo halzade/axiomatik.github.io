@@ -1,9 +1,8 @@
 use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
-use crate::db::database_article;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
-use crate::system::data_system::DataSystem;
+use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
 use TechnologieError::CreateCategoryError;
@@ -31,16 +30,16 @@ pub struct TechnologieTemplate<'a> {
     pub articles_right: &'a [ShortArticleData],
 }
 
-pub async fn render_technologie(data_system: &DataSystem) -> Result<(), TechnologieError> {
-    let articles = database_article::articles_by_category("technologie", 100).await?;
-    let articles_most_read = database_article::articles_most_read(3).await?;
+pub async fn render_technologie(state: &TheState) -> Result<(), TechnologieError> {
+    let articles = state.dba.articles_by_category("technologie", 100).await?;
+    let articles_most_read = state.dba.articles_most_read(3).await?;
 
     let split = articles.len() / 3;
     let (articles_left, articles_right) = articles.split_at(split);
     let technologie = TechnologieTemplate {
-        date: data_system.date(),
-        weather: data_system.weather(),
-        name_day: data_system.name_day(),
+        date: state.ds.date(),
+        weather: state.ds.weather(),
+        name_day: state.ds.name_day(),
         articles_most_read,
         articles_left,
         articles_right,

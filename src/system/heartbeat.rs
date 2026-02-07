@@ -1,4 +1,6 @@
+use crate::system::server::TheState;
 use std::time::Duration;
+use axum::extract::State;
 use axum::Json;
 use axum_core::response::IntoResponse;
 use serde::Serialize;
@@ -23,8 +25,8 @@ pub fn heart_beat() {
     });
 }
 
-pub async fn handle_heartbeat() -> impl IntoResponse {
-    // TODO X
+// TODO
+pub async fn handle_heartbeat(State(state): State<TheState>) -> impl IntoResponse {
     Json(Heartbeat {
         status: "ok",
         uptime_seconds: 100,

@@ -6,15 +6,13 @@ use crate::data::image_processor::ImageProcessorError;
 use crate::data::video_processor::VideoProcessorError;
 use crate::data::{audio_processor, image_processor, processor, video_processor};
 use crate::db::database::SurrealError;
-use crate::db::database_article;
-use crate::db::database_article_data::{MiniArticleData, Article, ShortArticleData};
-use crate::system::data_system::DataSystem;
-use crate::system::data_updates::DataValidHtml;
+use crate::db::database_article_data::{Article, MiniArticleData, ShortArticleData};
 use crate::system::router_app::AuthSession;
+use crate::system::server::TheState;
 use askama::Template;
 use axum::extract::Multipart;
+use axum::extract::State;
 use axum::response::{IntoResponse, Redirect};
-use std::sync::Arc;
 use thiserror::Error;
 use ArticleError::CategoryFailed;
 
@@ -76,7 +74,7 @@ pub struct ArticleTemplate {
 }
 
 pub async fn create_article(
-    data_updates: Arc<DataValidHtml>,
+    State(state): State<TheState>,
     auth_session: AuthSession,
     multipart: Multipart,
 ) -> Result<impl IntoResponse, ArticleError> {
@@ -125,22 +123,22 @@ pub async fn create_article(
     }
 
     // invalidate cache
-    data_updates.index_invalidate();
-    data_updates.news_invalidate();
+    state.dv.index_invalidate();
+    state.dv.news_invalidate();
 
     match article_data.category.as_str() {
-        "zahranici" => data_updates.zahranici_invalidate(),
-        "republika" => data_updates.republika_invalidate(),
-        "finance" => data_updates.finance_invalidate(),
-        "technologie" => data_updates.technologie_invalidate(),
-        "veda" => data_updates.veda_invalidate(),
+        "zahranici" => state.dv.zahranici_invalidate(),
+        "republika" => state.dv.republika_invalidate(),
+        "finance" => state.dv.finance_invalidate(),
+        "technologie" => state.dv.technologie_invalidate(),
+        "veda" => state.dv.veda_invalidate(),
         cat => return Err(CategoryFailed(cat.into())),
     }
 
     /*
      * Store Article data
      */
-    database_article::create_article(article_db).await?;
+    state.dba.create_article(article_db).await?;
 
     /*
      * don't render anything
@@ -154,23 +152,19 @@ pub async fn create_article(
  * This will process and store the new Article and related files
  * But won't render any HTML
  */
-pub async fn render_article(
-    article_file_name: &str,
-    data_system: &DataSystem,
-) -> Result<(), ArticleError> {
-    let article_o = database_article::article_by_file_name(article_file_name).await?;
+pub async fn render_article(article_file_name: &str, state: &TheState) -> Result<(), ArticleError> {
+    let article_o = state.dba.article_by_file_name(article_file_name).await?;
 
     match article_o {
         None => Err(ArticleNotFound),
         Some(article) => {
-            let related_articles =
-                database_article::related_articles(article.related_articles).await?;
-            let articles_most_read = database_article::articles_most_read(3).await?;
+            let related_articles = state.dba.related_articles(article.related_articles).await?;
+            let articles_most_read = state.dba.articles_most_read(3).await?;
 
             let article_template = ArticleTemplate {
-                date: data_system.date(),
-                weather: data_system.weather(),
-                name_day: data_system.name_day(),
+                date: state.ds.date(),
+                weather: state.ds.weather(),
+                name_day: state.ds.name_day(),
 
                 author: article.author,
                 title: article.title,
@@ -179,16 +173,8 @@ pub async fn render_article(
 
                 image_path: article.image_820_path,
                 image_desc: article.image_desc,
-                video_path: if article.has_video {
-                    Some(article.video_path)
-                } else {
-                    None
-                },
-                audio_path: if article.has_audio {
-                    Some(article.audio_path)
-                } else {
-                    None
-                },
+                video_path: if article.has_video { Some(article.video_path) } else { None },
+                audio_path: if article.has_audio { Some(article.audio_path) } else { None },
                 category: article.category.clone(),
                 category_display: processor::process_category(article.category.as_str())?,
                 related_articles,
