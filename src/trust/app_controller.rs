@@ -8,13 +8,11 @@ use crate::trust::app::article::create_article_controller::CreateArticleControll
 use crate::trust::app::change_password::change_password_controller::ChangePasswordController;
 use crate::trust::app::login::login_controller::LoginController;
 use crate::trust::db::db_article_controller::DatabaseArticleController;
-use crate::trust::db::db_article_verifier::DatabaseArticleVerifier;
 use crate::trust::db::db_system_controller::DatabaseSystemController;
-use crate::trust::db::db_system_verifier::DatabaseSystemVerifier;
 use crate::trust::db::db_user_controller::DatabaseUserController;
 use crate::trust::me::TrustError;
-use std::sync::Arc;
 use crate::trust::web::web_controller::WebController;
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct AppController {
@@ -23,6 +21,7 @@ pub struct AppController {
     article: Arc<CreateArticleController>,
     change_password: Arc<ChangePasswordController>,
     login: Arc<LoginController>,
+    // web
     web: Arc<WebController>,
     // db
     db_article_controller: Arc<DatabaseArticleController>,
@@ -56,6 +55,8 @@ impl AppController {
         // web
         let web_router = server.start_web_router().await?;
         server.status_start()?;
+
+        // application controller
         Ok(AppController {
             // app
             account: Arc::new(AccountController::new(app_router.clone())),
@@ -71,32 +72,36 @@ impl AppController {
         })
     }
 
-    pub fn post_create_article(&self) -> Arc<CreateArticleController> {
+    pub fn create_article(&self) -> Arc<CreateArticleController> {
         self.article.clone()
     }
 
-    pub fn post_change_password(&self) -> Arc<ChangePasswordController> {
+    pub fn change_password(&self) -> Arc<ChangePasswordController> {
         self.change_password.clone()
     }
 
-    pub fn post_account_update_author(&self) -> Arc<AccountController> {
+    pub fn account(&self) -> Arc<AccountController> {
         self.account.clone()
     }
 
-    pub fn post_login(&self) -> Arc<LoginController> {
+    pub fn login(&self) -> Arc<LoginController> {
         self.login.clone()
     }
 
-    pub fn get_web(&self) -> Arc<WebController> {
+    pub fn web(&self) -> Arc<WebController> {
         self.web.clone()
     }
 
-    pub fn db_article_must_see(&self, real_article_url: &str) -> DatabaseArticleVerifier {
-        DatabaseArticleVerifier::new(real_article_url)
+    pub fn db_article(&self) -> Arc<DatabaseArticleController> {
+        self.db_article_controller.clone()
     }
 
-    pub fn db_system_must_see(&self, real_article_url: &str) -> DatabaseSystemVerifier {
-        DatabaseSystemVerifier::new(real_article_url)
+    pub fn db_user(&self) -> Arc<DatabaseArticleController> {
+        self.db_article_controller.clone()
+    }
+
+    pub fn db_system(&self) -> Arc<DatabaseSystemController> {
+        self.db_system_controller.clone()
     }
 }
 
@@ -112,7 +117,7 @@ mod tests {
          * post Article to router
          */
         #[rustfmt::skip]
-        ac.post_create_article().as_ref().clone()
+        ac.create_article()
             .title("Title 1")
             .text("text")
             .execute()?;
@@ -121,7 +126,7 @@ mod tests {
          * verify Article in the database
          */
         #[rustfmt::skip]
-        ac.db_article_must_see("title-1.html")
+        ac.db_article().must_see("title-1.html").await?
             .title("Title 1")
             .text("text")
             .verify()?;

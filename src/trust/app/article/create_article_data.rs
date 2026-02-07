@@ -9,12 +9,12 @@ impl ArticleData {
         Default::default()
     }
 
-    pub fn title(mut self, title: &str) -> Self {
+    pub fn title(&self, title: &str) -> &Self {
         self.title = Some(title.to_string());
         self
     }
 
-    pub fn text(mut self, text: &str) -> Self {
+    pub fn text(&self, text: &str) -> &Self {
         self.text = Some(text.to_string());
         self
     }

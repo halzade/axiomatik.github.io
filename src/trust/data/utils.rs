@@ -3,7 +3,7 @@ use axum::response::Response;
 use std::string::ToString;
 use url::form_urlencoded::Serializer;
 
-pub fn error(title: &str, exp: &str, real: &str) -> String {
+pub fn error(title: &str, exp: &str, real: String) -> String {
     format!("{}: expected \"{}\", got \"{}\"", title, exp, real)
 }
 

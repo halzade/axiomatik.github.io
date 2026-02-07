@@ -6,35 +6,32 @@ use crate::db::database_article_data::Article;
 
 #[derive(Debug)]
 pub struct DatabaseArticleVerifier {
-    real_article_url: String,
+    real: Article,
     pub expected: ArticleData,
 }
 
 impl DatabaseArticleVerifier {
-    pub fn new(real_article_url: &str) -> Self {
-        Self { real_article_url: real_article_url.to_string(), expected: ArticleData::new() }
+    pub fn new(real: Article) -> Self {
+        Self { real, expected: ArticleData::new() }
     }
 
-    pub fn title(mut self, title: &str) -> Self {
-        self.expected = self.expected.title(title);
+    pub fn title(&self, title: &str) -> &Self {
+        self.expected.title(title);
         self
     }
 
-    pub fn text(mut self, text: &str) -> Self {
-        self.expected = self.expected.text(text);
+    pub fn text(&self, text: &str) -> &Self {
+        self.expected.text(text);
         self
     }
 
     pub fn verify(&self) -> Result<(), TrustError> {
-        
-        
-        let real = Article::new();
-        
+
         let mut errors: Vec<String> = Vec::new();
 
         // title
         if let Some(exp) = &self.expected.title {
-            let real = self.real.title.as_ref().ok_or(RealData)?;
+            let real = self.real.title;
             if exp != real {
                 errors.push(error("title", exp, real));
             }
@@ -42,7 +39,7 @@ impl DatabaseArticleVerifier {
 
         // text
         if let Some(exp) = &self.expected.text {
-            let real = self.real.text.as_ref().ok_or(RealData)?;
+            let real = self.real.text;
             errors.push(error("text", exp, real));
         }
 

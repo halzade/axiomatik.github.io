@@ -15,7 +15,7 @@ impl AccountController {
         Self { app_router, input: AccountData::new() }
     }
 
-    pub fn execute(self) -> Result<(ResponseVerifier), TrustError> {
+    pub fn update_author(self) -> Result<(ResponseVerifier), TrustError> {
         // TODO response
 
         Ok(())

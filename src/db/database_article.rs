@@ -10,6 +10,7 @@ use std::sync::Arc;
  * access to a database
  * - anything article related
  */
+#[derive(Debug)]
 pub struct DatabaseArticle {
     surreal: Arc<DatabaseSurreal>,
 }
