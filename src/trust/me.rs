@@ -1,9 +1,10 @@
+use crate::db::database;
 use crate::db::database::SurrealError;
 use crate::db::database_user::SurrealUserError;
 use crate::system::commands::CommandError;
 use crate::system::configuration::{ConfigurationError, Mode};
 use crate::system::server::ServerError;
-use crate::system::{configuration, data_updates, logger, server};
+use crate::system::{data_updates, logger, server};
 use crate::trust::nexo_app::NexoApp;
 use crate::trust::nexo_db::NexoDb;
 use crate::trust::nexo_web::NexoWeb;
@@ -11,7 +12,6 @@ use http::header;
 use std::convert::Infallible;
 use std::sync::Arc;
 use thiserror::Error;
-use configuration::Mode::Testing;
 
 #[derive(Debug, Error)]
 pub enum TrustError {
@@ -62,7 +62,7 @@ pub enum TrustError {
 
     #[error("server error")]
     TrustServerError(#[from] ServerError),
-    
+
     #[error("application mode error")]
     ModeError(Mode),
 }
@@ -74,12 +74,13 @@ pub struct TrustMe {
 }
 
 pub async fn server() -> Result<TrustMe, TrustError> {
-    
-    configuration::MODE.set(Testing).expect("failed to set mode");
-    
+    // config
     logger::config();
     data_updates::new();
-    let server = server::new().await?;
+    // db
+    let sdb = database::init_in_memory_db_connection().await?;
+    // server
+    let server = server::connect(sdb).await?;
     // app
     let app_router = server.start_app_router().await?;
     // web

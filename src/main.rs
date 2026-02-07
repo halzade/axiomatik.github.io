@@ -1,15 +1,17 @@
+use crate::ApplicationError::UnrecognizedParameters;
 use axiomatik_web::db::database;
 use axiomatik_web::db::database::SurrealError;
 use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
 use axiomatik_web::system::configuration::Mode::{ApplicationRun, Testing};
-use axiomatik_web::system::server;
-use axiomatik_web::system::server::ServerError;
+use axiomatik_web::system::server::{ServerError, TheState};
 use axiomatik_web::system::{configuration, heartbeat, logger};
+use axiomatik_web::system::{data_system, data_updates, server};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
 use std::io::Error;
+use std::sync::Arc;
 use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::signal;
@@ -31,15 +33,13 @@ pub enum ApplicationError {
 
     #[error("server error")]
     ApplicationServerError(#[from] ServerError),
-}
 
-// TODO X try, crate: validator
-// TODO X nejsou vyřešeny státní svátky
+    #[error("unrecognized parameter: {0}")]
+    UnrecognizedParameters(Vec<String>),
+}
 
 #[tokio::main]
 async fn main() -> Result<(), ApplicationError> {
-    configuration::MODE.set(ApplicationRun).expect("failed to set mode");
-
     /*
      * Command arguments if any
      */
@@ -56,13 +56,25 @@ async fn main() -> Result<(), ApplicationError> {
     }
 
     if args.len() > 0 {
-        // TODO X stop
+        return Err(UnrecognizedParameters(args));
     }
+
+    /*
+     * Database
+     */
+    let db = Arc::new(database::init_db_connection().await?);
+
+    /*
+     * Application state
+     */
+    let ds = Arc::new(data_system::new());
+    let du = Arc::new(data_updates::new());
+    let state = TheState { db, ds, du };
 
     /*
      * Server
      */
-    let server = server::new();
+    let server = server::connect(state).await?;
     if !server.is_off() {
         info!("But the Application has already started");
         info!("Shutting down gracefully...");
@@ -85,17 +97,12 @@ async fn main() -> Result<(), ApplicationError> {
     heartbeat::heart_beat();
 
     /*
-     * Database
-     */
-    database::init_db_connection().await?;
-
-    /*
      * Routers
      * - application router
      * - web router
      */
-    let app_router = server.start_app_server().await?;
-    let web_router = server.start_web_server().await?;
+    let app_router = server.start_app_router().await?;
+    let web_router = server.start_web_router().await?;
     server.status_start()?;
 
     let config = configuration::get_config()?;
@@ -126,6 +133,6 @@ mod tests {
 
     #[test]
     fn text_context_load() {
-        // the smokiest test
+        // the smokiest test ever
     }
 }

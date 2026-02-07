@@ -82,6 +82,7 @@ pub mod feature {
     pub mod weather;
 }
 pub mod system {
+    pub mod authentication;
     pub mod commands;
     pub mod configuration;
     pub mod data_system;

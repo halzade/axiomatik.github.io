@@ -1,5 +1,7 @@
 use chrono::{DateTime, Datelike, Utc, Weekday};
 
+// TODO X nejsou vyřešeny státní svátky
+
 pub const CZECH_MONTHS_CAPITAL: [&str; 12] = [
     "Leden",
     "Únor",
@@ -51,7 +53,6 @@ fn get_czech_month_genitive(month: u32) -> &'static str {
 }
 
 pub fn day_of_week(dtl: DateTime<Utc>) -> &'static str {
-
     // TODO Utc to Prague timezone
 
     match dtl.weekday() {
@@ -99,13 +100,7 @@ pub fn formatted_article_date(now: DateTime<Utc>) -> String {
     let day_name = day_of_week(now);
     let month_name_genitive = get_czech_month_genitive(now.month());
 
-    format!(
-        "{} {}. {} {}",
-        day_name,
-        now.day(),
-        month_name_genitive,
-        now.year()
-    )
+    format!("{} {}. {} {}", day_name, now.day(), month_name_genitive, now.year())
 }
 
 #[cfg(test)]
@@ -145,10 +140,7 @@ mod tests {
             safe_article_file_name(&"Příliš žluťoučký kůň".to_string()),
             "prilis-zlutoucky-kun"
         );
-        assert_eq!(
-            safe_article_file_name(&"Hello World!".to_string()),
-            "hello-world-"
-        );
+        assert_eq!(safe_article_file_name(&"Hello World!".to_string()), "hello-world-");
     }
 
     #[test]

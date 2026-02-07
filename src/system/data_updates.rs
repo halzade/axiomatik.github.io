@@ -182,14 +182,14 @@ mod tests {
         // Validate
         du.article_validate(name);
         match du.article_valid(name) {
-            ArticleStatus::Valid => (),
+            Valid => (),
             _ => panic!("Should be valid after validation"),
         }
 
         // Invalidate
         du.article_invalidate(name);
         match du.article_valid(name) {
-            ArticleStatus::Invalid => (),
+            Invalid => (),
             _ => panic!("Should be invalid after invalidation"),
         }
     }
@@ -201,11 +201,11 @@ mod tests {
         du.article_invalidate("b");
 
         match du.article_valid("a") {
-            ArticleStatus::Valid => (),
+            Valid => (),
             _ => panic!("a should be valid"),
         }
         match du.article_valid("b") {
-            ArticleStatus::Invalid => (),
+            Invalid => (),
             _ => panic!("b should be invalid"),
         }
         match du.article_valid("c") {

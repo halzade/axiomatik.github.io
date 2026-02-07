@@ -1,5 +1,8 @@
+use crate::db::database::DatabaseSurreal;
+use crate::system::data_system::DataSystem;
+use crate::system::data_updates::DataUpdates;
 use crate::system::router_app::{AppRouterError, ApplicationRouter};
-use crate::system::router_web::WebRouter;
+use crate::system::router_web::{WebRouter, WebRouterError};
 use axum::Router;
 use chrono::{DateTime, TimeDelta, Utc};
 use parking_lot::RwLock;
@@ -21,8 +24,11 @@ pub enum ServerError {
     #[error("unknown server status")]
     UnknownServerStatus,
 
-    #[error("router error")]
+    #[error("app router error")]
     ApplicationRouter(#[from] AppRouterError),
+
+    #[error("web router error")]
+    WebRouter(#[from] WebRouterError),
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -32,13 +38,27 @@ pub enum ApplicationStatus {
     Unknown,
 }
 
+#[derive(Clone)] // clone only the Arcs
+pub struct TheState {
+    // database
+    pub db: Arc<DatabaseSurreal>,
+    // data system e.g.: temperature
+    pub ds: Arc<DataSystem>,
+    // data updates e.g.: is index.html valid
+    pub du: Arc<DataUpdates>,
+}
+
 pub struct Server {
     status_web: RwLock<ApplicationStatus>,
     status_app: RwLock<ApplicationStatus>,
-    router_app: Arc<ApplicationRouter>,
+    // app
+    router_app: ApplicationRouter,
     start_time_app: DateTime<Utc>,
-    router_web: Arc<WebRouter>,
+    // web
+    router_web: WebRouter,
     start_time_web: DateTime<Utc>,
+    // state with global gadgets
+    app_state: TheState,
 }
 
 impl Server {
@@ -51,8 +71,7 @@ impl Server {
             Off => {
                 // server is off, start it
 
-                // set up router
-                let app = self.router_app.clone().start_app_router(application_status).await;
+                let app = self.router_app.start_app_router().await;
                 Ok(app)
             }
             Unknown => Err(UnknownServerStatus),
@@ -66,7 +85,7 @@ impl Server {
         match application_status {
             Started => Err(ServerAlreadyStarted),
             Off => {
-                let web = self.router_web.clone().start_web_router(application_status).await;
+                let web = self.router_web.start_web_router().await;
                 Ok(web)
             }
             Unknown => Err(UnknownServerStatus),
@@ -110,13 +129,16 @@ fn duration_str(duration: TimeDelta) -> String {
     format!("{}h {}m {}s", hours, minutes, seconds)
 }
 
-pub async fn new() -> Result<Server, ServerError> {
+pub async fn connect(state: TheState) -> Result<Server, ServerError> {
     Ok(Server {
         status_web: RwLock::new(Off),
         status_app: RwLock::new(Off),
-        router_app: Arc::new(ApplicationRouter::init().await?),
+        // app
+        router_app: ApplicationRouter::init(state.clone())?,
         start_time_app: Utc::now(),
-        router_web: Arc::new(WebRouter::new()),
+        // web
+        router_web: WebRouter::init(state.clone())?,
         start_time_web: Utc::now(),
+        app_state: state,
     })
 }

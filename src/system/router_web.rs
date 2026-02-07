@@ -17,7 +17,7 @@ use crate::application::zahranici::zahranici;
 use crate::application::zahranici::zahranici::ZahraniciError;
 use crate::system::data_system::{DataSystem, DataSystemError};
 use crate::system::data_updates::{ArticleStatus, DataUpdates, DataUpdatesError};
-use crate::system::server::ApplicationStatus;
+use crate::system::server::{ApplicationStatus, TheState};
 use crate::system::{data_system, data_updates};
 use axum::body::Body;
 use axum::extract::OriginalUri;
@@ -70,16 +70,12 @@ pub enum WebRouterError {
 }
 
 pub struct WebRouter {
-    data_system: DataSystem,
-    data_updates_a: Arc<DataUpdates>,
+    state: TheState,
 }
 
 impl WebRouter {
-    pub fn new() -> WebRouter {
-        WebRouter {
-            data_system: data_system::new(),
-            data_updates_a: Arc::new(data_updates::new()),
-        }
+    pub fn init(state: TheState) -> Result<WebRouter, WebRouterError> {
+        Ok(WebRouter { state })
     }
 }
 
@@ -92,8 +88,8 @@ impl IntoResponse for WebRouterError {
 
 impl WebRouter {
     #[rustfmt::skip]
-    pub async fn start_web_router(self: Arc<Self>, status: ApplicationStatus) -> Router {
-        info!("start_router()");
+    pub async fn start_web_router(&self) -> Router {
+        info!("start_web_router()");
 
         let self_a2 = self.clone();
 
@@ -233,24 +229,14 @@ impl WebRouter {
 }
 
 async fn serve_this(path: String, request: Request<Body>) -> Result<Response, WebRouterError> {
-    Ok(ServeFile::new(format!("web/{}", path))
-        .oneshot(request)
-        .await?
-        .into_response())
+    Ok(ServeFile::new(format!("web/{}", path)).oneshot(request).await?.into_response())
 }
 
 async fn serve_404() -> Result<Response, WebRouterError> {
-    Ok((
-        StatusCode::NOT_FOUND,
-        Html("404, stránka nenalezená".to_string()),
-    )
-        .into_response())
+    Ok((StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string())).into_response())
 }
 
 async fn show_404() -> impl IntoResponse {
     warn!("router fallback");
-    (
-        StatusCode::NOT_FOUND,
-        Html("404, stránka nenalezená".to_string()),
-    )
+    (StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string()))
 }

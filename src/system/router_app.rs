@@ -1,5 +1,7 @@
 use crate::application::account::form_account;
-use crate::application::account::form_account::{AccountError, FormAccount, UpdateAuthorNamePayload};
+use crate::application::account::form_account::{
+    AccountError, FormAccount, UpdateAuthorNamePayload,
+};
 use crate::application::article::article;
 use crate::application::article::article::ArticleError;
 use crate::application::change_password::form_change_password;
@@ -15,19 +17,22 @@ use crate::application::republika::republika::RepublikaError;
 use crate::application::technologie::technologie::TechnologieError;
 use crate::application::veda::veda::VedaError;
 use crate::application::zahranici::zahranici::ZahraniciError;
-use crate::db::{database, database_user::{self, Backend, DatabaseUser}};
+use crate::db::database::{DatabaseSurreal, SurrealError};
+use crate::db::{database, database_user, database_user::DatabaseUser};
+use crate::system::authentication::Backend;
 use crate::system::data_system::{DataSystem, DataSystemError};
 use crate::system::data_updates::{DataUpdates, DataUpdatesError};
 use crate::system::router_web::WebRouter;
-use crate::system::server::ApplicationStatus;
+use crate::system::server::{ApplicationStatus, TheState};
 use crate::system::{data_system, data_updates, heartbeat};
 use axum::body::Body;
 use axum::middleware::Next;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::routing::{get, post};
-use axum::{middleware, Router, Form};
+use axum::{middleware, Form, Router};
 use axum_core::extract::Request;
 use axum_login::AuthManagerLayerBuilder;
+use database_user::Role::Editor;
 use http::StatusCode;
 use std::convert::Infallible;
 use std::sync::Arc;
@@ -35,7 +40,6 @@ use thiserror::Error;
 use tower_sessions::cookie::SameSite::Strict;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 use tracing::{info, warn};
-use crate::db::database::{DatabaseSurreal, SurrealError};
 
 pub type AuthSession = axum_login::AuthSession<Backend>;
 
@@ -85,32 +89,18 @@ pub enum AppRouterError {
 
     #[error("account error: {0}")]
     RouterAccountError(#[from] AccountError),
-    
+
     #[error("surreal db error: {0}")]
     SurrealRouter(#[from] SurrealError),
 }
 
 pub struct ApplicationRouter {
-    data_system: DataSystem,
-    data_updates_a: Arc<DataUpdates>,
-
-    db_user: Arc<DatabaseUser>,
-    form_account: Arc<FormAccount>,
+    state: TheState,
 }
 
 impl ApplicationRouter {
-    pub async fn init() -> Result<ApplicationRouter, AppRouterError> {
-        let db = database::db_by_mode().await?;
-        let db_a = Arc::new(db);
-        let db_user = Arc::new(DatabaseUser::new(db_a.clone()));
-
-        Ok(ApplicationRouter {
-            // TODO shared data
-            data_system: data_system::new(),
-            data_updates_a: Arc::new(data_updates::new()),
-            db_user,
-            form_account: Arc::new(FormAccount::init().await?),
-        })
+    pub fn init(state: TheState) -> Result<ApplicationRouter, AppRouterError> {
+        Ok(ApplicationRouter { state })
     }
 }
 
@@ -147,11 +137,10 @@ impl IntoResponse for AccountError {
 
 impl ApplicationRouter {
     #[rustfmt::skip]
-    pub async fn start_app_router(self: Arc<Self>, status: ApplicationStatus) -> Router {
-        info!("start_router()");
+    pub async fn start_app_router(&self) -> Router {
+        info!("start_app_router()");
 
         let self_a1 = self.clone();
-        let form_account = self.form_account.clone();
 
         // TODO don't use default memory storage, use redis or something
         let session_layer = SessionManagerLayer::new(MemoryStore::default())
@@ -161,29 +150,20 @@ impl ApplicationRouter {
             // creating articles doesn't require any clos site features
             .with_same_site(Strict);
 
-        let auth_layer = AuthManagerLayerBuilder::new(Backend { db_user: self.db_user.clone() }, session_layer).build();
+        let auth_layer = AuthManagerLayerBuilder::new(Backend, session_layer).build();
 
         /*
          * Protected routes
          */
         let protected_routes = Router::new()
-            // TODO these shouldn't be in root
             .route("/form", get(form_article_create::show_article_create_form))
-            .route("/create", post(move |auth, multipart| {
-                article::create_article(self_a1.data_updates_a.clone(), auth, multipart)
-            }))
+            .route("/create", post(article::create_article))
             .route("/change-password",
                 get(form_change_password::show_change_password)
                .post(form_change_password::handle_change_password),
             )
-            .route("/account", get(move |auth_session: AuthSession| {
-                let form_account = form_account.clone();
-                async move { form_account.show_account(auth_session).await }
-            }))
-            .route("/account/update-author", post(move |auth_session: AuthSession, payload: Form<UpdateAuthorNamePayload>| {
-                let form_account = form_account.clone();
-                async move { form_account.handle_update_author_name(auth_session, payload).await }
-            }))
+            .route("/account", get(form_account::show_account))
+            .route("/account/update-author", post(form_account::handle_update_author_name))
             .route("/heartbeat", get(heartbeat::handle_heartbeat))
             .layer(middleware::from_fn(auth_middleware));
 
@@ -202,7 +182,7 @@ impl ApplicationRouter {
             // everything already served, user requested for non-existent content
             .fallback(show_404)
             .layer(auth_layer)
-            .with_state(status);
+            .with_state(self.state);
 
         info!("start_router() finished");
         ret
@@ -219,7 +199,7 @@ async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Ne
             }
 
             // continue
-            if user.role == database_user::Role::Editor {
+            if user.role == Editor {
                 info!("auth_middleware: role=Editor, continue");
                 return next.run(req).await;
             }

@@ -11,9 +11,11 @@ use axum::Form;
 use http::StatusCode;
 use serde::Deserialize;
 use std::sync::Arc;
+use axum::extract::State;
 use thiserror::Error;
 use tracing::{debug, error};
 use validator::Validate;
+use crate::system::server::TheState;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -51,77 +53,68 @@ pub struct FormAccount {
 
 impl FormAccount {
     pub async fn init() -> Result<FormAccount, AccountError> {
-        let db = database::db_by_mode().await?;
         let db_a = Arc::new(db);
 
         let db_article = DatabaseArticle::new(db_a.clone());
         let db_user = DatabaseUser::new(db_a.clone());
         Ok(FormAccount { db_article: Arc::new(db_article), db_user: Arc::new(db_user) })
     }
-
-    pub async fn show_account(&self, auth_session: AuthSession) -> Result<Response, AccountError> {
-        match auth_session.user {
-            None => Ok(Redirect::to("/login").into_response()),
-            Some(user) => {
-                let account_articles =
-                    self.db_article.articles_by_username(&user.username, 100).await?;
-                Ok(Html(
-                    AccountTemplate {
-                        username: user.username,
-                        author_name: user.author_name,
-                        articles: account_articles,
-                    }
-                    .render()
-                    .unwrap(),
-                )
-                .into_response())
-            }
+}
+pub async fn show_account(auth_session: AuthSession) -> Result<Response, AccountError> {
+    match auth_session.user {
+        None => Ok(Redirect::to("/login").into_response()),
+        Some(user) => {
+            let account_articles =
+                self.db_article.articles_by_username(&user.username, 100).await?;
+            Ok(Html(
+                AccountTemplate {
+                    username: user.username,
+                    author_name: user.author_name,
+                    articles: account_articles,
+                }
+                .render()
+                .unwrap(),
+            )
+            .into_response())
         }
     }
+}
 
-    async fn update_author_name(
-        &self,
-        username: &str,
-        author_name: &str,
-    ) -> Result<(), AccountError> {
-        self.db_user.update_user_author_name(username, author_name).await.map_err(|e| {
-            error!("Failed to update user: {}", e);
-            AccountError::AccountUserNotFound
-        })?;
-        Ok(())
-    }
+async fn update_author_name(&self, username: &str, author_name: &str) -> Result<(), AccountError> {
+    self.state.update_user_author_name(username, author_name).await.map_err(|e| {
+        error!("Failed to update user: {}", e);
+        AccountError::AccountUserNotFound
+    })?;
+    Ok(())
+}
 
-    pub async fn handle_update_author_name(
-        &self,
-        auth_session: AuthSession,
-        Form(payload): Form<UpdateAuthorNamePayload>,
-    ) -> Response {
-        debug!("handle_update_author_name()");
-        match auth_session.user {
-            Some(user) => {
-                debug!("session user: {}", user.username);
+pub async fn handle_update_author_name(
+    State(state): State<TheState>,
+    auth_session: AuthSession,
+    Form(payload): Form<UpdateAuthorNamePayload>,
+) -> Response {
+    debug!("handle_update_author_name()");
 
-                if let Err(errors) = payload.validate() {
-                    println!("{:#?}", errors);
-                    return StatusCode::BAD_REQUEST.into_response();
-                }
+    match auth_session.user {
+        Some(user) => {
+            debug!("session user: {}", user.username);
 
-                debug!("validation ok");
-                match self
-                    .db_user
-                    .update_user_author_name(&user.username, &payload.author_name)
-                    .await
-                {
-                    _ => {
-                        debug!("always redirect to account");
-                        Redirect::to("/account").into_response()
-                    }
+            if let Err(errors) = payload.validate() {
+                println!("{:#?}", errors);
+                return StatusCode::BAD_REQUEST.into_response();
+            }
+
+            debug!("validation ok");
+            match state.db.update_user_author_name(&user.username, &payload.author_name).await {
+                _ => {
+                    debug!("always redirect to account");
+                    Redirect::to("/account").into_response()
                 }
             }
-            None => {
-                debug!("failed");
-                Redirect::to("/login").into_response()
-            }
+        }
+        None => {
+            debug!("failed");
+            Redirect::to("/login").into_response()
         }
     }
 }
