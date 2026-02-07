@@ -9,7 +9,7 @@ use crate::db::database::SurrealError;
 use crate::db::database_article;
 use crate::db::database_article_data::{MiniArticleData, Article, ShortArticleData};
 use crate::system::data_system::DataSystem;
-use crate::system::data_updates::DataUpdates;
+use crate::system::data_updates::DataValidHtml;
 use crate::system::router_app::AuthSession;
 use askama::Template;
 use axum::extract::Multipart;
@@ -76,7 +76,7 @@ pub struct ArticleTemplate {
 }
 
 pub async fn create_article(
-    data_updates: Arc<DataUpdates>,
+    data_updates: Arc<DataValidHtml>,
     auth_session: AuthSession,
     multipart: Multipart,
 ) -> Result<impl IntoResponse, ArticleError> {

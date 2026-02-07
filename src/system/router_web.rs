@@ -16,7 +16,7 @@ use crate::application::veda::veda::VedaError;
 use crate::application::zahranici::zahranici;
 use crate::application::zahranici::zahranici::ZahraniciError;
 use crate::system::data_system::{DataSystem, DataSystemError};
-use crate::system::data_updates::{ArticleStatus, DataUpdates, DataUpdatesError};
+use crate::system::data_updates::{ArticleStatus, DataValidHtml, DataUpdatesError};
 use crate::system::server::{ApplicationStatus, TheState};
 use crate::system::{data_system, data_updates};
 use axum::body::Body;
@@ -111,7 +111,7 @@ impl WebRouter {
             ))
             // everything already served, user requested for non-existent content
             .fallback(show_404)
-            .with_state(status);
+            .with_state(self.state);
 
         info!("start_router() finished");
         ret
@@ -149,64 +149,64 @@ impl WebRouter {
 
         match url.as_str() {
             "/index.html" => {
-                if !self.data_updates_a.index_valid() {
-                    self.data_updates_a.index_validate();
+                if !self.state.dv.index_valid() {
+                    self.state.dv.index_validate();
 
-                    index::render_index(&self.data_system).await?;
+                    index::render_index(&self.state).await?;
                 }
                 serve_this(url, request).await
             }
             "/finance.html" => {
-                if !self.data_updates_a.finance_valid() {
-                    self.data_updates_a.finance_validate();
+                if !self.state.dv.finance_valid() {
+                    self.state.dv.finance_validate();
 
-                    finance::render_finance(&self.data_system).await?;
+                    finance::render_finance(&self.state).await?;
                 }
                 serve_this(url, request).await
             }
             "/news.html" => {
-                if !self.data_updates_a.news_valid() {
-                    self.data_updates_a.news_validate();
+                if !self.state.dv.news_valid() {
+                    self.state.dv.news_validate();
 
-                    news::render_news(&self.data_system).await?;
+                    news::render_news(&self.state).await?;
                 }
                 serve_this(url, request).await
             }
             "/republika.html" => {
-                if !self.data_updates_a.republika_valid() {
-                    self.data_updates_a.republika_validate();
+                if !self.state.dv.republika_valid() {
+                    self.state.dv.republika_validate();
 
-                    republika::render_republika(&self.data_system).await?;
+                    republika::render_republika(&self.state).await?;
                 }
                 serve_this(url, request).await
             }
             "/technologie.html" => {
-                if !self.data_updates_a.technologie_valid() {
-                    self.data_updates_a.technologie_validate();
+                if !self.state.du.technologie_valid() {
+                    self.state.du.technologie_validate();
 
                     technologie::render_technologie(&self.data_system).await?;
                 }
                 serve_this(url, request).await
             }
             "/veda.html" => {
-                if !self.data_updates_a.veda_valid() {
-                    self.data_updates_a.veda_validate();
+                if !self.state.du.veda_valid() {
+                    self.state.du.veda_validate();
 
-                    veda::render_veda(&self.data_system).await?;
+                    veda::render_veda(&self.state).await?;
                 }
                 serve_this(url, request).await
             }
             "/zahranici.html" => {
-                if !self.data_updates_a.zahranici_valid() {
-                    self.data_updates_a.zahranici_validate();
+                if !self.state.du.zahranici_valid() {
+                    self.state.du.zahranici_validate();
 
-                    zahranici::render_zahranici(&self.data_system).await?;
+                    zahranici::render_zahranici(self.state).await?;
                 }
                 serve_this(url, request).await
             }
             _ => {
                 // 404 or Article
-                match self.data_updates_a.article_valid(&url) {
+                match self.state.du.article_valid(&url) {
                     ArticleStatus::Valid => {
                         // no change, serve the file
                         serve_this(url, request).await
@@ -214,8 +214,8 @@ impl WebRouter {
                     ArticleStatus::Invalid => {
                         // article was invalidated, render article HTML
                         // new article was u
-                        article::render_article(&url, &self.data_system).await?;
-                        self.data_updates_a.article_validate(&url);
+                        article::render_article(&url, &self.state).await?;
+                        self.state.du.article_validate(&url);
                         serve_this(url, request).await
                     }
                     ArticleStatus::DoesntExist => {

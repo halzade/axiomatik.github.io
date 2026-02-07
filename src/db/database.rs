@@ -36,8 +36,8 @@ pub struct DatabaseSurreal {
      * no connection pool, acts as a shared async client
      * any is for {Local, Remote}, but Local already implements connection
      * initialize from
-     * - main, or (production)
-     * - trust::me (tests)
+     * - main - for production, or
+     * - trust::me - for tests
      */
     pub db: Surreal<Any>,
 }

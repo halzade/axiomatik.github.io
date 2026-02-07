@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
@@ -31,7 +32,7 @@ pub struct ZahraniciTemplate<'a> {
     pub articles_right: &'a [ShortArticleData],
 }
 
-pub async fn render_zahranici(data_system: &DataSystem) -> Result<(), ZahraniciError> {
+pub async fn render_zahranici(data_system: Arc<DataSystem>) -> Result<(), ZahraniciError> {
     let articles = database_article::articles_by_category("zahranici", 100).await?;
     let articles_most_read = database_article::articles_most_read(3).await?;
 

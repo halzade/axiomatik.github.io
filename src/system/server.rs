@@ -1,6 +1,7 @@
-use crate::db::database::DatabaseSurreal;
+use crate::db::database_article::DatabaseArticle;
+use crate::db::database_user::DatabaseUser;
 use crate::system::data_system::DataSystem;
-use crate::system::data_updates::DataUpdates;
+use crate::system::data_updates::DataValidHtml;
 use crate::system::router_app::{AppRouterError, ApplicationRouter};
 use crate::system::router_web::{WebRouter, WebRouterError};
 use axum::Router;
@@ -38,14 +39,20 @@ pub enum ApplicationStatus {
     Unknown,
 }
 
+/*
+ * application state
+ * - database connections
+ * - in memory data
+ */
 #[derive(Clone)] // clone only the Arcs
 pub struct TheState {
     // database
-    pub db: Arc<DatabaseSurreal>,
+    pub dba: Arc<DatabaseArticle>,
+    pub dbu: Arc<DatabaseUser>,
     // data system e.g.: temperature
     pub ds: Arc<DataSystem>,
     // data updates e.g.: is index.html valid
-    pub du: Arc<DataUpdates>,
+    pub dv: Arc<DataValidHtml>,
 }
 
 pub struct Server {

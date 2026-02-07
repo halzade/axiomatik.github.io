@@ -20,7 +20,7 @@ pub enum ArticleStatus {
  * when was which HTML file last updated?
  * or invalidated because of a new article published
  */
-pub struct DataUpdates {
+pub struct DataValidHtml {
     articles_valid: RwLock<HashMap<String, ArticleStatus>>,
     index_valid: RwLock<bool>,
     news_valid: RwLock<bool>,
@@ -31,8 +31,8 @@ pub struct DataUpdates {
     zahranici_valid: RwLock<bool>,
 }
 
-pub fn new() -> DataUpdates {
-    DataUpdates {
+pub fn new() -> DataValidHtml {
+    DataValidHtml {
         articles_valid: RwLock::new(HashMap::new()),
         index_valid: RwLock::new(false),
         news_valid: RwLock::new(false),
@@ -44,7 +44,7 @@ pub fn new() -> DataUpdates {
     }
 }
 
-impl DataUpdates {
+impl DataValidHtml {
     // index
     pub fn index_valid(&self) -> bool {
         *self.index_valid.read()

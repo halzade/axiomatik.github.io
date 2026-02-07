@@ -21,7 +21,7 @@ use crate::db::database::{DatabaseSurreal, SurrealError};
 use crate::db::{database, database_user, database_user::DatabaseUser};
 use crate::system::authentication::Backend;
 use crate::system::data_system::{DataSystem, DataSystemError};
-use crate::system::data_updates::{DataUpdates, DataUpdatesError};
+use crate::system::data_updates::{DataValidHtml, DataUpdatesError};
 use crate::system::router_web::WebRouter;
 use crate::system::server::{ApplicationStatus, TheState};
 use crate::system::{data_system, data_updates, heartbeat};

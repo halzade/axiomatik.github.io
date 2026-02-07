@@ -1,6 +1,8 @@
 use crate::ApplicationError::UnrecognizedParameters;
 use axiomatik_web::db::database;
 use axiomatik_web::db::database::SurrealError;
+use axiomatik_web::db::database_article::DatabaseArticle;
+use axiomatik_web::db::database_user::DatabaseUser;
 use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
 use axiomatik_web::system::configuration::Mode::{ApplicationRun, Testing};
@@ -41,12 +43,12 @@ pub enum ApplicationError {
 #[tokio::main]
 async fn main() -> Result<(), ApplicationError> {
     /*
-     * Command arguments if any
+     * command arguments if any
      */
     let args: Vec<String> = env::args().collect();
 
     /*
-     * Process Commands
+     * process the commands
      */
     if args.len() > 1 && args[1] == "create-user" {
         create_user(&args).await;
@@ -60,19 +62,25 @@ async fn main() -> Result<(), ApplicationError> {
     }
 
     /*
-     * Database
+     * databases
      */
     let db = Arc::new(database::init_db_connection().await?);
+    let dba = Arc::new(DatabaseArticle::new(db.clone()));
+    let dbu = Arc::new(DatabaseUser::new(db.clone()));
 
     /*
-     * Application state
+     * in memory application data
      */
     let ds = Arc::new(data_system::new());
-    let du = Arc::new(data_updates::new());
-    let state = TheState { db, ds, du };
+    let dv = Arc::new(data_updates::new());
 
     /*
-     * Server
+     * the application state
+     */
+    let state = TheState { dba, dbu, ds, dv };
+
+    /*
+     * server
      */
     let server = server::connect(state).await?;
     if !server.is_off() {
@@ -82,22 +90,21 @@ async fn main() -> Result<(), ApplicationError> {
     }
 
     /*
-     * Init Application Infrastructure
+     * init application infrastructure
      */
     info!("Application starting...");
     logger::config();
-
     // the uploads directory
     create_dir_all("web/u")?;
 
     /*
-     * Start regular actions
+     * start regular actions
      */
     info!("startup actions");
     heartbeat::heart_beat();
 
     /*
-     * Routers
+     * routers
      * - application router
      * - web router
      */
@@ -110,7 +117,7 @@ async fn main() -> Result<(), ApplicationError> {
     let web_address = format!("{}:{}", config.host, config.port_web);
 
     /*
-     * Listeners
+     * listeners
      */
     let app_listener = TcpListener::bind(&app_address).await?;
     info!("listening on {}", app_address);
@@ -119,7 +126,7 @@ async fn main() -> Result<(), ApplicationError> {
     info!("listening on {}", web_address);
 
     /*
-     * Start Application
+     * start Application
      */
     axum::serve(app_listener, app_router).await?;
     axum::serve(web_listener, web_router).await?;
