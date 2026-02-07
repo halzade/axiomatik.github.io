@@ -1,4 +1,5 @@
 use crate::db::database_user::{DatabaseUser, Role, User};
+use crate::trust::db::db_user_verifier::DatabaseUserVerifier;
 use crate::trust::me::TrustError;
 use bcrypt::{hash, DEFAULT_COST};
 use std::sync::Arc;
@@ -17,6 +18,20 @@ impl DatabaseUserController {
         // TODO response
 
         Ok(())
+    }
+
+    pub async fn must_see(&self, username: &str) -> Result<DatabaseUserVerifier, TrustError> {
+        /*
+         * retrieve the real data
+         */
+        let real_o = self.dbu.get_user_by_name(username).await?;
+        match real_o {
+            Some(real) => {
+                // build verifier
+                Ok(DatabaseUserVerifier::new(real))
+            }
+            None => Err(TrustError::RealData),
+        }
     }
 
     pub async fn db_setup_user_with_password(

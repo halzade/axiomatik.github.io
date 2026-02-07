@@ -96,8 +96,8 @@ impl AppController {
         self.db_article_controller.clone()
     }
 
-    pub fn db_user(&self) -> Arc<DatabaseArticleController> {
-        self.db_article_controller.clone()
+    pub fn db_user(&self) -> Arc<DatabaseUserController> {
+        self.db_user_controller.clone()
     }
 
     pub fn db_system(&self) -> Arc<DatabaseSystemController> {
@@ -107,6 +107,7 @@ impl AppController {
 
 #[cfg(test)]
 mod tests {
+    use crate::db::database_user::Role::Editor;
     use super::*;
 
     #[tokio::test]
@@ -129,6 +130,30 @@ mod tests {
         ac.db_article().must_see("title-1.html").await?
             .title("Title 1")
             .text("text")
+            .verify()?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_create_user() -> Result<(), TrustError> {
+        let ac = AppController::new().await?;
+
+        /*
+         * create user in the database
+         */
+        #[rustfmt::skip]
+        ac.db_user().db_setup_user_with_password("tester", "password").await?;
+
+        /*
+         * verify user in the database
+         */
+        ac.db_user()
+            .must_see("tester")
+            .await?
+            .username("tester")
+            .author_name("tester")
+            .role(Editor)
             .verify()?;
 
         Ok(())

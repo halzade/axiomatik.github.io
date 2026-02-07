@@ -105,6 +105,9 @@ pub mod trust {
             pub mod create_article_request_builder;
             pub mod create_article_verifier;
         }
+        pub mod user {
+            pub mod user_data;
+        }
         pub mod account {
             pub mod account_controller;
             pub mod account_data;
