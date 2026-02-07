@@ -1,18 +1,18 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::{serialize};
+    use axiomatik_web::trust::utils;
+    use axiomatik_web::trust::utils::{serialize};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use axiomatik_web::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_validation_login_username() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
         // BEL
         let login_params = [("username", "adm\x07in"), ("password", "password123")];
-        let response = script_base::one_shot(
+        let response = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/login")

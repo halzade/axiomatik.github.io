@@ -3,19 +3,19 @@ mod tests {
     use axum::http::{header, Request, StatusCode};
 
     use axiomatik_web::trust::article_builder::ArticleBuilder;
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::{content_type_with_boundary, TrustError};
-    use axiomatik_web::trust::script_base_data::PNG;
+    use axiomatik_web::trust::utils;
+    use axiomatik_web::trust::utils::{content_type_with_boundary, TrustError};
+    use axiomatik_web::trust::media_data::PNG;
     use reqwest::Body;
     use std::fs;
 
     #[tokio::test]
     async fn test_republika_article_creation_and_limit() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
-        let cookie = script_base::setup_user_and_login("user5").await;
+        let cookie = utils::setup_user_and_login("user5").await;
 
-        let image_data = script_base::get_test_image_data();
+        let image_data = utils::get_test_image_data();
         let body = ArticleBuilder::new()
             .title("Test Newest Republika")
             .author("Author")
@@ -26,7 +26,7 @@ mod tests {
             .image_desc("test description")
             .build();
 
-        let response = script_base::one_shot(
+        let response = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")

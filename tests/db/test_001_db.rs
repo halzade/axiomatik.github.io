@@ -21,7 +21,7 @@ mod tests {
     use crate::db::test_001_db::Trivial;
     use axiomatik_web::db::database;
     use axiomatik_web::db::database::ini_in_memory_db_connection;
-    use axiomatik_web::trust::script_base::TrustError;
+    use axiomatik_web::trust::utils::TrustError;
 
     #[tokio::test]
     async fn test_connects_and_query() -> Result<(), TrustError> {

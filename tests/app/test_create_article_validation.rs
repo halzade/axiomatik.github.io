@@ -1,20 +1,20 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::trust::article_builder::ArticleBuilder;
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::{content_type_with_boundary, TrustError};
-    use axiomatik_web::trust::script_base_data::PNG;
+    use axiomatik_web::trust::utils;
+    use axiomatik_web::trust::utils::{content_type_with_boundary, TrustError};
+    use axiomatik_web::trust::media_data::PNG;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
 
     #[tokio::test]
     async fn test_validation_create_article() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
         // 1. Create and login user
-        let cookie = script_base::setup_user_and_login("user9").await;
+        let cookie = utils::setup_user_and_login("user9").await;
 
-        let image_data = script_base::get_test_image_data();
+        let image_data = utils::get_test_image_data();
 
         // 2. Create an article with malicious input
         let body = ArticleBuilder::new()
@@ -27,7 +27,7 @@ mod tests {
             .image_desc("test description")
             .build();
 
-        let response = script_base::one_shot(
+        let response = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")

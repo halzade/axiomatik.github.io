@@ -2,24 +2,24 @@
 mod tests {
     use axiomatik_web::db::database_user;
     use axiomatik_web::trust::article_builder::ArticleBuilder;
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::{
+    use axiomatik_web::trust::utils;
+    use axiomatik_web::trust::utils::{
         content_type_with_boundary, response_to_body, serialize, TrustError,
     };
-    use axiomatik_web::trust::script_base_data::PNG;
+    use axiomatik_web::trust::media_data::PNG;
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs::remove_file;
 
     #[tokio::test]
     async fn test_account_page() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
         // Create user
-        let cookie = script_base::setup_user_and_login("user8").await;
+        let cookie = utils::setup_user_and_login("user8").await;
 
         // Access account page
-        let response_account = script_base::one_shot(
+        let response_account = utils::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
@@ -35,7 +35,7 @@ mod tests {
 
         // Update author name
         let update_params = [("author_name", "Updated Author")];
-        let response_update_author = script_base::one_shot(
+        let response_update_author = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/account/update-author")
@@ -59,7 +59,7 @@ mod tests {
         assert_eq!(user.author_name, "Updated Author");
 
         // Create an article with this user
-        let image_data = script_base::get_test_image_data();
+        let image_data = utils::get_test_image_data();
         let body = ArticleBuilder::new()
             .title("Test User Article")
             .author("Updated Author")
@@ -71,7 +71,7 @@ mod tests {
             .related_articles("related-test-article.html")
             .build();
 
-        let response_create_article = script_base::one_shot(
+        let response_create_article = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")
@@ -84,7 +84,7 @@ mod tests {
         assert_eq!(response_create_article.status(), StatusCode::SEE_OTHER);
 
         // 7. Verify the article is on the account page
-        let response_account_2 = script_base::one_shot(
+        let response_account_2 = utils::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
@@ -100,7 +100,7 @@ mod tests {
 
         // Update author name again
         let update_params = [("author_name", "Second Update")];
-        let response_update_author_2 = script_base::one_shot(
+        let response_update_author_2 = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/account/update-author")
@@ -113,7 +113,7 @@ mod tests {
         assert_eq!(response_update_author_2.status(), StatusCode::SEE_OTHER);
 
         // Verify the article is STILL on the account page (linked by username, not author_name)
-        let response_account_3 = script_base::one_shot(
+        let response_account_3 = utils::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")

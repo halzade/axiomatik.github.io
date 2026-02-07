@@ -3,14 +3,12 @@ mod tests {
     use axiomatik_web::db::database_user;
     use axiomatik_web::db::database_user::Role::Editor;
     use axiomatik_web::db::database_user::User;
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::{serialize, TrustError};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
 
     #[tokio::test]
     async fn test_change_password() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
         // Create user who needs password change
         let password_hash = bcrypt::hash("pass1234", bcrypt::DEFAULT_COST).unwrap();
@@ -25,7 +23,7 @@ mod tests {
 
         // Login as user1
         let login_params1 = [("username", "user1"), ("password", "pass1234")];
-        let login_resp1 = script_base::one_shot(
+        let login_resp1 = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/login")
@@ -50,7 +48,7 @@ mod tests {
 
         // Change password
         let change_params = [("new_password", "new_password_123")];
-        let change_resp = script_base::one_shot(
+        let change_resp = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/change-password")

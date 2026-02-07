@@ -1,20 +1,20 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::db::database_user;
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::{response_to_body, serialize, TrustError};
+    use axiomatik_web::trust::utils;
+    use axiomatik_web::trust::utils::{response_to_body, serialize, TrustError};
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
 
     #[tokio::test]
     async fn test_account_page() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
         // Create user
-        let cookie = script_base::setup_user_and_login("user8").await;
+        let cookie = utils::setup_user_and_login("user8").await;
 
         // Access account page
-        let response_account = script_base::one_shot(
+        let response_account = utils::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/account")
@@ -30,7 +30,7 @@ mod tests {
 
         // Update author name
         let update_params = [("author_name", "Updated Author")];
-        let response_update_author = script_base::one_shot(
+        let response_update_author = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/account/update-author")

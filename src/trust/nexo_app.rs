@@ -1,10 +1,11 @@
-use crate::trust::article_builder::ArticleBuilder;
 use crate::trust::me::TrustError;
+use crate::trust::response_verifier::ResponseVerifier;
 use axum::Router;
 use http::{header, Request};
 use parking_lot::RwLock;
 use std::sync::Arc;
 use tower::ServiceExt;
+use crate::trust::article::article_request_builder::ArticleBuilder;
 
 pub struct NexoApp {
     app_router: Arc<Router>,
@@ -20,7 +21,15 @@ impl NexoApp {
         ArticleBuilder::new()
     }
 
-    pub async fn post_login(&self, username: &str) -> Result<(), TrustError> {
+    pub async fn post_login(&self, username: &str) -> Result<ResponseVerifier, TrustError> {
+        self.post_login_with_password(username, "password").await
+    }
+
+    pub async fn post_login_with_password(
+        &self,
+        username: &str,
+        password: &str,
+    ) -> Result<ResponseVerifier, TrustError> {
         let login_response = (*self.app_router)
             .clone()
             .oneshot(
@@ -30,14 +39,16 @@ impl NexoApp {
                     .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .body(reqwest::Body::from(format!(
                         "username={}&password={}",
-                        username, "password"
+                        username, password
                     )))?,
             )
             .await?;
 
-        *self.user_cookie.write() =
-            Some(login_response.headers().get(header::SET_COOKIE).unwrap().to_str()?.to_string());
+        let cookie = login_response.headers().get(header::SET_COOKIE).cloned();
+        if let Some(c) = cookie {
+            *self.user_cookie.write() = Some(c.to_str()?.to_string());
+        }
 
-        Ok(())
+        Ok(ResponseVerifier::new_from_response(login_response).await?)
     }
 }

@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::TrustError;
+    use axiomatik_web::trust::utils;
+    use axiomatik_web::trust::utils::TrustError;
     use axum::http::{Request, StatusCode};
     use reqwest::Body;
 
     #[tokio::test]
     async fn test_serve_static_content() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
-        let response = script_base::one_shot(
+        let response = utils::one_shot(
             Request::builder()
                 .method("GET")
                 .uri("/favicon.ico")

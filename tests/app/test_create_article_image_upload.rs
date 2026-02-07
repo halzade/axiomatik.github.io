@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::trust::article_builder::ArticleBuilder;
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::{content_type_with_boundary, TrustError};
+    use axiomatik_web::trust::utils;
+    use axiomatik_web::trust::utils::{content_type_with_boundary, TrustError};
     use axum::http::{header, Request, StatusCode};
     use image::GenericImageView;
     use reqwest::Body;
@@ -11,10 +11,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_image_upload_resized_copies() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
         // 1. Set up user and login
-        let cookie = script_base::setup_user_and_login("image_tester").await;
+        let cookie = utils::setup_user_and_login("image_tester").await;
 
         // 2. Read placeholder image
         let image_data =
@@ -34,7 +34,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let response = script_base::one_shot(
+        let response = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")

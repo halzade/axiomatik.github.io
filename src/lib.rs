@@ -94,13 +94,20 @@ pub mod system {
     pub mod server;
 }
 pub mod trust {
-    pub mod article_builder;
-    pub mod article_easy_builder;
+    pub mod article {
+        pub mod article_request_builder;
+        pub mod article_controller;
+        pub mod article_data;
+        pub mod article_easy_builder;
+        pub mod article_verifier;
+    }
+    pub mod data {
+        pub mod media_data;
+        pub mod utils;
+    }
     pub mod me;
     pub mod nexo_app;
-    pub mod nexo_web;
     pub mod nexo_db;
+    pub mod nexo_web;
     pub mod response_verifier;
-    pub mod script_base;
-    pub mod script_base_data;
 }

@@ -4,12 +4,12 @@ mod tests {
     use axiomatik_web::db::database_user::delete_user;
     use axiomatik_web::db::database_user::Role::Editor;
     use axiomatik_web::system::commands::create_editor_user;
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::TrustError;
+    use axiomatik_web::trust::utils;
+    use axiomatik_web::trust::utils::TrustError;
 
     #[tokio::test]
     async fn test_create_editor_user() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
         let username = "user11";
         let password = "password123";

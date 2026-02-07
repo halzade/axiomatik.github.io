@@ -6,7 +6,7 @@ use crate::system::commands::CommandError;
 use crate::system::configuration::ConfigurationError;
 use crate::system::server::{ServerError, TheState};
 use crate::system::{data_system, data_updates, logger, server};
-use crate::trust::article_builder::ArticleBuilderError;
+use crate::trust::article::article_request_builder::ArticleBuilderError;
 use crate::trust::nexo_app::NexoApp;
 use crate::trust::nexo_db::NexoDb;
 use crate::trust::nexo_web::NexoWeb;
@@ -21,13 +21,13 @@ pub enum TrustError {
     TestFailed(String),
 
     #[error("surreal error: {0}")]
-    TestSurrealError(#[from] SurrealError),
+    SurrealError(#[from] SurrealError),
 
     #[error("surreal user error {0}")]
-    TestSurrealUserError(#[from] SurrealUserError),
+    SurrealUserError(#[from] SurrealUserError),
 
     #[error("test surrealdb error {0}")]
-    TestError(#[from] surrealdb::Error),
+    SurrealDatabaseError(#[from] surrealdb::Error),
 
     #[error("test command error {0}")]
     TrustCommandError(#[from] CommandError),
@@ -67,6 +67,12 @@ pub enum TrustError {
 
     #[error("article builder error")]
     ArticleBuilder(#[from] ArticleBuilderError),
+
+    #[error("real data error")]
+    RealData,
+
+    #[error("validation error:/n{0}")]
+    Validation(String),
 }
 
 pub struct TrustMe {

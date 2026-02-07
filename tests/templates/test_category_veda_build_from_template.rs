@@ -3,7 +3,7 @@ mod tests {
     use askama::Template;
     use axiomatik_web::application::veda::veda::VedaTemplate;
     use axiomatik_web::db::database_article_data::ShortArticleData;
-    use axiomatik_web::trust::script_base::TrustError;
+    use axiomatik_web::trust::utils::TrustError;
 
     #[test]
     fn test_veda_build_from_template() -> Result<(), TrustError> {

@@ -26,7 +26,7 @@ mod tests {
             .image_any_png()?
             .execute()?
             .must_see_response(StatusCode::SEE_OTHER)
-                .headers_location("test-article.html")
+                .header_location("test-article.html")
                 .verify();
 
         trust::me::path_exists("web/test-article.html");

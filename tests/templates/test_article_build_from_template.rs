@@ -3,7 +3,7 @@ mod tests {
     use askama::Template;
     use axiomatik_web::application::article::article::ArticleTemplate;
     use axiomatik_web::db::database_article_data::{MiniArticleData, ShortArticleData};
-    use axiomatik_web::trust::script_base::TrustError;
+    use axiomatik_web::trust::utils::TrustError;
 
     #[test]
     fn test_article_build_from_template() -> Result<(), TrustError> {

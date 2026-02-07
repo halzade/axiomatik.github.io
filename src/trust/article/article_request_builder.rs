@@ -1,14 +1,12 @@
 use crate::data::library::safe_article_file_name;
 use crate::db::database_article_data::Article;
+use crate::trust::data::media_data::{BOUNDARY, PNG};
 use crate::trust::me::TrustError;
 use crate::trust::response_verifier::ResponseVerifier;
-use crate::trust::script_base_data::PNG;
 use chrono::Utc;
 use std::io::{Error, Write};
 use surrealdb_types::Uuid;
 use thiserror::Error;
-
-pub const BOUNDARY: &str = "---------------------------123456789012345678901234567";
 
 #[derive(Default)]
 pub struct ArticleBuilder {

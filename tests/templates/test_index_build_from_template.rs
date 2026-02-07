@@ -5,7 +5,7 @@ mod tests {
         IndexTemplate, MainArticleData, TopArticleData,
     };
     use axiomatik_web::db::database_article_data::ShortArticleData;
-    use axiomatik_web::trust::script_base::TrustError;
+    use axiomatik_web::trust::utils::TrustError;
 
     #[test]
     fn test_index_build_from_template() -> Result<(), TrustError> {

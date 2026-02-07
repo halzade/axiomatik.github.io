@@ -147,7 +147,7 @@ impl ApplicationRouter {
         let auth_layer = AuthManagerLayerBuilder::new(Backend { db_user: self.state.dbu.clone() }, session_layer).build();
 
         /*
-         * Protected routes
+         * protected routes
          */
         let protected_routes = Router::new()
             .route("/form", get(form_article_create::show_article_create_form))
@@ -162,16 +162,15 @@ impl ApplicationRouter {
             .layer(middleware::from_fn(auth_middleware));
 
         /*
-         * Unprotected routes
+         * unprotected routes
          */
-
         let ret = Router::new()
             .route("/login",
                 get(form_login::show_login)
                .post(form_login::handle_login),
             )
             .route("/ping", get("ping success"))
-            // serve static files
+            // protected routes
             .merge(protected_routes)
             // everything already served, user requested for non-existent content
             .fallback(show_404)

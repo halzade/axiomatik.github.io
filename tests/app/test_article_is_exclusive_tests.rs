@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::trust::article_builder::ArticleBuilder;
-    use axiomatik_web::trust::script_base;
-    use axiomatik_web::trust::script_base::{content_type_with_boundary, TrustError};
-    use axiomatik_web::trust::script_base_data::PNG;
+    use axiomatik_web::trust::utils;
+    use axiomatik_web::trust::utils::{content_type_with_boundary, TrustError};
+    use axiomatik_web::trust::media_data::PNG;
     use axum::body::to_bytes;
     use axum::http::{header, StatusCode};
     use axum_core::extract::Request;
@@ -12,11 +12,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_exclusive_main_article_finance() -> Result<(), TrustError> {
-        script_base::setup_before_tests_once().await;
+        utils::setup_before_tests_once().await;
 
-        let cookie = script_base::setup_user_and_login("user2").await;
+        let cookie = utils::setup_user_and_login("user2").await;
 
-        let image_data = script_base::get_test_image_data();
+        let image_data = utils::get_test_image_data();
         let body = ArticleBuilder::new()
             .title("Test Financni Trhy v Šoku")
             .author("Financni Expert")
@@ -30,7 +30,7 @@ mod tests {
             .build()
             .unwrap();
 
-        let response_create = script_base::one_shot(
+        let response_create = utils::one_shot(
             Request::builder()
                 .method("POST")
                 .uri("/create")
@@ -42,7 +42,7 @@ mod tests {
 
         assert_eq!(response_create.status(), StatusCode::SEE_OTHER);
 
-        let response_index = script_base::one_shot(
+        let response_index = utils::one_shot(
             http::Request::builder()
                 .method("GET")
                 .uri("/index.html")
