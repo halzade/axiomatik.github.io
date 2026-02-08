@@ -63,7 +63,7 @@ pub fn validate_required_text(input: &str) -> Result<(), TextValidationError> {
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
-            if !(val >= 32 && val <= 126) {
+            if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
                 return Err(InvalidCharacter);
             }
         }
@@ -149,8 +149,8 @@ mod tests {
         assert!(validate_required_text("").is_err());
         assert!(validate_required_text("Hello World").is_ok());
         assert!(validate_required_text("Příliš žluťoučký kůň").is_ok()); // Non-ASCII UTF-8 is allowed
-        assert!(validate_required_text("Hello\nWorld").is_err()); // Newline is NOT allowed in validate_required_text
-        assert!(validate_required_text("Hello\tWorld").is_err()); // Tab is NOT allowed in validate_required_text
+        assert!(validate_required_text("Hello\nWorld").is_ok());
+        assert!(validate_required_text("Hello\tWorld").is_ok());
     }
 
     #[test]

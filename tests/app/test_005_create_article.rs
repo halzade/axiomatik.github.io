@@ -30,21 +30,21 @@ mod tests {
             .title("Test Article")
             .author("Test Author")
             .category("republika")
-            .text("This is a test article text.")
+            .text("This is a test article text.\n\nMore text.")
             .short_text("Short text.")
             .image_any_png()?
             .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)
                 .header_location("test-article.html")
-                .verify()?;
+                .verify().await?;
 
         trust::me::path_exists("web/test-article.html");
 
         // Request the article
         #[rustfmt::skip]
-        web.get_url("/test-article.html").await?
+        ac.web().get_url("/test-article.html").await?
             .must_see_response(StatusCode::OK)
-            .verify();
+            .verify().await?;
 
         // Cleanup
         trust::me::remove_file("web/test-article.html")?;

@@ -60,11 +60,15 @@ impl ResponseVerifier {
         }
 
         // body
+        let real_body = crate::trust::data::utils::response_to_body(self.response).await;
         if let Some(exp) = &self.expected.body {
-            let real = crate::trust::data::utils::response_to_body(self.response).await;
-            if !real.contains(exp) {
-                errors.push(error("body", exp.clone(), &real));
+            if !real_body.contains(exp) {
+                errors.push(error("body", exp.clone(), &real_body));
             }
+        }
+
+        if !errors.is_empty() {
+             tracing::error!("Real body: {}", real_body);
         }
 
         // location

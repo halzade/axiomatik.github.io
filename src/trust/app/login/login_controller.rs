@@ -51,7 +51,8 @@ impl LoginController {
 
         let cookie = login_response.headers().get(SET_COOKIE).cloned();
         if let Some(c) = cookie {
-            *self.user_cookie.write() = Some(c.to_str()?.to_string());
+            let s = c.to_str()?.to_string();
+            *self.user_cookie.write() = Some(s);
         }
 
         Ok(ResponseVerifier::new(login_response))

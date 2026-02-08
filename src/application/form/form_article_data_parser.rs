@@ -161,6 +161,11 @@ pub async fn article_data(
                 (audio_data, audio_data_ext) = extract_audio_data(field).await?;
                 has_audio = true;
             }
+            "mini_text" => {
+                // TODO
+                // not used yet
+                let _ = extract_required_text(field).await?;
+            }
             _ => Err(ArticleCreateError::UnknownField(field_name))?,
         }
     }

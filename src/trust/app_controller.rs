@@ -74,6 +74,7 @@ impl AppController {
     }
 
     pub fn create_article(&self) -> Arc<CreateArticleController> {
+        self.article.set_cookie(self.login.get_cookie());
         self.article.clone()
     }
 
@@ -110,10 +111,22 @@ impl AppController {
 mod tests {
     use super::*;
     use crate::db::database_user::Role::Editor;
+    use axum::http::StatusCode;
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
+
+        // create user and login
+        ac.db_user().setup_user()
+            .username("editor")
+            .password("password")
+            .execute().await?;
+
+        ac.login()
+            .username("editor")
+            .password("password")
+            .execute().await?;
 
         /*
          * post Article to router
@@ -121,8 +134,12 @@ mod tests {
         #[rustfmt::skip]
         ac.create_article()
             .title("Title 1")
+            .author("Editor")
+            .category("republika")
             .text("text")
-            .execute()?;
+            .execute().await?
+            .must_see_response(StatusCode::SEE_OTHER)
+            .verify().await?;
 
         /*
          * verify Article in the database
