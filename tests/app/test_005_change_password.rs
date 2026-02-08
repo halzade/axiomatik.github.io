@@ -18,7 +18,7 @@ mod tests {
 
         // Login as user1
         #[rustfmt::skip]
-        ac.login()
+        let auth = ac.login()
             .username("user1")
             .password("pass1234")
             .execute().await?
@@ -27,7 +27,7 @@ mod tests {
                 .verify().await?;
 
         #[rustfmt::skip]
-        ac.change_password()
+        ac.change_password(auth)
             .new_password("new_password_123")
             .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)

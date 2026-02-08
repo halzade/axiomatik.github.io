@@ -78,11 +78,13 @@ impl AppController {
         })
     }
 
-    pub fn create_article(&self) -> Arc<CreateArticleController> {
+    pub fn create_article(&self, auth: &str) -> Arc<CreateArticleController> {
+        self.article.set_cookie(Some(auth.to_string()));
         self.article.clone()
     }
 
-    pub fn change_password(&self) -> Arc<ChangePasswordController> {
+    pub fn change_password(&self, auth: String) -> Arc<ChangePasswordController> {
+        self.change_password.set_cookie(Some(auth));
         self.change_password.clone()
     }
 
@@ -124,13 +126,14 @@ mod tests {
         // create user and login
         ac.db_user().setup_user().username("editor").password("password").execute().await?;
 
-        ac.login().username("editor").password("password").execute().await?;
+        let auth = ac.login().username("editor").password("password").execute().await?
+            .verify().await?;
 
         /*
          * post Article to router
          */
         #[rustfmt::skip]
-        ac.create_article()
+        ac.create_article(&auth)
             .title("Title 1")
             .author("Editor")
             .category("republika")

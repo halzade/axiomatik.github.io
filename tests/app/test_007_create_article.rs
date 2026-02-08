@@ -18,7 +18,7 @@ mod tests {
             .execute().await?;
         
         #[rustfmt::skip]
-        ac.login()
+        let auth = ac.login()
             .username("user6")
             .password("password")
             .execute().await?
@@ -26,7 +26,7 @@ mod tests {
                 .verify().await?;
 
         #[rustfmt::skip]
-        ac.create_article()
+        ac.create_article(&auth)
             .title("Test Article")
             .author("Test Author")
             .category("republika")

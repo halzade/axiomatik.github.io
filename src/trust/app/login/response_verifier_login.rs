@@ -24,9 +24,11 @@ impl LoginResponseVerifier {
     pub fn new(response: Response) -> Result<Self, TrustError> {
         let headers = response.headers().clone();
 
-        let login_cookie_hv =
-            headers.get(SET_COOKIE).cloned().ok_or_else(|| TrustError::NoCookie)?;
-        let login_cookie = login_cookie_hv.to_str()?.to_string();
+        let login_cookie = headers
+            .get(SET_COOKIE)
+            .and_then(|hv| hv.to_str().ok())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| "no cookie".to_string());
 
         Ok(LoginResponseVerifier {
             headers,
