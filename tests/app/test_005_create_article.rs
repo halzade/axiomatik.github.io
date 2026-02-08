@@ -3,31 +3,40 @@ mod tests {
     use axiomatik_web::trust;
     use axiomatik_web::trust::me::TrustError;
     use axum::http::StatusCode;
+    use axiomatik_web::trust::app_controller::AppController;
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {
         // setup
-        let server = trust::me::init().await?;
-        let app = server.nexo_app()?;
-        let web = server.nexo_web()?;
-        let surreal = server.surreal()?;
-
+        let ac = AppController::new().await?;
+        
         // create user and login
-        surreal.db_setup_user("user6").await?;
-        app.post_login("user6").await?;
+        #[rustfmt::skip]
+        ac.db_user().setup_user()
+            .username("user6")
+            .password("password")
+            .execute().await?;
+        
+        #[rustfmt::skip]
+        ac.login()
+            .username("user6")
+            .password("password")
+            .execute().await?
+                .must_see_response(StatusCode::SEE_OTHER)
+                .verify().await?;
 
         #[rustfmt::skip]
-        app.post_create_article()
+        ac.create_article()
             .title("Test Article")
             .author("Test Author")
             .category("republika")
             .text("This is a test article text.")
             .short_text("Short text.")
             .image_any_png()?
-            .execute()?
-            .must_see_response(StatusCode::SEE_OTHER)
+            .execute().await?
+                .must_see_response(StatusCode::SEE_OTHER)
                 .header_location("test-article.html")
-                .verify();
+                .verify()?;
 
         trust::me::path_exists("web/test-article.html");
 

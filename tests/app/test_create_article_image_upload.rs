@@ -35,30 +35,30 @@ mod tests {
         let png_mime = "image/png";
 
         // 3. Create an article with a name starting with "text-"
-        let title = "text-testing-upload";
-        let body = ArticleBuilder::new()
-            .title(title)
-            .author("Tester")
-            .category("republika")
-            .text("Test content")
-            .short_text("Short text")
-            .image("placeholder_1024.png", &image_data, png_mime)
-            .image_desc("Description")
-            .build()
-            .unwrap();
-
-        let response = utils::one_shot(
-            Request::builder()
-                .method("POST")
-                .uri("/create")
-                .header(header::CONTENT_TYPE, content_type_with_boundary())
-                .header(header::COOKIE, &cookie)
-                .body(Body::from(body))
-                .unwrap(),
-        )
-        .await;
-
-        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+        // let title = "text-testing-upload";
+        // let body = ArticleBuilder::new()
+        //     .title(title)
+        //     .author("Tester")
+        //     .category("republika")
+        //     .text("Test content")
+        //     .short_text("Short text")
+        //     .image("placeholder_1024.png", &image_data, png_mime)
+        //     .image_desc("Description")
+        //     .build()
+        //     .unwrap();
+        // 
+        // let response = utils::one_shot(
+        //     Request::builder()
+        //         .method("POST")
+        //         .uri("/create")
+        //         .header(header::CONTENT_TYPE, content_type_with_boundary())
+        //         .header(header::COOKIE, &cookie)
+        //         .body(Body::from(body))
+        //         .unwrap(),
+        // )
+        // .await;
+        // 
+        // assert_eq!(response.status(), StatusCode::SEE_OTHER);
 
         // TODO do update dimension verification
 

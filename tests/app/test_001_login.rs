@@ -14,8 +14,7 @@ mod tests {
         ac.db_user().setup_user()
             .username("admin1")
             .password("password123")
-            .execute()
-            .await?;
+            .execute().await?;
 
         //  login
         #[rustfmt::skip]
