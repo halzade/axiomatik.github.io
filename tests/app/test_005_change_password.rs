@@ -26,7 +26,7 @@ mod tests {
             .execute().await?
             .must_see_response(StatusCode::SEE_OTHER)
             .header_location("/change-password")
-            .verify()?;
+            .verify().await?;
 
         let cookie1 = ac.login().get_cookie().unwrap();
 

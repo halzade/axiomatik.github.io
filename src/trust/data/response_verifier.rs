@@ -9,6 +9,7 @@ pub struct ResponseExpected {
     pub status: Option<StatusCode>,
     pub location: Option<String>,
     pub cookies: Vec<Vec<String>>,
+    pub body: Option<String>,
 }
 
 pub struct ResponseVerifier {
@@ -42,14 +43,27 @@ impl ResponseVerifier {
         self
     }
 
-    pub fn verify(self) -> Result<(), TrustError> {
+    pub fn body(mut self, text: &str) -> Self {
+        self.expected.body = Some(text.to_string());
+        self
+    }
+
+    pub async fn verify(self) -> Result<(), TrustError> {
         let mut errors: Vec<String> = Vec::new();
 
         // status
+        let real_status = self.response.status();
         if let Some(exp) = self.expected.status {
-            let real = self.response.status();
-            if exp != real {
-                errors.push(error("status", exp.to_string(), real.as_str()));
+            if exp != real_status {
+                errors.push(error("status", exp.to_string(), real_status.as_str()));
+            }
+        }
+
+        // body
+        if let Some(exp) = &self.expected.body {
+            let real = crate::trust::data::utils::response_to_body(self.response).await;
+            if !real.contains(exp) {
+                errors.push(error("body", exp.clone(), &real));
             }
         }
 

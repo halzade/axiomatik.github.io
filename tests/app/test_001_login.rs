@@ -26,7 +26,7 @@ mod tests {
             .must_see_response(StatusCode::SEE_OTHER)
                 .header_location("/change-password")
                 .header_cookie(&["HttpOnly", "Secure", "SameSite=Strict", "Path=/"])
-                .verify()?;
+                .verify().await?;
 
         Ok(())
     }

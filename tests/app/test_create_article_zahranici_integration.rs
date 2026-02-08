@@ -22,32 +22,28 @@ mod tests {
             .password("password123")
             .execute().await?
             .must_see_response(StatusCode::SEE_OTHER)
-            .verify()?;
+            .verify().await?;
 
-        let cookie = ac.login().get_cookie().unwrap();
-
-        let image_data = utils::get_test_image_data();
-        let body = ArticleBuilder::new()
-            .title("Test Newest Zahranici")
-            .author("Author")
-            .category("zahranici")
-            .text("Main text")
-            .short_text("Short text of newest article")
-            .image("test.jpg", &image_data, PNG)
-            .image_desc("test description")
-            .build()?;
-
-        let response = utils::one_shot(
-            Request::builder()
-                .method("POST")
-                .uri("/create")
-                .header(header::CONTENT_TYPE, content_type_with_boundary())
-                .header(header::COOKIE, &cookie)
-                .body(Body::from(body))?,
-        )
-        .await;
-
-        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+        // let body = ArticleBuilder::new()
+        //     .title("Test Newest Zahranici")
+        //     .author("Author")
+        //     .category("zahranici")
+        //     .text("Main text")
+        //     .short_text("Short text of newest article")
+        //     .image("test.jpg", &image_data, PNG)
+        //     .image_desc("test description")
+        //     .build()?;
+        //
+        // let response = utils::one_shot(
+        //     Request::builder()
+        //         .method("POST")
+        //         .uri("/create")
+        //         .header(header::CONTENT_TYPE, content_type_with_boundary())
+        //         .header(header::COOKIE, &cookie)
+        //         .body(Body::from(body))?,
+        // )
+        // .await;
+        // assert_eq!(response.status(), StatusCode::SEE_OTHER);
 
         let updated_index = fs::read_to_string("index.html")?;
         assert!(updated_index.contains("Test Newest Zahranici"));

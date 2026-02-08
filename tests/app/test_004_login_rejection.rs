@@ -14,7 +14,7 @@ mod tests {
             .password("anything")
             .execute().await?
             .must_see_response(StatusCode::BAD_REQUEST)
-            .verify()?;
+            .verify().await?;
 
         Ok(())
     }

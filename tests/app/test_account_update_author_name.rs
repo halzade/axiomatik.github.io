@@ -24,7 +24,7 @@ mod tests {
             .password("password123")
             .execute().await?
             .must_see_response(StatusCode::SEE_OTHER)
-            .verify()?;
+            .verify().await?;
 
         let cookie = ac.login().get_cookie().unwrap();
 
