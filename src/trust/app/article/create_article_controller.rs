@@ -98,19 +98,24 @@ impl CreateArticleController {
         let body = self.build_multipart_body(data);
         let cookie = self.user_cookie.read().clone().unwrap_or_default();
 
-        let request = Request::builder()
-            .method("POST")
-            .uri("/create")
-            .header(header::CONTENT_TYPE, content_type_with_boundary())
-            .header(header::COOKIE, cookie)
-            .body(Body::from(body))?;
-
         let response = self
             .app_router
             .as_ref()
             .clone()
-            .oneshot(request)
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/create")
+                    .header(header::CONTENT_TYPE, content_type_with_boundary())
+                    .header(header::COOKIE, cookie)
+                    .body(Body::from(body))?,
+            )
             .await?;
+
+        // Clear input after execution if successful
+        if response.status().is_success() || response.status().is_redirection() {
+            *self.input.data.write() = ArticleData::new();
+        }
 
         Ok(ResponseVerifier::new(response))
     }
@@ -159,9 +164,8 @@ impl CreateArticleController {
     fn add_field(&self, body: &mut Vec<u8>, name: &str, value: &str) {
         body.extend_from_slice(format!("--{}\r\n", BOUNDARY).as_bytes());
         body.extend_from_slice(
-            format!("Content-Disposition: form-data; name=\"{}\"\r\n", name).as_bytes(),
+            format!("Content-Disposition: form-data; name=\"{}\"\r\n\r\n", name).as_bytes(),
         );
-        body.extend_from_slice(b"Content-Type: text/plain\r\n\r\n");
         body.extend_from_slice(format!("{}\r\n", value).as_bytes());
     }
 
