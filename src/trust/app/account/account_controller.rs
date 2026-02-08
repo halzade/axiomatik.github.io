@@ -4,6 +4,7 @@ use axum::Router;
 use http::{header, Request};
 use std::sync::Arc;
 use tower::ServiceExt;
+use tracing::log::debug;
 
 #[derive(Debug, Clone)]
 pub struct AccountController {
@@ -23,6 +24,8 @@ impl AccountController {
     }
 
     pub async fn get(&self, auth_cookie: String) -> Result<ResponseVerifier, TrustError> {
+
+        debug!("get account page");
         let response = (*self.app_router)
             .clone()
             .oneshot(
@@ -33,7 +36,7 @@ impl AccountController {
                     .body(axum::body::Body::empty())?,
             )
             .await?;
-
+        debug!("get account page done");
         Ok(ResponseVerifier::new(response))
     }
 }

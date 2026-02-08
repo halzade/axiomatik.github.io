@@ -36,12 +36,11 @@ mod tests {
         ac.account().get(auth).await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
+        info!("........access account page done");
 
-        // assert_eq!(response_account.status(), StatusCode::OK);
-        // let body_account = response_to_body(response_account).await;
         // assert!(body_account.contains("user8"));
         // assert!(body_account.contains("Moje články"));
-        //
+        
         // // Update author name
         // let update_params = [("author_name", "Updated Author")];
         // let response_update_author = utils::one_shot(
