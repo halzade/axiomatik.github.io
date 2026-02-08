@@ -29,5 +29,5 @@ pub mod templates {
 }
 pub mod web {
     pub mod test_001_fallback_404;
-    pub mod test_serve_static_content;
+    pub mod test_002_serve_static_content;
 }

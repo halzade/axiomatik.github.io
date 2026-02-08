@@ -6,23 +6,34 @@ use http::{HeaderMap, StatusCode};
 use tracing::error as log_error;
 
 #[derive(Default)]
-pub struct ResponseExpected {
+pub struct LoginResponseExpected {
     pub status: Option<StatusCode>,
     pub location: Option<String>,
     pub cookies: Vec<Vec<String>>,
     pub body: Option<String>,
 }
 
-pub struct ResponseVerifier {
+pub struct LoginResponseVerifier {
     pub headers: HeaderMap,
     pub response: Response,
-    pub expected: ResponseExpected,
+    pub expected: LoginResponseExpected,
+    pub login_cookie: String,
 }
 
-impl ResponseVerifier {
-    pub fn new(response: Response) -> Self {
+impl LoginResponseVerifier {
+    pub fn new(response: Response) -> Result<Self, TrustError> {
         let headers = response.headers().clone();
-        Self { headers, response, expected: ResponseExpected::default() }
+
+        let login_cookie_hv =
+            headers.get(SET_COOKIE).cloned().ok_or_else(|| TrustError::NoCookie)?;
+        let login_cookie = login_cookie_hv.to_str()?.to_string();
+
+        Ok(LoginResponseVerifier {
+            headers,
+            response,
+            expected: LoginResponseExpected::default(),
+            login_cookie,
+        })
     }
 
     pub fn header_location(mut self, location: &str) -> Self {
@@ -45,7 +56,7 @@ impl ResponseVerifier {
         self
     }
 
-    pub async fn verify(self) -> Result<(), TrustError> {
+    pub async fn verify(self) -> Result<String, TrustError> {
         let mut errors: Vec<String> = Vec::new();
 
         // status
@@ -103,7 +114,7 @@ impl ResponseVerifier {
         }
 
         if errors.is_empty() {
-            Ok(())
+            Ok(self.login_cookie.clone())
         } else {
             for e in &errors {
                 log_error!("{}", e);

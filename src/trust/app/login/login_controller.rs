@@ -1,24 +1,23 @@
 use crate::trust::app::login::login_data::LoginFluent;
-use crate::trust::data::response_verifier::ResponseVerifier;
+use crate::trust::app::login::response_verifier_login::LoginResponseVerifier;
 use crate::trust::me::TrustError;
 use axum::body::Body;
 use axum::Router;
-use header::{CONTENT_TYPE, SET_COOKIE};
+use header::CONTENT_TYPE;
 use http::{header, Request};
-use parking_lot::RwLock;
 use std::sync::Arc;
 use tower::ServiceExt;
+use tracing::debug;
 
 #[derive(Debug)]
 pub struct LoginController {
     app_router: Arc<Router>,
     input: LoginFluent,
-    user_cookie: RwLock<Option<String>>,
 }
 
 impl LoginController {
     pub fn new(app_router: Arc<Router>) -> Self {
-        Self { app_router, input: LoginFluent::new(), user_cookie: RwLock::new(None) }
+        Self { app_router, input: LoginFluent::new() }
     }
 
     pub fn username(&self, username: &str) -> &Self {
@@ -31,7 +30,7 @@ impl LoginController {
         self
     }
 
-    pub async fn execute(&self) -> Result<ResponseVerifier, TrustError> {
+    pub async fn execute(&self) -> Result<LoginResponseVerifier, TrustError> {
         let data = self.input.get_data();
         let username = data.username.unwrap_or_default();
         let password = data.password.unwrap_or_default();
@@ -49,16 +48,8 @@ impl LoginController {
             )
             .await?;
 
-        let cookie = login_response.headers().get(SET_COOKIE).cloned();
-        if let Some(c) = cookie {
-            let s = c.to_str()?.to_string();
-            *self.user_cookie.write() = Some(s);
-        }
+        debug!("login done");
 
-        Ok(ResponseVerifier::new(login_response))
-    }
-
-    pub fn get_cookie(&self) -> Option<String> {
-        self.user_cookie.read().clone()
+        Ok(LoginResponseVerifier::new(login_response)?)
     }
 }

@@ -112,12 +112,9 @@ impl WebRouter {
     }
 
     /**
-     * serve all static files for web
-     * 1. HTML file requests
+     * serve HTML file requests
      * - serve a static HTML file if valid
      * - rebuild the HTML file if invalid
-     * 2. image, video, CSS, js requests
-     * - serve static files
      */
     pub async fn serve_static_content(
         state: State<TheState>,

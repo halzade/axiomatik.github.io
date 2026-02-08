@@ -98,18 +98,15 @@ pub mod system {
  */
 pub mod trust {
     pub mod app {
+        pub mod account {
+            pub mod account_controller;
+            pub mod account_data;
+        }
         pub mod article {
             pub mod create_article_controller;
             pub mod create_article_data;
             pub mod create_article_easy_builder;
             pub mod create_article_request_builder;
-        }
-        pub mod user {
-            pub mod user_data;
-        }
-        pub mod account {
-            pub mod account_controller;
-            pub mod account_data;
         }
         pub mod change_password {
             pub mod change_password_controller;
@@ -118,6 +115,10 @@ pub mod trust {
         pub mod login {
             pub mod login_controller;
             pub mod login_data;
+            pub mod response_verifier_login;
+        }
+        pub mod user {
+            pub mod user_data;
         }
     }
     pub mod app_controller;

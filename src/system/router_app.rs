@@ -36,6 +36,7 @@ use thiserror::Error;
 use tower_sessions::cookie::SameSite::Strict;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 use tracing::{info, warn};
+use tracing::log::debug;
 
 pub type AuthSession = axum_login::AuthSession<Backend>;
 
@@ -183,6 +184,7 @@ impl ApplicationRouter {
 }
 
 async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Next) -> Response {
+    debug!("auth_middleware");
     match auth_session.user {
         Some(user) => {
             // change password

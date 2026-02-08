@@ -25,8 +25,6 @@ mod tests {
             .must_see_response(StatusCode::SEE_OTHER)
             .verify().await?;
 
-        let cookie = ac.login().get_cookie().unwrap();
-
         // Access account page
         // let response_account = utils::one_shot(
         //     Request::builder()

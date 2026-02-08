@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod tests {
-    use axiomatik_web::db::database_user;
     use axiomatik_web::trust::app_controller::AppController;
-    use axiomatik_web::trust::data::utils::{response_to_body, serialize};
     use axiomatik_web::trust::me::TrustError;
-    use axum::http::{header, Request, StatusCode};
-    use reqwest::Body;
+    use axum::http::StatusCode;
+    use tracing::info;
 
     #[tokio::test]
     async fn test_account_page() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
+
+        info!("create user");
 
         // Create user
         #[rustfmt::skip]
@@ -18,25 +18,24 @@ mod tests {
             .password("password123")
             .execute().await?;
 
+        info!("login");
+
         #[rustfmt::skip]
-        ac.login()
+        let auth = ac.login()
             .username("user8")
             .password("password123")
             .execute().await?
-            .must_see_response(StatusCode::SEE_OTHER)
+                .must_see_response(StatusCode::SEE_OTHER)
+                .verify().await?;
+
+        info!(auth);
+        info!("........access account page");
+
+        // can access the account page
+        #[rustfmt::skip]
+        ac.account().get(auth).await?
+            .must_see_response(StatusCode::OK)
             .verify().await?;
-
-        let cookie = ac.login().get_cookie().unwrap();
-
-        // Access account page
-        // let response_account = utils::one_shot(
-        //     Request::builder()
-        //         .method("GET")
-        //         .uri("/account")
-        //         .header(header::COOKIE, &cookie)
-        //         .body(Body::default())?,
-        // )
-        // .await;
 
         // assert_eq!(response_account.status(), StatusCode::OK);
         // let body_account = response_to_body(response_account).await;

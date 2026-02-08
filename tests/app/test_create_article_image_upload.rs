@@ -27,8 +27,6 @@ mod tests {
             .must_see_response(StatusCode::SEE_OTHER)
             .verify().await?;
 
-        let cookie = ac.login().get_cookie().unwrap();
-
         // 2. Read placeholder image
         let image_data =
             fs::read("web/images/placeholder_1024.png").expect("Failed to read placeholder image");

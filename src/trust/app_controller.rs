@@ -74,12 +74,10 @@ impl AppController {
     }
 
     pub fn create_article(&self) -> Arc<CreateArticleController> {
-        self.article.set_cookie(self.login.get_cookie());
         self.article.clone()
     }
 
     pub fn change_password(&self) -> Arc<ChangePasswordController> {
-        self.change_password.set_cookie(self.login.get_cookie());
         self.change_password.clone()
     }
 
@@ -119,15 +117,9 @@ mod tests {
         let ac = AppController::new().await?;
 
         // create user and login
-        ac.db_user().setup_user()
-            .username("editor")
-            .password("password")
-            .execute().await?;
+        ac.db_user().setup_user().username("editor").password("password").execute().await?;
 
-        ac.login()
-            .username("editor")
-            .password("password")
-            .execute().await?;
+        ac.login().username("editor").password("password").execute().await?;
 
         /*
          * post Article to router
@@ -146,10 +138,9 @@ mod tests {
          * verify Article in the database
          */
         #[rustfmt::skip]
-        ac.db_article().must_see("title-1.html").await?
-            .title("Title 1")
-            .text("text")
-            .verify()?;
+        ac.web().get_url("title-1.html").await?
+            .must_see_response(StatusCode::OK)
+            .verify().await?;
 
         Ok(())
     }

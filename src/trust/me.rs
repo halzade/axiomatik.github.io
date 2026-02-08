@@ -66,6 +66,9 @@ pub enum TrustError {
 
     #[error("validation error: {0}")]
     Validation(String),
+
+    #[error("login did not give cookie")]
+    NoCookie,
 }
 
 pub fn path_exists(path: &str) {

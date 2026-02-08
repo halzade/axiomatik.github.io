@@ -24,8 +24,6 @@ mod tests {
             .must_see_response(StatusCode::SEE_OTHER)
             .verify().await?;
 
-        let cookie = ac.login().get_cookie().unwrap();
-
         // let image_data = utils::get_test_image_data();
         // 
         // // 2. Create an article with malicious input
