@@ -3,6 +3,7 @@ mod tests {
     use axiomatik_web::trust;
     use axiomatik_web::trust::me::TrustError;
     use axum::http::StatusCode;
+    use tracing::log::debug;
     use axiomatik_web::trust::app_controller::AppController;
 
     #[tokio::test]
@@ -38,13 +39,15 @@ mod tests {
                 .header_location("test-article.html")
                 .verify().await?;
 
-        trust::me::path_exists("web/test-article.html");
+        // article not rendered yet
 
         // Request the article
         #[rustfmt::skip]
         ac.web().get_url("/test-article.html").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
+
+        trust::me::path_exists("web/test-article.html");
 
         // Cleanup
         trust::me::remove_file("web/test-article.html")?;
