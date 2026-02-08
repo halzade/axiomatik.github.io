@@ -14,6 +14,7 @@ mod tests {
         ac.db_user().setup_user()
             .username("admin1")
             .password("password123")
+            .needs_password_change(true)
             .execute().await?;
 
         //  login

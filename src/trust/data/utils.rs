@@ -4,7 +4,7 @@ use std::string::ToString;
 use url::form_urlencoded::Serializer;
 
 pub fn error(title: &str, exp: String, real: &str) -> String {
-    format!("{}: expected \"{}\", got \"{}\"", title, exp, real)
+    format!("{}: \"{}\", was \"{}\"", title, exp, real)
 }
 
 pub fn serialize(params: &[(&str, &str)]) -> String {

@@ -1,9 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use axum::http::{Request, StatusCode};
-    use reqwest::Body;
     use axiomatik_web::trust::app_controller::AppController;
     use axiomatik_web::trust::me::TrustError;
+    use axum::http::StatusCode;
 
     #[tokio::test]
     async fn test_404_fallback() -> Result<(), TrustError> {
@@ -14,7 +13,7 @@ mod tests {
             .must_see_response(StatusCode::NOT_FOUND)
             .body("404, stránka nenalezená")
             .verify().await?;
-        
+
         Ok(())
     }
 }

@@ -79,6 +79,7 @@ impl AppController {
     }
 
     pub fn change_password(&self) -> Arc<ChangePasswordController> {
+        self.change_password.set_cookie(self.login.get_cookie());
         self.change_password.clone()
     }
 

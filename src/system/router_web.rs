@@ -94,15 +94,17 @@ impl WebRouter {
          */
         let ret = Router::new()
             .route("/search", get(search::handle_search))
-            // serve static files
-            .nest_service("/web/", ServeDir::new("/web/"))
+            // serve static directories (nest service)
+            .nest_service("/css", ServeDir::new("web/css"))
+            .nest_service("/js", ServeDir::new("web/js"))
+            .nest_service("/u", ServeDir::new("web/u"))
+            // serve static files (route service)
+            .route_service("/favicon.ico", ServeFile::new("web/favicon.ico"))
             /*
              * catch web requests and maybe updat invalid HTML file
              * redirect the request to the web directory
              */
-            .route("/", get(Self::serve_static_content))
-            // everything already served, user requested for non-existent content
-            .fallback(show_404)
+            .fallback(get(Self::serve_static_content))
             .with_state(self.state.clone());
 
         info!("start_router() finished");
@@ -122,22 +124,14 @@ impl WebRouter {
         ori_uri: OriginalUri,
         request: Request<Body>,
     ) -> Result<Response, WebRouterError> {
+        // this is an HTML file request, HTML content may need refresh
+        info!("serve_static_content()");
+
         /*
          * request url
          */
         let url = ori_uri.path().to_string();
-
-        /*
-         * What kind of content is it?
-         */
-        if url.starts_with("/css/")
-            || url.starts_with("/js/")
-            || url.starts_with("/u/")
-            || url == "/favicon.ico"
-        {
-            return serve_this(url, request).await;
-        }
-        // it is an HTML file request, HTML content may need refresh
+        info!("url: {}", url);
 
         match url.as_str() {
             "/index.html" => {
@@ -221,14 +215,11 @@ impl WebRouter {
 }
 
 async fn serve_this(path: String, request: Request<Body>) -> Result<Response, WebRouterError> {
+    info!("serve_this: web/{}", path);
     Ok(ServeFile::new(format!("web/{}", path)).oneshot(request).await?.into_response())
 }
 
 async fn serve_404() -> Result<Response, WebRouterError> {
+    warn!("web router fallback");
     Ok((StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string())).into_response())
-}
-
-async fn show_404() -> impl IntoResponse {
-    warn!("router fallback");
-    (StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string()))
 }

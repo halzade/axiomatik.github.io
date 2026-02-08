@@ -210,6 +210,6 @@ async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Ne
 }
 
 async fn show_404() -> impl IntoResponse {
-    warn!("router fallback");
+    warn!("app router fallback");
     (StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string()))
 }

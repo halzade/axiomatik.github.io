@@ -1,10 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use axum::http::{header, Request};
-    use http::StatusCode;
-    use reqwest::Body;
     use axiomatik_web::trust::app_controller::AppController;
     use axiomatik_web::trust::me::TrustError;
+    use http::StatusCode;
 
     #[tokio::test]
     async fn test_change_password() -> Result<(), TrustError> {
@@ -24,29 +22,17 @@ mod tests {
             .username("user1")
             .password("pass1234")
             .execute().await?
-            .must_see_response(StatusCode::SEE_OTHER)
-            .header_location("/change-password")
-            .verify().await?;
+                .must_see_response(StatusCode::SEE_OTHER)
+                .header_location("/change-password")
+                .verify().await?;
 
-        let cookie1 = ac.login().get_cookie().unwrap();
-
-        // Change password
-        let change_params = [("new_password", "new_password_123")];
-        // let change_resp = utils::one_shot(
-        //     Request::builder()
-        //         .method("POST")
-        //         .uri("/change-password")
-        //         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        //         .header(header::COOKIE, &cookie1)
-        //         .body(Body::from(serialize(&change_params)))?,
-        // )
-        // .await;
-
-        // assert_eq!(change_resp.status(), StatusCode::SEE_OTHER);
-        // assert_eq!(
-        //     change_resp.headers().get(header::LOCATION).unwrap(),
-        //     "/account"
-        // );
+        #[rustfmt::skip]
+        ac.change_password()
+            .new_password("new_password_123")
+            .execute().await?
+                .must_see_response(StatusCode::SEE_OTHER)
+                .header_location("/account")
+                .verify().await?;
 
         // Verify change in DB
         #[rustfmt::skip]

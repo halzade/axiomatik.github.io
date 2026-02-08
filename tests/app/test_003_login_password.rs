@@ -14,8 +14,8 @@ mod tests {
             .username("admin")
             .password("passw\x7ford123")
             .execute().await?
-            .must_see_response(StatusCode::BAD_REQUEST)
-            .verify().await?;
+                .must_see_response(StatusCode::BAD_REQUEST)
+                .verify().await?;
 
         Ok(())
     }

@@ -13,8 +13,8 @@ mod tests {
             .username("admin' OR '1'='1")
             .password("anything")
             .execute().await?
-            .must_see_response(StatusCode::BAD_REQUEST)
-            .verify().await?;
+                .must_see_response(StatusCode::BAD_REQUEST)
+                .verify().await?;
 
         Ok(())
     }

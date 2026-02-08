@@ -48,7 +48,6 @@ impl DatabaseUserController {
             None => Err(TrustError::RealData),
         }
     }
-
 }
 
 impl SetupUserController {
@@ -101,11 +100,7 @@ mod tests {
     async fn test_user_verifier_pass() -> Result<(), TrustError> {
         let uc = DatabaseUserController::new_local().await?;
 
-        uc.setup_user()
-            .username("tester")
-            .password("password")
-            .execute()
-            .await?;
+        uc.setup_user().username("tester").password("password").execute().await?;
 
         #[rustfmt::skip]
         uc.must_see("tester").await?
@@ -121,11 +116,7 @@ mod tests {
     async fn test_user_verifier_fail() -> Result<(), TrustError> {
         let uc = DatabaseUserController::new_local().await?;
 
-        uc.setup_user()
-            .username("tester")
-            .password("password")
-            .execute()
-            .await?;
+        uc.setup_user().username("tester").password("password").execute().await?;
 
         #[rustfmt::skip]
         let err = uc.must_see("tester").await?

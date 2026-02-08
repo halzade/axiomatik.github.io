@@ -1,24 +1,63 @@
-use crate::trust::app::change_password::change_password_data::ChangePasswordData;
+use crate::trust::app::change_password::change_password_data::{
+    ChangePasswordData, ChangePasswordFluent,
+};
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
+use axum::body::Body;
 use axum::Router;
+use http::{header, Request};
 use std::sync::Arc;
+use tower::ServiceExt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChangePasswordController {
     app_router: Arc<Router>,
-    input: ChangePasswordData,
+    input: ChangePasswordFluent,
+    user_cookie: Arc<parking_lot::RwLock<Option<String>>>,
 }
 
 impl ChangePasswordController {
     pub fn new(app_router: Arc<Router>) -> Self {
-        Self { app_router, input: ChangePasswordData::new() }
+        Self {
+            app_router,
+            input: ChangePasswordFluent::new(),
+            user_cookie: Arc::new(parking_lot::RwLock::new(None)),
+        }
     }
 
-    // pub fn execute(self) -> Result<(ResponseVerifier), TrustError> {
-    pub fn execute(self) -> Result<(), TrustError> {
-        // TODO response
+    pub fn set_cookie(&self, cookie: Option<String>) {
+        *self.user_cookie.write() = cookie;
+    }
 
-        Ok(())
+    pub fn new_password(&self, password: &str) -> &Self {
+        self.input.new_password(password);
+        self
+    }
+
+    pub async fn execute(&self) -> Result<ResponseVerifier, TrustError> {
+        let data = self.input.get_data();
+        let new_password = data.new_password.unwrap_or_default();
+        let cookie = self.user_cookie.read().clone().unwrap_or_default();
+
+        let response = self
+            .app_router
+            .as_ref()
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/change-password")
+                    .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
+                    .header(header::COOKIE, cookie)
+                    .body(Body::from(format!("new_password={}", new_password)))?,
+            )
+            .await?;
+
+        // Clear input after execution if successful
+        if response.status().is_success() || response.status().is_redirection() {
+            *self.input.data.write() = ChangePasswordData::new();
+        }
+
+        Ok(ResponseVerifier::new(response))
     }
 }

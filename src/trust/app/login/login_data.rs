@@ -36,6 +36,9 @@ impl LoginFluent {
         self
     }
 
+    /**
+     * default false, override if needed
+     */
     pub fn needs_password_change(&self, needs: bool) -> &Self {
         let mut guard = self.data.write();
         guard.needs_password_change = needs;
