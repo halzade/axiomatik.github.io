@@ -5,6 +5,8 @@ use crate::db::database_article_data::{
 };
 use regex;
 use std::sync::Arc;
+use tracing::error;
+use tracing::log::debug;
 
 /**
  * access to a database
@@ -21,12 +23,18 @@ impl DatabaseArticle {
     }
 
     pub async fn new_from_scratch() -> Result<DatabaseArticle, SurrealError> {
-        let db = Arc::new(database::init_in_memory_db_connection().await?);
-        Ok(DatabaseArticle { surreal: db })
+        let surreal = Arc::new(database::init_in_memory_db_connection().await?);
+        
+        // if there are no articles at all, create the table
+        surreal.db.query("DEFINE TABLE article SCHEMALESS IF NOT EXISTS").await?;
+        
+        Ok(DatabaseArticle { surreal: surreal })
     }
 
     // TODO Id, file name won't work for requests, need uuid.
     pub async fn create_article(&self, article: Article) -> Result<(), SurrealError> {
+        debug!("create_article: {:?}", article);
+
         let _: Option<Article> = self.surreal.db.create("article").content(article).await?;
         Ok(())
     }
@@ -40,14 +48,16 @@ impl DatabaseArticle {
         username: &str,
         limit: u32,
     ) -> Result<Vec<AccountArticleData>, SurrealError> {
+        debug!("articles_by_username: username={}, limit={}", username, limit);
+
         let mut response = self
             .surreal
             .db
             .query(
                 "SELECT * FROM article \
-             WHERE user = $username \
-             ORDER BY date DESC \
-             LIMIT $limit",
+                    WHERE user = $username \
+                    ORDER BY date DESC \
+                    LIMIT $limit",
             )
             .bind(("username", username.to_string()))
             .bind(("limit", limit))
@@ -64,6 +74,8 @@ impl DatabaseArticle {
         &self,
         filename: &str,
     ) -> Result<Option<Article>, SurrealError> {
+        debug!("article_by_file_name: filename={}", filename);
+
         let mut response = self
             .surreal
             .db
@@ -82,6 +94,8 @@ impl DatabaseArticle {
         &self,
         related: Vec<String>,
     ) -> Result<Vec<ShortArticleData>, SurrealError> {
+        debug!("related_articles: related={:?}", related);
+
         if related.is_empty() {
             return Ok(Vec::new());
         }
@@ -90,9 +104,9 @@ impl DatabaseArticle {
             .db
             .query(
                 "SELECT article_file_name, title, short_text, image_288_path, image_desc, date \
-            FROM article \
-            WHERE article_file_name IN $related \
-            ORDER BY date DESC",
+                    FROM article \
+                    WHERE article_file_name IN $related \
+                    ORDER BY date DESC",
             )
             .bind(("related", related.to_vec()))
             .await?;
@@ -124,6 +138,8 @@ impl DatabaseArticle {
         &self,
         limit: u32,
     ) -> Result<Vec<MiniArticleData>, SurrealError> {
+        debug!("articles_most_read: limit={}", limit);
+
         let mut response = self
             .surreal
             .db
@@ -143,6 +159,8 @@ impl DatabaseArticle {
         search_words: Vec<String>,
         limit: u32,
     ) -> Result<Vec<ShortArticleData>, SurrealError> {
+        debug!("articles_by_words: search_words={:?}, limit={}", search_words, limit);
+
         if search_words.is_empty() {
             return Ok(Vec::new());
         }

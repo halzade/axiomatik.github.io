@@ -14,6 +14,7 @@ use crate::trust::me::TrustError;
 use crate::trust::web::web_controller::WebController;
 use std::sync::Arc;
 use tracing::debug;
+use crate::db::database_system::DatabaseSystem;
 
 #[derive(Debug)]
 pub struct AppController {
@@ -37,10 +38,13 @@ impl AppController {
         data_updates::new();
 
         debug!("database");
-        let db = Arc::new(database::init_in_memory_db_connection().await?);
-        let dba = Arc::new(DatabaseArticle::new(db.clone()));
-        let dbu = Arc::new(DatabaseUser::new(db.clone()));
-        let dbs = Arc::new(crate::db::database_system::DatabaseSystem::new(db.clone()));
+        let surreal = Arc::new(database::init_in_memory_db_connection().await?);
+        let dba = Arc::new(DatabaseArticle::new(surreal.clone()));
+        let dbu = Arc::new(DatabaseUser::new(surreal.clone()));
+        let dbs = Arc::new(DatabaseSystem::new(surreal.clone()));
+
+        // if there are no articles at all, create the table
+        surreal.db.query("DEFINE TABLE article SCHEMALESS IF NOT EXISTS").await?;
 
         // in memory application data
         let ds = Arc::new(data_system::new());

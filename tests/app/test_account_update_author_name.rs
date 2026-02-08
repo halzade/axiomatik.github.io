@@ -18,6 +18,8 @@ mod tests {
             .password("password123")
             .execute().await?;
 
+        info!("create user ok");
+
         info!("login");
 
         #[rustfmt::skip]
@@ -28,40 +30,25 @@ mod tests {
                 .must_see_response(StatusCode::SEE_OTHER)
                 .verify().await?;
 
-        info!(auth);
+        info!("login ok");
+
         info!("........access account page");
 
         // can access the account page
         #[rustfmt::skip]
-        ac.account().get(auth).await?
+        ac.account().get(&auth).await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
-        info!("........access account page done");
 
-        // assert!(body_account.contains("user8"));
-        // assert!(body_account.contains("Moje články"));
-        
-        // // Update author name
-        // let update_params = [("author_name", "Updated Author")];
-        // let response_update_author = utils::one_shot(
-        //     Request::builder()
-        //         .method("POST")
-        //         .uri("/account/update-author")
-        //         .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
-        //         .header(header::COOKIE, &cookie)
-        //         .body(Body::from(serialize(&update_params)))?,
-        // )
-        // .await;
+        info!("........access account page ok");
 
-        // assert_eq!(response_update_author.status(), StatusCode::SEE_OTHER);
-        // assert_eq!(
-        //     response_update_author
-        //         .headers()
-        //         .get(header::LOCATION)
-        //         .unwrap(),
-        //     "/account"
-        // );
-        // let body_account_updated = response_to_body(response_update_author).await;
+        // Update author name
+        #[rustfmt::skip]
+        ac.account().update_author_name(&auth.clone(), "Updated Author").await?
+            .must_see_response(StatusCode::SEE_OTHER)
+            .header_location("/account")
+            .verify().await?;
+
         // assert!(body_account_updated.contains("user8"));
         // assert!(body_account_updated.contains("Moje články"));
         // // Verify the updated author

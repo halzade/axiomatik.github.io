@@ -114,7 +114,10 @@ impl LoginResponseVerifier {
         }
 
         if errors.is_empty() {
-            Ok(self.login_cookie.clone())
+            // Only return the name=value part of the cookie
+            let cookie_parts: Vec<&str> = self.login_cookie.split(';').collect();
+            let cookie_main = cookie_parts[0].to_string();
+            Ok(cookie_main)
         } else {
             for e in &errors {
                 log_error!("{}", e);

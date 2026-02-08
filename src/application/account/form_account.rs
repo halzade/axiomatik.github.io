@@ -46,10 +46,19 @@ pub async fn show_account(
     State(state): State<TheState>,
     auth_session: AuthSession,
 ) -> Result<Response, AccountError> {
+    debug!("show_account()");
     match auth_session.user {
-        None => Ok(Redirect::to("/login").into_response()),
+        None => {
+            debug!("show_account: no user in session");
+            Ok(Redirect::to("/login").into_response())
+        }
         Some(user) => {
-            let account_articles = state.dba.articles_by_username(&user.username, 100).await?;
+            debug!("show_account: user={}", user.username);
+            let account_articles = state.dba.articles_by_username(&user.username, 100).await.map_err(|e| {
+                debug!("show_account: articles_by_username error: {:?}", e);
+                AccountError::AccountSurreal(e)
+            })?;
+            debug!("show_account: found {} articles", account_articles.len());
             Ok(Html(
                 AccountTemplate {
                     username: user.username,

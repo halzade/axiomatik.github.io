@@ -17,7 +17,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::signal;
-use tracing::{error, info};
+use tracing::info;
 
 #[derive(Debug, Error)]
 pub enum ApplicationError {
@@ -36,6 +36,9 @@ pub enum ApplicationError {
     #[error("server error")]
     ApplicationServerError(#[from] ServerError),
 
+    #[error("db error")]
+    ApplicationDb(#[from] surrealdb::Error),
+
     #[error("unrecognized parameter")]
     UnrecognizedParameters,
 }
@@ -50,10 +53,13 @@ async fn main() -> Result<(), ApplicationError> {
     /*
      * databases
      */
-    let db = Arc::new(database::init_db_connection().await?);
-    let dba = Arc::new(DatabaseArticle::new(db.clone()));
-    let dbu = Arc::new(DatabaseUser::new(db.clone()));
-    let dbs = Arc::new(DatabaseSystem::new(db.clone()));
+    let surreal = Arc::new(database::init_db_connection().await?);
+    let dba = Arc::new(DatabaseArticle::new(surreal.clone()));
+    let dbu = Arc::new(DatabaseUser::new(surreal.clone()));
+    let dbs = Arc::new(DatabaseSystem::new(surreal.clone()));
+
+    // if there are no articles at all, create the table
+    surreal.db.query("DEFINE TABLE article SCHEMALESS IF NOT EXISTS").await?;
 
     /*
      * in memory application data

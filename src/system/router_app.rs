@@ -140,7 +140,7 @@ impl ApplicationRouter {
         // TODO don't use default memory storage, use redis or something
         let session_layer = SessionManagerLayer::new(MemoryStore::default())
             // true only https
-            .with_secure(true)
+            .with_secure(false)
             .with_http_only(true)
             // creating articles doesn't require any clos site features
             .with_same_site(Strict);
