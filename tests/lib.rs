@@ -4,8 +4,8 @@ pub mod app {
     pub mod test_003_login_password;
     pub mod test_004_login_rejection;
     pub mod test_005_change_password;
-    pub mod test_account_update_author_name;
-    pub mod test_article_is_exclusive_tests;
+    pub mod test_006_account_update_author_name;
+    pub mod test_create_article_is_exclusive_tests;
     pub mod test_command_create_editor_user;
     pub mod test_005_create_article;
     pub mod test_create_article_account_integration;

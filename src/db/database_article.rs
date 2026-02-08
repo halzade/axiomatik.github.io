@@ -5,7 +5,6 @@ use crate::db::database_article_data::{
 };
 use regex;
 use std::sync::Arc;
-use tracing::error;
 use tracing::log::debug;
 
 /**
@@ -26,9 +25,9 @@ impl DatabaseArticle {
         let surreal = Arc::new(database::init_in_memory_db_connection().await?);
         
         // if there are no articles at all, create the table
-        surreal.db.query("DEFINE TABLE article SCHEMALESS IF NOT EXISTS").await?;
+        surreal.db.query("DEFINE TABLE article SCHEMALESS;").await?;
         
-        Ok(DatabaseArticle { surreal: surreal })
+        Ok(DatabaseArticle { surreal })
     }
 
     // TODO Id, file name won't work for requests, need uuid.

@@ -13,6 +13,7 @@ pub struct ResponseData {
     pub location: Option<String>,
     pub cookies: Vec<Vec<String>>,
     pub body: Option<String>,
+    pub body_contains: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -40,6 +41,12 @@ impl ResponseFluent {
     pub fn body(&self, text: &str) -> &Self {
         let mut guard = self.data.write();
         guard.body = Some(text.to_string());
+        self
+    }
+
+    pub fn body_contains(&self, text: &str) -> &Self {
+        let mut guard = self.data.write();
+        guard.body_contains.push(text.to_string());
         self
     }
 
@@ -86,6 +93,11 @@ impl ResponseVerifier {
         self
     }
 
+    pub fn body_contains(self, text: &str) -> Self {
+        self.expected.body_contains(text);
+        self
+    }
+
     pub async fn verify(self) -> Result<(), TrustError> {
         let mut errors: Vec<String> = Vec::new();
         let expected = self.expected.get_data();
@@ -103,6 +115,12 @@ impl ResponseVerifier {
         if let Some(exp) = &expected.body {
             if !real_body.contains(exp) {
                 errors.push(error("body", exp.clone(), &real_body));
+            }
+        }
+
+        for exp in &expected.body_contains {
+            if !real_body.contains(exp) {
+                errors.push(error("body_contains", exp.clone(), &real_body));
             }
         }
 

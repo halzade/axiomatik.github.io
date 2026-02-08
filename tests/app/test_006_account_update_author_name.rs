@@ -49,12 +49,16 @@ mod tests {
             .header_location("/account")
             .verify().await?;
 
-        // assert!(body_account_updated.contains("user8"));
-        // assert!(body_account_updated.contains("Moje články"));
-        // // Verify the updated author
-        // assert!(body_account_updated.contains("Updated Author"));
+        // request account with updated author name
+        #[rustfmt::skip]
+        ac.account().get(&auth).await?
+            .must_see_response(StatusCode::OK)
+            .body_contains("user8")
+            .body_contains("Moje články")
+            .body_contains("Updated Author")
+            .verify().await?;
 
-        // Verify update in DB
+        // verify update in DB
         #[rustfmt::skip]
         ac.db_user().must_see("user8").await?
             .author_name("Updated Author")

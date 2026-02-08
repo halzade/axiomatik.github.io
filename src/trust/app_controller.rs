@@ -1,5 +1,6 @@
 use crate::db::database;
 use crate::db::database_article::DatabaseArticle;
+use crate::db::database_system::DatabaseSystem;
 use crate::db::database_user::DatabaseUser;
 use crate::system::server::TheState;
 use crate::system::{data_system, data_updates, logger, server};
@@ -13,8 +14,8 @@ use crate::trust::db::db_user_controller::DatabaseUserController;
 use crate::trust::me::TrustError;
 use crate::trust::web::web_controller::WebController;
 use std::sync::Arc;
+use tokio::sync::OnceCell;
 use tracing::debug;
-use crate::db::database_system::DatabaseSystem;
 
 #[derive(Debug)]
 pub struct AppController {
@@ -44,7 +45,7 @@ impl AppController {
         let dbs = Arc::new(DatabaseSystem::new(surreal.clone()));
 
         // if there are no articles at all, create the table
-        surreal.db.query("DEFINE TABLE article SCHEMALESS IF NOT EXISTS").await?;
+        surreal.db.query("DEFINE TABLE article SCHEMALESS;").await?;
 
         // in memory application data
         let ds = Arc::new(data_system::new());
