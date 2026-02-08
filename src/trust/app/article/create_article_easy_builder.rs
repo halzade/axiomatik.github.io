@@ -126,10 +126,12 @@ impl ArticleBuilder {
             article_file_name: format!("{}.html", base),
 
             image_desc: self.image_desc,
-            image_50_path: format!("{}_image_50.jpg", base),
-            image_288_path: format!("{}_image_288.jpg", base),
-            image_440_path: format!("{}_image_440.jpg", base),
-            image_820_path: format!("{}_image_820.jpg", base),
+            
+            // TODO
+            image_50_path: format!("u/{}_image_50.png", base),
+            image_288_path: format!("u/{}_image_288.png", base),
+            image_440_path: format!("u/{}_image_440.png", base),
+            image_820_path: format!("u/{}_image_820.png", base),
 
             has_video: self.has_video,
             video_path: self.video_path,

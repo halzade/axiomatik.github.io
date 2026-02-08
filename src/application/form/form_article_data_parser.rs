@@ -81,6 +81,7 @@ pub async fn article_data(
     let mut base_file_name = String::new();
     let mut text_raw = String::new();
     let mut short_text_raw = String::new();
+    let mut mini_text_raw = String::new();
     let mut image_data = Vec::<u8>::new();
     let mut image_data_ext = String::new();
     let mut image_desc = String::new();
@@ -100,8 +101,8 @@ pub async fn article_data(
     while let Ok(Some(field)) = multipart.next_field().await {
 
         // TODO
-        let field_name = field.name().unwrap().to_string();
-        let content_type = field.content_type().unwrap();
+        let field_name = field.name().unwrap_or_default().to_string();
+        let content_type = field.content_type().map(|c| c.to_string()).unwrap_or_default();
 
 
         debug!("Processing: {}, type: {:?}", field_name, content_type);
@@ -162,9 +163,7 @@ pub async fn article_data(
                 has_audio = true;
             }
             "mini_text" => {
-                // TODO
-                // not used yet
-                let _ = extract_required_text(field).await?;
+                mini_text_raw = extract_required_text(field).await?;
             }
             _ => Err(ArticleCreateError::UnknownField(field_name))?,
         }
@@ -190,7 +189,7 @@ pub async fn article_data(
         base_file_name,
         has_video,
         audio_ext: audio_data_ext,
-        mini_text_raw: "".to_string(),
+        mini_text_raw,
     };
 
     Ok(ad)

@@ -1,13 +1,14 @@
 use crate::trust::app::article::create_article_data::{ArticleFluent, ArticleData};
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
+use std::io::Write;
 use axum::Router;
 use std::sync::Arc;
 use http::{header, Request};
 use axum::body::Body;
 use tower::ServiceExt;
 use crate::trust::data::utils::content_type_with_boundary;
-use crate::trust::data::media_data::{BOUNDARY, PNG};
+use crate::trust::data::media_data::BOUNDARY;
 
 #[derive(Debug, Clone)]
 pub struct CreateArticleController {
@@ -85,8 +86,8 @@ impl CreateArticleController {
     }
 
     pub fn image_any_png(&self) -> Result<&Self, TrustError> {
-        let image_data = std::fs::read("web/images/placeholder_1024.png")?;
-        self.image(image_data, PNG);
+        let image_data = std::fs::read("tests/data/image_1024.png")?;
+        self.image(image_data, "png");
         if self.input.get_data().image_desc.is_none() {
             self.image_desc("any png description");
         }
@@ -95,7 +96,7 @@ impl CreateArticleController {
 
     pub async fn execute(&self) -> Result<ResponseVerifier, TrustError> {
         let data = self.input.get_data();
-        let body = self.build_multipart_body(data);
+        let body = self.build_multipart_body(data)?;
         let cookie = self.user_cookie.read().clone().unwrap_or_default();
 
         let response = self
@@ -120,66 +121,86 @@ impl CreateArticleController {
         Ok(ResponseVerifier::new(response))
     }
 
-    fn build_multipart_body(&self, data: ArticleData) -> Vec<u8> {
+    fn build_multipart_body(&self, data: ArticleData) -> Result<Vec<u8>, TrustError> {
         let mut body = Vec::new();
 
-        self.add_field(&mut body, "title", &data.title.unwrap_or_default());
-        self.add_field(&mut body, "text", &data.text.unwrap_or_default());
-        self.add_field(&mut body, "author", &data.author.unwrap_or_default());
-        self.add_field(&mut body, "category", &data.category.unwrap_or_default());
-        self.add_field(&mut body, "short_text", &data.short_text.unwrap_or_default());
-        self.add_field(&mut body, "mini_text", &data.mini_text.unwrap_or_default());
-        self.add_field(&mut body, "image_desc", &data.image_desc.unwrap_or_default());
+        let title = data.title.clone().unwrap_or_default();
+        let author = data.author.clone().unwrap_or_default();
+        let text = data.text.clone().unwrap_or_default();
+        let category = data.category.clone().unwrap_or_default();
+        let short_text = data.short_text.clone().unwrap_or_else(|| text.clone());
+        let mini_text = data.mini_text.clone().unwrap_or_else(|| short_text.clone());
+
+        self.add_field(&mut body, "title", &title)?;
+        self.add_field(&mut body, "author", &author)?;
+        self.add_field(&mut body, "category", &category)?;
+        self.add_field(&mut body, "text", &text)?;
+        self.add_field(&mut body, "short_text", &short_text)?;
+        self.add_field(&mut body, "mini_text", &mini_text)?;
 
         if data.is_main {
-            self.add_field(&mut body, "is_main", "on");
+            self.add_field(&mut body, "is_main", "on")?;
         }
         if data.is_exclusive {
-            self.add_field(&mut body, "is_exclusive", "on");
+            self.add_field(&mut body, "is_exclusive", "on")?;
+        }
+
+        if let Some(image_desc) = data.image_desc {
+            self.add_field(&mut body, "image_desc", &image_desc)?;
         }
 
         let related = data.related_articles.join("\n");
-        self.add_field(&mut body, "related_articles", &related);
+        if !related.is_empty() {
+            self.add_field(&mut body, "related_articles", &related)?;
+        }
 
         if let Some(image_data) = data.image_data {
             let ext = data.image_ext.unwrap_or_else(|| "png".to_string());
             let mime = if ext == "jpg" || ext == "jpeg" { "image/jpeg" } else { "image/png" };
-            self.add_file(&mut body, "image", &format!("image.{}", ext), mime, &image_data);
+            self.add_file(&mut body, "image", &format!("image.{}", ext), mime, &image_data)?;
         }
 
         if let Some(audio_data) = data.audio_data {
             let ext = data.audio_ext.unwrap_or_else(|| "mp3".to_string());
-            self.add_file(&mut body, "audio", &format!("audio.{}", ext), "audio/mpeg", &audio_data);
+            self.add_file(&mut body, "audio", &format!("audio.{}", ext), "audio/mpeg", &audio_data)?;
         }
 
         if let Some(video_data) = data.video_data {
             let ext = data.video_ext.unwrap_or_else(|| "mp4".to_string());
-            self.add_file(&mut body, "video", &format!("video.{}", ext), "video/mp4", &video_data);
+            self.add_file(&mut body, "video", &format!("video.{}", ext), "video/mp4", &video_data)?;
         }
 
-        body.extend_from_slice(format!("--{}--\r\n", BOUNDARY).as_bytes());
-        body
+        write!(body, "--{}--\r\n", BOUNDARY)?;
+        Ok(body)
     }
 
-    fn add_field(&self, body: &mut Vec<u8>, name: &str, value: &str) {
-        body.extend_from_slice(format!("--{}\r\n", BOUNDARY).as_bytes());
-        body.extend_from_slice(
-            format!("Content-Disposition: form-data; name=\"{}\"\r\n\r\n", name).as_bytes(),
-        );
-        body.extend_from_slice(format!("{}\r\n", value).as_bytes());
+    // TODO ??
+    fn add_field(&self, body: &mut Vec<u8>, name: &str, value: &str) -> Result<(), TrustError> {
+        write!(
+            body,
+            "--{}\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n",
+            BOUNDARY, name, value
+        )?;
+        Ok(())
     }
 
-    fn add_file(&self, body: &mut Vec<u8>, name: &str, filename: &str, mime: &str, data: &[u8]) {
-        body.extend_from_slice(format!("--{}\r\n", BOUNDARY).as_bytes());
-        body.extend_from_slice(
-            format!(
-                "Content-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\n",
-                name, filename
-            )
-            .as_bytes(),
-        );
-        body.extend_from_slice(format!("Content-Type: {}\r\n\r\n", mime).as_bytes());
+    fn add_file(
+        &self,
+        body: &mut Vec<u8>,
+        name: &str,
+        filename: &str,
+        mime: &str,
+        data: &[u8],
+    ) -> Result<(), TrustError> {
+        write!(body, "--{}\r\n", BOUNDARY)?;
+        write!(
+            body,
+            "Content-Disposition: form-data; name=\"{}\"; filename=\"{}\"\r\n",
+            name, filename
+        )?;
+        write!(body, "Content-Type: {}\r\n\r\n", mime)?;
         body.extend_from_slice(data);
-        body.extend_from_slice(b"\r\n");
+        write!(body, "\r\n")?;
+        Ok(())
     }
 }

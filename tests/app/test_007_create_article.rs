@@ -48,11 +48,10 @@ mod tests {
 
         // Cleanup
         trust::me::remove_file("web/test-article.html")?;
-        trust::me::remove_file("web/u/test-article_image_50.jpg")?;
-        trust::me::remove_file("web/u/test-article_image_288.jpg")?;
-        trust::me::remove_file("web/u/test-article_image_440.jpg")?;
-        trust::me::remove_file("web/u/test-article_image_820.jpg")?;
-        trust::me::remove_file("web/u/test-article_audio.mp3")?;
+        trust::me::remove_file("web/u/test-article_image_50.png")?;
+        trust::me::remove_file("web/u/test-article_image_288.png")?;
+        trust::me::remove_file("web/u/test-article_image_440.png")?;
+        trust::me::remove_file("web/u/test-article_image_820.png")?;
         Ok(())
     }
 }

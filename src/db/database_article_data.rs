@@ -106,16 +106,16 @@ impl TryFrom<ArticleUpload> for Article {
 
             has_video: data.has_video,
             video_path: if data.has_video {
-                "".into()
-            } else {
                 format!("u/{}_video.{}", data.base_file_name, data.video_ext)
+            } else {
+                "".into()
             },
 
             has_audio: data.has_audio,
             audio_path: if data.has_audio {
-                "".into()
-            } else {
                 format!("u/{}_audio.{}", data.base_file_name, data.audio_ext)
+            } else {
+                "".into()
             },
 
             category: data.category,
