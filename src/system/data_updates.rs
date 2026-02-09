@@ -1,8 +1,8 @@
 use parking_lot::RwLock;
-use std::collections::HashMap;
-use thiserror::Error;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use surrealdb_types::SurrealValue;
+use thiserror::Error;
 use ArticleStatus::{DoesntExist, Invalid, Valid};
 
 #[derive(Error, Debug)]
@@ -143,9 +143,9 @@ impl DataValidHtml {
     }
 
     fn article_set(&self, file_name: &str, value: ArticleStatus) {
-        self.articles_valid
-            .write()
-            .insert(file_name.to_string(), value);
+        // TODO database
+
+        self.articles_valid.write().insert(file_name.to_string(), value);
     }
 }
 

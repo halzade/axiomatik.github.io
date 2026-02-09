@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use surrealdb_types::SurrealValue;
 use thiserror::Error;
+use tracing::warn;
 
 #[derive(Debug, Error)]
 pub enum SurrealSystemError {
@@ -117,6 +118,33 @@ impl DatabaseSystem {
         article_file_name: String,
     ) -> Result<(), SurrealSystemError> {
         self.write_article_record(article_file_name, ArticleStatus::Valid).await
+    }
+
+    pub async fn read_article_validity(
+        &self,
+        article_file_name: String,
+    ) -> Result<ArticleStatus, SurrealSystemError> {
+        let mut response = self
+            .surreal
+            .db
+            .query(
+                "SELECT status
+                 FROM article_status
+                 WHERE article_file_name = $article_file_name
+                 LIMIT 1",
+            )
+            .bind(("article_file_name", article_file_name.clone()))
+            .await?;
+
+        let mut rows: Vec<ArticleUpdateStatus> = response.take(0)?;
+
+        match rows.pop() {
+            Some(row) => Ok(row.status),
+            None => {
+                warn!("requested article not found in database: {}", article_file_name);
+                Ok(ArticleStatus::DoesntExist)
+            }
+        }
     }
 }
 
