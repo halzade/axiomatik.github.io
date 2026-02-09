@@ -176,16 +176,27 @@ mod tests {
     #[tokio::test]
     async fn test_article_status_updates() -> Result<(), TrustError> {
         let dbs = DatabaseSystem::new_from_scratch().await?;
-        let article_name = "test-article".to_string();
+        let article_name = "test-article.html".to_string();
+
+        let s = dbs.read_article_validity(article_name.clone()).await?;
+        assert_eq!(s, ArticleStatus::DoesntExist);
 
         // 1. Create a record (should be Invalid)
         dbs.create_article_record(article_name.clone()).await?;
 
+        let s = dbs.read_article_validity(article_name.clone()).await?;
+        assert_eq!(s, ArticleStatus::Invalid);
+
         // 2. Validate article (should be Valid)
         dbs.validate_article(article_name.clone()).await?;
 
+        let s = dbs.read_article_validity(article_name.clone()).await?;
+        assert_eq!(s, ArticleStatus::Valid);
+
         // 3. Invalidate article (should be Invalid)
         dbs.invalidate_article(article_name.clone()).await?;
+        let s = dbs.read_article_validity(article_name.clone()).await?;
+        assert_eq!(s, ArticleStatus::Invalid);
 
         Ok(())
     }

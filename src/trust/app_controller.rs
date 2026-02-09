@@ -46,6 +46,7 @@ impl AppController {
 
         // if there are no articles at all, create the table
         surreal.db.query("DEFINE TABLE article SCHEMALESS;").await?;
+        surreal.db.query("DEFINE TABLE article_status SCHEMALESS;").await?;
 
         // in memory application data
         let ds = Arc::new(data_system::new());
