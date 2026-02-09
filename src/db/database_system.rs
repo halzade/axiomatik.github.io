@@ -9,7 +9,6 @@ use thiserror::Error;
 use tracing::warn;
 use ArticleStatus::{Invalid, Valid};
 
-const ARTICLE_VIEWS_TABLE: &str = "article_views";
 const ARTICLE_STATUS_TABLE: &str = "article_update_status";
 
 #[derive(Debug, Error)]
@@ -75,24 +74,17 @@ impl DatabaseSystem {
             .surreal
             .db
             .query(
-                "INSERT INTO article_views {
-                    article_file_name: $article_file_name,
-                    views: 1
-                }
-                ON DUPLICATE KEY UPDATE
-                views += 1
-                RETURN views",
+                "UPSERT type::record(\"article_views\", $article_file_name) SET views += 1, article_file_name = $article_file_name RETURN views"
             )
             .bind(("article_file_name", article_file_name.clone()))
             .await?;
 
-        // TODO .take() may throw
-        let article_views: Option<ArticleViews> = response.take(0)?;
-        match article_views {
-            Some(v) => Ok(v.views),
+        let views: Option<u64> = response.take("views")?;
+        match views {
+            Some(v) => Ok(v),
             None => {
-                // TODO maybe better to return zero
-                Err(ViewsNotFound(article_file_name))
+                warn!("article not found in article_views: {}", article_file_name);
+                Ok(0)
             }
         }
     }
@@ -102,11 +94,11 @@ impl DatabaseSystem {
         article_file_name: String,
         article_status: ArticleStatus,
     ) -> Result<(), SurrealSystemError> {
-        let _: Option<ArticleStatus> = self
+        let _: Option<ArticleUpdateStatus> = self
             .surreal
             .db
-            .update((ARTICLE_STATUS_TABLE, article_file_name.clone()))
-            .content(article_status)
+            .upsert((ARTICLE_STATUS_TABLE, article_file_name.clone()))
+            .content(ArticleUpdateStatus { article_file_name, article_status })
             .await?;
         Ok(())
     }
@@ -136,14 +128,11 @@ impl DatabaseSystem {
         &self,
         article_file_name: String,
     ) -> Result<ArticleStatus, SurrealSystemError> {
-        let mut response =
+        let response: Option<ArticleUpdateStatus> =
             self.surreal.db.select((ARTICLE_STATUS_TABLE, article_file_name.clone())).await?;
 
-        let mut article_status_vec: Vec<ArticleStatus> =
-            response.take().unwrap_or(vec![DoesNotExist]);
-
-        match article_status_vec.pop() {
-            Some(article_status) => Ok(article_status),
+        match response {
+            Some(status) => Ok(status.article_status),
             None => {
                 warn!("requested article not found in database: {}", article_file_name);
                 Ok(DoesNotExist)
@@ -182,32 +171,25 @@ mod tests {
         let dbs = DatabaseSystem::new_from_scratch().await?;
         let article_name = "test-article.html".to_string();
 
-        println!("doesn't exist yet");
+        // doesn't exist yet
         let s = dbs.read_article_validity(article_name.clone()).await?;
-        assert_eq!(s, ArticleStatus::DoesNotExist);
+        assert_eq!(s, DoesNotExist);
 
-        println!("create record");
-        // 1. Create a record (should be Invalid)
+        // create record
         dbs.create_article_record(article_name.clone()).await?;
-
-        println!("check validity");
         let s = dbs.read_article_validity(article_name.clone()).await?;
         assert_eq!(s, Invalid);
 
-        println!("validate it");
-        // 2. Validate article (should be Valid)
+        // validate it
         dbs.validate_article(article_name.clone()).await?;
-
         let s = dbs.read_article_validity(article_name.clone()).await?;
         assert_eq!(s, Valid);
 
-        println!("invalidate it");
-        // 3. Invalidate article (should be Invalid)
+        // invalidate it
         dbs.invalidate_article(article_name.clone()).await?;
         let s = dbs.read_article_validity(article_name.clone()).await?;
         assert_eq!(s, Invalid);
 
-        println!("finished");
         Ok(())
     }
 }
