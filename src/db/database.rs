@@ -76,9 +76,13 @@ pub async fn init_in_memory_db_connection() -> Result<DatabaseSurreal, SurrealEr
 async fn prepare_as_if_empty(surreal: &DatabaseSurreal) -> Result<(), SurrealError> {
     surreal.db
         .query(r#"
-        DEFINE TABLE article_update_status SCHEMAFULL;
-        DEFINE FIELD article_file_name ON article_update_status TYPE string;
-        DEFINE FIELD article_status ON article_update_status TYPE string ASSERT $value INSIDE ["Valid", "Invalid", "DoesntExist"];
+        DEFINE TABLE article SCHEMALESS;
+        
+        DEFINE INDEX user ON article FIELDS user;
+        DEFINE INDEX article_file_name ON article FIELDS article_file_name UNIQUE;
+        
+        DEFINE TABLE article_update_status SCHEMALESS;
+        DEFINE INDEX article_file_name ON article_update_status FIELDS article_file_name UNIQUE;
         "#,)
         .await?;
     Ok(())

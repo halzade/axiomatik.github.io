@@ -34,6 +34,7 @@ impl DatabaseArticle {
     pub async fn create_article(&self, article: Article) -> Result<(), SurrealError> {
         debug!("create_article: {:?}", article);
 
+        // TODO use tupple ("article", "article_filename")
         let _: Option<Article> = self.surreal.db.create("article").content(article).await?;
         Ok(())
     }
@@ -74,6 +75,8 @@ impl DatabaseArticle {
         filename: &str,
     ) -> Result<Option<Article>, SurrealError> {
         debug!("article_by_file_name: filename={}", filename);
+
+        // TODO use key, .db.select(("article", "file_name")).await?;
 
         let mut response = self
             .surreal
@@ -196,8 +199,6 @@ impl DatabaseArticle {
         Ok(matching_articles)
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {

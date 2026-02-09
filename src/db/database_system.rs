@@ -1,11 +1,16 @@
 use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
+use crate::db::database_system::ArticleStatus::DoesNotExist;
 use crate::db::database_system::SurrealSystemError::ViewsNotFound;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use surrealdb_types::SurrealValue;
 use thiserror::Error;
 use tracing::warn;
+use ArticleStatus::{Invalid, Valid};
+
+const ARTICLE_VIEWS_TABLE: &str = "article_views";
+const ARTICLE_STATUS_TABLE: &str = "article_update_status";
 
 #[derive(Debug, Error)]
 pub enum SurrealSystemError {
@@ -26,6 +31,7 @@ pub struct ArticleViews {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, SurrealValue)]
+#[serde(rename_all = "lowercase")]
 pub enum ArticleStatus {
     Valid,
     Invalid,
@@ -96,10 +102,11 @@ impl DatabaseSystem {
         article_file_name: String,
         article_status: ArticleStatus,
     ) -> Result<(), SurrealSystemError> {
-        self.surreal.db
-            .query("INSERT INTO article_update_status { article_file_name: $article_file_name, article_status: article_status } ON DUPLICATE KEY UPDATE article_status = article_status")
-            .bind(("article_file_name", article_file_name.clone()))
-            .bind(("article_status", article_status))
+        let _: Option<ArticleStatus> = self
+            .surreal
+            .db
+            .update((ARTICLE_STATUS_TABLE, article_file_name.clone()))
+            .content(article_status)
             .await?;
         Ok(())
     }
@@ -108,46 +115,38 @@ impl DatabaseSystem {
         &self,
         article_file_name: String,
     ) -> Result<(), SurrealSystemError> {
-        self.write_article_record(article_file_name, ArticleStatus::Invalid).await
+        self.write_article_record(article_file_name, Invalid).await
     }
 
     pub async fn invalidate_article(
         &self,
         article_file_name: String,
     ) -> Result<(), SurrealSystemError> {
-        self.write_article_record(article_file_name, ArticleStatus::Invalid).await
+        self.write_article_record(article_file_name, Invalid).await
     }
 
     pub async fn validate_article(
         &self,
         article_file_name: String,
     ) -> Result<(), SurrealSystemError> {
-        self.write_article_record(article_file_name, ArticleStatus::Valid).await
+        self.write_article_record(article_file_name, Valid).await
     }
 
     pub async fn read_article_validity(
         &self,
         article_file_name: String,
     ) -> Result<ArticleStatus, SurrealSystemError> {
-        let mut response = self
-            .surreal
-            .db
-            .query(
-                "SELECT article_file_name, article_status
-                 FROM article_update_status
-                 WHERE article_file_name = $article_file_name
-                 LIMIT 1",
-            )
-            .bind(("article_file_name", article_file_name.clone()))
-            .await?;
+        let mut response =
+            self.surreal.db.select((ARTICLE_STATUS_TABLE, article_file_name.clone())).await?;
 
-        let mut rows: Vec<ArticleUpdateStatus> = response.take(0)?;
+        let mut article_status_vec: Vec<ArticleStatus> =
+            response.take().unwrap_or(vec![DoesNotExist]);
 
-        match rows.pop() {
-            Some(row) => Ok(row.article_status),
+        match article_status_vec.pop() {
+            Some(article_status) => Ok(article_status),
             None => {
                 warn!("requested article not found in database: {}", article_file_name);
-                Ok(ArticleStatus::DoesNotExist)
+                Ok(DoesNotExist)
             }
         }
     }
@@ -193,20 +192,20 @@ mod tests {
 
         println!("check validity");
         let s = dbs.read_article_validity(article_name.clone()).await?;
-        assert_eq!(s, ArticleStatus::Invalid);
+        assert_eq!(s, Invalid);
 
         println!("validate it");
         // 2. Validate article (should be Valid)
         dbs.validate_article(article_name.clone()).await?;
 
         let s = dbs.read_article_validity(article_name.clone()).await?;
-        assert_eq!(s, ArticleStatus::Valid);
+        assert_eq!(s, Valid);
 
         println!("invalidate it");
         // 3. Invalidate article (should be Invalid)
         dbs.invalidate_article(article_name.clone()).await?;
         let s = dbs.read_article_validity(article_name.clone()).await?;
-        assert_eq!(s, ArticleStatus::Invalid);
+        assert_eq!(s, Invalid);
 
         println!("finished");
         Ok(())

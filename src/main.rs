@@ -58,9 +58,6 @@ async fn main() -> Result<(), ApplicationError> {
     let dbu = Arc::new(DatabaseUser::new(surreal.clone()));
     let dbs = Arc::new(DatabaseSystem::new(surreal.clone()));
 
-    // if there are no articles at all, create the table
-    surreal.db.query("DEFINE TABLE article SCHEMALESS;").await?;
-
     /*
      * in memory application data
      */
