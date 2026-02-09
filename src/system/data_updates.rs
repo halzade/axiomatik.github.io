@@ -1,21 +1,14 @@
+use crate::db::database_system::ArticleStatus;
+use crate::db::database_system::ArticleStatus::{Invalid, Valid};
 use parking_lot::RwLock;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use surrealdb_types::SurrealValue;
 use thiserror::Error;
-use ArticleStatus::{DoesntExist, Invalid, Valid};
+use ArticleStatus::DoesNotExist;
 
 #[derive(Error, Debug)]
 pub enum DataUpdatesError {
     #[error("index lock")]
     Poisoned,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, SurrealValue)]
-pub enum ArticleStatus {
-    Valid,
-    Invalid,
-    DoesntExist,
 }
 
 /*
@@ -125,12 +118,12 @@ impl DataValidHtml {
     }
 
     // articles
-    // use db to check if article exists, if it does, it may be invalid
+    // use db to check if the article exists, if it does, it may be invalid
     pub fn article_valid(&self, file_name: &str) -> ArticleStatus {
         let read_guard = self.articles_valid.read();
         match read_guard.get(file_name) {
             Some(status) => *status,
-            None => DoesntExist,
+            None => DoesNotExist,
         }
     }
 
@@ -180,7 +173,7 @@ mod tests {
         let du = new();
         let name = "test_article.html";
 
-        assert_eq!(du.article_valid(name), DoesntExist);
+        assert_eq!(du.article_valid(name), DoesNotExist);
 
         // Validate
         du.article_validate(name);
@@ -212,7 +205,7 @@ mod tests {
             _ => panic!("b should be invalid"),
         }
         match du.article_valid("c") {
-            ArticleStatus::DoesntExist => (),
+            DoesNotExist => (),
             _ => panic!("c should not exist"),
         }
     }

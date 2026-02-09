@@ -1,7 +1,6 @@
 use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
 use crate::db::database_system::SurrealSystemError::ViewsNotFound;
-use crate::system::data_updates::ArticleStatus;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use surrealdb_types::SurrealValue;
@@ -26,11 +25,17 @@ pub struct ArticleViews {
     pub views: u64,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, SurrealValue)]
+pub enum ArticleStatus {
+    Valid,
+    Invalid,
+    DoesNotExist,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
-// TODO name
 pub struct ArticleUpdateStatus {
     pub article_file_name: String,
-    pub status: ArticleStatus,
+    pub article_status: ArticleStatus,
 }
 
 /**
@@ -49,8 +54,6 @@ impl DatabaseSystem {
 
     pub async fn new_from_scratch() -> Result<DatabaseSystem, SurrealError> {
         let surreal = Arc::new(database::init_in_memory_db_connection().await?);
-        surreal.db.query("DEFINE TABLE article_status SCHEMALESS;").await?;
-
         Ok(DatabaseSystem { surreal })
     }
 
@@ -94,9 +97,9 @@ impl DatabaseSystem {
         article_status: ArticleStatus,
     ) -> Result<(), SurrealSystemError> {
         self.surreal.db
-            .query("INSERT INTO article_status { article_file_name: $article_file_name, status: $status } ON DUPLICATE KEY UPDATE status = $status")
+            .query("INSERT INTO article_update_status { article_file_name: $article_file_name, article_status: article_status } ON DUPLICATE KEY UPDATE article_status = article_status")
             .bind(("article_file_name", article_file_name.clone()))
-            .bind(("status", article_status))
+            .bind(("article_status", article_status))
             .await?;
         Ok(())
     }
@@ -130,8 +133,8 @@ impl DatabaseSystem {
             .surreal
             .db
             .query(
-                "SELECT status
-                 FROM article_status
+                "SELECT article_file_name, article_status
+                 FROM article_update_status
                  WHERE article_file_name = $article_file_name
                  LIMIT 1",
             )
@@ -141,10 +144,10 @@ impl DatabaseSystem {
         let mut rows: Vec<ArticleUpdateStatus> = response.take(0)?;
 
         match rows.pop() {
-            Some(row) => Ok(row.status),
+            Some(row) => Ok(row.article_status),
             None => {
                 warn!("requested article not found in database: {}", article_file_name);
-                Ok(ArticleStatus::DoesntExist)
+                Ok(ArticleStatus::DoesNotExist)
             }
         }
     }
@@ -152,7 +155,6 @@ impl DatabaseSystem {
 
 #[cfg(test)]
 mod tests {
-    use tracing::debug;
     use super::*;
     use crate::trust::me::TrustError;
 
@@ -183,9 +185,9 @@ mod tests {
 
         println!("doesn't exist yet");
         let s = dbs.read_article_validity(article_name.clone()).await?;
-        assert_eq!(s, ArticleStatus::DoesntExist);
+        assert_eq!(s, ArticleStatus::DoesNotExist);
 
-        println!("create record exist yet");
+        println!("create record");
         // 1. Create a record (should be Invalid)
         dbs.create_article_record(article_name.clone()).await?;
 

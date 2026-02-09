@@ -59,12 +59,27 @@ impl From<Infallible> for SurrealError {
 }
 
 pub async fn init_db_connection() -> Result<DatabaseSurreal, SurrealError> {
-    Ok(DatabaseSurreal::new(DATABASE_DEV).await?)
+    let surreal = DatabaseSurreal::new(DATABASE_DEV).await?;
+    prepare_as_if_empty(&surreal).await?;
+    Ok(surreal)
 }
 
 /*
  * only for tests
  */
 pub async fn init_in_memory_db_connection() -> Result<DatabaseSurreal, SurrealError> {
-    Ok(DatabaseSurreal::new(DATABASE_TEST).await?)
+    let surreal = DatabaseSurreal::new(DATABASE_TEST).await?;
+    prepare_as_if_empty(&surreal).await?;
+    Ok(surreal)
+}
+
+async fn prepare_as_if_empty(surreal: &DatabaseSurreal) -> Result<(), SurrealError> {
+    surreal.db
+        .query(r#"
+        DEFINE TABLE article_update_status SCHEMAFULL;
+        DEFINE FIELD article_file_name ON article_update_status TYPE string;
+        DEFINE FIELD article_status ON article_update_status TYPE string ASSERT $value INSIDE ["Valid", "Invalid", "DoesntExist"];
+        "#,)
+        .await?;
+    Ok(())
 }

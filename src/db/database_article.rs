@@ -197,6 +197,8 @@ impl DatabaseArticle {
     }
 }
 
+
+
 #[cfg(test)]
 mod tests {
     use crate::db::database_article::DatabaseArticle;

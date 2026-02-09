@@ -16,7 +16,7 @@ use crate::application::veda::veda::VedaError;
 use crate::application::zahranici::zahranici;
 use crate::application::zahranici::zahranici::ZahraniciError;
 use crate::system::data_system::DataSystemError;
-use crate::system::data_updates::{ArticleStatus, DataUpdatesError};
+use crate::system::data_updates::DataUpdatesError;
 use crate::system::server::TheState;
 use axum::body::Body;
 use axum::extract::{OriginalUri, State};
@@ -30,6 +30,7 @@ use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
 use tracing::{info, warn};
+use crate::db::database_system::ArticleStatus;
 
 #[derive(Debug, Error)]
 pub enum WebRouterError {
@@ -201,7 +202,7 @@ impl WebRouter {
                         state.dv.article_validate(&url);
                         serve_this(url, request).await
                     }
-                    ArticleStatus::DoesntExist => {
+                    ArticleStatus::DoesNotExist => {
                         // requested url doesn't exist
                         serve_404().await
                     }
