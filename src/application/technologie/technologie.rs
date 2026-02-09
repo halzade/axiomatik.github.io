@@ -1,6 +1,7 @@
 use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
+use crate::db::database_article::SurrealArticleError;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 use crate::system::server::TheState;
 use askama::Template;
@@ -17,6 +18,9 @@ pub enum TechnologieError {
 
     #[error("create category database error {0}")]
     DatabaseError(#[from] SurrealError),
+
+    #[error("create category database error {0}")]
+    SurrealArticle(#[from] SurrealArticleError),
 }
 
 #[derive(Template)]

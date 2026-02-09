@@ -1,11 +1,26 @@
 use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
+use crate::db::database_article::SurrealArticleError::ArticleNotFound;
 use crate::db::database_article_data::{
     AccountArticleData, Article, MiniArticleData, ShortArticleData,
 };
 use regex;
+use std::convert::Into;
+use std::string::ToString;
 use std::sync::Arc;
+use thiserror::Error;
 use tracing::log::debug;
+
+const ARTICLE: &str = "article";
+
+#[derive(Debug, Error)]
+pub enum SurrealArticleError {
+    #[error("surreal db error: {0}")]
+    Surreal(#[from] surrealdb::Error),
+
+    #[error("article not found: {0}")]
+    ArticleNotFound(String),
+}
 
 /**
  * access to a database
@@ -23,19 +38,18 @@ impl DatabaseArticle {
 
     pub async fn new_from_scratch() -> Result<DatabaseArticle, SurrealError> {
         let surreal = Arc::new(database::init_in_memory_db_connection().await?);
-        
-        // if there are no articles at all, create the table
-        surreal.db.query("DEFINE TABLE article SCHEMALESS;").await?;
-        
         Ok(DatabaseArticle { surreal })
     }
 
     // TODO Id, file name won't work for requests, need uuid.
-    pub async fn create_article(&self, article: Article) -> Result<(), SurrealError> {
+    pub async fn create_article(&self, article: Article) -> Result<(), SurrealArticleError> {
         debug!("create_article: {:?}", article);
-
-        // TODO use tupple ("article", "article_filename")
-        let _: Option<Article> = self.surreal.db.create("article").content(article).await?;
+        let _: Option<Article> = self
+            .surreal
+            .db
+            .create((ARTICLE, article.article_file_name.clone()))
+            .content(article)
+            .await?;
         Ok(())
     }
 
@@ -47,7 +61,7 @@ impl DatabaseArticle {
         &self,
         username: &str,
         limit: u32,
-    ) -> Result<Vec<AccountArticleData>, SurrealError> {
+    ) -> Result<Vec<AccountArticleData>, SurrealArticleError> {
         debug!("articles_by_username: username={}, limit={}", username, limit);
 
         let mut response = self
@@ -69,23 +83,20 @@ impl DatabaseArticle {
     /**
      * used for
      * - rendering Article template
+     * - article must always exist if article_status is Invalid
      */
     pub async fn article_by_file_name(
         &self,
-        filename: &str,
-    ) -> Result<Option<Article>, SurrealError> {
-        debug!("article_by_file_name: filename={}", filename);
+        article_file_name: &str,
+    ) -> Result<Article, SurrealArticleError> {
+        debug!("article_by_file_name: article_file_name={}", article_file_name);
 
-        // TODO use key, .db.select(("article", "file_name")).await?;
-
-        let mut response = self
-            .surreal
-            .db
-            .query("SELECT * FROM article WHERE article_file_name = $filename")
-            .bind(("filename", filename.to_string()))
-            .await?;
-        let article_o: Option<Article> = response.take(0)?;
-        Ok(article_o)
+        let article_o: Option<Article> =
+            self.surreal.db.select((ARTICLE, article_file_name.to_string())).await?;
+        match article_o {
+            None => Err(ArticleNotFound(article_file_name.into())),
+            Some(article) => Ok(article),
+        }
     }
 
     /**
@@ -95,7 +106,7 @@ impl DatabaseArticle {
     pub async fn related_articles(
         &self,
         related: Vec<String>,
-    ) -> Result<Vec<ShortArticleData>, SurrealError> {
+    ) -> Result<Vec<ShortArticleData>, SurrealArticleError> {
         debug!("related_articles: related={:?}", related);
 
         if related.is_empty() {
@@ -120,7 +131,7 @@ impl DatabaseArticle {
         &self,
         category: &str,
         limit: u32,
-    ) -> Result<Vec<ShortArticleData>, SurrealError> {
+    ) -> Result<Vec<ShortArticleData>, SurrealArticleError> {
         let mut response = self
             .surreal
             .db
@@ -139,7 +150,7 @@ impl DatabaseArticle {
     pub async fn articles_most_read(
         &self,
         limit: u32,
-    ) -> Result<Vec<MiniArticleData>, SurrealError> {
+    ) -> Result<Vec<MiniArticleData>, SurrealArticleError> {
         debug!("articles_most_read: limit={}", limit);
 
         let mut response = self
@@ -160,7 +171,7 @@ impl DatabaseArticle {
         &self,
         search_words: Vec<String>,
         limit: u32,
-    ) -> Result<Vec<ShortArticleData>, SurrealError> {
+    ) -> Result<Vec<ShortArticleData>, SurrealArticleError> {
         debug!("articles_by_words: search_words={:?}, limit={}", search_words, limit);
 
         if search_words.is_empty() {
@@ -236,8 +247,7 @@ mod tests {
         db.create_article(easy_article("Test Title X", "userN", "text")).await?;
 
         let article_o = db.article_by_file_name("test-title-x.html").await?;
-        assert!(article_o.is_some());
-        assert_eq!(article_o.unwrap().title, "Test Title X");
+        assert_eq!(article_o.title, "Test Title X");
         Ok(())
     }
 

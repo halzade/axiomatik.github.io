@@ -17,7 +17,7 @@ pub struct Article {
     pub article_file_name: String,
 
     pub author: String,
-    pub user: String,
+    pub user: String, // TODO this should be username
 
     pub date: DateTime<Utc>,
     pub date_str: String,

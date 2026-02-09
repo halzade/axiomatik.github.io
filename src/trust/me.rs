@@ -8,6 +8,7 @@ use crate::trust::app::article::create_article_request_builder::ArticleBuilderEr
 use http::header;
 use std::convert::Infallible;
 use thiserror::Error;
+use crate::db::database_article::SurrealArticleError;
 
 #[derive(Debug, Error)]
 pub enum TrustError {
@@ -73,6 +74,10 @@ pub enum TrustError {
 
     #[error("db system error")]
     SurrealSystem(#[from] SurrealSystemError),
+
+    #[error("db system error")]
+    SurrealArticle(#[from] SurrealArticleError),
+    
 }
 
 pub fn path_exists(path: &str) {

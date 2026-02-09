@@ -6,6 +6,7 @@ use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
 use VedaError::CreateCategoryError;
+use crate::db::database_article::SurrealArticleError;
 
 #[derive(Debug, Error)]
 pub enum VedaError {
@@ -17,6 +18,9 @@ pub enum VedaError {
 
     #[error("create category database error {0}")]
     DatabaseError(#[from] SurrealError),
+
+    #[error("create category database error {0}")]
+    SurrealArticle(#[from] SurrealArticleError),
 }
 
 #[derive(Template)]

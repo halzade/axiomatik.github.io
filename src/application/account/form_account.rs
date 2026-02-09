@@ -1,5 +1,4 @@
 use crate::data::text_validator;
-use crate::db::database::SurrealError;
 use crate::db::database_article_data::AccountArticleData;
 use crate::system::router_app::AuthSession;
 use crate::system::server::TheState;
@@ -12,6 +11,7 @@ use serde::Deserialize;
 use thiserror::Error;
 use tracing::debug;
 use validator::Validate;
+use crate::db::database_article::SurrealArticleError;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -19,7 +19,7 @@ pub enum AccountError {
     AccountUserNotFound,
 
     #[error("surreal account error")]
-    AccountSurreal(#[from] SurrealError),
+    AccountSurreal(#[from] SurrealArticleError),
 }
 
 #[derive(Debug, Deserialize, Validate)]

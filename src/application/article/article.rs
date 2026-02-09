@@ -1,4 +1,4 @@
-use crate::application::article::article::ArticleError::{ArticleNotFound, RenderArticleError};
+use crate::application::article::article::ArticleError::RenderArticleError;
 use crate::application::form::form_article_data_parser;
 use crate::application::form::form_article_data_parser::ArticleCreateError;
 use crate::data::audio_processor::AudioProcessorError;
@@ -6,6 +6,7 @@ use crate::data::image_processor::ImageProcessorError;
 use crate::data::video_processor::VideoProcessorError;
 use crate::data::{audio_processor, image_processor, processor, video_processor};
 use crate::db::database::SurrealError;
+use crate::db::database_article::SurrealArticleError;
 use crate::db::database_article_data::{Article, MiniArticleData, ShortArticleData};
 use crate::system::router_app::AuthSession;
 use crate::system::server::TheState;
@@ -47,6 +48,9 @@ pub enum ArticleError {
 
     #[error("failed not found")]
     ArticleNotFound,
+
+    #[error("create category database error {0}")]
+    SurrealArticle(#[from] SurrealArticleError),
 }
 
 #[derive(Template)]
@@ -153,40 +157,35 @@ pub async fn create_article(
  * But won't render any HTML
  */
 pub async fn render_article(article_file_name: &str, state: &TheState) -> Result<(), ArticleError> {
-    let article_o = state.dba.article_by_file_name(article_file_name).await?;
+    let article = state.dba.article_by_file_name(article_file_name).await?;
 
-    match article_o {
-        None => Err(ArticleNotFound),
-        Some(article) => {
-            let related_articles = state.dba.related_articles(article.related_articles).await?;
-            let articles_most_read = state.dba.articles_most_read(3).await?;
+    let related_articles = state.dba.related_articles(article.related_articles).await?;
+    let articles_most_read = state.dba.articles_most_read(3).await?;
 
-            let article_template = ArticleTemplate {
-                date: state.ds.date(),
-                weather: state.ds.weather(),
-                name_day: state.ds.name_day(),
+    let article_template = ArticleTemplate {
+        date: state.ds.date(),
+        weather: state.ds.weather(),
+        name_day: state.ds.name_day(),
 
-                author: article.author,
-                title: article.title,
+        author: article.author,
+        title: article.title,
 
-                text: article.text,
+        text: article.text,
 
-                image_path: article.image_820_path,
-                image_desc: article.image_desc,
-                video_path: if article.has_video { Some(article.video_path) } else { None },
-                audio_path: if article.has_audio { Some(article.audio_path) } else { None },
-                category: article.category.clone(),
-                category_display: processor::process_category(article.category.as_str())?,
-                related_articles,
-                articles_most_read,
-            };
-            match article_template.render() {
-                Ok(rendered_html) => {
-                    processor::save_web_file(rendered_html, article_file_name)?;
-                    Ok(())
-                }
-                Err(_) => Err(RenderArticleError),
-            }
+        image_path: article.image_820_path,
+        image_desc: article.image_desc,
+        video_path: if article.has_video { Some(article.video_path) } else { None },
+        audio_path: if article.has_audio { Some(article.audio_path) } else { None },
+        category: article.category.clone(),
+        category_display: processor::process_category(article.category.as_str())?,
+        related_articles,
+        articles_most_read,
+    };
+    match article_template.render() {
+        Ok(rendered_html) => {
+            processor::save_web_file(rendered_html, article_file_name)?;
+            Ok(())
         }
+        Err(_) => Err(RenderArticleError),
     }
 }
