@@ -16,6 +16,7 @@ use axum::extract::Multipart;
 use axum::extract::State;
 use axum::response::{IntoResponse, Redirect};
 use thiserror::Error;
+use tracing::log::debug;
 use ArticleError::CategoryFailed;
 
 #[derive(Debug, Error)]
@@ -130,8 +131,9 @@ pub async fn create_article(
         )?;
     }
 
-    // invalidate the article :)
+    // create article record
     state.dbs.create_article_record(article_file_name.clone()).await?;
+    debug!("- article record created: {}", article_file_name);
 
     // invalidate cache
     state.dv.index_invalidate();

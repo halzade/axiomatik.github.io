@@ -93,11 +93,16 @@ impl DatabaseSystem {
         article_file_name: String,
         article_status: ArticleStatus,
     ) -> Result<(), SurrealSystemError> {
+        let real_filename = article_file_name.strip_prefix('/').unwrap_or(&article_file_name);
+
         let _: Option<ArticleUpdateStatus> = self
             .surreal
             .db
-            .upsert((ARTICLE_STATUS_TABLE, article_file_name.clone()))
-            .content(ArticleUpdateStatus { article_file_name, article_status })
+            .upsert((ARTICLE_STATUS_TABLE, real_filename))
+            .content(ArticleUpdateStatus {
+                article_file_name: real_filename.into(),
+                article_status,
+            })
             .await?;
         Ok(())
     }
@@ -127,13 +132,14 @@ impl DatabaseSystem {
         &self,
         article_file_name: String,
     ) -> Result<ArticleStatus, SurrealSystemError> {
+        let real_filename = article_file_name.strip_prefix('/').unwrap_or(&article_file_name);
         let response: Option<ArticleUpdateStatus> =
-            self.surreal.db.select((ARTICLE_STATUS_TABLE, article_file_name.clone())).await?;
+            self.surreal.db.select((ARTICLE_STATUS_TABLE, real_filename)).await?;
 
         match response {
             Some(status) => Ok(status.article_status),
             None => {
-                warn!("requested article not found in database: {}", article_file_name);
+                warn!("requested article not found in database: {}", real_filename);
                 Ok(DoesNotExist)
             }
         }

@@ -14,7 +14,6 @@ use crate::trust::db::db_user_controller::DatabaseUserController;
 use crate::trust::me::TrustError;
 use crate::trust::web::web_controller::WebController;
 use std::sync::Arc;
-use tokio::sync::OnceCell;
 use tracing::debug;
 
 #[derive(Debug)]
@@ -126,8 +125,8 @@ mod tests {
         // create user and login
         ac.db_user().setup_user().username("editor").password("password").execute().await?;
 
-        let auth = ac.login().username("editor").password("password").execute().await?
-            .verify().await?;
+        let auth =
+            ac.login().username("editor").password("password").execute().await?.verify().await?;
 
         /*
          * post Article to router

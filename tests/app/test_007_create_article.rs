@@ -9,14 +9,14 @@ mod tests {
     async fn test_create_article() -> Result<(), TrustError> {
         // setup
         let ac = AppController::new().await?;
-        
+
         // create user and login
         #[rustfmt::skip]
         ac.db_user().setup_user()
             .username("user6")
             .password("password")
             .execute().await?;
-        
+
         #[rustfmt::skip]
         let auth = ac.login()
             .username("user6")
@@ -38,7 +38,7 @@ mod tests {
                 .header_location("test-article.html")
                 .verify().await?;
 
-        // article not rendered yet
+        // article isn't rendered yet
 
         // Request the article
         #[rustfmt::skip]
