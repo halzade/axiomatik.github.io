@@ -1,6 +1,8 @@
 use parking_lot::RwLock;
 use std::collections::HashMap;
 use thiserror::Error;
+use serde::{Deserialize, Serialize};
+use surrealdb_types::SurrealValue;
 use ArticleStatus::{DoesntExist, Invalid, Valid};
 
 #[derive(Error, Debug)]
@@ -9,7 +11,7 @@ pub enum DataUpdatesError {
     Poisoned,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, SurrealValue)]
 pub enum ArticleStatus {
     Valid,
     Invalid,
@@ -21,7 +23,6 @@ pub enum ArticleStatus {
  * or invalidated because of a new article published
  */
 pub struct DataValidHtml {
-    articles_valid: RwLock<HashMap<String, ArticleStatus>>,
     index_valid: RwLock<bool>,
     news_valid: RwLock<bool>,
     finance_valid: RwLock<bool>,
@@ -29,11 +30,11 @@ pub struct DataValidHtml {
     technologie_valid: RwLock<bool>,
     veda_valid: RwLock<bool>,
     zahranici_valid: RwLock<bool>,
+    articles_valid: RwLock<HashMap<String, ArticleStatus>>,
 }
 
 pub fn new() -> DataValidHtml {
     DataValidHtml {
-        articles_valid: RwLock::new(HashMap::new()),
         index_valid: RwLock::new(false),
         news_valid: RwLock::new(false),
         finance_valid: RwLock::new(false),
@@ -41,6 +42,7 @@ pub fn new() -> DataValidHtml {
         technologie_valid: RwLock::new(false),
         veda_valid: RwLock::new(false),
         zahranici_valid: RwLock::new(false),
+        articles_valid: RwLock::new(HashMap::new()),
     }
 }
 
@@ -123,6 +125,7 @@ impl DataValidHtml {
     }
 
     // articles
+    // use db to check if article exists, if it does, it may be invalid
     pub fn article_valid(&self, file_name: &str) -> ArticleStatus {
         let read_guard = self.articles_valid.read();
         match read_guard.get(file_name) {

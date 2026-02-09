@@ -1,4 +1,5 @@
 use crate::db::database::SurrealError;
+use crate::db::database_system::SurrealSystemError;
 use crate::db::database_user::SurrealUserError;
 use crate::system::commands::CommandError;
 use crate::system::configuration::ConfigurationError;
@@ -69,6 +70,9 @@ pub enum TrustError {
 
     #[error("login did not give cookie")]
     NoCookie,
+
+    #[error("db system error")]
+    SurrealSystem(#[from] SurrealSystemError),
 }
 
 pub fn path_exists(path: &str) {

@@ -27,7 +27,7 @@ pub enum SurrealError {
     RecordNotFound(String, String),
 }
 
-// TODO need to sign in
+// TODO need to sign into the database
 
 #[derive(Debug)]
 pub struct DatabaseSurreal {

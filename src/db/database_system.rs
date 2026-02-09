@@ -1,13 +1,35 @@
 use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
+use crate::db::database_system::SurrealSystemError::ViewsNotFound;
+use crate::system::data_updates::ArticleStatus;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use surrealdb_types::SurrealValue;
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum SurrealSystemError {
+    #[error("surreal db error: {0}")]
+    Surreal(#[from] surrealdb::Error),
+
+    #[error("article not found: {0}")]
+    ArticleNotFound(String),
+
+    #[error("views not found for {0}")]
+    ViewsNotFound(String),
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
 pub struct ArticleViews {
     pub article_file_name: String,
     pub views: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
+// TODO name
+pub struct ArticleUpdateStatus {
+    pub article_file_name: String,
+    pub status: ArticleStatus,
 }
 
 /**
@@ -36,28 +58,65 @@ impl DatabaseSystem {
     pub async fn increase_article_views(
         &self,
         article_file_name: String,
-    ) -> Result<u64, SurrealError> {
+    ) -> Result<u64, SurrealSystemError> {
         let mut response = self
             .surreal
             .db
-            .query("INSERT INTO article_views { article_file_name: $article_file_name, views: 1 } ON DUPLICATE KEY UPDATE views += 1")
+            .query(
+                "INSERT INTO article_views {
+                    article_file_name: $article_file_name,
+                    views: 1
+                }
+                ON DUPLICATE KEY UPDATE
+                views += 1
+                RETURN views",
+            )
             .bind(("article_file_name", article_file_name.clone()))
             .await?;
 
+        // TODO .take may throw
         let article_views: Option<ArticleViews> = response.take(0)?;
         match article_views {
             Some(v) => Ok(v.views),
             None => {
-                let mut response = self
-                    .surreal
-                    .db
-                    .query("SELECT * FROM article_views WHERE article_file_name = $article_file_name")
-                    .bind(("article_file_name", article_file_name))
-                    .await?;
-                let v: Option<ArticleViews> = response.take(0)?;
-                Ok(v.map(|v| v.views).unwrap_or(0))
+                // TODO maybe better to return zero
+                Err(ViewsNotFound(article_file_name))
             }
         }
+    }
+
+    pub async fn write_article_record(
+        &self,
+        article_file_name: String,
+        article_status: ArticleStatus,
+    ) -> Result<(), SurrealSystemError> {
+        self.surreal.db
+            .query("INSERT INTO article_status { article_file_name: $article_file_name, status: $status } ON DUPLICATE KEY UPDATE status = $status")
+            .bind(("article_file_name", article_file_name.clone()))
+            .bind(("status", article_status))
+            .await?;
+        Ok(())
+    }
+
+    pub async fn create_article_record(
+        &self,
+        article_file_name: String,
+    ) -> Result<(), SurrealSystemError> {
+        self.write_article_record(article_file_name, ArticleStatus::Invalid).await
+    }
+
+    pub async fn invalidate_article(
+        &self,
+        article_file_name: String,
+    ) -> Result<(), SurrealSystemError> {
+        self.write_article_record(article_file_name, ArticleStatus::Invalid).await
+    }
+
+    pub async fn validate_article(
+        &self,
+        article_file_name: String,
+    ) -> Result<(), SurrealSystemError> {
+        self.write_article_record(article_file_name, ArticleStatus::Valid).await
     }
 }
 
@@ -82,6 +141,23 @@ mod tests {
         // Different article
         let views = dbs.increase_article_views("other-article".to_string()).await?;
         assert_eq!(views, 1);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_article_status_updates() -> Result<(), TrustError> {
+        let dbs = DatabaseSystem::new_from_scratch().await?;
+        let article_name = "test-article".to_string();
+
+        // 1. Create a record (should be Invalid)
+        dbs.create_article_record(article_name.clone()).await?;
+
+        // 2. Validate article (should be Valid)
+        dbs.validate_article(article_name.clone()).await?;
+
+        // 3. Invalidate article (should be Invalid)
+        dbs.invalidate_article(article_name.clone()).await?;
 
         Ok(())
     }
