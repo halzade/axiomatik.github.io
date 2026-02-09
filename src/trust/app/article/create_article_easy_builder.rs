@@ -126,7 +126,7 @@ impl ArticleBuilder {
             article_file_name: format!("{}.html", base),
 
             image_desc: self.image_desc,
-            
+
             // TODO
             image_50_path: format!("u/{}_image_50.png", base),
             image_288_path: format!("u/{}_image_288.png", base),
@@ -143,7 +143,6 @@ impl ArticleBuilder {
 
             is_main: self.is_main,
             is_exclusive: self.is_exclusive,
-            views: 0,
         }
     }
 }

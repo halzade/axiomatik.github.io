@@ -1,10 +1,9 @@
 #[cfg(test)]
 mod tests {
     use axiomatik_web::trust;
+    use axiomatik_web::trust::app_controller::AppController;
     use axiomatik_web::trust::me::TrustError;
     use axum::http::StatusCode;
-    use tracing::log::debug;
-    use axiomatik_web::trust::app_controller::AppController;
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {

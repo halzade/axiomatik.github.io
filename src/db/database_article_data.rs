@@ -45,8 +45,6 @@ pub struct Article {
 
     pub is_main: bool,
     pub is_exclusive: bool,
-
-    pub views: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
@@ -123,8 +121,6 @@ impl TryFrom<ArticleUpload> for Article {
 
             is_main: data.is_main,
             is_exclusive: data.is_exclusive,
-
-            views: 0,
         })
     }
 }

@@ -8,6 +8,7 @@ use crate::data::{audio_processor, image_processor, processor, video_processor};
 use crate::db::database::SurrealError;
 use crate::db::database_article::SurrealArticleError;
 use crate::db::database_article_data::{Article, MiniArticleData, ShortArticleData};
+use crate::db::database_system::SurrealSystemError;
 use crate::system::router_app::AuthSession;
 use crate::system::server::TheState;
 use askama::Template;
@@ -49,8 +50,11 @@ pub enum ArticleError {
     #[error("failed not found")]
     ArticleNotFound,
 
-    #[error("create category database error {0}")]
+    #[error("surreal article error {0}")]
     SurrealArticle(#[from] SurrealArticleError),
+
+    #[error("surreal system error {0}")]
+    SurrealSystem(#[from] SurrealSystemError),
 }
 
 #[derive(Template)]
@@ -88,7 +92,7 @@ pub async fn create_article(
      * Read request data
      */
     let article_data = form_article_data_parser::article_data(auth_session, multipart).await?;
-    let article_url = format!("{}.html", article_data.base_file_name.clone());
+    let article_file_name = format!("{}.html", article_data.base_file_name.clone());
 
     /*
      * Validate
@@ -126,6 +130,9 @@ pub async fn create_article(
         )?;
     }
 
+    // invalidate the article :)
+    state.dbs.create_article_record(article_file_name.clone()).await?;
+
     // invalidate cache
     state.dv.index_invalidate();
     state.dv.news_invalidate();
@@ -149,7 +156,7 @@ pub async fn create_article(
      * redirect to the new article
      * trigger to render from template will be handled by router
      */
-    Ok(Redirect::to(&article_url).into_response())
+    Ok(Redirect::to(&article_file_name).into_response())
 }
 
 /**

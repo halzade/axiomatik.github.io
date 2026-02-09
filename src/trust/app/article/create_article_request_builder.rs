@@ -6,7 +6,6 @@ use chrono::Utc;
 use std::io::{Error, Write};
 use surrealdb_types::Uuid;
 use thiserror::Error;
-use crate::trust::data::response_verifier::ResponseVerifier;
 
 #[derive(Default)]
 pub struct ArticleBuilder {
@@ -197,6 +196,5 @@ pub fn easy_article(title: &str, author: &str, text: &str) -> Article {
         related_articles: vec![],
         is_main: false,
         is_exclusive: false,
-        views: 0,
     }
 }

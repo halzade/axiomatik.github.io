@@ -41,14 +41,9 @@ impl DatabaseArticleController {
         /*
          * retrieve the real data
          */
-        let real_o = self.dba.article_by_file_name(article_file_html).await?;
-        match real_o {
-            Some(real) => {
-                // build verifier
-                Ok(DatabaseArticleVerifier::new(real))
-            }
-            None => Err(TrustError::RealData),
-        }
+        let real = self.dba.article_by_file_name(article_file_html).await?;
+        // build verifier
+        Ok(DatabaseArticleVerifier::new(real))
     }
 }
 

@@ -1,7 +1,6 @@
 use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
 use crate::db::database_system::ArticleStatus::DoesNotExist;
-use crate::db::database_system::SurrealSystemError::ViewsNotFound;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use surrealdb_types::SurrealValue;

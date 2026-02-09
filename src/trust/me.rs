@@ -1,4 +1,5 @@
 use crate::db::database::SurrealError;
+use crate::db::database_article::SurrealArticleError;
 use crate::db::database_system::SurrealSystemError;
 use crate::db::database_user::SurrealUserError;
 use crate::system::commands::CommandError;
@@ -7,8 +8,9 @@ use crate::system::server::ServerError;
 use crate::trust::app::article::create_article_request_builder::ArticleBuilderError;
 use http::header;
 use std::convert::Infallible;
+use std::fs;
+use std::path::Path;
 use thiserror::Error;
-use crate::db::database_article::SurrealArticleError;
 
 #[derive(Debug, Error)]
 pub enum TrustError {
@@ -77,14 +79,13 @@ pub enum TrustError {
 
     #[error("db system error")]
     SurrealArticle(#[from] SurrealArticleError),
-    
 }
 
 pub fn path_exists(path: &str) {
-    assert!(std::path::Path::new(path).exists());
+    assert!(Path::new(path).exists());
 }
 
 pub fn remove_file(path: &str) -> Result<(), TrustError> {
-    assert!(std::fs::remove_file(path).is_ok());
+    assert!(fs::remove_file(path).is_ok());
     Ok(())
 }

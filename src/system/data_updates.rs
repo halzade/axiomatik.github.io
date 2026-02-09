@@ -1,9 +1,5 @@
-use crate::db::database_system::ArticleStatus;
-use crate::db::database_system::ArticleStatus::{Invalid, Valid};
 use parking_lot::RwLock;
-use std::collections::HashMap;
 use thiserror::Error;
-use ArticleStatus::DoesNotExist;
 
 #[derive(Error, Debug)]
 pub enum DataUpdatesError {
@@ -23,7 +19,6 @@ pub struct DataValidHtml {
     technologie_valid: RwLock<bool>,
     veda_valid: RwLock<bool>,
     zahranici_valid: RwLock<bool>,
-    articles_valid: RwLock<HashMap<String, ArticleStatus>>,
 }
 
 pub fn new() -> DataValidHtml {
@@ -35,7 +30,6 @@ pub fn new() -> DataValidHtml {
         technologie_valid: RwLock::new(false),
         veda_valid: RwLock::new(false),
         zahranici_valid: RwLock::new(false),
-        articles_valid: RwLock::new(HashMap::new()),
     }
 }
 
@@ -116,30 +110,6 @@ impl DataValidHtml {
     pub fn zahranici_invalidate(&self) {
         *self.zahranici_valid.write() = false;
     }
-
-    // articles
-    // use db to check if the article exists, if it does, it may be invalid
-    pub fn article_valid(&self, file_name: &str) -> ArticleStatus {
-        let read_guard = self.articles_valid.read();
-        match read_guard.get(file_name) {
-            Some(status) => *status,
-            None => DoesNotExist,
-        }
-    }
-
-    pub fn article_validate(&self, file_name: &str) {
-        self.article_set(file_name, Valid);
-    }
-
-    pub fn article_invalidate(&self, file_name: &str) {
-        self.article_set(file_name, Invalid);
-    }
-
-    fn article_set(&self, file_name: &str, value: ArticleStatus) {
-        // TODO database
-
-        self.articles_valid.write().insert(file_name.to_string(), value);
-    }
 }
 
 #[cfg(test)]
@@ -166,47 +136,5 @@ mod tests {
         assert!(du.index_valid());
         du.index_invalidate();
         assert!(!du.index_valid());
-    }
-
-    #[test]
-    fn test_article_validation() {
-        let du = new();
-        let name = "test_article.html";
-
-        assert_eq!(du.article_valid(name), DoesNotExist);
-
-        // Validate
-        du.article_validate(name);
-        match du.article_valid(name) {
-            Valid => (),
-            _ => panic!("Should be valid after validation"),
-        }
-
-        // Invalidate
-        du.article_invalidate(name);
-        match du.article_valid(name) {
-            Invalid => (),
-            _ => panic!("Should be invalid after invalidation"),
-        }
-    }
-
-    #[test]
-    fn test_multiple_articles() {
-        let du = new();
-        du.article_validate("a");
-        du.article_invalidate("b");
-
-        match du.article_valid("a") {
-            Valid => (),
-            _ => panic!("a should be valid"),
-        }
-        match du.article_valid("b") {
-            Invalid => (),
-            _ => panic!("b should be invalid"),
-        }
-        match du.article_valid("c") {
-            DoesNotExist => (),
-            _ => panic!("c should not exist"),
-        }
     }
 }

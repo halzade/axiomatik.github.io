@@ -15,6 +15,7 @@ use crate::application::veda::veda;
 use crate::application::veda::veda::VedaError;
 use crate::application::zahranici::zahranici;
 use crate::application::zahranici::zahranici::ZahraniciError;
+use crate::db::database_system::{ArticleStatus, SurrealSystemError};
 use crate::system::data_system::DataSystemError;
 use crate::system::data_updates::DataUpdatesError;
 use crate::system::server::TheState;
@@ -29,8 +30,8 @@ use std::convert::Infallible;
 use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
+use tracing::log::debug;
 use tracing::{info, warn};
-use crate::db::database_system::ArticleStatus;
 
 #[derive(Debug, Error)]
 pub enum WebRouterError {
@@ -66,6 +67,9 @@ pub enum WebRouterError {
 
     #[error("article error: {0}")]
     RouterArticleError(#[from] ArticleError),
+
+    #[error("surreal system error: {0}")]
+    SurrealSystem(#[from] SurrealSystemError),
 }
 
 pub struct WebRouter {
@@ -190,19 +194,22 @@ impl WebRouter {
             }
             _ => {
                 // 404 or Article
-                match state.dv.article_valid(&url) {
+                match state.dbs.read_article_validity(url.clone()).await? {
                     ArticleStatus::Valid => {
+                        debug!("- Article valid");
                         // no change, serve the file
                         serve_this(url, request).await
                     }
                     ArticleStatus::Invalid => {
+                        debug!("- Article invalid");
                         // article was invalidated, render article HTML
                         // new article was u
                         article::render_article(&url, &state).await?;
-                        state.dv.article_validate(&url);
+                        state.dbs.validate_article(url.clone()).await?;
                         serve_this(url, request).await
                     }
                     ArticleStatus::DoesNotExist => {
+                        debug!("- Article doesn't exist, give 404");
                         // requested url doesn't exist
                         serve_404().await
                     }
