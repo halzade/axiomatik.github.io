@@ -90,17 +90,15 @@ impl DatabaseSystem {
 
     pub async fn write_article_record(
         &self,
-        article_file_name: String,
+        article_file_name: &str,
         article_status: ArticleStatus,
     ) -> Result<(), SurrealSystemError> {
-        let real_filename = article_file_name.strip_prefix('/').unwrap_or(&article_file_name);
-
         let _: Option<ArticleUpdateStatus> = self
             .surreal
             .db
-            .upsert((ARTICLE_STATUS_TABLE, real_filename))
+            .upsert((ARTICLE_STATUS_TABLE, article_file_name))
             .content(ArticleUpdateStatus {
-                article_file_name: real_filename.into(),
+                article_file_name: article_file_name.into(),
                 article_status,
             })
             .await?;
@@ -111,35 +109,34 @@ impl DatabaseSystem {
         &self,
         article_file_name: String,
     ) -> Result<(), SurrealSystemError> {
-        self.write_article_record(article_file_name, Invalid).await
+        self.write_article_record(&article_file_name, Invalid).await
     }
 
     pub async fn invalidate_article(
         &self,
         article_file_name: String,
     ) -> Result<(), SurrealSystemError> {
-        self.write_article_record(article_file_name, Invalid).await
+        self.write_article_record(&article_file_name, Invalid).await
     }
 
     pub async fn validate_article(
         &self,
         article_file_name: String,
     ) -> Result<(), SurrealSystemError> {
-        self.write_article_record(article_file_name, Valid).await
+        self.write_article_record(&article_file_name, Valid).await
     }
 
     pub async fn read_article_validity(
         &self,
-        article_file_name: String,
+        article_file_name: &str,
     ) -> Result<ArticleStatus, SurrealSystemError> {
-        let real_filename = article_file_name.strip_prefix('/').unwrap_or(&article_file_name);
         let response: Option<ArticleUpdateStatus> =
-            self.surreal.db.select((ARTICLE_STATUS_TABLE, real_filename)).await?;
+            self.surreal.db.select((ARTICLE_STATUS_TABLE, article_file_name)).await?;
 
         match response {
             Some(status) => Ok(status.article_status),
             None => {
-                warn!("requested article not found in database: {}", real_filename);
+                warn!("requested article not found in database: {}", article_file_name);
                 Ok(DoesNotExist)
             }
         }
@@ -177,22 +174,22 @@ mod tests {
         let article_name = "test-article.html".to_string();
 
         // doesn't exist yet
-        let s = dbs.read_article_validity(article_name.clone()).await?;
+        let s = dbs.read_article_validity(&article_name).await?;
         assert_eq!(s, DoesNotExist);
 
         // create record
         dbs.create_article_record(article_name.clone()).await?;
-        let s = dbs.read_article_validity(article_name.clone()).await?;
+        let s = dbs.read_article_validity(&article_name.clone()).await?;
         assert_eq!(s, Invalid);
 
         // validate it
         dbs.validate_article(article_name.clone()).await?;
-        let s = dbs.read_article_validity(article_name.clone()).await?;
+        let s = dbs.read_article_validity(&article_name.clone()).await?;
         assert_eq!(s, Valid);
 
         // invalidate it
         dbs.invalidate_article(article_name.clone()).await?;
-        let s = dbs.read_article_validity(article_name.clone()).await?;
+        let s = dbs.read_article_validity(&article_name.clone()).await?;
         assert_eq!(s, Invalid);
 
         Ok(())

@@ -89,13 +89,12 @@ impl DatabaseArticle {
         &self,
         article_file_name: &str,
     ) -> Result<Article, SurrealArticleError> {
-        let real_filename = article_file_name.strip_prefix('/').unwrap_or(&article_file_name);
-        debug!("article_by_file_name: article_file_name={}", real_filename);
+        debug!("article_by_file_name: article_file_name={}", article_file_name);
 
         let article_o: Option<Article> =
-            self.surreal.db.select((ARTICLE, real_filename.to_string())).await?;
+            self.surreal.db.select((ARTICLE, article_file_name.to_string())).await?;
         match article_o {
-            None => Err(ArticleNotFound(real_filename.into())),
+            None => Err(ArticleNotFound(article_file_name.into())),
             Some(article) => Ok(article),
         }
     }

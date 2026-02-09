@@ -2,7 +2,7 @@ use std::fs;
 use std::io::Error;
 use std::path::Path;
 use thiserror::Error;
-use tracing::error;
+use tracing::{debug, error};
 
 #[derive(Debug, Error)]
 pub enum ProcessorError {
@@ -14,7 +14,14 @@ pub enum ProcessorError {
 }
 
 pub fn save_web_file(rendered_html: String, path: &str) -> Result<(), ProcessorError> {
-    fs::write(Path::new("web").join(path), rendered_html)?;
+    debug!("save_web_file: path={}", path);
+
+    println!("CURRENT WORKING DIRECTORY");
+    println!("{:?}", std::env::current_dir()?);
+
+    let path_see = Path::new("web").join(path);
+    print!("{:?}", path_see);
+    fs::write(path_see, rendered_html)?;
     Ok(())
 }
 

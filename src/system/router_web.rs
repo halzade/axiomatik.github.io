@@ -142,7 +142,7 @@ impl WebRouter {
 
                     index::render_index(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/finance.html" => {
                 if !state.dv.finance_valid() {
@@ -150,7 +150,7 @@ impl WebRouter {
 
                     finance::render_finance(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/news.html" => {
                 if !state.dv.news_valid() {
@@ -158,7 +158,7 @@ impl WebRouter {
 
                     news::render_news(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/republika.html" => {
                 if !state.dv.republika_valid() {
@@ -166,7 +166,7 @@ impl WebRouter {
 
                     republika::render_republika(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/technologie.html" => {
                 if !state.dv.technologie_valid() {
@@ -174,7 +174,7 @@ impl WebRouter {
 
                     technologie::render_technologie(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/veda.html" => {
                 if !state.dv.veda_valid() {
@@ -182,7 +182,7 @@ impl WebRouter {
 
                     veda::render_veda(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/zahranici.html" => {
                 if !state.dv.zahranici_valid() {
@@ -190,23 +190,26 @@ impl WebRouter {
 
                     zahranici::render_zahranici(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             _ => {
+                // remove the leading slash
+                let real_article_name = real_filename(&url);
+
                 // 404 or Article
-                match state.dbs.read_article_validity(url.clone()).await? {
+                match state.dbs.read_article_validity(real_article_name).await? {
                     ArticleStatus::Valid => {
                         debug!("- Article valid");
                         // no change, serve the file
-                        serve_this(url, request).await
+                        serve_this(real_article_name, request).await
                     }
                     ArticleStatus::Invalid => {
                         debug!("- Article invalid");
                         // article was invalidated, render article HTML
                         // new article was u
-                        article::render_article(&url, &state).await?;
+                        article::render_article(&real_article_name, &state).await?;
                         state.dbs.validate_article(url.clone()).await?;
-                        serve_this(url, request).await
+                        serve_this(real_article_name, request).await
                     }
                     ArticleStatus::DoesNotExist => {
                         debug!("- Article doesn't exist, give 404");
@@ -219,7 +222,11 @@ impl WebRouter {
     }
 }
 
-async fn serve_this(path: String, request: Request<Body>) -> Result<Response, WebRouterError> {
+fn real_filename(article_file_name: &str) -> &str {
+    article_file_name.strip_prefix('/').unwrap_or(&article_file_name)
+}
+
+async fn serve_this(path: &str, request: Request<Body>) -> Result<Response, WebRouterError> {
     info!("serve_this: web/{}", path);
     Ok(ServeFile::new(format!("web/{}", path)).oneshot(request).await?.into_response())
 }
