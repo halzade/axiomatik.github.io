@@ -48,8 +48,10 @@ impl DatabaseSystem {
     }
 
     pub async fn new_from_scratch() -> Result<DatabaseSystem, SurrealError> {
-        let db = Arc::new(database::init_in_memory_db_connection().await?);
-        Ok(DatabaseSystem { surreal: db })
+        let surreal = Arc::new(database::init_in_memory_db_connection().await?);
+        surreal.db.query("DEFINE TABLE article_status SCHEMALESS;").await?;
+
+        Ok(DatabaseSystem { surreal })
     }
 
     /*
@@ -75,7 +77,7 @@ impl DatabaseSystem {
             .bind(("article_file_name", article_file_name.clone()))
             .await?;
 
-        // TODO .take may throw
+        // TODO .take() may throw
         let article_views: Option<ArticleViews> = response.take(0)?;
         match article_views {
             Some(v) => Ok(v.views),
@@ -150,13 +152,14 @@ impl DatabaseSystem {
 
 #[cfg(test)]
 mod tests {
+    use tracing::debug;
     use super::*;
     use crate::trust::me::TrustError;
 
     #[tokio::test]
     async fn test_increase_article_views() -> Result<(), TrustError> {
         let dbs = DatabaseSystem::new_from_scratch().await?;
-        let article_name = "test-article".to_string();
+        let article_name = "test-article.html".to_string();
 
         // First view
         let views = dbs.increase_article_views(article_name.clone()).await?;
@@ -167,7 +170,7 @@ mod tests {
         assert_eq!(views, 2);
 
         // Different article
-        let views = dbs.increase_article_views("other-article".to_string()).await?;
+        let views = dbs.increase_article_views("other-article.html".to_string()).await?;
         assert_eq!(views, 1);
 
         Ok(())
@@ -178,26 +181,32 @@ mod tests {
         let dbs = DatabaseSystem::new_from_scratch().await?;
         let article_name = "test-article.html".to_string();
 
+        println!("doesn't exist yet");
         let s = dbs.read_article_validity(article_name.clone()).await?;
         assert_eq!(s, ArticleStatus::DoesntExist);
 
+        println!("create record exist yet");
         // 1. Create a record (should be Invalid)
         dbs.create_article_record(article_name.clone()).await?;
 
+        println!("check validity");
         let s = dbs.read_article_validity(article_name.clone()).await?;
         assert_eq!(s, ArticleStatus::Invalid);
 
+        println!("validate it");
         // 2. Validate article (should be Valid)
         dbs.validate_article(article_name.clone()).await?;
 
         let s = dbs.read_article_validity(article_name.clone()).await?;
         assert_eq!(s, ArticleStatus::Valid);
 
+        println!("invalidate it");
         // 3. Invalidate article (should be Invalid)
         dbs.invalidate_article(article_name.clone()).await?;
         let s = dbs.read_article_validity(article_name.clone()).await?;
         assert_eq!(s, ArticleStatus::Invalid);
 
+        println!("finished");
         Ok(())
     }
 }
