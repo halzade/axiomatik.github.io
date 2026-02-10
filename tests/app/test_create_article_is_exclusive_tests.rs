@@ -1,14 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use axum::body::to_bytes;
-    use axum::http::{header, StatusCode};
-    use axum_core::extract::Request;
-    use reqwest::Body;
-    use std::fs;
     use axiomatik_web::trust;
     use axiomatik_web::trust::app_controller::AppController;
-    use axiomatik_web::trust::data::media_data::PNG;
     use axiomatik_web::trust::me::TrustError;
+    use axum::http::StatusCode;
 
     #[tokio::test]
     async fn test_exclusive_main_article_finance() -> Result<(), TrustError> {
@@ -21,56 +16,40 @@ mod tests {
             .execute().await?;
 
         #[rustfmt::skip]
-        ac.login()
+        let auth = ac.login()
             .username("user2")
             .password("password123")
             .execute().await?
             .must_see_response(StatusCode::SEE_OTHER)
             .verify().await?;
 
-        
-        // let image_data = utils::get_test_image_data();
-        // let body = ArticleBuilder::new()
-        //     .title("Test Financni Trhy v Šoku")
-        //     .author("Financni Expert")
-        //     .category("finance")
-        //     .text("Dlouhý text o financich")
-        //     .short_text("Krátký text o financich")
-        //     .main()
-        //     .exclusive()
-        //     .image("test.png", &image_data, PNG)
-        //     .image_desc("anything")
-        //     .build()
-        //     .unwrap();
-        //
-        // let response_create = utils::one_shot(
-        //     Request::builder()
-        //         .method("POST")
-        //         .uri("/create")
-        //         .header(header::CONTENT_TYPE, content_type_with_boundary())
-        //         .header(header::COOKIE, &cookie)
-        //         .body(Body::from(body))?,
-        // )
-        // .await;
-        //
-        // assert_eq!(response_create.status(), StatusCode::SEE_OTHER);
-        //
-        // let response_index = utils::one_shot(
-        //     http::Request::builder()
-        //         .method("GET")
-        //         .uri("/index.html")
-        //         .body(Body::default())?,
-        // )
-        // .await;
-        //
-        // assert_eq!(response_index.status(), StatusCode::OK);
-        //
-        // let body = to_bytes(response_index.into_body(), usize::MAX)
-        //     .await?;
-        // let body_str = String::from_utf8(body.to_vec()).unwrap();
-        // assert!(
-        //     body_str.contains("<span class=\"red\">EXKLUZIVNĚ:</span>Test Financni Trhy v Šoku")
-        // );
+        #[rustfmt::skip]
+        ac.create_article(&auth)
+            .title("Test Financni Trhy v Šoku")
+            .author("Financni Expert")
+            .category("finance")
+            .text("Dlouhý text o financich")
+            .short_text("Krátký text o financich")
+            .is_main(true)
+            .is_exclusive(true)
+            .image_any_png()?
+            .image_desc("anything")
+            .execute().await?
+                .must_see_response(StatusCode::SEE_OTHER)
+                .verify().await?;
+
+        // trigger render article
+        #[rustfmt::skip]
+        ac.web().get_url("/test-financni-trhy-v-soku.html").await?
+            .must_see_response(StatusCode::OK)
+            .verify().await?;
+
+        // verify index
+        #[rustfmt::skip]
+        ac.web().get_url("/index.html").await?
+            .must_see_response(StatusCode::OK)
+            .body_contains("<span class=\"red\">EXKLUZIVNĚ:</span>Test Financni Trhy v Šoku")
+            .verify().await?;
 
         // Cleanup
         trust::me::remove_file("web/test-financni-trhy-v-soku.html")?;

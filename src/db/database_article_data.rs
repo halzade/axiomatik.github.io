@@ -7,6 +7,48 @@ use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use surrealdb::types::{SurrealValue, Uuid};
 
+/*
+ * Main Articles on index.html
+ */
+#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
+pub struct MainArticleData {
+    pub article_file_name: String,
+    pub title: String,
+    pub is_exclusive: bool,
+    pub short_text: String,
+    pub image_path: String,
+    pub image_desc: String,
+}
+
+impl MainArticleData {
+    pub fn empty() -> MainArticleData {
+        MainArticleData {
+            article_file_name: "".into(),
+            title: "".into(),
+            is_exclusive: false,
+            short_text: "".into(),
+            image_path: "".into(),
+            image_desc: "".into(),
+        }
+    }
+}
+
+/*
+ * Second and Third Article on index.html
+ */
+#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
+pub struct TopArticleData {
+    pub article_file_name: String,
+    pub title: String,
+    pub short_text: String,
+}
+
+impl TopArticleData {
+    fn empty() -> TopArticleData {
+        TopArticleData { article_file_name: "".into(), title: "".into(), short_text: "".into() }
+    }
+}
+
 /**
  * Article database object
  */
@@ -75,6 +117,16 @@ pub struct AccountArticleData {
     pub category: String,
     pub date: DateTime<Utc>,
     pub date_str: String,
+}
+
+impl From<MainArticleData> for TopArticleData {
+    fn from(value: MainArticleData) -> Self {
+        Self {
+            article_file_name: value.article_file_name,
+            title: value.title,
+            short_text: value.short_text,
+        }
+    }
 }
 
 impl TryFrom<ArticleUpload> for Article {

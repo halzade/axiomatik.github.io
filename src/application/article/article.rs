@@ -16,6 +16,7 @@ use axum::extract::Multipart;
 use axum::extract::State;
 use axum::response::{IntoResponse, Redirect};
 use thiserror::Error;
+use tracing::info;
 use tracing::log::debug;
 use ArticleError::CategoryFailed;
 
@@ -102,6 +103,10 @@ pub async fn create_article(
     // TODO X Validate text fields, use validator framework instead
 
     let article_db = Article::try_from(article_data.clone())?;
+
+    info!("is main {}", article_db.is_main);
+    info!("is excl {}", article_db.is_exclusive);
+    info!("file name {}", article_file_name.clone());
 
     // process data image
     image_processor::process_images(

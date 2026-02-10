@@ -2,10 +2,10 @@ use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
 use crate::db::database_article::SurrealArticleError::ArticleNotFound;
 use crate::db::database_article_data::{
-    AccountArticleData, Article, MiniArticleData, ShortArticleData,
+    AccountArticleData, Article, MainArticleData, MiniArticleData, ShortArticleData, TopArticleData,
 };
 use regex;
-use std::convert::Into;
+use std::convert::{Infallible, Into};
 use std::string::ToString;
 use std::sync::Arc;
 use thiserror::Error;
@@ -15,11 +15,14 @@ const ARTICLE: &str = "article";
 
 #[derive(Debug, Error)]
 pub enum SurrealArticleError {
-    #[error("surreal db error: {0}")]
+    #[error("surreal db error {0}")]
     Surreal(#[from] surrealdb::Error),
 
-    #[error("article not found: {0}")]
+    #[error("article not found {0}")]
     ArticleNotFound(String),
+
+    #[error("article infallible {0}")]
+    ArticleInfallible(#[from] Infallible),
 }
 
 /**
@@ -143,6 +146,22 @@ impl DatabaseArticle {
             .await?;
         let category_articles: Vec<ShortArticleData> = response.take(0)?;
         Ok(category_articles)
+    }
+
+    pub async fn article_top_three(
+        &self,
+    ) -> Result<(MainArticleData, TopArticleData, TopArticleData), SurrealArticleError> {
+        let mut query_response_set = self
+            .surreal
+            .db
+            .query("SELECT * FROM article WHERE is_main = true ORDER BY date LIMIT 3")
+            .await?;
+        let mut top_articles: Vec<MainArticleData> = query_response_set.take(0)?;
+        let main: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
+        let second_m: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
+        let third_m: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
+
+        Ok((main, TopArticleData::try_from(second_m)?, TopArticleData::try_from(third_m)?))
     }
 
     // TODO X actually most read

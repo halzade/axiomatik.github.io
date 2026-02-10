@@ -1,4 +1,7 @@
-use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
+use crate::db::database_article::SurrealArticleError;
+use crate::db::database_article_data::{
+    MainArticleData, MiniArticleData, ShortArticleData, TopArticleData,
+};
 use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
@@ -10,27 +13,9 @@ pub enum IndexError {
 
     #[error("render error")]
     RenderError,
-}
 
-/*
- * Main Article
- */
-pub struct MainArticleData {
-    pub article_file_name: String,
-    pub title: String,
-    pub is_exclusive: bool,
-    pub short_text: String,
-    pub image_path: String,
-    pub image_desc: String,
-}
-
-/*
- * Second and Third Article
- */
-pub struct TopArticleData {
-    pub article_file_name: String,
-    pub title: String,
-    pub short_text: String,
+    #[error("surreal article error")]
+    SurrealArticle(#[from] SurrealArticleError),
 }
 
 /*
@@ -54,29 +39,12 @@ pub struct IndexTemplate {
 }
 
 pub async fn render_index(state: &TheState) -> Result<(), IndexError> {
-    // TODO fetch data
-    let articles_most_read = vec![];
-    let z_republiky_articles = vec![];
-    let ze_zahranici_articles = vec![];
+    let articles_most_read = state.dba.articles_most_read(4).await?;
 
-    let main_article = MainArticleData {
-        article_file_name: "".into(),
-        title: "".into(),
-        is_exclusive: false,
-        short_text: "".into(),
-        image_path: "".into(),
-        image_desc: "".into(),
-    };
-    let second_article = TopArticleData {
-        article_file_name: "".into(),
-        title: "".into(),
-        short_text: "".into(),
-    };
-    let third_article = TopArticleData {
-        article_file_name: "".into(),
-        title: "".into(),
-        short_text: "".into(),
-    };
+    let z_republiky_articles = state.dba.articles_by_category("republika", 10).await?;
+    let ze_zahranici_articles = state.dba.articles_by_category("zahranici", 10).await?;
+
+    let (main_article, second_article, third_article) = state.dba.article_top_three().await?;
 
     let template = IndexTemplate {
         date: state.ds.date(),

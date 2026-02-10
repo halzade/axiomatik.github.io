@@ -3,7 +3,6 @@ use crate::db::database_user::{SurrealUserError, User};
 use crate::system::router_app::AuthSession;
 use crate::system::server::TheState;
 use askama::Template;
-use axum::extract::State;
 use axum::response::{Html, IntoResponse, Redirect, Response};
 use axum::Form;
 use bcrypt::verify;
