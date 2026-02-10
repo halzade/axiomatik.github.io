@@ -3,6 +3,7 @@ use crate::trust::me::TrustError;
 use axum::Router;
 use http::Request;
 use std::sync::Arc;
+use axum::body::Body;
 use tower::ServiceExt;
 
 #[derive(Debug)]
@@ -18,7 +19,7 @@ impl WebController {
     pub async fn get_url(&self, url: &str) -> Result<ResponseVerifier, TrustError> {
         let response = (*self.web_router)
             .clone()
-            .oneshot(Request::builder().method("GET").uri(url).body(axum::body::Body::empty())?)
+            .oneshot(Request::builder().method("GET").uri(url).body(Body::empty())?)
             .await?;
 
         Ok(ResponseVerifier::new(response))

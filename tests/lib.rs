@@ -6,8 +6,8 @@ pub mod app {
     pub mod test_005_change_password;
     pub mod test_006_account_update_author_name;
     pub mod test_007_create_article;
-    pub mod test_009_create_article_account_integration;
     pub mod test_008_create_article_image_upload;
+    pub mod test_009_create_article_account_integration;
     pub mod test_create_article_is_exclusive_tests;
     pub mod test_create_article_republika_integration;
     pub mod test_create_article_validation;
@@ -32,4 +32,6 @@ pub mod templates {
 pub mod web {
     pub mod test_001_fallback_404;
     pub mod test_002_serve_static_content;
+    pub mod test_003_serve_thml;
+    pub mod test_004_serve_thml_404;
 }

@@ -75,7 +75,6 @@ pub struct AccountArticleData {
     pub category: String,
     pub date: DateTime<Utc>,
     pub date_str: String,
-    pub views: u64,
 }
 
 impl TryFrom<ArticleUpload> for Article {

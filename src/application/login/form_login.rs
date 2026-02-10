@@ -10,8 +10,8 @@ use bcrypt::verify;
 use http::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
-use tracing::{error, info, warn};
 use tracing::log::debug;
+use tracing::{error, info, warn};
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -42,16 +42,13 @@ pub async fn show_login() -> impl IntoResponse {
 }
 
 pub async fn handle_login(
-    State(state): State<TheState>,
     mut auth_session: AuthSession,
     Form(payload): Form<LoginPayload>,
 ) -> Response {
-
     debug!("Handling login request");
     if validate_input_simple(&payload.username).is_err()
         || validate_input_simple(&payload.password).is_err()
     {
-
         debug!("...Invalid input");
         return StatusCode::BAD_REQUEST.into_response();
     }
@@ -67,11 +64,9 @@ pub async fn handle_login(
             info!(user = %user.username, "User logged in successfully");
 
             if user.needs_password_change {
-
                 debug!("Redirecting to change password");
                 Redirect::to("/change-password").into_response()
             } else {
-
                 debug!("Redirecting to account");
                 Redirect::to("/account").into_response()
             }

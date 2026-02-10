@@ -6,7 +6,7 @@ mod tests {
     use axum::http::StatusCode;
 
     #[tokio::test]
-    async fn test_account_page() -> Result<(), TrustError> {
+    async fn test_create_article_account_page_integration() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
         // Create user and login
@@ -59,6 +59,7 @@ mod tests {
             .short_text("Short")
             .image_any_png()?
             .image_desc("test image description")
+            // TODO invalidate related articles
             .related_articles("related-test-article.html")
             .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)
@@ -90,6 +91,15 @@ mod tests {
                 .body_contains("Second Update")
                 .body_contains("Test User Article")
                 .verify().await?;
+
+        // visit the article, render it from the template
+        #[rustfmt::skip]
+        ac.web().get_url("test-user-article.html").await?
+            .must_see_response(StatusCode::OK)
+            .verify().await?;
+
+        // article was just rendered
+        trust::me::path_exists("web/test-user-article.html")?;
 
         // cleanup files
         trust::me::remove_file("web/test-user-article.html")?;

@@ -20,7 +20,7 @@ use crate::system::data_system::DataSystemError;
 use crate::system::data_updates::DataUpdatesError;
 use crate::system::server::TheState;
 use axum::body::Body;
-use axum::extract::{OriginalUri, State};
+use axum::extract::State;
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
@@ -123,7 +123,6 @@ impl WebRouter {
      */
     pub async fn serve_static_content(
         state: State<TheState>,
-        ori_uri: OriginalUri,
         request: Request<Body>,
     ) -> Result<Response, WebRouterError> {
         // this is an HTML file request, HTML content may need refresh
@@ -132,17 +131,18 @@ impl WebRouter {
         /*
          * request url
          */
-        let url = ori_uri.path().to_string();
-        info!("url: {}", url);
+        let uri = request.uri().clone();
+        let url = uri.path();
+        info!("url: >{}<", url);
 
-        match url.as_str() {
+        match url {
             "/index.html" => {
                 if !state.dv.index_valid() {
                     state.dv.index_validate();
 
                     index::render_index(&state).await?;
                 }
-                serve_this(&url, request).await
+                serve_this(url, request).await
             }
             "/finance.html" => {
                 if !state.dv.finance_valid() {
@@ -150,7 +150,7 @@ impl WebRouter {
 
                     finance::render_finance(&state).await?;
                 }
-                serve_this(&url, request).await
+                serve_this(url, request).await
             }
             "/news.html" => {
                 if !state.dv.news_valid() {
@@ -158,7 +158,7 @@ impl WebRouter {
 
                     news::render_news(&state).await?;
                 }
-                serve_this(&url, request).await
+                serve_this(url, request).await
             }
             "/republika.html" => {
                 if !state.dv.republika_valid() {
@@ -166,7 +166,7 @@ impl WebRouter {
 
                     republika::render_republika(&state).await?;
                 }
-                serve_this(&url, request).await
+                serve_this(url, request).await
             }
             "/technologie.html" => {
                 if !state.dv.technologie_valid() {
@@ -174,7 +174,7 @@ impl WebRouter {
 
                     technologie::render_technologie(&state).await?;
                 }
-                serve_this(&url, request).await
+                serve_this(url, request).await
             }
             "/veda.html" => {
                 if !state.dv.veda_valid() {
@@ -182,7 +182,7 @@ impl WebRouter {
 
                     veda::render_veda(&state).await?;
                 }
-                serve_this(&url, request).await
+                serve_this(url, request).await
             }
             "/zahranici.html" => {
                 if !state.dv.zahranici_valid() {
@@ -190,11 +190,11 @@ impl WebRouter {
 
                     zahranici::render_zahranici(&state).await?;
                 }
-                serve_this(&url, request).await
+                serve_this(url, request).await
             }
             _ => {
                 // remove the leading slash
-                let real_article_name = real_filename(&url);
+                let real_article_name = real_filename(url);
 
                 // 404 or Article
                 match state.dbs.read_article_validity(real_article_name).await? {
@@ -208,7 +208,7 @@ impl WebRouter {
                         // article was invalidated, render article HTML
                         // new article was u
                         article::render_article(&real_article_name, &state).await?;
-                        state.dbs.validate_article(url.clone()).await?;
+                        state.dbs.validate_article(url.to_string()).await?;
                         serve_this(real_article_name, request).await
                     }
                     ArticleStatus::DoesNotExist => {
