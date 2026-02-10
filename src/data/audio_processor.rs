@@ -1,7 +1,7 @@
+use crate::data::audio_validator::AudioValidatorError;
 use std::fs;
 use thiserror::Error;
 use AudioProcessorError::AudioIo;
-use crate::data::audio_validator::AudioValidatorError;
 
 #[derive(Debug, Error)]
 pub enum AudioProcessorError {
@@ -23,17 +23,21 @@ fn save_audio_file(audio_data: &[u8], file_name: &str) -> Result<(), AudioProces
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
+    use crate::trust;
+    use crate::trust::me::TrustError;
     use std::path::Path;
 
     #[test]
-    fn test_process_audio() {
+    fn test_process_audio() -> Result<(), TrustError> {
         // MP3 Magic number: ID3
         let mp3_data = [0x49, 0x44, 0x33, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
         let result = process_valid_audio(&mp3_data, "test_audio.mp3");
+
         assert!(result.is_ok());
         assert!(Path::new("web/u/test_audio.mp3").exists());
 
-        assert!(fs::remove_file("web/u/test_audio.mp3").is_ok());
+        trust::me::remove_file("web/u/test_audio.mp3")?;
+
+        Ok(())
     }
 }

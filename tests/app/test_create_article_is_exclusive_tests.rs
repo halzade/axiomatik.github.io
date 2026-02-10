@@ -5,6 +5,7 @@ mod tests {
     use axum_core::extract::Request;
     use reqwest::Body;
     use std::fs;
+    use axiomatik_web::trust;
     use axiomatik_web::trust::app_controller::AppController;
     use axiomatik_web::trust::data::media_data::PNG;
     use axiomatik_web::trust::me::TrustError;
@@ -72,11 +73,11 @@ mod tests {
         // );
 
         // Cleanup
-        assert!(fs::remove_file("web/test-financni-trhy-v-soku.html").is_ok());
-        assert!(fs::remove_file("web/u/test-financni-trhy-v-soku_image_50.jpg").is_ok());
-        assert!(fs::remove_file("web/u/test-financni-trhy-v-soku_image_288.jpg").is_ok());
-        assert!(fs::remove_file("web/u/test-financni-trhy-v-soku_image_440.jpg").is_ok());
-        assert!(fs::remove_file("web/u/test-financni-trhy-v-soku_image_820.jpg").is_ok());
+        trust::me::remove_file("web/test-financni-trhy-v-soku.html")?;
+        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_50.jpg")?;
+        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_288.jpg")?;
+        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_440.jpg")?;
+        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_820.jpg")?;
         Ok(())
     }
 }

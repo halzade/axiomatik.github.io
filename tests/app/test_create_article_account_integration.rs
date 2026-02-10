@@ -5,6 +5,7 @@ mod tests {
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs::remove_file;
+    use axiomatik_web::trust;
 
     #[tokio::test]
     async fn test_account_page() -> Result<(), TrustError> {
@@ -133,11 +134,11 @@ mod tests {
         // assert!(database_user::delete_user("user8").await.is_ok());
 
         // cleanup files
-        assert!(remove_file("web/test-user-article.html").is_ok());
-        assert!(remove_file("web/u/test-user-article_image_820.png").is_ok());
-        assert!(remove_file("web/u/test-user-article_image_50.png").is_ok());
-        assert!(remove_file("web/u/test-user-article_image_288.png").is_ok());
-        assert!(remove_file("web/u/test-user-article_image_440.png").is_ok());
+        trust::me::remove_file("web/test-user-article.html")?;
+        trust::me::remove_file("web/u/test-user-article_image_820.png")?;
+        trust::me::remove_file("web/u/test-user-article_image_50.png")?;
+        trust::me::remove_file("web/u/test-user-article_image_288.png")?;
+        trust::me::remove_file("web/u/test-user-article_image_440.png")?;
 
         Ok(())
     }

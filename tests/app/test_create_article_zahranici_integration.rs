@@ -3,6 +3,7 @@ mod tests {
     use axum::http::{header, Request, StatusCode};
     use reqwest::Body;
     use std::fs;
+    use axiomatik_web::trust;
     use axiomatik_web::trust::app_controller::AppController;
     use axiomatik_web::trust::me::TrustError;
 
@@ -49,11 +50,11 @@ mod tests {
         assert!(updated_index.contains("Test Newest Zahranici"));
 
         // Cleanup
-        assert!(fs::remove_file("web/test-newest-zahranici.html").is_ok());
-        assert!(fs::remove_file("web/u/test-newest-zahranici_image_820.jpg").is_ok());
-        assert!(fs::remove_file("web/u/test-newest-zahranici_image_50.jpg").is_ok());
-        assert!(fs::remove_file("web/u/test-newest-zahranici_image_288.jpg").is_ok());
-        assert!(fs::remove_file("web/u/test-newest-zahranici_image_440.jpg").is_ok());
+        trust::me::remove_file("web/test-newest-zahranici.html")?;
+        trust::me::remove_file("web/u/test-newest-zahranici_image_820.jpg")?;
+        trust::me::remove_file("web/u/test-newest-zahranici_image_50.jpg")?;
+        trust::me::remove_file("web/u/test-newest-zahranici_image_288.jpg")?;
+        trust::me::remove_file("web/u/test-newest-zahranici_image_440.jpg")?;
 
         Ok(())
     }

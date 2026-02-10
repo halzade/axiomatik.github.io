@@ -17,7 +17,6 @@ pub fn process_images(
     file_base: &str,
     ext: &str,
 ) -> Result<(), ImageProcessorError> {
-
     let img = image::load_from_memory(img_data)?;
     let (width, height) = img.dimensions();
     validate_image_width(width)?;
@@ -62,35 +61,32 @@ fn save_image(image: &DynamicImage, file_name: &str) -> Result<(), ImageProcesso
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::trust;
+    use crate::trust::me::TrustError;
     use image::{DynamicImage, RgbImage};
-    use std::fs;
     use std::path::Path;
     use DynamicImage::ImageRgb8;
 
     #[test]
-    fn test_process_images() {
+    fn test_process_images() -> Result<(), TrustError> {
         let mut img_data = Vec::new();
         ImageRgb8(RgbImage::new(1000, 1000))
-            .write_to(&mut std::io::Cursor::new(&mut img_data), image::ImageFormat::Png)
-            .unwrap();
+            .write_to(&mut std::io::Cursor::new(&mut img_data), image::ImageFormat::Png)?;
 
-        let result = process_images(&img_data, "test_image", "png");
+        let _result = process_images(&img_data, "test_image", "png")?;
 
-        assert!(result.is_ok());
-        let ef_50 = "web/u/test_image_image_50.png";
-        let ef_288 = "web/u/test_image_image_288.png";
-        let ef_440 = "web/u/test_image_image_440.png";
-        let ef_820 = "web/u/test_image_image_820.png";
+        trust::me::path_exists("web/u/test_image_image_50.png")?;
+        trust::me::path_exists("web/u/test_image_image_288.png")?;
+        trust::me::path_exists("web/u/test_image_image_288.png")?;
+        trust::me::path_exists("web/u/test_image_image_440.png")?;
+        trust::me::path_exists("web/u/test_image_image_820.png")?;
 
-        assert!(Path::new(ef_50).exists());
-        assert!(Path::new(ef_288).exists());
-        assert!(Path::new(ef_440).exists());
-        assert!(Path::new(ef_820).exists());
+        trust::me::remove_file("web/u/test_image_image_50.png")?;
+        trust::me::remove_file("web/u/test_image_image_288.png")?;
+        trust::me::remove_file("web/u/test_image_image_440.png")?;
+        trust::me::remove_file("web/u/test_image_image_820.png")?;
 
-        assert!(fs::remove_file(ef_50).is_ok());
-        assert!(fs::remove_file(ef_288).is_ok());
-        assert!(fs::remove_file(ef_440).is_ok());
-        assert!(fs::remove_file(ef_820).is_ok());
+        Ok(())
     }
 
     #[test]
@@ -105,12 +101,14 @@ mod tests {
     }
 
     #[test]
-    fn test_resized_and_save_image() {
+    fn test_resized_and_save_image() -> Result<(), TrustError> {
         let img = ImageRgb8(RgbImage::new(100, 100));
         let res = resized_and_save_image(&img, 50, 50, "resize_me", "image_50", "png");
 
         assert!(res.is_ok());
         assert!(Path::new("web/u/resize_me_image_50.png").exists());
-        assert!(fs::remove_file("web/u/resize_me_image_50.png").is_ok());
+        trust::me::remove_file("web/u/resize_me_image_50.png")?;
+
+        Ok(())
     }
 }

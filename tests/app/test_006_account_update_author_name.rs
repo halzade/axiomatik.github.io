@@ -49,7 +49,7 @@ mod tests {
             .header_location("/account")
             .verify().await?;
 
-        // request account with updated author name
+        // request an account with an updated author name
         #[rustfmt::skip]
         ac.account().get(&auth).await?
             .must_see_response(StatusCode::OK)

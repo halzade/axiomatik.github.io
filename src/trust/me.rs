@@ -1,3 +1,4 @@
+use crate::data::image_processor::ImageProcessorError;
 use crate::db::database::SurrealError;
 use crate::db::database_article::SurrealArticleError;
 use crate::db::database_system::SurrealSystemError;
@@ -7,6 +8,7 @@ use crate::system::configuration::ConfigurationError;
 use crate::system::server::ServerError;
 use crate::trust::app::article::create_article_request_builder::ArticleBuilderError;
 use http::header;
+use image::ImageError;
 use std::convert::Infallible;
 use std::fs;
 use std::path::Path;
@@ -79,10 +81,17 @@ pub enum TrustError {
 
     #[error("db system error")]
     SurrealArticle(#[from] SurrealArticleError),
+
+    #[error("image error")]
+    TrustImage(#[from] ImageError),
+
+    #[error("image processor error")]
+    ImageProcessor(#[from] ImageProcessorError),
 }
 
-pub fn path_exists(path: &str) {
+pub fn path_exists(path: &str) -> Result<(), TrustError> {
     assert!(Path::new(path).exists());
+    Ok(())
 }
 
 pub fn remove_file(path: &str) -> Result<(), TrustError> {

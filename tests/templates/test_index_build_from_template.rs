@@ -5,6 +5,7 @@ mod tests {
         IndexTemplate, MainArticleData, TopArticleData,
     };
     use axiomatik_web::db::database_article_data::ShortArticleData;
+    use axiomatik_web::trust;
     use axiomatik_web::trust::me::TrustError;
 
     #[test]
@@ -67,7 +68,7 @@ mod tests {
         assert!(saved_content.contains("<section class=\"main-article\">"));
 
         // Cleanup
-        assert!(std::fs::remove_file("test-index.html").is_ok());
+        trust::me::remove_file("test-index.html")?;
 
         Ok(())
     }

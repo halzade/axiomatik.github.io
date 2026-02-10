@@ -45,8 +45,9 @@ mod tests {
         ac.web().get_url("/test-article.html").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
+        // article was rendered and served
 
-        trust::me::path_exists("web/test-article.html");
+        trust::me::path_exists("web/test-article.html")?;
 
         // Cleanup
         trust::me::remove_file("web/test-article.html")?;
