@@ -12,9 +12,9 @@ askama = { version = "0.15" }
 axum = { version = "0.8.8", features = ["multipart"] }
 axum-core = "0.5.6"
 axum-login = { version = "0.18.0" }
-axum-extra = { version = "0.12.5", features = ["cookie"] }
 bcrypt = "0.18.0"
 chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.8"
 config = "0.15"
 infer = "0.19"
 http = "1.4.0"
@@ -34,6 +34,4 @@ tower-http = { version = "0.6.8", features = ["fs", "trace"] }
 tower-sessions = { version = "0.14.0", features = ["memory-store"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter", "chrono"] }
-url = "2.5.7"
 validator = { version = "0.18", features = ["derive"] }
-once_cell = "1.21.3"

@@ -64,7 +64,6 @@ impl DatabaseSystem {
     /*
      * Increase and read article view count
      */
-    // TODO
     pub async fn increase_article_views(
         &self,
         article_file_name: String,
@@ -86,6 +85,26 @@ impl DatabaseSystem {
                 Ok(0)
             }
         }
+    }
+
+    pub async fn most_read_by_views(&self, limit: u32) -> Result<Vec<String>, SurrealSystemError> {
+        let mut response = self
+            .surreal
+            .db
+            .query(
+                r#"
+        SELECT string::split(id, ":")[1] AS article_file_name, views
+        FROM article_views
+        ORDER BY views DESC
+        LIMIT $limit
+        "#,
+            )
+            .bind(("limit", limit))
+            .await?;
+
+        let article_file_names: Vec<String> = response.take("article_file_name")?;
+
+        Ok(article_file_names)
     }
 
     pub async fn write_article_record(
@@ -164,6 +183,34 @@ mod tests {
         // Different article
         let views = dbs.increase_article_views("other-article.html".to_string()).await?;
         assert_eq!(views, 1);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_most_read_article() -> Result<(), TrustError> {
+        let dbs = DatabaseSystem::new_from_scratch().await?;
+
+        let article_1 = "test-1.html".to_string();
+        let article_2 = "test-2.html".to_string();
+        let article_3 = "test-3.html".to_string();
+        let article_4 = "test-4.html".to_string();
+
+        dbs.increase_article_views(article_1.clone()).await?;
+
+        dbs.increase_article_views(article_2.clone()).await?;
+        dbs.increase_article_views(article_2.clone()).await?;
+
+        dbs.increase_article_views(article_3.clone()).await?;
+        dbs.increase_article_views(article_3.clone()).await?;
+        dbs.increase_article_views(article_3.clone()).await?;
+
+        dbs.increase_article_views(article_4.clone()).await?;
+
+        let mut most_read = dbs.most_read_by_views(2).await?;
+        assert_eq!(most_read.len(), 2);
+        assert_eq!(most_read.pop().unwrap(), article_2);
+        assert_eq!(most_read.pop().unwrap(), article_3);
 
         Ok(())
     }

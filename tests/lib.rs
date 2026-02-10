@@ -8,7 +8,7 @@ pub mod app {
     pub mod test_007_create_article;
     pub mod test_008_create_article_image_upload;
     pub mod test_009_create_article_account_integration;
-    pub mod test_create_article_is_exclusive_tests;
+    pub mod test_010_create_article_is_exclusive_tests;
     pub mod test_create_article_republika_integration;
     pub mod test_create_article_validation;
     pub mod test_create_article_zahranici_integration;
@@ -18,16 +18,6 @@ pub mod db {
 }
 pub mod sys {
     pub mod test_command_create_editor_user;
-}
-pub mod templates {
-    pub mod test_article_build_from_template;
-    pub mod test_category_finance_build_from_template;
-    pub mod test_category_republika_build_from_template;
-    pub mod test_category_technologie_build_from_template;
-    pub mod test_category_veda_build_from_template;
-    pub mod test_category_zahranici_build_from_template;
-    pub mod test_index_build_from_template;
-    pub mod test_news_build_from_template;
 }
 pub mod web {
     pub mod test_001_fallback_404;

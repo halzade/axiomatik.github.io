@@ -1,16 +1,9 @@
 use crate::trust::data::media_data::BOUNDARY;
 use axum::response::Response;
 use std::string::ToString;
-use url::form_urlencoded::Serializer;
 
 pub fn error(title: &str, exp: String, real: &str) -> String {
     format!("{}: \"{}\", was \"{}\"", title, exp, real)
-}
-
-pub fn serialize(params: &[(&str, &str)]) -> String {
-    let mut serializer = Serializer::new(String::new());
-    serializer.extend_pairs(params);
-    serializer.finish()
 }
 
 pub fn content_type_with_boundary() -> String {

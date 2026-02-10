@@ -129,7 +129,7 @@ impl WebRouter {
         info!("serve_static_content()");
 
         let uri = request.uri().clone();
-        let mut url = uri.path().to_string();
+        let url = uri.path().to_string();
 
         info!("url: {}", url);
 

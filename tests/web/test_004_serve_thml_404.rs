@@ -10,7 +10,7 @@ mod tests {
 
         #[rustfmt::skip]
           ac.web().get_url("/test-no-user-article.html").await?
-            .must_see_response(StatusCode::OK)
+            .must_see_response(StatusCode::NOT_FOUND)
             .verify().await?;
 
         Ok(())

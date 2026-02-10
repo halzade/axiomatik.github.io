@@ -72,6 +72,7 @@ pub mod data {
     pub mod text_extractor;
     pub mod text_processor;
     pub mod text_validator;
+    pub mod time;
     pub mod video_extractor;
     pub mod video_processor;
     pub mod video_validator;

@@ -2,11 +2,12 @@ use crate::feature::name_days_library;
 use chrono::prelude::*;
 use std::string::ToString;
 use tracing::error;
+use crate::data::time::to_prague_time;
 
 const LEEP_YEAR_NAME_DAY: &'static str = "Cleverest Punk";
 
-pub fn formatted_today_name_day(now: DateTime<Utc>) -> String {
-    let name = today_name_day(now);
+pub fn formatted_today_name_day(utc: DateTime<Utc>) -> String {
+    let name = today_name_day(utc);
     if name.is_empty() {
         error!("empty name day");
         "".to_string()
@@ -21,7 +22,8 @@ pub fn formatted_today_name_day(now: DateTime<Utc>) -> String {
     }
 }
 
-fn today_name_day(now: DateTime<Utc>) -> String {
+fn today_name_day(utc: DateTime<Utc>) -> String {
+    let now = to_prague_time(utc);
     let year = now.year();
     let month = now.month();
     let day = now.day();

@@ -1,14 +1,14 @@
-use crate::trust::app::article::create_article_data::{ArticleFluent, ArticleData};
-use crate::trust::data::response_verifier::ResponseVerifier;
-use crate::trust::me::TrustError;
-use std::io::Write;
-use axum::Router;
-use std::sync::Arc;
-use http::{header, Request};
-use axum::body::Body;
-use tower::ServiceExt;
-use crate::trust::data::utils::content_type_with_boundary;
+use crate::trust::app::article::create_article_data::{ArticleData, ArticleFluent};
 use crate::trust::data::media_data::BOUNDARY;
+use crate::trust::data::response_verifier::ResponseVerifier;
+use crate::trust::data::utils::content_type_with_boundary;
+use crate::trust::me::TrustError;
+use axum::body::Body;
+use axum::Router;
+use http::{header, Request};
+use std::io::Write;
+use std::sync::Arc;
+use tower::ServiceExt;
 
 #[derive(Debug, Clone)]
 pub struct CreateArticleController {
@@ -162,7 +162,13 @@ impl CreateArticleController {
 
         if let Some(audio_data) = data.audio_data {
             let ext = data.audio_ext.unwrap_or_else(|| "mp3".to_string());
-            self.add_file(&mut body, "audio", &format!("audio.{}", ext), "audio/mpeg", &audio_data)?;
+            self.add_file(
+                &mut body,
+                "audio",
+                &format!("audio.{}", ext),
+                "audio/mpeg",
+                &audio_data,
+            )?;
         }
 
         if let Some(video_data) = data.video_data {
@@ -174,7 +180,6 @@ impl CreateArticleController {
         Ok(body)
     }
 
-    // TODO ??
     fn add_field(&self, body: &mut Vec<u8>, name: &str, value: &str) -> Result<(), TrustError> {
         write!(
             body,

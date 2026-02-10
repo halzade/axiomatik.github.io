@@ -1,5 +1,5 @@
+use crate::data::time::to_prague_time;
 use chrono::{DateTime, Datelike, Utc, Weekday};
-
 // TODO X nejsou vyřešeny státní svátky
 
 pub const CZECH_MONTHS_CAPITAL: [&str; 12] = [
@@ -52,10 +52,9 @@ fn get_czech_month_genitive(month: u32) -> &'static str {
     CZECH_MONTHS_GENITIVE[(month - 1) as usize]
 }
 
-pub fn day_of_week(dtl: DateTime<Utc>) -> &'static str {
-    // TODO Utc to Prague timezone
-
-    match dtl.weekday() {
+pub fn day_of_week(utc: DateTime<Utc>) -> &'static str {
+    let now = to_prague_time(utc);
+    match now.weekday() {
         Weekday::Mon => "Pondělí",
         Weekday::Tue => "Úterý",
         Weekday::Wed => "Středa",
@@ -96,10 +95,13 @@ pub fn safe_article_file_name(title: &String) -> String {
         .collect::<String>()
 }
 
-pub fn formatted_article_date(now: DateTime<Utc>) -> String {
-    let day_name = day_of_week(now);
+pub fn formatted_article_date(utc: DateTime<Utc>) -> String {
+    let day_name = day_of_week(utc);
+    let now = to_prague_time(utc);
+    
     let month_name_genitive = get_czech_month_genitive(now.month());
 
+    
     format!("{} {}. {} {}", day_name, now.day(), month_name_genitive, now.year())
 }
 
