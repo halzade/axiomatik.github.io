@@ -44,7 +44,9 @@ mod tests {
 
         // Update author name
         #[rustfmt::skip]
-        ac.account().update_author_name(&auth, "Updated Author").await?
+        ac.account().update_author_name(&auth)
+            .author_name("Updated Author")
+            .execute().await?
             .must_see_response(StatusCode::SEE_OTHER)
             .header_location("/account")
             .verify().await?;

@@ -25,24 +25,21 @@ mod tests {
                 .verify().await?;
 
         // Access account page
-        ac.account()
-            .get(&auth)
-            .await?
+        #[rustfmt::skip]
+        ac.account().get(&auth).await?
             .must_see_response(StatusCode::OK)
             .body_contains("user8")
             .body_contains("Moje články")
-            .verify()
-            .await?;
+            .verify().await?;
 
         // Update author name
-        // TODO FI
-        ac.account()
-            .update_author_name(&auth, "Updated Author")
-            .await?
-            .must_see_response(StatusCode::SEE_OTHER)
-            .header_location("/account")
-            .verify()
-            .await?;
+        #[rustfmt::skip]
+        ac.account().update_author_name(&auth)
+            .author_name("Updated Author")
+            .execute().await?
+                .must_see_response(StatusCode::SEE_OTHER)
+                .header_location("/account")
+                .verify().await?;
 
         // Verify update in DB
         #[rustfmt::skip]
@@ -76,12 +73,13 @@ mod tests {
             .verify().await?;
 
         // Update author name again
-        // TODO FI
         #[rustfmt::skip]
-        ac.account().update_author_name(&auth, "Second Update").await?
-            .must_see_response(StatusCode::SEE_OTHER)
-            .header_location("/account")
-            .verify().await?;
+        ac.account().update_author_name(&auth)
+            .author_name("Second Update")
+            .execute().await?
+                .must_see_response(StatusCode::SEE_OTHER)
+                .header_location("/account")
+                .verify().await?;
 
         // Verify the article is STILL on the account page (linked by username, not author_name)
         #[rustfmt::skip]
