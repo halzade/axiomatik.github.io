@@ -131,25 +131,10 @@ impl WebRouter {
         let uri = request.uri().clone();
         let mut url = uri.path().to_string();
 
-        // Normalize URL path
-        // If path is empty (e.g., request built with "index.html"), try path_and_query
-        if url.is_empty() {
-            if let Some(pq) = uri.path_and_query() {
-                url = pq.as_str().to_string();
-            }
-        }
-        // Ensure leading slash
-        if !url.starts_with('/') {
-            url = format!("/{}", url);
-        }
-        // Map root to index.html
-        if url == "/" {
-            url = "/index.html".to_string();
-        }
-        info!("url: >{}<", url);
+        info!("url: {}", url);
 
         match url.as_str() {
-            "/index.html" => {
+            "/index.html" | "/" => {
                 if !state.dv.index_valid() {
                     state.dv.index_validate();
 

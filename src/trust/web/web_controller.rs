@@ -5,6 +5,7 @@ use http::Request;
 use std::sync::Arc;
 use axum::body::Body;
 use tower::ServiceExt;
+use tracing::error;
 
 #[derive(Debug)]
 pub struct WebController {
@@ -17,6 +18,9 @@ impl WebController {
     }
 
     pub async fn get_url(&self, url: &str) -> Result<ResponseVerifier, TrustError> {
+        if !url.starts_with('/') {
+            error!("url must start with '/'")
+        }
         let response = (*self.web_router)
             .clone()
             .oneshot(Request::builder().method("GET").uri(url).body(Body::empty())?)

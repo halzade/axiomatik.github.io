@@ -9,7 +9,7 @@ mod tests {
         let ac = AppController::new().await?;
 
         #[rustfmt::skip]
-          ac.web().get_url("test-no-user-article.html").await?
+          ac.web().get_url("/test-no-user-article.html").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
 

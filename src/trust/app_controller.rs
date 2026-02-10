@@ -145,7 +145,7 @@ mod tests {
          * verify Article in the database
          */
         #[rustfmt::skip]
-        ac.web().get_url("title-1.html").await?
+        ac.web().get_url("/title-1.html").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
 

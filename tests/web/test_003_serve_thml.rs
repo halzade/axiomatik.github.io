@@ -9,7 +9,7 @@ mod tests {
         let ac = AppController::new().await?;
 
         #[rustfmt::skip]
-          ac.web().get_url("index.html").await?
+          ac.web().get_url("/index.html").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
 
@@ -21,7 +21,7 @@ mod tests {
         let ac = AppController::new().await?;
 
         #[rustfmt::skip]
-          ac.web().get_url("veda.html").await?
+          ac.web().get_url("/veda.html").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
 

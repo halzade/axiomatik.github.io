@@ -94,7 +94,7 @@ mod tests {
 
         // visit the article, render it from the template
         #[rustfmt::skip]
-        ac.web().get_url("test-user-article.html").await?
+        ac.web().get_url("/test-user-article.html").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
 
