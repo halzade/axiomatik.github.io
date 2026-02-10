@@ -38,7 +38,6 @@ mod tests {
                 .must_see_response(StatusCode::SEE_OTHER)
                 .verify().await?;
 
-        // 4. Verify that four copies with required dimensions were saved in u/
         trust::me::path_exists("web/u/test-image-upload_image_820.png")?;
         trust::me::path_exists("web/u/test-image-upload_image_50.png")?;
         trust::me::path_exists("web/u/test-image-upload_image_288.png")?;
@@ -50,11 +49,10 @@ mod tests {
         assert_eq!((440, 300), image::open("web/u/test-image-upload_image_440.png")?.dimensions());
 
         // Cleanup
-        trust::me::remove_file("web/text-testing-upload.html")?;
-        trust::me::remove_file("web/u/text-testing-upload_image_820.png")?;
-        trust::me::remove_file("web/u/text-testing-upload_image_50.png")?;
-        trust::me::remove_file("web/u/text-testing-upload_image_288.png")?;
-        trust::me::remove_file("web/u/text-testing-upload_image_440.png")?;
+        trust::me::remove_file("web/u/test-image-upload_image_820.png")?;
+        trust::me::remove_file("web/u/test-image-upload_image_50.png")?;
+        trust::me::remove_file("web/u/test-image-upload_image_288.png")?;
+        trust::me::remove_file("web/u/test-image-upload_image_440.png")?;
 
         Ok(())
     }
