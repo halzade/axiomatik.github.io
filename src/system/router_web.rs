@@ -128,21 +128,34 @@ impl WebRouter {
         // this is an HTML file request, HTML content may need refresh
         info!("serve_static_content()");
 
-        /*
-         * request url
-         */
         let uri = request.uri().clone();
-        let url = uri.path();
+        let mut url = uri.path().to_string();
+
+        // Normalize URL path
+        // If path is empty (e.g., request built with "index.html"), try path_and_query
+        if url.is_empty() {
+            if let Some(pq) = uri.path_and_query() {
+                url = pq.as_str().to_string();
+            }
+        }
+        // Ensure leading slash
+        if !url.starts_with('/') {
+            url = format!("/{}", url);
+        }
+        // Map root to index.html
+        if url == "/" {
+            url = "/index.html".to_string();
+        }
         info!("url: >{}<", url);
 
-        match url {
+        match url.as_str() {
             "/index.html" => {
                 if !state.dv.index_valid() {
                     state.dv.index_validate();
 
                     index::render_index(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/finance.html" => {
                 if !state.dv.finance_valid() {
@@ -150,7 +163,7 @@ impl WebRouter {
 
                     finance::render_finance(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/news.html" => {
                 if !state.dv.news_valid() {
@@ -158,7 +171,7 @@ impl WebRouter {
 
                     news::render_news(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/republika.html" => {
                 if !state.dv.republika_valid() {
@@ -166,7 +179,7 @@ impl WebRouter {
 
                     republika::render_republika(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/technologie.html" => {
                 if !state.dv.technologie_valid() {
@@ -174,7 +187,7 @@ impl WebRouter {
 
                     technologie::render_technologie(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/veda.html" => {
                 if !state.dv.veda_valid() {
@@ -182,7 +195,7 @@ impl WebRouter {
 
                     veda::render_veda(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             "/zahranici.html" => {
                 if !state.dv.zahranici_valid() {
@@ -190,11 +203,11 @@ impl WebRouter {
 
                     zahranici::render_zahranici(&state).await?;
                 }
-                serve_this(url, request).await
+                serve_this(&url, request).await
             }
             _ => {
                 // remove the leading slash
-                let real_article_name = real_filename(url);
+                let real_article_name = real_filename(&url);
 
                 // 404 or Article
                 match state.dbs.read_article_validity(real_article_name).await? {

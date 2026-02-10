@@ -5,11 +5,11 @@ mod tests {
     use axum::http::StatusCode;
 
     #[tokio::test]
-    async fn test_serve_html() -> Result<(), TrustError> {
+    async fn test_serve_html_404() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
         #[rustfmt::skip]
-          ac.web().get_url("index.html").await?
+          ac.web().get_url("test-no-user-article.html").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
 

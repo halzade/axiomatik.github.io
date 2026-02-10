@@ -5,12 +5,24 @@ mod tests {
     use axum::http::StatusCode;
 
     #[tokio::test]
-    async fn test_serve_html_404() -> Result<(), TrustError> {
+    async fn test_serve_index_html() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
         #[rustfmt::skip]
-          ac.web().get_url("test-user-article.html").await?
-            .must_see_response(StatusCode::NOT_FOUND)
+          ac.web().get_url("index.html").await?
+            .must_see_response(StatusCode::OK)
+            .verify().await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_serve_category_html() -> Result<(), TrustError> {
+        let ac = AppController::new().await?;
+
+        #[rustfmt::skip]
+          ac.web().get_url("veda.html").await?
+            .must_see_response(StatusCode::OK)
             .verify().await?;
 
         Ok(())
