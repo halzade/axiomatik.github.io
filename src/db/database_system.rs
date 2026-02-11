@@ -87,22 +87,18 @@ impl DatabaseSystem {
         }
     }
 
-    pub async fn most_read_by_views(&self, limit: u32) -> Result<Vec<String>, SurrealSystemError> {
+    pub async fn most_read_by_views(
+        &self,
+        limit: u32,
+    ) -> Result<Vec<ArticleViews>, SurrealSystemError> {
         let mut response = self
             .surreal
             .db
-            .query(
-                r#"
-        SELECT string::split(id, ":")[1] AS article_file_name, views
-        FROM article_views
-        ORDER BY views DESC
-        LIMIT $limit
-        "#,
-            )
+            .query("SELECT * FROM article_views ORDER BY views DESC LIMIT $limit")
             .bind(("limit", limit))
             .await?;
 
-        let article_file_names: Vec<String> = response.take("article_file_name")?;
+        let article_file_names: Vec<ArticleViews> = response.take(0)?;
 
         Ok(article_file_names)
     }
@@ -209,8 +205,8 @@ mod tests {
 
         let mut most_read = dbs.most_read_by_views(2).await?;
         assert_eq!(most_read.len(), 2);
-        assert_eq!(most_read.pop().unwrap(), article_2);
-        assert_eq!(most_read.pop().unwrap(), article_3);
+        assert_eq!(most_read.pop().unwrap().article_file_name, article_2);
+        assert_eq!(most_read.pop().unwrap().article_file_name, article_3);
 
         Ok(())
     }

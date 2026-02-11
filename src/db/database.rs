@@ -78,20 +78,20 @@ async fn prepare_as_if_empty(surreal: &DatabaseSurreal) -> Result<(), SurrealErr
         .db
         .query(
             r#"
-        ## Article
+        /* Article */
         DEFINE TABLE article SCHEMALESS;        
         DEFINE INDEX user ON article FIELDS user;
         DEFINE INDEX article_file_name ON article FIELDS article_file_name UNIQUE;
         
-        ## article_update_status
+        /* Article Update Status */
         DEFINE TABLE article_update_status SCHEMALESS;
         DEFINE INDEX article_file_name ON article_update_status FIELDS article_file_name UNIQUE;
         
-        ## article_views
+        /* Article Views */
         DEFINE TABLE article_views SCHEMALESS;
         DEFINE INDEX article_file_name ON article_views FIELDS article_file_name UNIQUE;
         
-        ## user
+        /* User */
         DEFINE TABLE user SCHEMALESS;
         DEFINE INDEX username ON user FIELDS username UNIQUE;
         "#,

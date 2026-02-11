@@ -4,6 +4,7 @@ use crate::db::database_article::SurrealArticleError::ArticleNotFound;
 use crate::db::database_article_data::{
     AccountArticleData, Article, MainArticleData, MiniArticleData, ShortArticleData, TopArticleData,
 };
+use crate::db::database_system::ArticleViews;
 use regex;
 use std::convert::{Infallible, Into};
 use std::string::ToString;
@@ -164,19 +165,17 @@ impl DatabaseArticle {
         Ok((main, TopArticleData::try_from(second_m)?, TopArticleData::try_from(third_m)?))
     }
 
-    // TODO X actually most read
-    // TODO only wanted data
     pub async fn articles_most_read(
         &self,
-        limit: u32,
+        most_read_vec: Vec<ArticleViews>,
     ) -> Result<Vec<MiniArticleData>, SurrealArticleError> {
-        debug!("articles_most_read: limit={}", limit);
+        debug!("articles_most_read amount={:?}, {:?}", most_read_vec.len(), most_read_vec);
 
         let mut response = self
             .surreal
             .db
-            .query("SELECT * FROM article ORDER BY date DESC LIMIT $limit")
-            .bind(("limit", limit))
+            .query("SELECT * FROM $article_file_name")
+            .bind(("$article_file_name", most_read_vec))
             .await?;
         let most_read_articles: Vec<MiniArticleData> = response.take(0)?;
         Ok(most_read_articles)
@@ -233,6 +232,7 @@ impl DatabaseArticle {
 #[cfg(test)]
 mod tests {
     use crate::db::database_article::DatabaseArticle;
+    use crate::db::database_system::ArticleViews;
     use crate::trust::app::article::create_article_request_builder::easy_article;
     use crate::trust::me::TrustError;
 
@@ -314,7 +314,9 @@ mod tests {
         // prepare the article
         db.create_article(easy_article("Test Title 7", "userN", "text")).await?;
 
-        let most_red = db.articles_most_read(1).await?;
+        let av = ArticleViews { article_file_name: "test-title-7.html".to_string(), views: 1 };
+
+        let most_red = db.articles_most_read(vec![av]).await?;
 
         assert_eq!(most_red.len(), 1);
         Ok(())
