@@ -16,18 +16,19 @@ pub struct MainArticleData {
     pub title: String,
     pub is_exclusive: bool,
     pub short_text: String,
-    pub image_path: String,
+    pub image_440_path: String,
     pub image_desc: String,
 }
 
 impl MainArticleData {
+    // used for Index.html, if there are no articles yet
     pub fn empty() -> MainArticleData {
         MainArticleData {
             article_file_name: "".into(),
             title: "".into(),
             is_exclusive: false,
             short_text: "".into(),
-            image_path: "".into(),
+            image_440_path: "".into(),
             image_desc: "".into(),
         }
     }

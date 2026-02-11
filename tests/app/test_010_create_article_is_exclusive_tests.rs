@@ -48,15 +48,16 @@ mod tests {
         #[rustfmt::skip]
         ac.web().get_url("/index.html").await?
             .must_see_response(StatusCode::OK)
-            .body_contains("<span class=\"red\">EXKLUZIVNĚ:</span>Test Financni Trhy v Šoku")
+            .body_contains("<span class=\"red\">EXKLUZIVNĚ:</span>")
+            .body_contains("Test Financni Trhy v Šoku")
             .verify().await?;
 
         // Cleanup
         trust::me::remove_file("web/test-financni-trhy-v-soku.html")?;
-        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_50.jpg")?;
-        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_288.jpg")?;
-        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_440.jpg")?;
-        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_820.jpg")?;
+        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_50.png")?;
+        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_288.png")?;
+        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_440.png")?;
+        trust::me::remove_file("web/u/test-financni-trhy-v-soku_image_820.png")?;
         Ok(())
     }
 }

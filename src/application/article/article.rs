@@ -71,7 +71,7 @@ pub struct ArticleTemplate {
     pub title: String,
     pub text: String,
 
-    pub image_path: String,
+    pub image_820_path: String,
     pub image_desc: String,
     pub video_path: Option<String>,
     pub audio_path: Option<String>,
@@ -186,7 +186,7 @@ pub async fn render_article(article_file_name: &str, state: &TheState) -> Result
 
         text: article.text,
 
-        image_path: article.image_820_path,
+        image_820_path: article.image_820_path,
         image_desc: article.image_desc,
         video_path: if article.has_video { Some(article.video_path) } else { None },
         audio_path: if article.has_audio { Some(article.audio_path) } else { None },

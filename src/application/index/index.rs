@@ -15,10 +15,10 @@ pub enum IndexError {
     #[error("render error")]
     RenderError,
 
-    #[error("surreal article error")]
+    #[error("surreal article error {0}")]
     SurrealArticle(#[from] SurrealArticleError),
 
-    #[error("surreal system error")]
+    #[error("surreal system error {0}")]
     SurrealSystem(#[from] SurrealSystemError),
 }
 

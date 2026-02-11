@@ -199,7 +199,7 @@ impl WebRouter {
                     ArticleStatus::Valid => {
                         debug!("- Article valid");
                         // no change, serve the file
-                        serve_this(real_article_name, request).await
+                        serve_this(&format!("/{}", real_article_name), request).await
                     }
                     ArticleStatus::Invalid => {
                         debug!("- Article invalid");
@@ -207,10 +207,10 @@ impl WebRouter {
                         // new article was u
                         article::render_article(&real_article_name, &state).await?;
                         state.dbs.validate_article(url.to_string()).await?;
-                        serve_this(real_article_name, request).await
+                        serve_this(&format!("/{}", real_article_name), request).await
                     }
                     ArticleStatus::DoesNotExist => {
-                        debug!("- Article doesn't exist, give 404");
+                        debug!("Article doesn't exist, give 404");
                         // requested url doesn't exist
                         serve_404().await
                     }
@@ -225,8 +225,9 @@ fn real_filename(article_file_name: &str) -> &str {
 }
 
 async fn serve_this(path: &str, request: Request<Body>) -> Result<Response, WebRouterError> {
-    info!("serve_this: web/{}", path);
-    Ok(ServeFile::new(format!("web/{}", path)).oneshot(request).await?.into_response())
+    // path already begins with /
+    info!("serve_this: web{}", path);
+    Ok(ServeFile::new(format!("web{}", path)).oneshot(request).await?.into_response())
 }
 
 async fn serve_404() -> Result<Response, WebRouterError> {
