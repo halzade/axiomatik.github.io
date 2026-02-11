@@ -2,6 +2,7 @@ use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
 use crate::db::database_article::SurrealArticleError;
+use crate::db::database_system::SurrealSystemError;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 use crate::system::server::TheState;
 use askama::Template;
@@ -21,6 +22,9 @@ pub enum ZahraniciError {
 
     #[error("create category database error {0}")]
     SurrealArticle(#[from] SurrealArticleError),
+    
+    #[error("create category database system error {0}")]
+    SurrealSystem(#[from] SurrealSystemError),
 }
 
 #[derive(Template)]
@@ -36,7 +40,7 @@ pub struct ZahraniciTemplate<'a> {
 
 pub async fn render_zahranici(state: &TheState) -> Result<(), ZahraniciError> {
     let articles = state.dba.articles_by_category("zahranici", 100).await?;
-    let articles_most_read = state.dba.articles_most_read(3).await?;
+    let articles_most_read: Vec<MiniArticleData> = state.dbs.most_read_by_views().await?;
 
     let split = articles.len() / 3;
     let (articles_left, articles_right) = articles.split_at(split);

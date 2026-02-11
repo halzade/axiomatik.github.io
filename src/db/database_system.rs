@@ -1,5 +1,6 @@
 use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
+use crate::db::database_article_data::{Article, MiniArticleData};
 use crate::db::database_system::ArticleStatus::DoesNotExist;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -25,6 +26,12 @@ pub enum SurrealSystemError {
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
 pub struct ArticleViews {
     pub article_file_name: String,
+    pub views: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
+struct ArticleViewsFetched {
+    pub article: Option<MiniArticleData>,
     pub views: u64,
 }
 
@@ -87,20 +94,19 @@ impl DatabaseSystem {
         }
     }
 
-    pub async fn most_read_by_views(
-        &self,
-        limit: u32,
-    ) -> Result<Vec<ArticleViews>, SurrealSystemError> {
+    pub async fn most_read_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
         let mut response = self
             .surreal
             .db
-            .query("SELECT * FROM article_views ORDER BY views DESC LIMIT $limit")
-            .bind(("limit", limit))
+            .query("SELECT type::record('article', article_file_name) AS article, views FROM article_views ORDER BY views DESC LIMIT 3 FETCH article")
             .await?;
 
-        let article_file_names: Vec<ArticleViews> = response.take(0)?;
+        let top_views: Vec<ArticleViewsFetched> = response.take(0)?;
 
-        Ok(article_file_names)
+        let articles: Vec<MiniArticleData> =
+            top_views.into_iter().filter_map(|av| av.article).collect();
+
+        Ok(articles)
     }
 
     pub async fn write_article_record(
@@ -160,6 +166,7 @@ impl DatabaseSystem {
 
 #[cfg(test)]
 mod tests {
+    use crate::trust::app::article::create_article_request_builder::easy_article;
     use super::*;
     use crate::trust::me::TrustError;
 
@@ -191,6 +198,10 @@ mod tests {
         let article_2 = "test-2.html".to_string();
         let article_3 = "test-3.html".to_string();
         let article_4 = "test-4.html".to_string();
+        let article_5 = "test-4.html".to_string();
+
+
+        // easy_article("Test 1", "text");
 
         dbs.increase_article_views(article_1.clone()).await?;
 
@@ -202,11 +213,17 @@ mod tests {
         dbs.increase_article_views(article_3.clone()).await?;
 
         dbs.increase_article_views(article_4.clone()).await?;
+        dbs.increase_article_views(article_4.clone()).await?;
+        dbs.increase_article_views(article_4.clone()).await?;
+        dbs.increase_article_views(article_4.clone()).await?;
 
-        let mut most_read = dbs.most_read_by_views(2).await?;
-        assert_eq!(most_read.len(), 2);
-        assert_eq!(most_read.pop().unwrap().article_file_name, article_2);
-        assert_eq!(most_read.pop().unwrap().article_file_name, article_3);
+        dbs.increase_article_views(article_5.clone()).await?;
+
+        let most_read = dbs.most_read_by_views().await?;
+        assert!(most_read.len() == 3);
+        assert_eq!(most_read[0].article_file_name, article_3);
+        assert_eq!(most_read[1].article_file_name, article_2);
+        assert_eq!(most_read[3].article_file_name, article_3);
 
         Ok(())
     }

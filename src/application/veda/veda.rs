@@ -2,6 +2,7 @@ use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
+use crate::db::database_system::SurrealSystemError;
 use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
@@ -21,6 +22,9 @@ pub enum VedaError {
 
     #[error("create category database error {0}")]
     SurrealArticle(#[from] SurrealArticleError),
+    
+    #[error("create category database system error {0}")]
+    SurrealSystem(#[from] SurrealSystemError),
 }
 
 #[derive(Template)]
@@ -36,7 +40,7 @@ pub struct VedaTemplate<'a> {
 
 pub async fn render_veda(state: &TheState) -> Result<(), VedaError> {
     let articles = state.dba.articles_by_category("veda", 100).await?;
-    let articles_most_read = state.dba.articles_most_read(3).await?;
+    let articles_most_read: Vec<MiniArticleData> = state.dbs.most_read_by_views().await?;
 
     let split = articles.len() / 3;
     let (articles_left, articles_right) = articles.split_at(split);

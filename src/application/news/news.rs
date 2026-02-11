@@ -2,6 +2,7 @@ use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
 use crate::db::database_article::SurrealArticleError;
+use crate::db::database_system::SurrealSystemError;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 use crate::system::server::TheState;
 use askama::Template;
@@ -21,6 +22,9 @@ pub enum NewsError {
 
     #[error("create category database error {0}")]
     SurrealArticle(#[from] SurrealArticleError),
+    
+    #[error("create category database system error {0}")]
+    SurrealSystem(#[from] SurrealSystemError),
 }
 
 #[derive(Template)]
@@ -38,7 +42,7 @@ pub struct NewsTemplate {
 }
 
 pub async fn render_news(state: &TheState) -> Result<(), NewsError> {
-    let articles_most_read = state.dba.articles_most_read(10).await?;
+    let articles_most_read: Vec<MiniArticleData> = state.dbs.most_read_by_views().await?;
     let z_republiky = state.dba.articles_by_category("republika", 10).await?;
     let ze_zahranici = state.dba.articles_by_category("zahranici", 10).await?;
     let technologie = state.dba.articles_by_category("technologie", 10).await?;

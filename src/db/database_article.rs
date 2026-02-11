@@ -22,6 +22,7 @@ pub enum SurrealArticleError {
     #[error("article not found {0}")]
     ArticleNotFound(String),
 
+    // TODO never throw Infalliable
     #[error("article infallible {0}")]
     ArticleInfallible(#[from] Infallible),
 }
