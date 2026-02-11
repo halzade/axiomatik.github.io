@@ -11,6 +11,7 @@ use std::string::ToString;
 use std::sync::Arc;
 use thiserror::Error;
 use tracing::log::debug;
+use tracing::warn;
 
 const ARTICLE: &str = "article";
 
@@ -41,6 +42,9 @@ impl DatabaseArticle {
         DatabaseArticle { surreal: db }
     }
 
+    /*
+     * use only for unit tests
+     */
     pub async fn new_from_scratch() -> Result<DatabaseArticle, SurrealError> {
         let surreal = Arc::new(database::init_in_memory_db_connection().await?);
         Ok(DatabaseArticle { surreal })
@@ -166,16 +170,45 @@ impl DatabaseArticle {
         Ok((main, TopArticleData::try_from(second_m)?, TopArticleData::try_from(third_m)?))
     }
 
+    /**
+     * returns Articles with most views
+     */
     pub async fn most_read_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
         let mut result_response_set = self
             .surreal
             .db
-            .query("SELECT type::record('article', article_file_name) AS article, views FROM article_views ORDER BY views DESC LIMIT 3 FETCH article")
+            .query("SELECT type::record('article', article_file_name) AS article FROM article_views ORDER BY views DESC LIMIT 3 FETCH article")
             .await?;
 
         let most_read_articles: Vec<MiniArticleData> = result_response_set.take(0)?;
 
         Ok(most_read_articles)
+    }
+
+    /*
+     * Increase and read article view count
+     */
+    pub async fn increase_article_views(
+        &self,
+        article_file_name: String,
+    ) -> Result<u64, SurrealSystemError> {
+        let mut response = self
+            .surreal
+            .db
+            .query(
+                "UPSERT type::record(\"article_views\", $article_file_name) SET views += 1, article_file_name = $article_file_name RETURN views"
+            )
+            .bind(("article_file_name", article_file_name.clone()))
+            .await?;
+
+        let views: Option<u64> = response.take("views")?;
+        match views {
+            Some(v) => Ok(v),
+            None => {
+                warn!("article not found in article_views: {}", article_file_name);
+                Ok(0)
+            }
+        }
     }
 
     /*
@@ -229,7 +262,6 @@ impl DatabaseArticle {
 #[cfg(test)]
 mod tests {
     use crate::db::database_article::DatabaseArticle;
-    use crate::db::database_system::DatabaseSystem;
     use crate::trust::app::article::create_article_request_builder::easy_article;
     use crate::trust::me::TrustError;
 
@@ -264,6 +296,26 @@ mod tests {
 
         let article_o = db.article_by_file_name("test-title-x.html").await?;
         assert_eq!(article_o.title, "Test Title X");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_increase_article_views() -> Result<(), TrustError> {
+        let dba = DatabaseArticle::new_from_scratch().await?;
+        let article_name = "test-article.html".to_string();
+
+        // First view
+        let views = dba.increase_article_views(article_name.clone()).await?;
+        assert_eq!(views, 1);
+
+        // Second view
+        let views = dba.increase_article_views(article_name.clone()).await?;
+        assert_eq!(views, 2);
+
+        // Different article
+        let views = dba.increase_article_views("other-article.html".to_string()).await?;
+        assert_eq!(views, 1);
+
         Ok(())
     }
 
@@ -325,12 +377,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_most_read_article_one() -> Result<(), TrustError> {
-        let dbs = DatabaseSystem::new_from_scratch().await?;
         let dba = DatabaseArticle::new_from_scratch().await?;
 
         let article_1 = "test-11.html".to_string();
         dba.create_article(easy_article("Test 11", "user AA1", "text")).await?;
-        dbs.increase_article_views(article_1.clone()).await?;
+        dba.increase_article_views(article_1.clone()).await?;
 
         let most_read = dba.most_read_by_views().await?;
 
@@ -351,7 +402,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_most_read_article() -> Result<(), TrustError> {
-        let dbs = DatabaseSystem::new_from_scratch().await?;
         let dba = DatabaseArticle::new_from_scratch().await?;
 
         let article_1 = "test-1.html".to_string();
@@ -366,21 +416,21 @@ mod tests {
         dba.create_article(easy_article("Test 4", "user A4", "text")).await?;
         dba.create_article(easy_article("Test 5", "user A5", "text")).await?;
 
-        dbs.increase_article_views(article_1.clone()).await?;
+        dba.increase_article_views(article_1.clone()).await?;
 
-        dbs.increase_article_views(article_2.clone()).await?;
-        dbs.increase_article_views(article_2.clone()).await?;
+        dba.increase_article_views(article_2.clone()).await?;
+        dba.increase_article_views(article_2.clone()).await?;
 
-        dbs.increase_article_views(article_3.clone()).await?;
-        dbs.increase_article_views(article_3.clone()).await?;
-        dbs.increase_article_views(article_3.clone()).await?;
+        dba.increase_article_views(article_3.clone()).await?;
+        dba.increase_article_views(article_3.clone()).await?;
+        dba.increase_article_views(article_3.clone()).await?;
 
-        dbs.increase_article_views(article_4.clone()).await?;
-        dbs.increase_article_views(article_4.clone()).await?;
-        dbs.increase_article_views(article_4.clone()).await?;
-        dbs.increase_article_views(article_4.clone()).await?;
+        dba.increase_article_views(article_4.clone()).await?;
+        dba.increase_article_views(article_4.clone()).await?;
+        dba.increase_article_views(article_4.clone()).await?;
+        dba.increase_article_views(article_4.clone()).await?;
 
-        dbs.increase_article_views(article_5.clone()).await?;
+        dba.increase_article_views(article_5.clone()).await?;
 
         let most_read = dba.most_read_by_views().await?;
         assert_eq!(most_read.len(), 3);

@@ -43,12 +43,6 @@ pub struct TopArticleData {
     pub short_text: String,
 }
 
-impl TopArticleData {
-    fn empty() -> TopArticleData {
-        TopArticleData { article_file_name: "".into(), title: "".into(), short_text: "".into() }
-    }
-}
-
 /**
  * Article database object
  */
@@ -117,6 +111,12 @@ pub struct AccountArticleData {
     pub category: String,
     pub date: DateTime<Utc>,
     pub date_str: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
+pub struct ArticleViews {
+    pub article_file_name: String,
+    pub views: u64,
 }
 
 impl From<MainArticleData> for TopArticleData {
