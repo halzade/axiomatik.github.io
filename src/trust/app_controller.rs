@@ -12,10 +12,10 @@ use crate::trust::db::db_article_controller::DatabaseArticleController;
 use crate::trust::db::db_system_controller::DatabaseSystemController;
 use crate::trust::db::db_user_controller::DatabaseUserController;
 use crate::trust::me::TrustError;
+use crate::trust::web::auth_web_controller::AuthorizedWebController;
 use crate::trust::web::web_controller::WebController;
 use std::sync::Arc;
 use tracing::debug;
-use chrono::Utc;
 
 #[derive(Debug)]
 pub struct AppController {
@@ -24,6 +24,7 @@ pub struct AppController {
     article: Arc<CreateArticleController>,
     change_password: Arc<ChangePasswordController>,
     login: Arc<LoginController>,
+    web_auth: Arc<AuthorizedWebController>,
     // web
     web: Arc<WebController>,
     // db
@@ -52,7 +53,14 @@ impl AppController {
         let dv = Arc::new(data_updates::new());
 
         // the application state
-        let state = TheState { dba: dba.clone(), dbu: dbu.clone(), dbs: dbs.clone(), ds, dv, start_time: chrono::Utc::now() };
+        let state = TheState {
+            dba: dba.clone(),
+            dbu: dbu.clone(),
+            dbs: dbs.clone(),
+            ds,
+            dv,
+            start_time: chrono::Utc::now(),
+        };
 
         // server
         let server = server::connect(state.clone()).await?;
@@ -68,7 +76,8 @@ impl AppController {
             account: Arc::new(AccountController::new(app_router.clone())),
             article: Arc::new(CreateArticleController::new(app_router.clone())),
             change_password: Arc::new(ChangePasswordController::new(app_router.clone())),
-            login: Arc::new(LoginController::new(app_router)),
+            login: Arc::new(LoginController::new(app_router.clone())),
+            web_auth: Arc::new(AuthorizedWebController::new(app_router.clone())),
             // web
             web: Arc::new(WebController::new(web_router)),
             // surreal
@@ -83,8 +92,8 @@ impl AppController {
         self.article.clone()
     }
 
-    pub fn change_password(&self, auth: String) -> Arc<ChangePasswordController> {
-        self.change_password.set_cookie(Some(auth));
+    pub fn change_password(&self, auth: &str) -> Arc<ChangePasswordController> {
+        self.change_password.set_cookie(Some(auth.to_string()));
         self.change_password.clone()
     }
 
@@ -94,6 +103,11 @@ impl AppController {
 
     pub fn login(&self) -> Arc<LoginController> {
         self.login.clone()
+    }
+
+    pub fn web_auth(&self, auth: &str) -> Arc<AuthorizedWebController> {
+        self.web_auth.set_cookie(Some(auth.to_string()));
+        self.web_auth.clone()
     }
 
     pub fn web(&self) -> Arc<WebController> {

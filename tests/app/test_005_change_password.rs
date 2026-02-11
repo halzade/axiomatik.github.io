@@ -8,7 +8,7 @@ mod tests {
     async fn test_change_password() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
-        // Create user who needs password change
+        // Create a user who needs a password change
         #[rustfmt::skip]
         ac.db_user().setup_user()
             .username("user1")
@@ -27,7 +27,7 @@ mod tests {
                 .verify().await?;
 
         #[rustfmt::skip]
-        ac.change_password(auth)
+        ac.change_password(&auth)
             .new_password("new_password_123")
             .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)

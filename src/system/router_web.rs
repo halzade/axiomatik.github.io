@@ -135,13 +135,21 @@ impl WebRouter {
         info!("url: {}", url);
 
         match url.as_str() {
-            "/index.html" | "/" => {
+            "/index.html" => {
                 if !state.dv.index_valid() {
                     state.dv.index_validate();
 
                     index::render_index(&state).await?;
                 }
                 serve_this(&url, request).await
+            }
+            "/" => {
+                if !state.dv.index_valid() {
+                    state.dv.index_validate();
+
+                    index::render_index(&state).await?;
+                }
+                serve_this("/index.html", request).await
             }
             "/finance.html" => {
                 if !state.dv.finance_valid() {

@@ -6,6 +6,7 @@ use crate::trust::me::TrustError;
 use axum::body::Body;
 use axum::Router;
 use http::{header, Request};
+use parking_lot::RwLock;
 use std::sync::Arc;
 use tower::ServiceExt;
 
@@ -13,7 +14,7 @@ use tower::ServiceExt;
 pub struct ChangePasswordController {
     app_router: Arc<Router>,
     input: ChangePasswordFluent,
-    user_cookie: Arc<parking_lot::RwLock<Option<String>>>,
+    user_cookie: Arc<RwLock<Option<String>>>,
 }
 
 impl ChangePasswordController {
@@ -21,7 +22,7 @@ impl ChangePasswordController {
         Self {
             app_router,
             input: ChangePasswordFluent::new(),
-            user_cookie: Arc::new(parking_lot::RwLock::new(None)),
+            user_cookie: Arc::new(RwLock::new(None)),
         }
     }
 

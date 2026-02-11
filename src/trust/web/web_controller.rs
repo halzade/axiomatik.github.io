@@ -28,42 +28,22 @@ impl WebController {
 
         Ok(ResponseVerifier::new(response))
     }
-
-    pub async fn get_url_authorized(
-        &self,
-        url: &str,
-        auth: &str,
-    ) -> Result<ResponseVerifier, TrustError> {
-        if !url.starts_with('/') {
-            error!("url must start with '/'")
-        }
-
-        let response = (*self.web_router)
-            .clone()
-            .oneshot(
-                Request::builder()
-                    .method("GET")
-                    .uri(url)
-                    .header(header::COOKIE, auth)
-                    .body(Body::empty())?,
-            )
-            .await?;
-
-        Ok(ResponseVerifier::new(response))
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::trust::app_controller::AppController;
+    use http::StatusCode;
 
     #[tokio::test]
     async fn test_web_controller() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
-        ac.web().get_url("/").await?;
-        ac.web().get_url_authorized("/", "some-auth").await?;
+        #[rustfmt::skip]
+        ac.web().get_url("/").await?
+            .must_see_response(StatusCode::OK)
+            .verify().await?;
 
         Ok(())
     }

@@ -139,6 +139,7 @@ pub mod trust {
     }
     pub mod me;
     pub mod web {
+        pub mod auth_web_controller;
         pub mod web_controller;
     }
 }
