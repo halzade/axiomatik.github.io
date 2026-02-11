@@ -4,7 +4,7 @@ use crate::db::database_article::SurrealArticleError::ArticleNotFound;
 use crate::db::database_article_data::{
     AccountArticleData, Article, MainArticleData, MiniArticleData, ShortArticleData, TopArticleData,
 };
-use crate::db::database_system::ArticleViews;
+use crate::db::database_system::{ArticleViews, SurrealSystemError};
 use regex;
 use std::convert::{Infallible, Into};
 use std::string::ToString;
@@ -22,7 +22,7 @@ pub enum SurrealArticleError {
     #[error("article not found {0}")]
     ArticleNotFound(String),
 
-    // TODO never throw Infalliable
+    // TODO never throw Infallible
     #[error("article infallible {0}")]
     ArticleInfallible(#[from] Infallible),
 }
@@ -182,6 +182,18 @@ impl DatabaseArticle {
         Ok(most_read_articles)
     }
 
+    pub async fn most_read_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
+        let mut response = self
+            .surreal
+            .db
+            .query("SELECT type::record('article', article_file_name) AS article, views FROM article_views ORDER BY views DESC LIMIT 3 FETCH article")
+            .await?;
+
+        let most_read_articles: Vec<MiniArticleData> = response.take(0)?;
+
+        Ok(most_read_articles)
+    }
+
     /*
      * used for
      * - search query in the topbar
@@ -233,7 +245,7 @@ impl DatabaseArticle {
 #[cfg(test)]
 mod tests {
     use crate::db::database_article::DatabaseArticle;
-    use crate::db::database_system::ArticleViews;
+    use crate::db::database_system::{ArticleViews, DatabaseSystem};
     use crate::trust::app::article::create_article_request_builder::easy_article;
     use crate::trust::me::TrustError;
 
@@ -339,6 +351,48 @@ mod tests {
         let a2 = articles.get(1).unwrap();
         assert_eq!(a1.title, "Title 3");
         assert_eq!(a2.title, "Title 1");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_most_read_article() -> Result<(), TrustError> {
+        let dbs = DatabaseSystem::new_from_scratch().await?;
+        let dba = DatabaseArticle::new_from_scratch().await?;
+
+        let article_1 = "test-1.html".to_string();
+        let article_2 = "test-2.html".to_string();
+        let article_3 = "test-3.html".to_string();
+        let article_4 = "test-4.html".to_string();
+        let article_5 = "test-5.html".to_string();
+
+        dba.create_article(easy_article("Test 1", "user A1", "text")).await?;
+        dba.create_article(easy_article("Test 2", "user A2", "text")).await?;
+        dba.create_article(easy_article("Test 3", "user A3", "text")).await?;
+        dba.create_article(easy_article("Test 4", "user A4", "text")).await?;
+        dba.create_article(easy_article("Test 5", "user A5", "text")).await?;
+
+        dbs.increase_article_views(article_1.clone()).await?;
+
+        dbs.increase_article_views(article_2.clone()).await?;
+        dbs.increase_article_views(article_2.clone()).await?;
+
+        dbs.increase_article_views(article_3.clone()).await?;
+        dbs.increase_article_views(article_3.clone()).await?;
+        dbs.increase_article_views(article_3.clone()).await?;
+
+        dbs.increase_article_views(article_4.clone()).await?;
+        dbs.increase_article_views(article_4.clone()).await?;
+        dbs.increase_article_views(article_4.clone()).await?;
+        dbs.increase_article_views(article_4.clone()).await?;
+
+        dbs.increase_article_views(article_5.clone()).await?;
+
+        let most_read = dba.most_read_by_views().await?;
+        assert_eq!(most_read.len(), 3);
+        assert_eq!(most_read[0].article_file_name, article_4);
+        assert_eq!(most_read[1].article_file_name, article_3);
+        assert_eq!(most_read[3].article_file_name, article_2);
+
         Ok(())
     }
 }

@@ -40,7 +40,7 @@ pub struct VedaTemplate<'a> {
 
 pub async fn render_veda(state: &TheState) -> Result<(), VedaError> {
     let articles = state.dba.articles_by_category("veda", 100).await?;
-    let articles_most_read: Vec<MiniArticleData> = state.dbs.most_read_by_views().await?;
+    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
 
     let split = articles.len() / 3;
     let (articles_left, articles_right) = articles.split_at(split);

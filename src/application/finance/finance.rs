@@ -2,8 +2,8 @@ use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
 use crate::db::database_article::SurrealArticleError;
-use crate::db::database_system::SurrealSystemError;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
+use crate::db::database_system::SurrealSystemError;
 use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
@@ -19,10 +19,10 @@ pub enum FinanceError {
 
     #[error("create category database error {0}")]
     DatabaseError(#[from] SurrealError),
-    
+
     #[error("create category database error {0}")]
     SurrealArticle(#[from] SurrealArticleError),
-    
+
     #[error("create category database system error {0}")]
     SurrealSystem(#[from] SurrealSystemError),
 }
@@ -40,7 +40,7 @@ pub struct FinanceTemplate<'a> {
 
 pub async fn render_finance(state: &TheState) -> Result<(), FinanceError> {
     let articles = state.dba.articles_by_category("finance", 100).await?;
-    let articles_most_read: Vec<MiniArticleData> = state.dbs.most_read_by_views().await?;
+    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
 
     let split = articles.len() / 3;
     let (articles_left, articles_right) = articles.split_at(split);

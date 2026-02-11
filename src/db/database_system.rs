@@ -94,21 +94,6 @@ impl DatabaseSystem {
         }
     }
 
-    pub async fn most_read_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
-        let mut response = self
-            .surreal
-            .db
-            .query("SELECT type::record('article', article_file_name) AS article, views FROM article_views ORDER BY views DESC LIMIT 3 FETCH article")
-            .await?;
-
-        let top_views: Vec<ArticleViewsFetched> = response.take(0)?;
-
-        let articles: Vec<MiniArticleData> =
-            top_views.into_iter().filter_map(|av| av.article).collect();
-
-        Ok(articles)
-    }
-
     pub async fn write_article_record(
         &self,
         article_file_name: &str,
@@ -166,7 +151,6 @@ impl DatabaseSystem {
 
 #[cfg(test)]
 mod tests {
-    use crate::trust::app::article::create_article_request_builder::easy_article;
     use super::*;
     use crate::trust::me::TrustError;
 
@@ -186,44 +170,6 @@ mod tests {
         // Different article
         let views = dbs.increase_article_views("other-article.html".to_string()).await?;
         assert_eq!(views, 1);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_most_read_article() -> Result<(), TrustError> {
-        let dbs = DatabaseSystem::new_from_scratch().await?;
-
-        let article_1 = "test-1.html".to_string();
-        let article_2 = "test-2.html".to_string();
-        let article_3 = "test-3.html".to_string();
-        let article_4 = "test-4.html".to_string();
-        let article_5 = "test-4.html".to_string();
-
-
-        // easy_article("Test 1", "text");
-
-        dbs.increase_article_views(article_1.clone()).await?;
-
-        dbs.increase_article_views(article_2.clone()).await?;
-        dbs.increase_article_views(article_2.clone()).await?;
-
-        dbs.increase_article_views(article_3.clone()).await?;
-        dbs.increase_article_views(article_3.clone()).await?;
-        dbs.increase_article_views(article_3.clone()).await?;
-
-        dbs.increase_article_views(article_4.clone()).await?;
-        dbs.increase_article_views(article_4.clone()).await?;
-        dbs.increase_article_views(article_4.clone()).await?;
-        dbs.increase_article_views(article_4.clone()).await?;
-
-        dbs.increase_article_views(article_5.clone()).await?;
-
-        let most_read = dbs.most_read_by_views().await?;
-        assert!(most_read.len() == 3);
-        assert_eq!(most_read[0].article_file_name, article_3);
-        assert_eq!(most_read[1].article_file_name, article_2);
-        assert_eq!(most_read[3].article_file_name, article_3);
 
         Ok(())
     }
