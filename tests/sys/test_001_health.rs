@@ -28,9 +28,9 @@ mod tests {
             .must_see_response(StatusCode::SEE_OTHER)
             .verify().await?;
 
-        // get health
+        // health for logged in user
         #[rustfmt::skip]
-        ac.web().get_url("/health").await?
+        ac.web().get_url_authorized("/health", &auth).await?
             .must_see_response(StatusCode::OK)
             .body_contains("ok")
             .verify().await?;

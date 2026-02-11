@@ -1,9 +1,9 @@
 use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
-use axum::Router;
-use http::Request;
-use std::sync::Arc;
 use axum::body::Body;
+use axum::Router;
+use http::{header, Request};
+use std::sync::Arc;
 use tower::ServiceExt;
 use tracing::error;
 
@@ -29,16 +29,24 @@ impl WebController {
         Ok(ResponseVerifier::new(response))
     }
 
-    pub async fn get_url_authorized(&self, url: &str, auth: &str) -> Result<ResponseVerifier, TrustError> {
+    pub async fn get_url_authorized(
+        &self,
+        url: &str,
+        auth: &str,
+    ) -> Result<ResponseVerifier, TrustError> {
         if !url.starts_with('/') {
             error!("url must start with '/'")
         }
 
-        self.web_router.set_cookie(Some(auth.to_string()));
-        
         let response = (*self.web_router)
             .clone()
-            .oneshot(Request::builder().method("GET").uri(url).body(Body::empty())?)
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri(url)
+                    .header(header::COOKIE, auth)
+                    .body(Body::empty())?,
+            )
             .await?;
 
         Ok(ResponseVerifier::new(response))
@@ -55,6 +63,7 @@ mod tests {
         let ac = AppController::new().await?;
 
         ac.web().get_url("/").await?;
+        ac.web().get_url_authorized("/", "some-auth").await?;
 
         Ok(())
     }
