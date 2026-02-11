@@ -1,6 +1,5 @@
 use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
-use crate::db::database_article_data::{MiniArticleData};
 use crate::db::database_system::ArticleStatus::DoesNotExist;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

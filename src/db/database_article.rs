@@ -4,13 +4,11 @@ use crate::db::database_article::SurrealArticleError::ArticleNotFound;
 use crate::db::database_article_data::{
     AccountArticleData, Article, MainArticleData, MiniArticleData, ShortArticleData, TopArticleData,
 };
-use crate::db::database_system::{ArticleViews, SurrealSystemError};
+use crate::db::database_system::SurrealSystemError;
 use regex;
-use serde::{Deserialize, Serialize};
 use std::convert::{Infallible, Into};
 use std::string::ToString;
 use std::sync::Arc;
-use surrealdb::types::SurrealValue;
 use thiserror::Error;
 use tracing::log::debug;
 
@@ -168,30 +166,14 @@ impl DatabaseArticle {
         Ok((main, TopArticleData::try_from(second_m)?, TopArticleData::try_from(third_m)?))
     }
 
-    pub async fn articles_most_read(
-        &self,
-        most_read_vec: Vec<ArticleViews>,
-    ) -> Result<Vec<MiniArticleData>, SurrealArticleError> {
-        debug!("articles_most_read amount={:?}, {:?}", most_read_vec.len(), most_read_vec);
-
-        let mut response = self
-            .surreal
-            .db
-            .query("SELECT * FROM $article_file_name")
-            .bind(("$article_file_name", most_read_vec))
-            .await?;
-        let most_read_articles: Vec<MiniArticleData> = response.take(0)?;
-        Ok(most_read_articles)
-    }
-
     pub async fn most_read_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
-        let mut response = self
+        let mut result_response_set = self
             .surreal
             .db
             .query("SELECT type::record('article', article_file_name) AS article, views FROM article_views ORDER BY views DESC LIMIT 3 FETCH article")
             .await?;
 
-        let most_read_articles: Vec<MiniArticleData> = response.take(0)?;
+        let most_read_articles: Vec<MiniArticleData> = result_response_set.take(0)?;
 
         Ok(most_read_articles)
     }
@@ -247,7 +229,7 @@ impl DatabaseArticle {
 #[cfg(test)]
 mod tests {
     use crate::db::database_article::DatabaseArticle;
-    use crate::db::database_system::{ArticleViews, DatabaseSystem};
+    use crate::db::database_system::DatabaseSystem;
     use crate::trust::app::article::create_article_request_builder::easy_article;
     use crate::trust::me::TrustError;
 
@@ -323,21 +305,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_articles_most_read() -> Result<(), TrustError> {
-        let db = DatabaseArticle::new_from_scratch().await?;
-
-        // prepare the article
-        db.create_article(easy_article("Test Title 7", "userN", "text")).await?;
-
-        let av = ArticleViews { article_file_name: "test-title-7.html".to_string(), views: 1 };
-
-        let most_red = db.articles_most_read(vec![av]).await?;
-
-        assert_eq!(most_red.len(), 1);
-        Ok(())
-    }
-
-    #[tokio::test]
     async fn test_articles_by_words() -> Result<(), TrustError> {
         let db = DatabaseArticle::new_from_scratch().await?;
 
@@ -362,25 +329,23 @@ mod tests {
         let dba = DatabaseArticle::new_from_scratch().await?;
 
         let article_1 = "test-11.html".to_string();
-
         dba.create_article(easy_article("Test 11", "user AA1", "text")).await?;
         dbs.increase_article_views(article_1.clone()).await?;
+
         let most_read = dba.most_read_by_views().await?;
 
         assert_eq!(most_read.len(), 1);
         assert_eq!(most_read[0].article_file_name, article_1);
-
         Ok(())
     }
 
     #[tokio::test]
     async fn test_most_read_article_none() -> Result<(), TrustError> {
-        let dbs = DatabaseSystem::new_from_scratch().await?;
         let dba = DatabaseArticle::new_from_scratch().await?;
 
         let most_read = dba.most_read_by_views().await?;
-        assert_eq!(most_read.len(), 0);
 
+        assert_eq!(most_read.len(), 0);
         Ok(())
     }
 
