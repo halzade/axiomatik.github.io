@@ -18,6 +18,7 @@ use crate::application::zahranici::zahranici::ZahraniciError;
 use crate::db::database_system::{ArticleStatus, SurrealSystemError};
 use crate::system::data_system::DataSystemError;
 use crate::system::data_updates::DataUpdatesError;
+use crate::system::heartbeat;
 use crate::system::server::TheState;
 use axum::body::Body;
 use axum::extract::State;

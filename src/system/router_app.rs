@@ -20,7 +20,7 @@ use crate::db::database_user;
 use crate::system::authentication::Backend;
 use crate::system::data_system::DataSystemError;
 use crate::system::data_updates::DataUpdatesError;
-use crate::system::heartbeat;
+use crate::system::health;
 use crate::system::server::TheState;
 use axum::body::Body;
 use axum::middleware::Next;
@@ -35,8 +35,8 @@ use std::convert::Infallible;
 use thiserror::Error;
 use tower_sessions::cookie::SameSite::Strict;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
-use tracing::{info, warn};
 use tracing::log::debug;
+use tracing::{info, warn};
 
 pub type AuthSession = axum_login::AuthSession<Backend>;
 
@@ -159,7 +159,7 @@ impl ApplicationRouter {
             )
             .route("/account", get(form_account::show_account))
             .route("/account/update-author", post(form_account::handle_update_author_name))
-            .route("/heartbeat", get(heartbeat::handle_heartbeat))
+            .route("/health", get(health::handle_health))
             .layer(middleware::from_fn(auth_middleware));
 
         /*

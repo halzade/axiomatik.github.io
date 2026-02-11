@@ -108,6 +108,13 @@ impl DatabaseSystem {
             }
         }
     }
+
+    pub async fn health(&self) -> Result<String, SurrealSystemError> {
+        match self.surreal.db.health().await {
+            Ok(()) => Ok("ok".into()),
+            Err(_) => Ok("db error".into()),
+        }
+    }
 }
 
 #[cfg(test)]

@@ -18,6 +18,7 @@ use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::info;
+use chrono::Utc;
 
 #[derive(Debug, Error)]
 pub enum ApplicationError {
@@ -67,7 +68,7 @@ async fn main() -> Result<(), ApplicationError> {
     /*
      * the application state
      */
-    let state = TheState { dba, dbu, dbs, ds, dv };
+    let state = TheState { dba, dbu, dbs, ds, dv, start_time: chrono::Utc::now() };
 
     /*
      * process the commands

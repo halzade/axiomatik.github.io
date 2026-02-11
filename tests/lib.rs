@@ -17,6 +17,7 @@ pub mod db {
     pub mod test_001_db;
 }
 pub mod sys {
+    pub mod test_001_health;
     pub mod test_command_create_editor_user;
 }
 pub mod web {

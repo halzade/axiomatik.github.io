@@ -15,6 +15,7 @@ use crate::trust::me::TrustError;
 use crate::trust::web::web_controller::WebController;
 use std::sync::Arc;
 use tracing::debug;
+use chrono::Utc;
 
 #[derive(Debug)]
 pub struct AppController {
@@ -51,7 +52,7 @@ impl AppController {
         let dv = Arc::new(data_updates::new());
 
         // the application state
-        let state = TheState { dba: dba.clone(), dbu: dbu.clone(), dbs: dbs.clone(), ds, dv };
+        let state = TheState { dba: dba.clone(), dbu: dbu.clone(), dbs: dbs.clone(), ds, dv, start_time: chrono::Utc::now() };
 
         // server
         let server = server::connect(state.clone()).await?;

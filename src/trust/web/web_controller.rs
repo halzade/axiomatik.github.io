@@ -28,6 +28,21 @@ impl WebController {
 
         Ok(ResponseVerifier::new(response))
     }
+
+    pub async fn get_url_authorized(&self, url: &str, auth: &str) -> Result<ResponseVerifier, TrustError> {
+        if !url.starts_with('/') {
+            error!("url must start with '/'")
+        }
+
+        self.web_router.set_cookie(Some(auth.to_string()));
+        
+        let response = (*self.web_router)
+            .clone()
+            .oneshot(Request::builder().method("GET").uri(url).body(Body::empty())?)
+            .await?;
+
+        Ok(ResponseVerifier::new(response))
+    }
 }
 
 #[cfg(test)]

@@ -55,6 +55,7 @@ pub struct TheState {
     pub ds: Arc<DataSystem>,
     // data updates e.g.: is index.html valid
     pub dv: Arc<DataValidHtml>,
+    pub start_time: DateTime<Utc>,
 }
 
 pub struct Server {

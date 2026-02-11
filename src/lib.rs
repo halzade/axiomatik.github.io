@@ -88,6 +88,7 @@ pub mod system {
     pub mod configuration;
     pub mod data_system;
     pub mod data_updates;
+    pub mod health;
     pub mod heartbeat;
     pub mod logger;
     pub mod router_app;
