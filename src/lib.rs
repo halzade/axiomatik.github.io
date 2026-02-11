@@ -122,6 +122,9 @@ pub mod trust {
         pub mod user {
             pub mod user_data;
         }
+        pub mod system {
+            pub mod system_data;
+        }
     }
     pub mod app_controller;
     pub mod db {
