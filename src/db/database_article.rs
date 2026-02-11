@@ -177,7 +177,7 @@ impl DatabaseArticle {
         let mut result_response_set = self
             .surreal
             .db
-            .query("SELECT article FROM (SELECT type::record('article', article_file_name) AS article, views FROM article_views ORDER BY views DESC LIMIT 3) FETCH article")
+            .query("SELECT VALUE article FROM (SELECT type::record('article', article_file_name) AS article, views FROM article_views ORDER BY views DESC LIMIT 3) FETCH article")
             .await?;
 
         let most_read_articles: Vec<MiniArticleData> = result_response_set.take(0)?;
