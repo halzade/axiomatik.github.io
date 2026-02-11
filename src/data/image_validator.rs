@@ -18,11 +18,6 @@ pub enum ImageValidationError {
     UndefinedDataType,
 }
 
-// pub fn validate_image_data(img: &DynamicImage) -> Result<(), ImageValidationError> {
-//     // TODO X
-//     Ok(())
-// }
-
 pub fn validate_image_width(width: u32) -> Result<(), ImageValidationError> {
     if width < 820 {
         return Err(ImageWidthValidation(width));

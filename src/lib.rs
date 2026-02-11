@@ -108,7 +108,6 @@ pub mod trust {
             pub mod create_article_controller;
             pub mod create_article_data;
             pub mod create_article_easy_builder;
-            pub mod create_article_request_builder;
         }
         pub mod change_password {
             pub mod change_password_controller;

@@ -127,7 +127,6 @@ impl ArticleBuilder {
 
             image_desc: self.image_desc,
 
-            // TODO
             image_50_path: format!("u/{}_image_50.png", base),
             image_288_path: format!("u/{}_image_288.png", base),
             image_440_path: format!("u/{}_image_440.png", base),

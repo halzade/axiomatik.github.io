@@ -99,15 +99,12 @@ pub async fn article_data(
     let mut related_articles = Vec::new();
 
     while let Ok(Some(field)) = multipart.next_field().await {
-
-        // TODO
-        let field_name = field.name().unwrap_or_default().to_string();
-        let content_type = field.content_type().map(|c| c.to_string()).unwrap_or_default();
-
+        let field_name = field.name().unwrap_or("<unnamed>");
+        let content_type = field.content_type().map(|ct| ct.as_ref()).unwrap_or("unknown");
 
         debug!("Processing: {}, type: {:?}", field_name, content_type);
 
-        match field_name.as_str() {
+        match field_name {
             "author" => {
                 author = extract_required_text(field).await?;
             }
@@ -165,7 +162,7 @@ pub async fn article_data(
             "mini_text" => {
                 mini_text_raw = extract_required_text(field).await?;
             }
-            _ => Err(ArticleCreateError::UnknownField(field_name))?,
+            _ => Err(ArticleCreateError::UnknownField(field_name.to_string()))?,
         }
     }
 

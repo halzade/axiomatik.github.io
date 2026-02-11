@@ -136,8 +136,6 @@ impl ApplicationRouter {
     #[rustfmt::skip]
     pub async fn start_app_router(&self) -> Router {
         info!("start_app_router()");
-
-        // TODO don't use default memory storage, use redis or something
         let session_layer = SessionManagerLayer::new(MemoryStore::default())
             // true only https
             .with_secure(true)

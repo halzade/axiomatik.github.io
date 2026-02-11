@@ -130,7 +130,6 @@ impl DatabaseUser {
         Ok(())
     }
 
-    // TODO Result
     pub async fn get_user_by_name(&self, user_id: &str) -> Result<Option<User>, SurrealUserError> {
         let user_o = self.surreal.db.select(("user", user_id)).await?;
         Ok(user_o)
