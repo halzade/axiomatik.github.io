@@ -1,8 +1,8 @@
 use crate::db::database_article::SurrealArticleError;
-use crate::db::database_system::SurrealSystemError;
 use crate::db::database_article_data::{
     MainArticleData, MiniArticleData, ShortArticleData, TopArticleData,
 };
+use crate::db::database_system::SurrealSystemError;
 use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
@@ -43,7 +43,6 @@ pub struct IndexTemplate {
 }
 
 pub async fn render_index(state: &TheState) -> Result<(), IndexError> {
-    
     let articles_most_read = state.dba.most_read_by_views().await?;
 
     let z_republiky_articles = state.dba.articles_by_category("republika", 10).await?;

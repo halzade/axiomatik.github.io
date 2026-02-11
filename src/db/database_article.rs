@@ -6,9 +6,11 @@ use crate::db::database_article_data::{
 };
 use crate::db::database_system::{ArticleViews, SurrealSystemError};
 use regex;
+use serde::{Deserialize, Serialize};
 use std::convert::{Infallible, Into};
 use std::string::ToString;
 use std::sync::Arc;
+use surrealdb::types::SurrealValue;
 use thiserror::Error;
 use tracing::log::debug;
 
@@ -355,6 +357,34 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_most_read_article_one() -> Result<(), TrustError> {
+        let dbs = DatabaseSystem::new_from_scratch().await?;
+        let dba = DatabaseArticle::new_from_scratch().await?;
+
+        let article_1 = "test-11.html".to_string();
+
+        dba.create_article(easy_article("Test 11", "user AA1", "text")).await?;
+        dbs.increase_article_views(article_1.clone()).await?;
+        let most_read = dba.most_read_by_views().await?;
+
+        assert_eq!(most_read.len(), 1);
+        assert_eq!(most_read[0].article_file_name, article_1);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_most_read_article_none() -> Result<(), TrustError> {
+        let dbs = DatabaseSystem::new_from_scratch().await?;
+        let dba = DatabaseArticle::new_from_scratch().await?;
+
+        let most_read = dba.most_read_by_views().await?;
+        assert_eq!(most_read.len(), 0);
+
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn test_most_read_article() -> Result<(), TrustError> {
         let dbs = DatabaseSystem::new_from_scratch().await?;
         let dba = DatabaseArticle::new_from_scratch().await?;
@@ -391,7 +421,7 @@ mod tests {
         assert_eq!(most_read.len(), 3);
         assert_eq!(most_read[0].article_file_name, article_4);
         assert_eq!(most_read[1].article_file_name, article_3);
-        assert_eq!(most_read[3].article_file_name, article_2);
+        assert_eq!(most_read[2].article_file_name, article_2);
 
         Ok(())
     }

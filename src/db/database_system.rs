@@ -1,6 +1,6 @@
 use crate::db::database;
 use crate::db::database::{DatabaseSurreal, SurrealError};
-use crate::db::database_article_data::{Article, MiniArticleData};
+use crate::db::database_article_data::{MiniArticleData};
 use crate::db::database_system::ArticleStatus::DoesNotExist;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -26,12 +26,6 @@ pub enum SurrealSystemError {
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
 pub struct ArticleViews {
     pub article_file_name: String,
-    pub views: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
-struct ArticleViewsFetched {
-    pub article: Option<MiniArticleData>,
     pub views: u64,
 }
 
