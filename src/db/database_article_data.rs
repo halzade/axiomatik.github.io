@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use surrealdb::types::{SurrealValue, Uuid};
-
+use crate::data::library::safe_article_file_name;
 /*
  * Main Articles on index.html
  */
@@ -21,7 +21,7 @@ pub struct MainArticleData {
 }
 
 impl MainArticleData {
-    // used for Index.html, if there are no articles yet
+    // used for index.html if there are no articles yet
     pub fn empty() -> MainArticleData {
         MainArticleData {
             article_file_name: "".into(),
@@ -174,5 +174,35 @@ impl TryFrom<ArticleUpload> for Article {
             is_main: data.is_main,
             is_exclusive: data.is_exclusive,
         })
+    }
+}
+
+pub fn easy_article(title: &str, author: &str, text: &str) -> Article {
+    let now = Utc::now();
+    let base = safe_article_file_name(&title.to_string());
+    Article {
+        uuid: Uuid::new(),
+        author: author.to_string(),
+        user: author.to_string(),
+        date: now,
+        date_str: "date".to_string(),
+        title: title.to_string(),
+        text: text.to_string(),
+        short_text: "short text here".to_string(),
+        mini_text: "mini text".to_string(),
+        article_file_name: format!("{}.html", base.clone()),
+        image_desc: "desc".to_string(),
+        image_50_path: format!("{}_image_50.jpg", base),
+        image_288_path: format!("{}_image_288.jpg", base),
+        image_440_path: format!("{}_image_440.jpg", base),
+        image_820_path: format!("{}_image_820.jpg", base),
+        has_video: false,
+        video_path: "".to_string(),
+        has_audio: false,
+        audio_path: "".to_string(),
+        category: "cat".to_string(),
+        related_articles: vec![],
+        is_main: false,
+        is_exclusive: false,
     }
 }

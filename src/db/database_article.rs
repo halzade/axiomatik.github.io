@@ -262,7 +262,7 @@ impl DatabaseArticle {
 #[cfg(test)]
 mod tests {
     use crate::db::database_article::DatabaseArticle;
-    use crate::trust::app::article::create_article_request_builder::easy_article;
+    use crate::db::database_article_data::easy_article;
     use crate::trust::me::TrustError;
 
     #[tokio::test]

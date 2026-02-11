@@ -148,7 +148,7 @@ impl ResponseVerifier {
             .headers
             .get_all(SET_COOKIE)
             .iter()
-            .map(|v| v.to_str().expect("Invalid Set-Cookie header"));
+            .filter_map(|v| v.to_str().ok());
 
         // cookies
         for exp_props in &expected.cookies {

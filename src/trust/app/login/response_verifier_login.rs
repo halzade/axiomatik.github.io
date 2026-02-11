@@ -103,7 +103,7 @@ impl LoginResponseVerifier {
                 .headers
                 .get_all(http::header::SET_COOKIE)
                 .iter()
-                .map(|v| v.to_str().expect("Invalid Set-Cookie header"));
+                .filter_map(|v| v.to_str().ok());
 
             let found = cookies.any(|cookie| exp_props.iter().all(|prop| cookie.contains(prop)));
 

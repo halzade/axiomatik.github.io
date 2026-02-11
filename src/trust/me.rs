@@ -6,7 +6,6 @@ use crate::db::database_user::SurrealUserError;
 use crate::system::commands::CommandError;
 use crate::system::configuration::ConfigurationError;
 use crate::system::server::ServerError;
-use crate::trust::app::article::create_article_request_builder::ArticleBuilderError;
 use http::header;
 use image::ImageError;
 use std::convert::Infallible;
@@ -63,9 +62,6 @@ pub enum TrustError {
 
     #[error("server error")]
     TrustServerError(#[from] ServerError),
-
-    #[error("article builder error")]
-    ArticleBuilder(#[from] ArticleBuilderError),
 
     #[error("real data error")]
     RealData,
