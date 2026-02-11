@@ -2,7 +2,7 @@ use crate::trust::data::response_verifier::ResponseVerifier;
 use crate::trust::me::TrustError;
 use axum::body::Body;
 use axum::Router;
-use http::{header, Request};
+use http::Request;
 use std::sync::Arc;
 use tower::ServiceExt;
 use tracing::error;

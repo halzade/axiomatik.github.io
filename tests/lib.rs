@@ -17,8 +17,8 @@ pub mod db {
     pub mod test_001_db;
 }
 pub mod sys {
-    pub mod test_001_health;
-    pub mod test_command_create_editor_user;
+    pub mod test_001_ping;
+    pub mod test_002_health;
 }
 pub mod web {
     pub mod test_001_fallback_404;

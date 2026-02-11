@@ -19,7 +19,7 @@ impl AuthorizedWebController {
         Self { app_router, user_cookie: Arc::new(RwLock::new(None)) }
     }
 
-    pub async fn get_url_authorized(&self, url: &str) -> Result<ResponseVerifier, TrustError> {
+    pub async fn get_url(&self, url: &str) -> Result<ResponseVerifier, TrustError> {
         if !url.starts_with('/') {
             error!("url must start with '/'")
         }
@@ -70,7 +70,7 @@ mod tests {
                 .verify().await?;
 
         #[rustfmt::skip]
-        ac.web_auth(&auth).get_url_authorized("/health").await?
+        ac.web_app(&auth).get_url("/health").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
 

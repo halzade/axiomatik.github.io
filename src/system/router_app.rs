@@ -170,7 +170,7 @@ impl ApplicationRouter {
                 get(form_login::show_login)
                .post(form_login::handle_login),
             )
-            .route("/ping", get("ping success"))
+            .route("/ping", get("{\"message\": \"app ping\"}"))
             // protected routes
             .merge(protected_routes)
             // everything already served, user requested for non-existent content

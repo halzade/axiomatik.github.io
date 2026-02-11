@@ -105,7 +105,7 @@ impl AppController {
         self.login.clone()
     }
 
-    pub fn web_auth(&self, auth: &str) -> Arc<AuthorizedWebController> {
+    pub fn web_app(&self, auth: &str) -> Arc<AuthorizedWebController> {
         self.web_auth.set_cookie(Some(auth.to_string()));
         self.web_auth.clone()
     }

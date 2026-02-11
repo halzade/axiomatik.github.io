@@ -5,7 +5,7 @@ mod tests {
     use http::StatusCode;
 
     #[tokio::test]
-    async fn test_create_editor_user() -> Result<(), TrustError> {
+    async fn test_health() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
         // no public access to health
@@ -30,7 +30,7 @@ mod tests {
 
         // health for logged-in user
         #[rustfmt::skip]
-        ac.web_auth(&auth).get_url_authorized("/health").await?
+        ac.web_app(&auth).get_url("/health").await?
             .must_see_response(StatusCode::OK)
             .body_contains("ok")
             .verify().await?;

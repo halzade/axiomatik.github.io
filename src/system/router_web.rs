@@ -18,7 +18,6 @@ use crate::application::zahranici::zahranici::ZahraniciError;
 use crate::db::database_system::{ArticleStatus, SurrealSystemError};
 use crate::system::data_system::DataSystemError;
 use crate::system::data_updates::DataUpdatesError;
-use crate::system::heartbeat;
 use crate::system::server::TheState;
 use axum::body::Body;
 use axum::extract::State;
@@ -106,6 +105,7 @@ impl WebRouter {
             .nest_service("/u", ServeDir::new("web/u"))
             // serve static files (route service)
             .route_service("/favicon.ico", ServeFile::new("web/favicon.ico"))
+            .route("/ping", get("{\"message\": \"web ping\"}"))
             /*
              * catch web requests and maybe updat invalid HTML file
              * redirect the request to the web directory

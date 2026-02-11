@@ -18,7 +18,6 @@ use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::info;
-use chrono::Utc;
 
 #[derive(Debug, Error)]
 pub enum ApplicationError {
