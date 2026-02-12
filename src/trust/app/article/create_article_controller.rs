@@ -99,7 +99,7 @@ impl CreateArticleController {
         let body = self.build_multipart_body(data)?;
         let cookie = self.user_cookie.read().clone().unwrap_or_default();
 
-        let response = self
+        let response_r = self
             .app_router
             .as_ref()
             .clone()
@@ -111,14 +111,18 @@ impl CreateArticleController {
                     .header(header::COOKIE, cookie)
                     .body(Body::from(body))?,
             )
-            .await?;
+            .await;
+
+        let response_verifier = ResponseVerifier::from_r(response_r);
 
         // Clear input after execution if successful
-        if response.status().is_success() || response.status().is_redirection() {
+        if response_verifier.response.status().is_success()
+            || response_verifier.response.status().is_redirection()
+        {
             *self.input.data.write() = ArticleData::new();
         }
 
-        Ok(ResponseVerifier::new(response))
+        Ok(response_verifier)
     }
 
     fn build_multipart_body(&self, data: ArticleData) -> Result<Vec<u8>, TrustError> {

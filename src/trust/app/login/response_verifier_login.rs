@@ -3,6 +3,7 @@ use crate::trust::me::TrustError;
 use axum_core::response::Response;
 use http::header::SET_COOKIE;
 use http::{HeaderMap, StatusCode};
+use std::convert::Infallible;
 use tracing::error as log_error;
 
 #[derive(Default)]
@@ -36,6 +37,13 @@ impl LoginResponseVerifier {
             expected: LoginResponseExpected::default(),
             login_cookie,
         })
+    }
+
+    pub fn from_r(response_r: Result<Response, Infallible>) -> Result<Self, TrustError> {
+        match response_r {
+            Ok(response) => Self::new(response),
+            Err(e) => match e {}, // exhaust infallible
+        }
     }
 
     pub fn header_location(mut self, location: &str) -> Self {

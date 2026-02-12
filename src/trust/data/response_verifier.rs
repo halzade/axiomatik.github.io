@@ -4,6 +4,7 @@ use axum_core::response::Response;
 use http::header::SET_COOKIE;
 use http::{HeaderMap, StatusCode};
 use parking_lot::RwLock;
+use std::convert::Infallible;
 use std::sync::Arc;
 use tracing::error as log_error;
 
@@ -71,6 +72,13 @@ impl ResponseVerifier {
     pub fn new(response: Response) -> Self {
         let headers = response.headers().clone();
         Self { headers, response, expected: ResponseFluent::new() }
+    }
+
+    pub fn from_r(response_r: Result<Response, Infallible>) -> Self {
+        match response_r {
+            Ok(response) => Self::new(response),
+            Err(e) => match e {}, // exhaust Infallible
+        }
     }
 
     pub fn header_location(self, location: &str) -> Self {

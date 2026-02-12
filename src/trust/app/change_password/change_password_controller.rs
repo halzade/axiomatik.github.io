@@ -40,7 +40,7 @@ impl ChangePasswordController {
         let new_password = data.new_password.unwrap_or_default();
         let cookie = self.user_cookie.read().clone().unwrap_or_default();
 
-        let response = self
+        let response_r = self
             .app_router
             .as_ref()
             .clone()
@@ -52,13 +52,17 @@ impl ChangePasswordController {
                     .header(header::COOKIE, cookie)
                     .body(Body::from(format!("new_password={}", new_password)))?,
             )
-            .await?;
+            .await;
+
+        let response_verifier = ResponseVerifier::from_r(response_r);
 
         // Clear input after execution if successful
-        if response.status().is_success() || response.status().is_redirection() {
+        if response_verifier.response.status().is_success()
+            || response_verifier.response.status().is_redirection()
+        {
             *self.input.data.write() = ChangePasswordData::new();
         }
 
-        Ok(ResponseVerifier::new(response))
+        Ok(response_verifier)
     }
 }

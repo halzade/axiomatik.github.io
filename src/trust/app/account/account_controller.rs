@@ -6,6 +6,7 @@ use crate::trust::me::TrustError;
 use axum::body::Body;
 use axum::Router;
 use http::{header, Request};
+use parking_lot::RwLock;
 use std::sync::Arc;
 use tower::ServiceExt;
 use tracing::debug;
@@ -14,12 +15,16 @@ use tracing::debug;
 pub struct AccountController {
     app_router: Arc<Router>,
     input: AccountUpdateAuthorFluent,
-    user_cookie: Arc<parking_lot::RwLock<Option<String>>>,
+    user_cookie: Arc<RwLock<Option<String>>>,
 }
 
 impl AccountController {
     pub fn new(app_router: Arc<Router>) -> Self {
-        Self { app_router, input: AccountUpdateAuthorFluent::new(), user_cookie: Arc::new(parking_lot::RwLock::new(None)) }
+        Self {
+            app_router,
+            input: AccountUpdateAuthorFluent::new(),
+            user_cookie: Arc::new(RwLock::new(None)),
+        }
     }
 
     pub fn set_cookie(&self, cookie: Option<String>) {
@@ -43,7 +48,7 @@ impl AccountController {
         let cookie = self.user_cookie.read().clone().unwrap_or_default();
 
         debug!("update author name: {}", author_name);
-        let response = (*self.app_router)
+        let response_r = (*self.app_router)
             .clone()
             .oneshot(
                 Request::builder()
@@ -53,20 +58,24 @@ impl AccountController {
                     .header(header::COOKIE, cookie)
                     .body(Body::from(format!("author_name={}", author_name)))?,
             )
-            .await?;
+            .await;
         debug!("update author name done");
 
+        let response_verifier = ResponseVerifier::from_r(response_r);
+
         // Clear input after execution if successful
-        if response.status().is_success() || response.status().is_redirection() {
+        if response_verifier.response.status().is_success()
+            || response_verifier.response.status().is_redirection()
+        {
             *self.input.data.write() = AccountUpdateAuthorData::new();
         }
 
-        Ok(ResponseVerifier::new(response))
+        Ok(response_verifier)
     }
 
     pub async fn get(&self, auth_cookie: &str) -> Result<ResponseVerifier, TrustError> {
         debug!("get account page");
-        let response = (*self.app_router)
+        let response_r = (*self.app_router)
             .clone()
             .oneshot(
                 Request::builder()
@@ -75,8 +84,9 @@ impl AccountController {
                     .header(header::COOKIE, &auth_cookie.to_string())
                     .body(Body::empty())?,
             )
-            .await?;
+            .await;
+
         debug!("get account page done");
-        Ok(ResponseVerifier::new(response))
+        Ok(ResponseVerifier::from_r(response_r))
     }
 }

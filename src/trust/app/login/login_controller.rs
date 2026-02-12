@@ -35,7 +35,7 @@ impl LoginController {
         let username = data.username.unwrap_or_default();
         let password = data.password.unwrap_or_default();
 
-        let login_response = self
+        let login_response_r = self
             .app_router
             .as_ref()
             .clone()
@@ -46,10 +46,10 @@ impl LoginController {
                     .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
                     .body(Body::from(format!("username={}&password={}", username, password)))?,
             )
-            .await?;
+            .await;
 
         debug!("login done");
 
-        Ok(LoginResponseVerifier::new(login_response)?)
+        Ok(LoginResponseVerifier::from_r(login_response_r)?)
     }
 }
