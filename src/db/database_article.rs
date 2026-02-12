@@ -132,6 +132,28 @@ impl DatabaseArticle {
         Ok(short_article_data)
     }
 
+    /*
+     * Increase related article
+     */
+    pub async fn add_related_article(
+        &self,
+        article_file_name: String,
+        new_related: String,
+    ) -> Result<(), SurrealArticleError> {
+        debug!(
+            "add_related_article: article_file_name={}, new_related={}",
+            article_file_name, new_related
+        );
+
+        self.surreal
+            .db
+            .query("UPDATE type::record('article', $article_file_name) SET related_articles += $new_related")
+            .bind(("article_file_name", article_file_name))
+            .bind(("new_related", new_related))
+            .await?;
+        Ok(())
+    }
+
     pub async fn articles_by_category(
         &self,
         category: &str,

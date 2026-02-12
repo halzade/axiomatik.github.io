@@ -146,9 +146,11 @@ pub async fn create_article(
 
     // invalidate related articles
     for related_article in &article_data.related_articles {
-
         info!("invalidate related article {}", related_article);
         state.dbs.invalidate_article(related_article.clone()).await?;
+
+        // add bidirectional relationship
+        state.dba.add_related_article(related_article.clone(), article_file_name.clone()).await?;
     }
 
     match article_data.category.as_str() {

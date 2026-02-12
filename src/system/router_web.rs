@@ -211,7 +211,7 @@ impl WebRouter {
                         // article was invalidated, render article HTML
                         // new article was u
                         article::render_article(&real_article_name, &state).await?;
-                        state.dbs.validate_article(url.to_string()).await?;
+                        state.dbs.validate_article(real_article_name.to_string()).await?;
                         serve_this(&format!("/{}", real_article_name), request).await
                     }
                     ArticleStatus::DoesNotExist => {
