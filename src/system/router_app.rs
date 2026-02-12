@@ -97,7 +97,6 @@ impl ApplicationRouter {
     }
 }
 
-// TODO macro derive these things
 impl IntoResponse for AppRouterError {
     fn into_response(self) -> Response {
         (StatusCode::BAD_REQUEST, self.to_string()).into_response()

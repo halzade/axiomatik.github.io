@@ -88,7 +88,7 @@ pub async fn create_article(
     auth_session: AuthSession,
     multipart: Multipart,
 ) -> Result<impl IntoResponse, ArticleError> {
-    // TODO X doubled request on create button
+    // TODO XX doubled request on create button
 
     /*
      * Read request data
@@ -100,7 +100,7 @@ pub async fn create_article(
      * Validate
      */
 
-    // TODO X Validate text fields, use validator framework instead
+    // TODO XX Validate text fields, use validator framework instead
 
     let article_db = Article::try_from(article_data.clone())?;
 

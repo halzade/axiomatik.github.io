@@ -59,7 +59,6 @@ mod tests {
             .short_text("Short")
             .image_any_png()?
             .image_desc("test image description")
-            // TODO invalidate related articles
             .related_articles("related-test-article.html")
             .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)

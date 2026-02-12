@@ -43,7 +43,7 @@ pub struct ArticleUpload {
     pub is_main: bool,
     pub is_exclusive: bool,
     pub author: String,
-    pub user: String,
+    pub username: String,
 
     pub title: String,
     pub text_raw: String,
@@ -170,7 +170,7 @@ pub async fn article_data(
         is_main,
         is_exclusive,
         author,
-        user,
+        username: user,
         title,
         text_raw,
         short_text_raw,

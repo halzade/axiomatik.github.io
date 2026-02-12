@@ -114,7 +114,7 @@ impl ArticleBuilder {
         Article {
             uuid: Uuid::new(),
             author: self.author.clone(),
-            user: self.author,
+            username: self.author,
             date: now,
             date_str: "date".to_string(),
 

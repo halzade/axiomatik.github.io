@@ -1,12 +1,12 @@
 use crate::application::form::form_article_data_parser::ArticleUpload;
 use crate::data::library;
+use crate::data::library::safe_article_file_name;
 use crate::data::text_processor::{process_short_text, process_text};
 use crate::db::database::SurrealError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use surrealdb::types::{SurrealValue, Uuid};
-use crate::data::library::safe_article_file_name;
 /*
  * Main Articles on index.html
  */
@@ -54,7 +54,7 @@ pub struct Article {
     pub article_file_name: String,
 
     pub author: String,
-    pub user: String, // TODO this should be username
+    pub username: String,
 
     pub date: DateTime<Utc>,
     pub date_str: String,
@@ -138,7 +138,7 @@ impl TryFrom<ArticleUpload> for Article {
         Ok(Article {
             uuid: Uuid::new(), // TODO
             author: data.author,
-            user: data.user,
+            username: data.username,
             date: now,
             date_str: library::formatted_article_date(now),
 
@@ -183,7 +183,7 @@ pub fn easy_article(title: &str, author: &str, text: &str) -> Article {
     Article {
         uuid: Uuid::new(),
         author: author.to_string(),
-        user: author.to_string(),
+        username: author.to_string(),
         date: now,
         date_str: "date".to_string(),
         title: title.to_string(),

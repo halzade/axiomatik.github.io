@@ -79,7 +79,7 @@ async fn main() -> Result<(), ApplicationError> {
      */
     let state = TheState { dba, dbu, dbs, ds, dv, start_time: chrono::Utc::now() };
 
-    // TODO remove these
+    // TODO remove commands
     /*
      * process the commands
      */
