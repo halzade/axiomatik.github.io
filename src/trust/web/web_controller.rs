@@ -21,12 +21,12 @@ impl WebController {
         if !url.starts_with('/') {
             error!("url must start with '/'")
         }
-        let response = (*self.web_router)
+        let response_r = (*self.web_router)
             .clone()
             .oneshot(Request::builder().method("GET").uri(url).body(Body::empty())?)
-            .await?;
+            .await;
 
-        Ok(ResponseVerifier::new(response))
+        Ok(ResponseVerifier::from_r(response_r))
     }
 }
 

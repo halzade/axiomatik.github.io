@@ -26,7 +26,7 @@ impl AuthorizedWebController {
 
         let cookie = self.user_cookie.read().clone().unwrap_or_default();
 
-        let response = (*self.app_router)
+        let response_r = (*self.app_router)
             .clone()
             .oneshot(
                 Request::builder()
@@ -35,9 +35,9 @@ impl AuthorizedWebController {
                     .header(header::COOKIE, cookie)
                     .body(Body::empty())?,
             )
-            .await?;
+            .await;
 
-        Ok(ResponseVerifier::new(response))
+        Ok(ResponseVerifier::from_r(response_r))
     }
 
     pub fn set_cookie(&self, cookie: Option<String>) {
