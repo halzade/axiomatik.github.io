@@ -1,3 +1,4 @@
+use crate::system::server::TheState;
 use std::time::Duration;
 use thiserror::Error;
 use tokio::time::interval;
@@ -9,13 +10,16 @@ pub enum WeatherWorkerError {
     Weather,
 }
 
-pub fn start_weather_worker() -> Result<(), WeatherWorkerError> {
+pub fn start_weather_worker(state: TheState) -> Result<(), WeatherWorkerError> {
     info!("start weather worker");
     tokio::spawn(async move {
         let mut interval = interval(Duration::from_mins(30));
         loop {
+            tokio::spawn(async move {
+                trace!("fetch weather");
+                // the Action
+            });
             interval.tick().await;
-            trace!("fetch weather");
         }
     });
 

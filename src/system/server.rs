@@ -137,7 +137,7 @@ fn duration_str(duration: TimeDelta) -> String {
     format!("{}h {}m {}s", hours, minutes, seconds)
 }
 
-pub async fn connect(state: TheState) -> Result<Server, ServerError> {
+pub async fn connect(state: &TheState) -> Result<Server, ServerError> {
     Ok(Server {
         status_web: RwLock::new(Off),
         status_app: RwLock::new(Off),

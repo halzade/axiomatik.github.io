@@ -1,4 +1,5 @@
 use crate::data::time::to_prague_time;
+use crate::system::server::TheState;
 use chrono::{Duration as ChronoDuration, Timelike, Utc};
 use std::time::Duration;
 use thiserror::Error;
@@ -11,37 +12,46 @@ pub enum MidnightWorkerError {
     Midnight,
 }
 
-pub fn start_midnight_worker() -> Result<(), MidnightWorkerError> {
+fn calculate_next_midnight_delay() -> Duration {
+    let now_utc = Utc::now();
+    let now_prague = to_prague_time(now_utc);
+
+    // Calculate next midnight in Prague
+    let next_midnight_prague = (now_prague + ChronoDuration::days(1))
+        .with_hour(0)
+        .and_then(|t| t.with_minute(0))
+        .and_then(|t| t.with_second(0))
+        .and_then(|t| t.with_nanosecond(0));
+
+    if let Some(next_midnight) = next_midnight_prague {
+        let duration_to_midnight = next_midnight.signed_duration_since(now_prague);
+        let wait_secs = duration_to_midnight.num_seconds() as u64;
+        Duration::from_secs(wait_secs)
+    } else {
+        // This should not happen, but return a safe default
+        Duration::from_secs(60)
+    }
+}
+
+pub fn start_midnight_worker(state: TheState) -> Result<(), MidnightWorkerError> {
     info!("start midnight worker");
     tokio::spawn(async move {
         loop {
-            let now_utc = Utc::now();
-            let now_prague = to_prague_time(now_utc);
+            let wait_duration = calculate_next_midnight_delay();
 
-            // Calculate next midnight in Prague
-            let next_midnight_prague = (now_prague + ChronoDuration::days(1))
-                .with_hour(0)
-                .and_then(|t| t.with_minute(0))
-                .and_then(|t| t.with_second(0))
-                .and_then(|t| t.with_nanosecond(0));
+            info!("waiting {} seconds until midnight in Prague", wait_duration.as_secs());
+            sleep(wait_duration).await;
 
-            if let Some(next_midnight) = next_midnight_prague {
-                let duration_to_midnight = next_midnight.signed_duration_since(now_prague);
-                let wait_secs = duration_to_midnight.num_seconds() as u64;
-
-                info!("waiting {} seconds until midnight in Prague", wait_secs);
-                sleep(Duration::from_secs(wait_secs)).await;
-
-                // Perform the midnight action
+            tokio::spawn(async move {
                 trace!("midnight action");
 
+                state.ds.update_date();
+                state.ds.update_name_day();
 
+                // TODO invalidate everything
+            });
 
-                sleep(Duration::from_secs(1)).await;
-            } else {
-                // This should not happen
-                sleep(Duration::from_secs(60)).await;
-            }
+            sleep(Duration::from_secs(2)).await;
         }
     });
 

@@ -8,8 +8,10 @@ use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
 use axiomatik_web::system::server::{ServerError, TheState};
 use axiomatik_web::system::{configuration, logger};
-use axiomatik_web::worker::heartbeat;
 use axiomatik_web::system::{data_system, data_updates, server};
+use axiomatik_web::worker::heartbeat;
+use axiomatik_web::worker::midnight_worker::{start_midnight_worker, MidnightWorkerError};
+use axiomatik_web::worker::weather_worker::{start_weather_worker, WeatherWorkerError};
 use fs::create_dir_all;
 use std::env;
 use std::fs;
@@ -43,6 +45,12 @@ pub enum ApplicationError {
 
     #[error("unrecognized parameter")]
     UnrecognizedParameters,
+
+    #[error("midnight error")]
+    Midnight(#[from] MidnightWorkerError),
+
+    #[error("weather error")]
+    Weather(#[from] WeatherWorkerError),
 }
 
 #[tokio::main]
@@ -89,7 +97,7 @@ async fn main() -> Result<(), ApplicationError> {
     /*
      * server
      */
-    let server = server::connect(state).await?;
+    let server = server::connect(&state).await?;
     if !server.is_off() {
         info!("But the Application has already started");
         info!("Shutting down gracefully...");
@@ -109,7 +117,8 @@ async fn main() -> Result<(), ApplicationError> {
      */
     info!("startup actions");
     heartbeat::start_heart_beat();
-
+    start_weather_worker(&state)?;
+    start_midnight_worker(&state)?;
 
     /*
      * routers
