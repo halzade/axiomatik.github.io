@@ -33,9 +33,6 @@ pub enum TrustError {
     #[error("io error {0}")]
     IoError(#[from] std::io::Error),
 
-    #[error("reqwest error {0}")]
-    ReqwestError(#[from] reqwest::Error),
-
     #[error("http error {0}")]
     HttpError(#[from] http::Error),
 

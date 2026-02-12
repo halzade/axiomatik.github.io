@@ -89,11 +89,15 @@ pub mod system {
     pub mod data_system;
     pub mod data_updates;
     pub mod health;
-    pub mod heartbeat;
     pub mod logger;
     pub mod router_app;
     pub mod router_web;
     pub mod server;
+}
+pub mod worker {
+    pub mod heartbeat;
+    pub mod midnight_worker;
+    pub mod weather_worker;
 }
 /*
  * Test Framework

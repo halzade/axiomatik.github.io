@@ -7,7 +7,8 @@ use axiomatik_web::db::database_user::DatabaseUser;
 use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
 use axiomatik_web::system::server::{ServerError, TheState};
-use axiomatik_web::system::{configuration, heartbeat, logger};
+use axiomatik_web::system::{configuration, logger};
+use axiomatik_web::worker::heartbeat;
 use axiomatik_web::system::{data_system, data_updates, server};
 use fs::create_dir_all;
 use std::env;
@@ -19,6 +20,7 @@ use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::info;
 
+// TODO remove all these
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error("configuration error")]
@@ -69,6 +71,7 @@ async fn main() -> Result<(), ApplicationError> {
      */
     let state = TheState { dba, dbu, dbs, ds, dv, start_time: chrono::Utc::now() };
 
+    // TODO remove these
     /*
      * process the commands
      */
@@ -105,7 +108,8 @@ async fn main() -> Result<(), ApplicationError> {
      * start regular actions
      */
     info!("startup actions");
-    heartbeat::heart_beat();
+    heartbeat::start_heart_beat();
+
 
     /*
      * routers
