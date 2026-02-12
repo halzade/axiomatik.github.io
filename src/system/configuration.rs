@@ -35,8 +35,13 @@ impl AppEnvironment {
 #[derive(Deserialize, Clone)]
 pub struct ApplicationSettings {
     pub host: String,
-    pub port_app: u16,
-    pub port_web: u16,
+    pub port: PortSettings,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct PortSettings {
+    pub app: u16,
+    pub web: u16,
 }
 
 /*

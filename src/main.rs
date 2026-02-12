@@ -130,8 +130,8 @@ async fn main() -> Result<(), ApplicationError> {
     server.status_start()?;
 
     let config = configuration::get_config()?;
-    let app_address = format!("{}:{}", config.host, config.port_app);
-    let web_address = format!("{}:{}", config.host, config.port_web);
+    let app_address = format!("{}:{}", config.host, config.port.app);
+    let web_address = format!("{}:{}", config.host, config.port.web);
 
     /*
      * listeners
