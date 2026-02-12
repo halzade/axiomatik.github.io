@@ -144,6 +144,13 @@ pub async fn create_article(
     state.dv.index_invalidate();
     state.dv.news_invalidate();
 
+    // invalidate related articles
+    for related_article in &article_data.related_articles {
+
+        info!("invalidate related article {}", related_article);
+        state.dbs.invalidate_article(related_article.clone()).await?;
+    }
+
     match article_data.category.as_str() {
         "zahranici" => state.dv.zahranici_invalidate(),
         "republika" => state.dv.republika_invalidate(),

@@ -12,6 +12,7 @@ pub mod app {
     pub mod test_011_create_article_republika_integration;
     pub mod test_012_create_article_validation;
     pub mod test_013_create_article_zahranici_integration;
+    pub mod test_014_create_article_related_articles;
 }
 pub mod db {
     pub mod test_001_db;
