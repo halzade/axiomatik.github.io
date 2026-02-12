@@ -61,6 +61,8 @@ mod tests {
                 .must_see_response(StatusCode::SEE_OTHER)
                 .verify().await?;
 
+        // both articles refer each other as related
+
         // the article "test-related.html" is Invalidated
 
         // verify related article
@@ -80,18 +82,18 @@ mod tests {
             .verify().await?;
 
         // clean up the article
-        let _ = trust::me::remove_file("web/test-this-article-xx.html");
-        let _ = trust::me::remove_file("web/u/test-this-article-xx_image_50.png");
-        let _ = trust::me::remove_file("web/u/test-this-article-xx_image_288.png");
-        let _ = trust::me::remove_file("web/u/test-this-article-xx_image_440.png");
-        let _ = trust::me::remove_file("web/u/test-this-article-xx_image_820.png");
+        trust::me::remove_file("web/test-this-article-xx.html")?;
+        trust::me::remove_file("web/u/test-this-article-xx_image_50.png")?;
+        trust::me::remove_file("web/u/test-this-article-xx_image_288.png")?;
+        trust::me::remove_file("web/u/test-this-article-xx_image_440.png")?;
+        trust::me::remove_file("web/u/test-this-article-xx_image_820.png")?;
 
         // clean up the related article
-        let _ = trust::me::remove_file("web/test-related.html");
-        let _ = trust::me::remove_file("web/u/test-related_image_50.png");
-        let _ = trust::me::remove_file("web/u/test-related_image_288.png");
-        let _ = trust::me::remove_file("web/u/test-related_image_440.png");
-        let _ = trust::me::remove_file("web/u/test-related_image_820.png");
+        trust::me::remove_file("web/test-related.html")?;
+        trust::me::remove_file("web/u/test-related_image_50.png")?;
+        trust::me::remove_file("web/u/test-related_image_288.png")?;
+        trust::me::remove_file("web/u/test-related_image_440.png")?;
+        trust::me::remove_file("web/u/test-related_image_820.png")?;
 
         Ok(())
     }
