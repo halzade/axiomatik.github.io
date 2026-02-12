@@ -110,6 +110,21 @@ impl DataValidHtml {
     pub fn zahranici_invalidate(&self) {
         *self.zahranici_valid.write() = false;
     }
+    
+    /**
+     * used when global state changed
+     * e.g.: a date was updated by midnight worker
+     */
+    pub fn invalidate_index_and_categories(&self) {
+        self.index_invalidate();
+        self.news_invalidate();
+        
+        self.republika_invalidate();
+        self.finance_invalidate();
+        self.technologie_invalidate();
+        self.veda_invalidate();
+        self.zahranici_invalidate();
+    }
 }
 
 #[cfg(test)]

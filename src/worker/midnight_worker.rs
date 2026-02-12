@@ -44,12 +44,14 @@ pub fn start_midnight_worker(state: TheState) -> Result<(), MidnightWorkerError>
 
             let state_c = state.clone();
             tokio::spawn(async move {
-                trace!("midnight action");
-
+                info!("midnight action: update data");
                 state_c.ds.update_date();
                 state_c.ds.update_name_day();
 
-                // TODO invalidate everything
+                info!("midnight action: invalidate everything");
+                state_c.dv.invalidate_index_and_categories();
+                let _ = state_c.dbs.invalidate_all_article().await;
+                info!("midnight action: finished");
             });
 
             sleep(Duration::from_secs(2)).await;

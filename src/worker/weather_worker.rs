@@ -2,7 +2,7 @@ use crate::system::server::TheState;
 use std::time::Duration;
 use thiserror::Error;
 use tokio::time::interval;
-use tracing::{info, trace};
+use tracing::info;
 
 #[derive(Debug, Error)]
 pub enum WeatherWorkerError {
@@ -13,20 +13,23 @@ pub enum WeatherWorkerError {
 pub fn start_weather_worker(state: TheState) -> Result<(), WeatherWorkerError> {
     info!("start weather worker");
     tokio::spawn(async move {
-        let mut interval = interval(Duration::from_mins(30));
-
-        let state_c = state.clone();
+        let mut interval = interval(Duration::from_mins(60));
 
         loop {
-            tokio::spawn(async move {
-                trace!("fetch weather");
+            let state_c = state.clone();
 
+            tokio::spawn(async move {
+                info!("weather action: update data");
                 let changed = state_c.ds.update_weather().await;
 
                 if changed {
                     // weather changed
-
-                    // TODO invalidate everything
+                    info!("weather action: change");
+                    state_c.dv.invalidate_index_and_categories();
+                    let _ = state_c.dbs.invalidate_all_article().await;
+                    info!("weather action: finished");
+                } else {
+                    info!("weather action: nothing changed");
                 }
             });
             interval.tick().await;

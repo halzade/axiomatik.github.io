@@ -72,6 +72,15 @@ impl DatabaseSystem {
         Ok(())
     }
 
+    pub async fn invalidate_all_article(&self) -> Result<(), SurrealSystemError> {
+        self.surreal
+            .db
+            .query(format!("UPDATE {} SET article_status = $status", ARTICLE_STATUS_TABLE))
+            .bind(("status", Invalid))
+            .await?;
+        Ok(())
+    }
+
     pub async fn create_article_record(
         &self,
         article_file_name: String,
@@ -145,6 +154,18 @@ mod tests {
         dbs.invalidate_article(article_name.clone()).await?;
         let s = dbs.read_article_validity(&article_name.clone()).await?;
         assert_eq!(s, Invalid);
+
+        // validate and then invalidate all
+        dbs.validate_article(article_name.clone()).await?;
+        let article_name2 = "test-article2.html".to_string();
+        dbs.validate_article(article_name2.clone()).await?;
+
+        dbs.invalidate_all_article().await?;
+
+        let s1 = dbs.read_article_validity(&article_name).await?;
+        let s2 = dbs.read_article_validity(&article_name2).await?;
+        assert_eq!(s1, Invalid);
+        assert_eq!(s2, Invalid);
 
         Ok(())
     }
