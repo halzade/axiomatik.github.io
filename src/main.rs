@@ -117,8 +117,8 @@ async fn main() -> Result<(), ApplicationError> {
      */
     info!("startup actions");
     heartbeat::start_heart_beat();
-    start_weather_worker(&state)?;
-    start_midnight_worker(&state)?;
+    start_weather_worker(state.clone())?;
+    start_midnight_worker(state.clone())?;
 
     /*
      * routers

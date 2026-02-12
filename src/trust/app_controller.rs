@@ -63,7 +63,7 @@ impl AppController {
         };
 
         // server
-        let server = server::connect(state.clone()).await?;
+        let server = server::connect(&state).await?;
         // app
         let app_router = Arc::new(server.start_app_router().await?);
         // web

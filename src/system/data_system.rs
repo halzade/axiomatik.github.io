@@ -61,8 +61,15 @@ impl DataSystem {
         *self.name_day.write() = nd;
     }
 
-    pub async fn update_weather(&self) {
+    pub async fn update_weather(&self) -> bool {
+        let previous = self.weather.read().to_string();
         let w = weather::fetch_weather().await;
-        *self.weather.write() = w;
+        
+        if previous != w {
+            // weather change
+            *self.weather.write() = w;
+            return true;
+        }
+        false
     }
 }

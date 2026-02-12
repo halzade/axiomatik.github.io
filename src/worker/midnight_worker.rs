@@ -28,7 +28,7 @@ fn calculate_next_midnight_delay() -> Duration {
         let wait_secs = duration_to_midnight.num_seconds() as u64;
         Duration::from_secs(wait_secs)
     } else {
-        // This should not happen, but return a safe default
+        // This should not happen but return a safe default
         Duration::from_secs(60)
     }
 }
@@ -42,11 +42,12 @@ pub fn start_midnight_worker(state: TheState) -> Result<(), MidnightWorkerError>
             info!("waiting {} seconds until midnight in Prague", wait_duration.as_secs());
             sleep(wait_duration).await;
 
+            let state_c = state.clone();
             tokio::spawn(async move {
                 trace!("midnight action");
 
-                state.ds.update_date();
-                state.ds.update_name_day();
+                state_c.ds.update_date();
+                state_c.ds.update_name_day();
 
                 // TODO invalidate everything
             });

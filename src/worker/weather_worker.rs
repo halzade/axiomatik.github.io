@@ -14,10 +14,20 @@ pub fn start_weather_worker(state: TheState) -> Result<(), WeatherWorkerError> {
     info!("start weather worker");
     tokio::spawn(async move {
         let mut interval = interval(Duration::from_mins(30));
+
+        let state_c = state.clone();
+
         loop {
             tokio::spawn(async move {
                 trace!("fetch weather");
-                // the Action
+
+                let changed = state_c.ds.update_weather().await;
+
+                if changed {
+                    // weather changed
+
+                    // TODO invalidate everything
+                }
             });
             interval.tick().await;
         }
