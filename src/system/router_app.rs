@@ -110,7 +110,27 @@ impl IntoResponse for AppRouterError {
 
 impl IntoResponse for ArticleError {
     fn into_response(self) -> Response {
-        (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response()
+        match self {
+            ArticleError::ArticleCreate(_) => {
+                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+            }
+            ArticleError::CategoryFailed(_) => {
+                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+            }
+            ArticleError::ImageProcessor(_) => {
+                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+            }
+            ArticleError::AudioProcessor(_) => {
+                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+            }
+            ArticleError::VideoProcessor(_) => {
+                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+            }
+            ArticleError::ProcessorError(_) => {
+                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+            }
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response(),
+        }
     }
 }
 
