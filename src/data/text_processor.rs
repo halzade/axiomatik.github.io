@@ -6,7 +6,6 @@ pub enum TextProcessorError {
     UnknownCategory(String),
 }
 
-// TODO X
 pub fn process_short_text(raw_text: &str) -> String {
     raw_text
         .replace("\r\n", "\n")
@@ -17,7 +16,7 @@ pub fn process_short_text(raw_text: &str) -> String {
         .join("</p><p>")
 }
 
-// TODO X
+// TODO think about it
 pub fn process_text(raw_text: &str) -> String {
     raw_text
         .replace("\r\n", "\n")
