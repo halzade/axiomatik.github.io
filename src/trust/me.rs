@@ -8,7 +8,6 @@ use crate::system::configuration::ConfigurationError;
 use crate::system::server::ServerError;
 use http::header;
 use image::ImageError;
-use std::convert::Infallible;
 use std::fs;
 use std::path::Path;
 use thiserror::Error;
@@ -35,9 +34,6 @@ pub enum TrustError {
 
     #[error("http error {0}")]
     HttpError(#[from] http::Error),
-
-    #[error("infallible error {0}")]
-    TrustInfallible(#[from] Infallible),
 
     #[error("serde_json error {0}")]
     SerdeJsonError(#[from] serde_json::Error),

@@ -6,7 +6,7 @@ use crate::db::database_article_data::{
 };
 use crate::db::database_system::SurrealSystemError;
 use regex;
-use std::convert::{Infallible, Into};
+use std::convert::Into;
 use std::string::ToString;
 use std::sync::Arc;
 use thiserror::Error;
@@ -22,10 +22,6 @@ pub enum SurrealArticleError {
 
     #[error("article not found {0}")]
     ArticleNotFound(String),
-
-    // TODO never throw Infallible
-    #[error("article infallible {0}")]
-    ArticleInfallible(#[from] Infallible),
 }
 
 /**
@@ -167,7 +163,15 @@ impl DatabaseArticle {
         let second_m: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
         let third_m: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
 
-        Ok((main, TopArticleData::try_from(second_m)?, TopArticleData::try_from(third_m)?))
+        let tad2_r = TopArticleData::try_from(second_m);
+        let tad3_r = TopArticleData::try_from(third_m);
+        match tad2_r {
+            Ok(tad2) => match tad3_r {
+                Ok(tad3) => Ok((main, tad2, tad3)),
+                Err(e) => match e {},
+            },
+            Err(e) => match e {},
+        }
     }
 
     /**

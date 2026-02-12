@@ -31,7 +31,6 @@ use axum_core::extract::Request;
 use axum_login::AuthManagerLayerBuilder;
 use database_user::Role::Editor;
 use http::StatusCode;
-use std::convert::Infallible;
 use thiserror::Error;
 use tower_sessions::cookie::SameSite::Strict;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
@@ -77,9 +76,6 @@ pub enum AppRouterError {
 
     #[error("form error: {0}")]
     RouterForm(#[from] FormArticleCreateError),
-
-    #[error("response infallible: {0}")]
-    RouterInfallible(#[from] Infallible),
 
     #[error("change password error: {0}")]
     RouterChangePasswordError(#[from] ChangePasswordError),

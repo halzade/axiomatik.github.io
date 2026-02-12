@@ -26,7 +26,6 @@ use axum::routing::get;
 use axum::Router;
 use axum_core::extract::Request;
 use http::StatusCode;
-use std::convert::Infallible;
 use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
@@ -40,9 +39,6 @@ pub enum WebRouterError {
 
     #[error("data update system: {0}")]
     RouterDataSystem(#[from] DataSystemError),
-
-    #[error("response infallible: {0}")]
-    RouterInfallible(#[from] Infallible),
 
     #[error("index error: {0}")]
     RouterIndexError(#[from] IndexError),
@@ -236,7 +232,11 @@ fn real_filename(article_file_name: &str) -> &str {
 async fn serve_this(path: &str, request: Request<Body>) -> Result<Response, WebRouterError> {
     // path already begins with /
     info!("serve_this: web{}", path);
-    Ok(ServeFile::new(format!("web{}", path)).oneshot(request).await?.into_response())
+    let sf_r = ServeFile::new(format!("web{}", path)).oneshot(request).await;
+    match sf_r {
+        Ok(sf) => Ok(sf.into_response()),
+        Err(e) => match e {},
+    }
 }
 
 async fn serve_404() -> Result<Response, WebRouterError> {
