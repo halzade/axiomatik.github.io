@@ -132,16 +132,26 @@ mod tests {
     use super::*;
     use crate::db::database_user::Role::Editor;
     use axum::http::StatusCode;
+    use bcrypt::verify;
 
     #[tokio::test]
     async fn test_create_article() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
         // create user and login
-        ac.db_user().setup_user().username("editor").password("password").execute().await?;
+        #[rustfmt::skip]
+        ac.db_user().setup_user()
+            .username("editor")
+            .password("password")
+            .execute().await?;
 
-        let auth =
-            ac.login().username("editor").password("password").execute().await?.verify().await?;
+        #[rustfmt::skip]
+        let auth = ac.login()
+            .username("editor")
+            .password("password")
+            .execute().await?
+                .must_see_response(StatusCode::SEE_OTHER)
+                .verify().await?;
 
         /*
          * post Article to router
@@ -153,8 +163,8 @@ mod tests {
             .category("republika")
             .text("text")
             .execute().await?
-            .must_see_response(StatusCode::SEE_OTHER)
-            .verify().await?;
+                .must_see_response(StatusCode::SEE_OTHER)
+                .verify().await?;
 
         /*
          * verify Article in the database

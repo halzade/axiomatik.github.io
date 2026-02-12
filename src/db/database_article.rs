@@ -263,6 +263,7 @@ impl DatabaseArticle {
 mod tests {
     use crate::db::database_article::DatabaseArticle;
     use crate::db::database_article_data::easy_article;
+    use crate::trust::app::article::create_article_easy_builder::ArticleBuilder;
     use crate::trust::me::TrustError;
 
     #[tokio::test]
@@ -342,12 +343,13 @@ mod tests {
     async fn test_articles_by_category() -> Result<(), TrustError> {
         let db = DatabaseArticle::new_from_scratch().await?;
 
-        // TODO
-        // prepare the article
-        // db.create_article(
-        //     ArticleBuilder::article().title("Article 1").category("republika").build(),
-        // )
-        // .await?;
+        #[rustfmt::skip]
+        db.create_article(
+            ArticleBuilder::article()
+                .title("Article 1")
+                .category("republika")
+                .build(),
+        ).await?;
 
         let articles = db.articles_by_category("republika", 100).await?;
 

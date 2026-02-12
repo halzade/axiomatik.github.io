@@ -20,8 +20,8 @@ mod tests {
             .username("user9")
             .password("password123")
             .execute().await?
-            .must_see_response(StatusCode::SEE_OTHER)
-            .verify().await?;
+                .must_see_response(StatusCode::SEE_OTHER)
+                .verify().await?;
 
         // 2. Create an article with malicious input
         #[rustfmt::skip]
