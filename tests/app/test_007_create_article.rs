@@ -44,6 +44,8 @@ mod tests {
         #[rustfmt::skip]
         ac.web().get_url("/test-article.html").await?
             .must_see_response(StatusCode::OK)
+            .body_contains("Test Article")
+            .body_contains("This is a test article text.")
             .verify().await?;
         // article was rendered and served
 

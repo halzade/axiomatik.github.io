@@ -42,6 +42,7 @@ mod tests {
         #[rustfmt::skip]
         ac.web().get_url("/test-financni-trhy-v-soku.html").await?
             .must_see_response(StatusCode::OK)
+            .body_contains("Test Financni Trhy v Šoku")
             .verify().await?;
 
         // verify index

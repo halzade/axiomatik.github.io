@@ -37,8 +37,23 @@ mod tests {
                 .must_see_response(StatusCode::SEE_OTHER)
                 .verify().await?;
 
+        // article
         #[rustfmt::skip]
-        ac.web().get_url("index.html").await?
+        ac.web().get_url("/test-newest-republika.html").await?
+            .must_see_response(StatusCode::OK)
+            .body_contains("Test Newest Republika")
+            .verify().await?;
+
+        // index
+        #[rustfmt::skip]
+        ac.web().get_url("/index.html").await?
+            .must_see_response(StatusCode::OK)
+            .body_contains("Test Newest Republika")
+            .verify().await?;
+
+        // category
+        #[rustfmt::skip]
+        ac.web().get_url("/republika.html").await?
             .must_see_response(StatusCode::OK)
             .body_contains("Test Newest Republika")
             .verify().await?;

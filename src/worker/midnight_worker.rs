@@ -4,7 +4,7 @@ use chrono::{Duration as ChronoDuration, Timelike, Utc};
 use std::time::Duration;
 use thiserror::Error;
 use tokio::time::sleep;
-use tracing::{info, trace};
+use tracing::info;
 
 #[derive(Debug, Error)]
 pub enum MidnightWorkerError {

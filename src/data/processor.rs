@@ -16,9 +16,6 @@ pub enum ProcessorError {
 pub fn save_web_file(rendered_html: String, path: &str) -> Result<(), ProcessorError> {
     debug!("save_web_file: path={}", path);
 
-    println!("CURRENT WORKING DIRECTORY");
-    println!("{:?}", std::env::current_dir()?);
-
     let path_see = Path::new("web").join(path);
     print!("{:?}", path_see);
     fs::write(path_see, rendered_html)?;
