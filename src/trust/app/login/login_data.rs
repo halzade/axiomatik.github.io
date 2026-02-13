@@ -19,6 +19,12 @@ pub struct LoginFluent {
     data: Arc<RwLock<LoginData>>,
 }
 
+impl Default for LoginFluent {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LoginFluent {
     pub fn new() -> Self {
         Self { data: Arc::new(RwLock::new(LoginData::new())) }

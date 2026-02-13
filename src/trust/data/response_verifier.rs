@@ -22,6 +22,12 @@ pub struct ResponseFluent {
     pub(crate) data: Arc<RwLock<ResponseData>>,
 }
 
+impl Default for ResponseFluent {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResponseFluent {
     pub fn new() -> Self {
         Self { data: Arc::new(RwLock::new(ResponseData::default())) }
@@ -112,18 +118,16 @@ impl ResponseVerifier {
 
         // status
         let real_status = self.response.status();
-        if let Some(exp) = expected.status {
-            if exp != real_status {
+        if let Some(exp) = expected.status
+            && exp != real_status {
                 errors.push(error("status", exp.to_string(), real_status.as_str()));
-            }
         }
 
         // body
         let real_body = crate::trust::data::utils::response_to_body(self.response).await;
-        if let Some(exp) = &expected.body {
-            if !real_body.contains(exp) {
+        if let Some(exp) = &expected.body
+            && !real_body.contains(exp) {
                 errors.push(error("body", exp.clone(), &real_body));
-            }
         }
 
         for exp in &expected.body_contains {

@@ -25,20 +25,16 @@ impl axum_login::AuthnBackend for Backend {
         debug!("Authenticating user {:?}", username);
         let user_r = self.get_user(&username).await;
         match user_r {
-            Ok(user_o) => {
-                match user_o {
-                    Some(user) => {
-                        if bcrypt::verify(password, &user.password_hash).unwrap_or(false) {
-                            /*
-                             * user was authenticated
-                             */
-                            return Ok(Some(user));
-                        }
-                        Ok(None)
-                    }
-                    None => Ok(None),
+            Ok(Some(user)) => {
+                if bcrypt::verify(password, &user.password_hash).unwrap_or(false) {
+                    /*
+                     * user was authenticated
+                     */
+                    return Ok(Some(user));
                 }
+                Ok(None)
             }
+            Ok(None) => Ok(None),
             _ => Ok(None),
         }
     }

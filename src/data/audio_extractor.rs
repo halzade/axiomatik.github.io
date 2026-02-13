@@ -21,14 +21,14 @@ pub async fn extract_audio_data(
     let file_name = field.file_name().ok_or(AudioNameError)?.to_string();
     let ext = file_name
         .split('.')
-        .last()
+        .next_back()
         .ok_or(AudioExtensionError)?
         .to_lowercase();
     // data
     let bytes = field
         .bytes()
         .await
-        .map_err(|e| AudioExtractionFailed(e))?
+        .map_err(AudioExtractionFailed)?
         .to_vec();
     Ok((bytes, ext))
 }

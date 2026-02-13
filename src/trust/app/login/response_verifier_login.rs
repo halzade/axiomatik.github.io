@@ -71,18 +71,16 @@ impl LoginResponseVerifier {
 
         // status
         let real_status = self.response.status();
-        if let Some(exp) = self.expected.status {
-            if exp != real_status {
+        if let Some(exp) = self.expected.status
+            && exp != real_status {
                 errors.push(error("status", exp.to_string(), real_status.as_str()));
-            }
         }
 
         // body
         let real_body = crate::trust::data::utils::response_to_body(self.response).await;
-        if let Some(exp) = &self.expected.body {
-            if !real_body.contains(exp) {
+        if let Some(exp) = &self.expected.body
+            && !real_body.contains(exp) {
                 errors.push(error("body", exp.clone(), &real_body));
-            }
         }
 
         if !errors.is_empty() {

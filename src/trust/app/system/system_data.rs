@@ -15,6 +15,12 @@ pub struct SystemFluent {
     data: Arc<RwLock<SystemData>>,
 }
 
+impl Default for SystemFluent {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SystemFluent {
     pub fn new() -> Self {
         Self {

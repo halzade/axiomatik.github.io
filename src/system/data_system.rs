@@ -25,7 +25,7 @@ pub fn new() -> DataSystem {
         date: RwLock::new("".into()),
         name_day: RwLock::new("".into()),
         weather: RwLock::new("".into()),
-        date_last_update: RwLock::new(now.clone()),
+        date_last_update: RwLock::new(now),
         weather_last_update: RwLock::new(now),
     }
 }
@@ -44,11 +44,11 @@ impl DataSystem {
     }
 
     pub fn date_last_update(&self) -> DateTime<Utc> {
-        self.date_last_update.read().clone()
+        *self.date_last_update.read()
     }
 
     pub fn weather_last_update(&self) -> DateTime<Utc> {
-        self.weather_last_update.read().clone()
+        *self.weather_last_update.read()
     }
 
     pub fn update_date(&self) {

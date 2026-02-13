@@ -81,7 +81,7 @@ impl AccountController {
                 Request::builder()
                     .method("GET")
                     .uri("/account")
-                    .header(header::COOKIE, &auth_cookie.to_string())
+                    .header(header::COOKIE, auth_cookie.to_string())
                     .body(Body::empty())?,
             )
             .await;

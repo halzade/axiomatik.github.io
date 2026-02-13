@@ -22,7 +22,6 @@ use tokio::net::TcpListener;
 use tokio::signal;
 use tracing::info;
 
-// TODO remove all these
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error("configuration error")]

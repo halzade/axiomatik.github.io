@@ -27,8 +27,6 @@ pub enum SurrealError {
     RecordNotFound(String, String),
 }
 
-// TODO need to sign into the database
-
 #[derive(Debug)]
 pub struct DatabaseSurreal {
     /*
@@ -44,7 +42,7 @@ pub struct DatabaseSurreal {
 
 impl DatabaseSurreal {
     async fn new(path: &str) -> surrealdb::Result<Self> {
-        // infer db engine
+        // embedded db, no login
         let surreal = surrealdb::engine::any::connect(path).await?;
         surreal.use_ns("axiomatik").use_db("axiomatik").await?;
 

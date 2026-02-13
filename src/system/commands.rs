@@ -16,7 +16,7 @@ pub enum CommandError {
     DatabaseError(#[from] SurrealUserError),
 }
 
-pub async fn create_user(args: &Vec<String>, state: &TheState) {
+pub async fn create_user(args: &[String], state: &TheState) {
     if args.len() != 4 {
         info!("Usage: cargo run -- create-user <username> <password>");
         std::process::exit(1);
@@ -37,7 +37,7 @@ pub async fn create_user(args: &Vec<String>, state: &TheState) {
     }
 }
 
-pub async fn delete_user(args: &Vec<String>, state: &TheState) -> Result<(), CommandError> {
+pub async fn delete_user(args: &[String], state: &TheState) -> Result<(), CommandError> {
     if args.len() != 3 {
         info!("Usage: cargo run -- delete-user <username>");
         std::process::exit(1);

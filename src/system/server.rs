@@ -115,10 +115,10 @@ impl Server {
     }
 
     pub fn status_app(&self) -> ApplicationStatus {
-        self.status_app.read().clone()
+        *self.status_app.read()
     }
     pub fn status_web(&self) -> ApplicationStatus {
-        self.status_web.read().clone()
+        *self.status_web.read()
     }
 
     pub fn status_start(&self) -> Result<(), ServerError> {

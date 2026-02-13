@@ -20,6 +20,9 @@ pub enum ChangePasswordError {
     #[error("password validation failed")]
     PasswordValidation,
 
+    #[error("render error: {0}")]
+    Render(#[from] askama::Error),
+
     #[error("user not found")]
     UserNotFound,
 
@@ -45,19 +48,18 @@ pub struct ChangePasswordTemplate {
     pub username: String,
 }
 
-pub async fn show_change_password(auth_session: AuthSession) -> Response {
+pub async fn show_change_password(auth_session: AuthSession) -> Result<Response, ChangePasswordError> {
     if let Some(user) = auth_session.user {
-        Html(
+        Ok(Html(
             ChangePasswordTemplate {
                 error: false,
                 username: user.username.clone(),
             }
-            .render()
-            .unwrap(),
+            .render()?,
         )
-        .into_response()
+        .into_response())
     } else {
-        Redirect::to("/login").into_response()
+        Ok(Redirect::to("/login").into_response())
     }
 }
 

@@ -159,8 +159,6 @@ mod tests {
         assert_eq!(fetched_user.username, "tester");
         assert_eq!(fetched_user.author_name, "Test Author");
 
-        // TODO update_user_password
-
         // update
         db.update_user_author_name("tester", "New Author Name").await?;
 

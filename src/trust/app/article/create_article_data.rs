@@ -29,6 +29,12 @@ pub struct ArticleFluent {
     pub(crate) data: Arc<RwLock<ArticleData>>,
 }
 
+impl Default for ArticleData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ArticleData {
     pub fn new() -> Self {
         Self {
@@ -49,6 +55,12 @@ impl ArticleData {
             video_ext: None,
             related_articles: Vec::new(),
         }
+    }
+}
+
+impl Default for ArticleFluent {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -31,6 +31,9 @@ pub enum ArticleCreateError {
 
     #[error("Unknown field {0}")]
     UnknownField(String),
+
+    #[error("user required")]
+    UserRequired,
 }
 
 /**
@@ -74,7 +77,7 @@ pub async fn article_data(
     auth_session: crate::system::router_app::AuthSession,
     mut multipart: Multipart,
 ) -> Result<ArticleUpload, ArticleCreateError> {
-    let user = auth_session.user.unwrap().username.clone();
+    let user = auth_session.user.ok_or(ArticleCreateError::UserRequired)?.username.clone();
     // required
     let mut author = String::new();
     let mut title = String::new();
@@ -100,7 +103,7 @@ pub async fn article_data(
 
     while let Ok(Some(field)) = multipart.next_field().await {
         let field_name = field.name().unwrap_or("<unnamed>");
-        let content_type = field.content_type().map(|ct| ct.as_ref()).unwrap_or("unknown");
+        let content_type = field.content_type().map(|ct| ct).unwrap_or("unknown");
 
         debug!("Processing: {}, type: {:?}", field_name, content_type);
 

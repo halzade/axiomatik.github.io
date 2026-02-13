@@ -17,6 +17,12 @@ pub struct AccountUpdateAuthorFluent {
     pub(crate) data: Arc<RwLock<AccountUpdateAuthorData>>,
 }
 
+impl Default for AccountUpdateAuthorFluent {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AccountUpdateAuthorFluent {
     pub fn new() -> Self {
         Self { data: Arc::new(RwLock::new(AccountUpdateAuthorData::new())) }

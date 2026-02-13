@@ -4,7 +4,7 @@ use std::string::ToString;
 use tracing::error;
 use crate::data::time::to_prague_time;
 
-const LEEP_YEAR_NAME_DAY: &'static str = "Cleverest Punk";
+const LEEP_YEAR_NAME_DAY: &str = "Cleverest Punk";
 
 pub fn formatted_today_name_day(utc: DateTime<Utc>) -> String {
     let name = today_name_day(utc);

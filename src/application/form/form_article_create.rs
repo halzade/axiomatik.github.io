@@ -34,6 +34,9 @@ pub enum FormArticleCreateError {
 
     #[error("surreal user error")]
     FormArticleSurrealUserError(#[from] SurrealUserError),
+
+    #[error("render error")]
+    FormArticleRenderError(#[from] askama::Error),
 }
 
 #[derive(Template)]
@@ -57,8 +60,7 @@ pub async fn show_article_create_form(
                         FormTemplate {
                             author_name: user.author_name,
                         }
-                        .render()
-                        .unwrap(),
+                        .render()?,
                     )
                     .into_response());
                 }

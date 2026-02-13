@@ -18,6 +18,9 @@ pub enum AccountError {
     #[error("user not found")]
     AccountUserNotFound,
 
+    #[error("render error")]
+    AccountRender(#[from] askama::Error),
+
     #[error("surreal account error")]
     AccountSurreal(#[from] SurrealArticleError),
 }
@@ -65,8 +68,7 @@ pub async fn show_account(
                     author_name: user.author_name,
                     articles: account_articles,
                 }
-                .render()
-                .unwrap(),
+                .render()?,
             )
             .into_response())
         }
@@ -90,12 +92,9 @@ pub async fn handle_update_author_name(
             }
 
             debug!("validation ok");
-            match state.dbu.update_user_author_name(&user.username, &payload.author_name).await {
-                _ => {
-                    debug!("always redirect to account");
-                    Redirect::to("/account").into_response()
-                }
-            }
+            let _ = state.dbu.update_user_author_name(&user.username, &payload.author_name).await;
+            debug!("always redirect to account");
+            Redirect::to("/account").into_response()
         }
         None => {
             debug!("failed");

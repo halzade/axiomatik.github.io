@@ -17,7 +17,7 @@ pub fn process_valid_audio(audio_data: &[u8], file_name: &str) -> Result<(), Aud
 }
 
 fn save_audio_file(audio_data: &[u8], file_name: &str) -> Result<(), AudioProcessorError> {
-    fs::write(format!("web/u/{}", file_name), audio_data).map_err(|e| AudioIo(e))
+    fs::write(format!("web/u/{}", file_name), audio_data).map_err(AudioIo)
 }
 
 #[cfg(test)]

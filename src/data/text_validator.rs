@@ -8,7 +8,7 @@ use TextValidationError::{
 
 lazy_static! {
     pub static ref AUTHOR_NAME_REGEX: Regex =
-        Regex::new(r"^[\p{L}\p{N}]+(?: [\p{L}\p{N}]+)*$").unwrap();
+        Regex::new(r"^[\p{L}\p{N}]+(?: [\p{L}\p{N}]+)*$").expect("AUTHOR_NAME_REGEX error");
 }
 
 #[derive(Debug, Error)]
@@ -40,14 +40,14 @@ pub fn validate_required_string(input: &str) -> Result<(), TextValidationError> 
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
-            if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
+            if !((32..=126).contains(&val) || c == '\n' || c == '\r' || c == '\t') {
                 return Err(InvalidCharacter);
             }
         }
         // Non-ASCII (UTF-8) is allowed
     }
 
-    if validate_required(&input) {
+    if validate_required(input) {
         // validated
         return Ok(());
     }
@@ -63,14 +63,14 @@ pub fn validate_required_text(input: &str) -> Result<(), TextValidationError> {
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
-            if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
+            if !((32..=126).contains(&val) || c == '\n' || c == '\r' || c == '\t') {
                 return Err(InvalidCharacter);
             }
         }
         // Non-ASCII (UTF-8) is allowed
     }
 
-    if validate_required(&input) {
+    if validate_required(input) {
         // validated
         return Ok(());
     }
@@ -86,7 +86,7 @@ pub fn validate_optional_string(input: &str) -> Result<(), TextValidationError> 
         if c.is_ascii() {
             let val = c as u32;
             // Allow printable ASCII (32-126) and common whitespace (\n, \r, \t)
-            if !(val >= 32 && val <= 126 || c == '\n' || c == '\r' || c == '\t') {
+            if !((32..=126).contains(&val) || c == '\n' || c == '\r' || c == '\t') {
                 return Err(InvalidCharacter);
             }
         }
@@ -118,10 +118,8 @@ pub fn validate_input_simple(input: &str) -> Result<(), TextValidationError> {
         return Err(InvalidLength);
     }
     for c in input.chars() {
-        if !c.is_ascii_alphanumeric() {
-            if c != '_' {
-                return Err(SimpleInputIncorrectCharacter(c));
-            }
+        if !c.is_ascii_alphanumeric() && c != '_' {
+            return Err(SimpleInputIncorrectCharacter(c));
         }
     }
     Ok(())

@@ -30,11 +30,11 @@ pub fn process_images(
     save_image(&img_820, name_820.as_str())?;
 
     // Save 50x50
-    resized_and_save_image(&img, 50, 50, file_base, "image_50", &ext)?;
+    resized_and_save_image(&img, 50, 50, file_base, "image_50", ext)?;
     // Save 288x211
-    resized_and_save_image(&img, 288, 211, file_base, "image_288", &ext)?;
+    resized_and_save_image(&img, 288, 211, file_base, "image_288", ext)?;
     // Save 440x300
-    resized_and_save_image(&img, 440, 300, file_base, "image_440", &ext)?;
+    resized_and_save_image(&img, 440, 300, file_base, "image_440", ext)?;
 
     Ok(())
 }

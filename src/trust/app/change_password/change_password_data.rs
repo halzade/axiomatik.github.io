@@ -17,6 +17,12 @@ pub struct ChangePasswordFluent {
     pub(crate) data: Arc<RwLock<ChangePasswordData>>,
 }
 
+impl Default for ChangePasswordFluent {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ChangePasswordFluent {
     pub fn new() -> Self {
         Self {

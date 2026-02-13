@@ -36,8 +36,11 @@ pub struct LoginTemplate {
     pub error: bool,
 }
 
-pub async fn show_login() -> impl IntoResponse {
-    Html(LoginTemplate { error: false }.render().unwrap())
+pub async fn show_login() -> Response {
+    match (LoginTemplate { error: false }.render()) {
+        Ok(html) => Html(html).into_response(),
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
 }
 
 pub async fn handle_login(
@@ -56,7 +59,7 @@ pub async fn handle_login(
 
     match auth_session.authenticate(credentials).await {
         Ok(Some(user)) => {
-            if let Err(_) = auth_session.login(&user).await {
+            if auth_session.login(&user).await.is_err() {
                 return StatusCode::INTERNAL_SERVER_ERROR.into_response();
             }
 
@@ -72,7 +75,10 @@ pub async fn handle_login(
         }
         Ok(None) => {
             warn!(username = %payload.username, "Failed login attempt: Invalid credentials");
-            Html(LoginTemplate { error: true }.render().unwrap()).into_response()
+            match (LoginTemplate { error: true }.render()) {
+                Ok(html) => Html(html).into_response(),
+                Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            }
         }
         Err(_) => {
             error!(username = %payload.username, "Authentication error");

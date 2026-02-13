@@ -50,6 +50,6 @@ impl LoginController {
 
         debug!("login done");
 
-        Ok(LoginResponseVerifier::from_r(login_response_r)?)
+        LoginResponseVerifier::from_r(login_response_r)
     }
 }

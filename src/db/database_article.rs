@@ -185,15 +185,9 @@ impl DatabaseArticle {
         let second_m: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
         let third_m: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
 
-        let tad2_r = TopArticleData::try_from(second_m);
-        let tad3_r = TopArticleData::try_from(third_m);
-        match tad2_r {
-            Ok(tad2) => match tad3_r {
-                Ok(tad3) => Ok((main, tad2, tad3)),
-                Err(e) => match e {},
-            },
-            Err(e) => match e {},
-        }
+        let tad2 = TopArticleData::from(second_m);
+        let tad3 = TopArticleData::from(third_m);
+        Ok((main, tad2, tad3))
     }
 
     /**

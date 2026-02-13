@@ -23,14 +23,14 @@ pub async fn extract_image_data(
     let file_name = field.file_name().ok_or(ImageNameError)?.to_string();
     let ext = file_name
         .split('.')
-        .last()
+        .next_back()
         .ok_or(ImageExtensionError)?
         .to_lowercase();
     // data
     let bytes = field
         .bytes()
         .await
-        .map_err(|e| ImageExtractionFailed(e))?
+        .map_err(ImageExtractionFailed)?
         .to_vec();
     Ok((bytes, ext))
 }

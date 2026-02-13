@@ -65,7 +65,10 @@ pub async fn handle_search(
                 articles,
             };
 
-            Html(template.render().unwrap()).into_response()
+            match template.render() {
+                Ok(html) => Html(html).into_response(),
+                Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            }
         }
         Err(_) => {
             error!("error while searching articles");
@@ -78,7 +81,10 @@ pub async fn handle_search(
                 articles: Vec::new(),
             };
 
-            Html(template.render().unwrap()).into_response()
+            match template.render() {
+                Ok(html) => Html(html).into_response(),
+                Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            }
         }
     }
 }
