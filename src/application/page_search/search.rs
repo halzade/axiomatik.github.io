@@ -19,7 +19,7 @@ pub struct SearchPayload {
 }
 
 #[derive(Template)]
-#[template(path = "application/search/search_template.html")]
+#[template(path = "application/page_search/search_template.html")]
 pub struct SearchTemplate {
     pub title: String,
     pub date: String,
@@ -36,10 +36,7 @@ pub async fn handle_search(
 
     // Validate and sanitize the search query
     if query.chars().count() < 3 || query.chars().count() > 100 {
-        return (
-            StatusCode::BAD_REQUEST,
-            "Search query must be between 3 and 100 characters",
-        )
+        return (StatusCode::BAD_REQUEST, "Search query must be between 3 and 100 characters")
             .into_response();
     }
 

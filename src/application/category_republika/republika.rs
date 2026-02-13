@@ -28,7 +28,7 @@ pub enum RepublikaError {
 }
 
 #[derive(Template)]
-#[template(path = "application/republika/republika_template.html")]
+#[template(path = "application/category_republika/republika_template.html")]
 pub struct RepublikaTemplate<'a> {
     pub date: String,
     pub weather: String,

@@ -1,6 +1,6 @@
-use crate::application::article::article::ArticleError::RenderArticleError;
-use crate::application::form::form_article_data_parser;
-use crate::application::form::form_article_data_parser::ArticleCreateError;
+use crate::application::form_create_article::create_article_parser;
+use crate::application::form_create_article::create_article_parser::ArticleCreateError;
+use crate::application::page_article::article::ArticleError::RenderArticleError;
 use crate::data::audio_processor::AudioProcessorError;
 use crate::data::image_processor::ImageProcessorError;
 use crate::data::video_processor::VideoProcessorError;
@@ -60,7 +60,7 @@ pub enum ArticleError {
 }
 
 #[derive(Template)]
-#[template(path = "application/article/article_template.html")]
+#[template(path = "application/page_article/article_template.html")]
 pub struct ArticleTemplate {
     pub date: String,
     pub weather: String,
@@ -93,7 +93,7 @@ pub async fn create_article(
     /*
      * Read request data
      */
-    let article_data = form_article_data_parser::article_data(auth_session, multipart).await?;
+    let article_data = create_article_parser::article_data(auth_session, multipart).await?;
     let article_file_name = format!("{}.html", article_data.base_file_name.clone());
 
     /*

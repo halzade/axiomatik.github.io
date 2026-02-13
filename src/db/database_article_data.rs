@@ -1,4 +1,3 @@
-use crate::application::form::form_article_data_parser::ArticleUpload;
 use crate::data::library;
 use crate::data::library::safe_article_file_name;
 use crate::data::text_processor::{process_short_text, process_text};
@@ -7,6 +6,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use surrealdb::types::{SurrealValue, Uuid};
+use crate::application::form_create_article::create_article_parser::ArticleUpload;
 /*
  * Main Articles on index.html
  */

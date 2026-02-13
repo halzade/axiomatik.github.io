@@ -1,20 +1,19 @@
-use crate::application::account::form_account;
-use crate::application::account::form_account::AccountError;
-use crate::application::article::article;
-use crate::application::article::article::ArticleError;
-use crate::application::change_password::form_change_password;
-use crate::application::change_password::form_change_password::ChangePasswordError;
-use crate::application::finance::finance::FinanceError;
-use crate::application::form::form_article_create;
-use crate::application::form::form_article_create::FormArticleCreateError;
-use crate::application::form::form_article_data_parser::ArticleCreateError;
-use crate::application::index::index::IndexError;
-use crate::application::login::form_login;
-use crate::application::news::news::NewsError;
-use crate::application::republika::republika::RepublikaError;
-use crate::application::technologie::technologie::TechnologieError;
-use crate::application::veda::veda::VedaError;
-use crate::application::zahranici::zahranici::ZahraniciError;
+use crate::application::category_finance::finance::FinanceError;
+use crate::application::category_republika::republika::RepublikaError;
+use crate::application::category_technologie::technologie::TechnologieError;
+use crate::application::category_veda::veda::VedaError;
+use crate::application::category_zahranici::zahranici::ZahraniciError;
+use crate::application::form_account::account;
+use crate::application::form_account::account::AccountError;
+use crate::application::form_change_password::change_password::ChangePasswordError;
+use crate::application::form_create_article::create_article;
+use crate::application::form_create_article::create_article::FormArticleCreateError;
+use crate::application::form_create_article::create_article_parser::ArticleCreateError;
+use crate::application::form_login::login;
+use crate::application::page_all_news::all_news::NewsError;
+use crate::application::page_article::article::ArticleError;
+use crate::application::page_index::index::IndexError;
+use crate::application::{form_change_password, page_article};
 use crate::db::database::SurrealError;
 use crate::db::database_user;
 use crate::system::authentication::Backend;
@@ -164,14 +163,14 @@ impl ApplicationRouter {
          * protected routes
          */
         let protected_routes = Router::new()
-            .route("/form", get(form_article_create::show_article_create_form))
-            .route("/create", post(article::create_article))
+            .route("/form", get(create_article::show_article_create_form))
+            .route("/create", post(page_article::article::create_article))
             .route("/change-password",
-                get(form_change_password::show_change_password)
-               .post(form_change_password::handle_change_password),
+                get(form_change_password::change_password::show_change_password)
+               .post(form_change_password::change_password::handle_change_password),
             )
-            .route("/account", get(form_account::show_account))
-            .route("/account/update-author", post(form_account::handle_update_author_name))
+            .route("/account", get(account::show_account))
+            .route("/account/update-author", post(account::handle_update_author_name))
             .route("/health", get(health::handle_health))
             .layer(middleware::from_fn(auth_middleware));
 
@@ -180,8 +179,8 @@ impl ApplicationRouter {
          */
         let ret = Router::new()
             .route("/login",
-                get(form_login::show_login)
-               .post(form_login::handle_login),
+                get(login::show_login)
+               .post(login::handle_login),
             )
             .route("/ping", get("{\"message\": \"app ping\"}"))
             // protected routes

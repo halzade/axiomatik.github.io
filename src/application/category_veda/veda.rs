@@ -1,16 +1,16 @@
 use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
-use crate::db::database_article::SurrealArticleError;
-use crate::db::database_system::SurrealSystemError;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
+use crate::db::database_system::SurrealSystemError;
 use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
-use ZahraniciError::CreateCategoryError;
+use VedaError::CreateCategoryError;
+use crate::db::database_article::SurrealArticleError;
 
 #[derive(Debug, Error)]
-pub enum ZahraniciError {
+pub enum VedaError {
     #[error("create category error")]
     CreateCategoryError,
 
@@ -28,8 +28,8 @@ pub enum ZahraniciError {
 }
 
 #[derive(Template)]
-#[template(path = "application/zahranici/zahranici_template.html")]
-pub struct ZahraniciTemplate<'a> {
+#[template(path = "application/category_veda/veda_template.html")]
+pub struct VedaTemplate<'a> {
     pub date: String,
     pub weather: String,
     pub name_day: String,
@@ -38,13 +38,13 @@ pub struct ZahraniciTemplate<'a> {
     pub articles_right: &'a [ShortArticleData],
 }
 
-pub async fn render_zahranici(state: &TheState) -> Result<(), ZahraniciError> {
-    let articles = state.dba.articles_by_category("zahranici", 100).await?;
+pub async fn render_veda(state: &TheState) -> Result<(), VedaError> {
+    let articles = state.dba.articles_by_category("veda", 100).await?;
     let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
 
     let split = articles.len() / 3;
     let (articles_left, articles_right) = articles.split_at(split);
-    let zahranici = ZahraniciTemplate {
+    let veda = VedaTemplate {
         date: state.ds.date(),
         weather: state.ds.weather(),
         name_day: state.ds.name_day(),
@@ -52,9 +52,9 @@ pub async fn render_zahranici(state: &TheState) -> Result<(), ZahraniciError> {
         articles_left,
         articles_right,
     };
-    match zahranici.render() {
+    match veda.render() {
         Ok(rendered_html) => {
-            processor::save_web_file(rendered_html, "zahranici.html")?;
+            processor::save_web_file(rendered_html, "veda.html")?;
             Ok(())
         }
         Err(_) => Err(CreateCategoryError),

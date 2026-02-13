@@ -1,4 +1,4 @@
-use crate::application::change_password::form_change_password::ChangePasswordError::UserNotFound;
+use crate::application::form_change_password::change_password::ChangePasswordError::UserNotFound;
 use crate::data::text_validator::validate_input_simple;
 use crate::db::database::SurrealError;
 use crate::db::database_user::SurrealUserError;
@@ -42,22 +42,18 @@ pub struct ChangePasswordPayload {
 }
 
 #[derive(Template)]
-#[template(path = "application/change_password/form_change_password_template.html")]
+#[template(path = "application/form_change_password/change_password_template.html")]
 pub struct ChangePasswordTemplate {
     pub error: bool,
     pub username: String,
 }
 
-pub async fn show_change_password(auth_session: AuthSession) -> Result<Response, ChangePasswordError> {
+pub async fn show_change_password(
+    auth_session: AuthSession,
+) -> Result<Response, ChangePasswordError> {
     if let Some(user) = auth_session.user {
-        Ok(Html(
-            ChangePasswordTemplate {
-                error: false,
-                username: user.username.clone(),
-            }
-            .render()?,
-        )
-        .into_response())
+        Ok(Html(ChangePasswordTemplate { error: false, username: user.username.clone() }.render()?)
+            .into_response())
     } else {
         Ok(Redirect::to("/login").into_response())
     }
@@ -73,11 +69,14 @@ pub async fn handle_change_password(
         if validate_input_simple(&payload.new_password).is_err() {
             return Err(ChangePasswordError::PasswordTooShort);
         }
-        
+
         if payload.new_password.len() < 3 {
             return Err(ChangePasswordError::PasswordTooShort);
         }
-        state.dbu.update_user_password(username.clone(), hash(&payload.new_password, DEFAULT_COST)?).await?;
+        state
+            .dbu
+            .update_user_password(username.clone(), hash(&payload.new_password, DEFAULT_COST)?)
+            .await?;
 
         /*
          * successfully changed the password

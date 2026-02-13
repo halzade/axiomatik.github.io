@@ -1,4 +1,5 @@
 use crate::data::text_validator;
+use crate::db::database_article::SurrealArticleError;
 use crate::db::database_article_data::AccountArticleData;
 use crate::system::router_app::AuthSession;
 use crate::system::server::TheState;
@@ -11,7 +12,6 @@ use serde::Deserialize;
 use thiserror::Error;
 use tracing::debug;
 use validator::Validate;
-use crate::db::database_article::SurrealArticleError;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -38,7 +38,7 @@ pub struct UpdateAuthorNamePayload {
 }
 
 #[derive(Template)]
-#[template(path = "application/account/form_account_template.html")]
+#[template(path = "application/form_account/account_template.html")]
 pub struct AccountTemplate {
     pub username: String,
     pub author_name: String,
@@ -57,10 +57,11 @@ pub async fn show_account(
         }
         Some(user) => {
             debug!("show_account: user={}", user.username);
-            let account_articles = state.dba.articles_by_username(&user.username, 100).await.map_err(|e| {
-                debug!("show_account: articles_by_username error: {:?}", e);
-                AccountError::AccountSurreal(e)
-            })?;
+            let account_articles =
+                state.dba.articles_by_username(&user.username, 100).await.map_err(|e| {
+                    debug!("show_account: articles_by_username error: {:?}", e);
+                    AccountError::AccountSurreal(e)
+                })?;
             debug!("show_account: found {} articles", account_articles.len());
             Ok(Html(
                 AccountTemplate {

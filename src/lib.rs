@@ -12,44 +12,44 @@
  * Implementation
  */
 pub mod application {
-    pub mod account {
-        pub mod form_account;
+    pub mod form_account {
+        pub mod account;
     }
-    pub mod article {
+    pub mod page_article {
         pub mod article;
     }
-    pub mod change_password {
-        pub mod form_change_password;
+    pub mod form_change_password {
+        pub mod change_password;
     }
-    pub mod finance {
+    pub mod category_finance {
         pub mod finance;
     }
-    pub mod form {
-        pub mod form_article_create;
-        pub mod form_article_data_parser;
+    pub mod form_create_article {
+        pub mod create_article;
+        pub mod create_article_parser;
     }
-    pub mod index {
+    pub mod page_index {
         pub mod index;
     }
-    pub mod login {
-        pub mod form_login;
+    pub mod form_login {
+        pub mod login;
     }
-    pub mod news {
-        pub mod news;
+    pub mod page_all_news {
+        pub mod all_news;
     }
-    pub mod republika {
+    pub mod category_republika {
         pub mod republika;
     }
-    pub mod search {
+    pub mod page_search {
         pub mod search;
     }
-    pub mod technologie {
+    pub mod category_technologie {
         pub mod technologie;
     }
-    pub mod veda {
+    pub mod category_veda {
         pub mod veda;
     }
-    pub mod zahranici {
+    pub mod category_zahranici {
         pub mod zahranici;
     }
 }

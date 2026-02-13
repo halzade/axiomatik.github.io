@@ -26,7 +26,7 @@ pub enum IndexError {
  * Index
  */
 #[derive(Template)]
-#[template(path = "application/index/index_template.html")]
+#[template(path = "application/page_index/index_template.html")]
 pub struct IndexTemplate {
     pub date: String,
     pub weather: String,

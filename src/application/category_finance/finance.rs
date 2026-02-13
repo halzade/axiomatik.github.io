@@ -1,16 +1,16 @@
 use crate::data::processor;
 use crate::data::processor::ProcessorError;
 use crate::db::database::SurrealError;
+use crate::db::database_article::SurrealArticleError;
 use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 use crate::db::database_system::SurrealSystemError;
 use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
-use VedaError::CreateCategoryError;
-use crate::db::database_article::SurrealArticleError;
+use FinanceError::CreateCategoryError;
 
 #[derive(Debug, Error)]
-pub enum VedaError {
+pub enum FinanceError {
     #[error("create category error")]
     CreateCategoryError,
 
@@ -22,14 +22,14 @@ pub enum VedaError {
 
     #[error("create category database error {0}")]
     SurrealArticle(#[from] SurrealArticleError),
-    
+
     #[error("create category database system error {0}")]
     SurrealSystem(#[from] SurrealSystemError),
 }
 
 #[derive(Template)]
-#[template(path = "application/veda/veda_template.html")]
-pub struct VedaTemplate<'a> {
+#[template(path = "application/category_finance/finance_template.html")]
+pub struct FinanceTemplate<'a> {
     pub date: String,
     pub weather: String,
     pub name_day: String,
@@ -38,13 +38,13 @@ pub struct VedaTemplate<'a> {
     pub articles_right: &'a [ShortArticleData],
 }
 
-pub async fn render_veda(state: &TheState) -> Result<(), VedaError> {
-    let articles = state.dba.articles_by_category("veda", 100).await?;
+pub async fn render_finance(state: &TheState) -> Result<(), FinanceError> {
+    let articles = state.dba.articles_by_category("finance", 100).await?;
     let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
 
     let split = articles.len() / 3;
     let (articles_left, articles_right) = articles.split_at(split);
-    let veda = VedaTemplate {
+    let finance = FinanceTemplate {
         date: state.ds.date(),
         weather: state.ds.weather(),
         name_day: state.ds.name_day(),
@@ -52,9 +52,9 @@ pub async fn render_veda(state: &TheState) -> Result<(), VedaError> {
         articles_left,
         articles_right,
     };
-    match veda.render() {
+    match finance.render() {
         Ok(rendered_html) => {
-            processor::save_web_file(rendered_html, "veda.html")?;
+            processor::save_web_file(rendered_html, "finance.html")?;
             Ok(())
         }
         Err(_) => Err(CreateCategoryError),

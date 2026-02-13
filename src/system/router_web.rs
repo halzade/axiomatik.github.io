@@ -1,20 +1,20 @@
-use crate::application::article::article;
-use crate::application::article::article::ArticleError;
-use crate::application::finance::finance;
-use crate::application::finance::finance::FinanceError;
-use crate::application::index::index;
-use crate::application::index::index::IndexError;
-use crate::application::news::news;
-use crate::application::news::news::NewsError;
-use crate::application::republika::republika;
-use crate::application::republika::republika::RepublikaError;
-use crate::application::search::search;
-use crate::application::technologie::technologie;
-use crate::application::technologie::technologie::TechnologieError;
-use crate::application::veda::veda;
-use crate::application::veda::veda::VedaError;
-use crate::application::zahranici::zahranici;
-use crate::application::zahranici::zahranici::ZahraniciError;
+use crate::application::category_finance::finance;
+use crate::application::category_finance::finance::FinanceError;
+use crate::application::category_republika::republika;
+use crate::application::category_republika::republika::RepublikaError;
+use crate::application::category_technologie::technologie;
+use crate::application::category_technologie::technologie::TechnologieError;
+use crate::application::category_veda::veda;
+use crate::application::category_veda::veda::VedaError;
+use crate::application::category_zahranici::zahranici;
+use crate::application::category_zahranici::zahranici::ZahraniciError;
+use crate::application::page_all_news::all_news;
+use crate::application::page_all_news::all_news::NewsError;
+use crate::application::page_article::article;
+use crate::application::page_article::article::ArticleError;
+use crate::application::page_index::index;
+use crate::application::page_index::index::IndexError;
+use crate::application::page_search::search;
 use crate::db::database_system::{ArticleStatus, SurrealSystemError};
 use crate::system::data_system::DataSystemError;
 use crate::system::data_updates::DataUpdatesError;
@@ -158,7 +158,7 @@ impl WebRouter {
                 if !state.dv.news_valid() {
                     state.dv.news_validate();
 
-                    news::render_news(&state).await?;
+                    all_news::render_news(&state).await?;
                 }
                 serve_this(&url, request).await
             }

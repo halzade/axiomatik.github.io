@@ -1,5 +1,5 @@
-use crate::application::article::article::ArticleError;
-use crate::application::form::form_article_data_parser::ArticleCreateError;
+use crate::application::form_create_article::create_article_parser::ArticleCreateError;
+use crate::application::page_article::article::ArticleError;
 use crate::data::audio_processor::AudioProcessorError;
 use crate::data::image_processor::ImageProcessorError;
 use crate::data::video_processor::VideoProcessorError;
@@ -40,7 +40,7 @@ pub enum FormArticleCreateError {
 }
 
 #[derive(Template)]
-#[template(path = "application/form/form_template.html")]
+#[template(path = "application/form_create_article/create_article_template.html")]
 pub struct FormTemplate {
     pub author_name: String,
 }
@@ -56,13 +56,8 @@ pub async fn show_article_create_form(
             match user_o {
                 None => {}
                 Some(user) => {
-                    return Ok(Html(
-                        FormTemplate {
-                            author_name: user.author_name,
-                        }
-                        .render()?,
-                    )
-                    .into_response());
+                    return Ok(Html(FormTemplate { author_name: user.author_name }.render()?)
+                        .into_response());
                 }
             }
         }
