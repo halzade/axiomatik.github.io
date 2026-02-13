@@ -22,7 +22,7 @@ pub enum SurrealSystemError {
     ViewsNotFound(String),
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, SurrealValue)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, SurrealValue)]
 #[serde(rename_all = "lowercase")]
 pub enum ArticleStatus {
     Valid,
@@ -46,13 +46,13 @@ pub struct DatabaseSystem {
 }
 
 impl DatabaseSystem {
-    pub fn new(db: Arc<DatabaseSurreal>) -> DatabaseSystem {
-        DatabaseSystem { surreal: db }
+    pub const fn new(db: Arc<DatabaseSurreal>) -> Self {
+        Self { surreal: db }
     }
 
-    pub async fn new_from_scratch() -> Result<DatabaseSystem, SurrealError> {
+    pub async fn new_from_scratch() -> Result<Self, SurrealError> {
         let surreal = Arc::new(database::init_in_memory_db_connection().await?);
-        Ok(DatabaseSystem { surreal })
+        Ok(Self { surreal })
     }
 
     pub async fn write_article_record(
@@ -109,13 +109,10 @@ impl DatabaseSystem {
         let response: Option<ArticleUpdateStatus> =
             self.surreal.db.select((ARTICLE_STATUS_TABLE, article_file_name)).await?;
 
-        match response {
-            Some(status) => Ok(status.article_status),
-            None => {
+        response.map_or_else(|| {
                 warn!("requested article not found in database: {}", article_file_name);
                 Ok(DoesNotExist)
-            }
-        }
+            }, |status| Ok(status.article_status))
     }
 
     pub async fn health(&self) -> Result<String, SurrealSystemError> {

@@ -61,7 +61,7 @@ pub async fn create_editor_user(
         hash(password, DEFAULT_COST).map_err(|e| CommandError::Bcrypt(e.to_string()))?;
     let user = User {
         username: username.to_string(),
-        author_name: username.to_string().clone(),
+        author_name: username.to_string(),
         password_hash,
         needs_password_change: true,
         role: Role::Editor,

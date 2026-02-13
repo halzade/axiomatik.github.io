@@ -41,7 +41,7 @@ pub enum SurrealUserError {
 /*
  * key is username
  */
-#[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, SurrealValue)]
 pub struct User {
     pub username: String,
     pub author_name: String,
@@ -62,7 +62,7 @@ impl AuthUser for User {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, SurrealValue)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, SurrealValue)]
 pub enum Role {
     Editor,
 }
@@ -77,13 +77,13 @@ pub struct DatabaseUser {
 }
 
 impl DatabaseUser {
-    pub fn new(db: Arc<DatabaseSurreal>) -> DatabaseUser {
-        DatabaseUser { surreal: db }
+    pub const fn new(db: Arc<DatabaseSurreal>) -> Self {
+        Self { surreal: db }
     }
 
-    pub async fn new_from_scratch() -> Result<DatabaseUser, SurrealError> {
+    pub async fn new_from_scratch() -> Result<Self, SurrealError> {
         let db = Arc::new(database::init_in_memory_db_connection().await?);
-        Ok(DatabaseUser { surreal: db })
+        Ok(Self { surreal: db })
     }
 
     pub async fn update_user_author_name(

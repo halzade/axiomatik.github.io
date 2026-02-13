@@ -97,12 +97,12 @@ impl ArticleBuilder {
         self
     }
 
-    pub fn main(mut self, value: bool) -> Self {
+    pub const fn main(mut self, value: bool) -> Self {
         self.is_main = value;
         self
     }
 
-    pub fn exclusive(mut self, value: bool) -> Self {
+    pub const fn exclusive(mut self, value: bool) -> Self {
         self.is_exclusive = value;
         self
     }

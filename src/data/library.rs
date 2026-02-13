@@ -37,18 +37,18 @@ pub const CZECH_MONTHS_GENITIVE: [&str; 12] = [
     "prosince",
 ];
 
-pub fn get_czech_month(month: u32) -> &'static str {
+pub const fn get_czech_month(month: u32) -> &'static str {
     let idx = (month - 1) as usize;
     CZECH_MONTHS[idx]
 }
 
 #[allow(unused)]
-fn get_czech_month_capital(month: u32) -> &'static str {
+const fn get_czech_month_capital(month: u32) -> &'static str {
     let idx = (month - 1) as usize;
     CZECH_MONTHS_CAPITAL[idx]
 }
 
-fn get_czech_month_genitive(month: u32) -> &'static str {
+const fn get_czech_month_genitive(month: u32) -> &'static str {
     CZECH_MONTHS_GENITIVE[(month - 1) as usize]
 }
 

@@ -10,7 +10,7 @@ pub struct DatabaseSystemController {
 }
 
 impl DatabaseSystemController {
-    pub fn new(dbs: Arc<DatabaseSystem>) -> Self {
+    pub const fn new(dbs: Arc<DatabaseSystem>) -> Self {
         Self { dbs }
     }
 

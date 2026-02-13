@@ -36,7 +36,7 @@ impl Default for ArticleData {
 }
 
 impl ArticleData {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             title: None,
             text: None,

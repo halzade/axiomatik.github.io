@@ -12,12 +12,7 @@ pub enum ExternalError {
 
 pub async fn fetch_weather() -> String {
     let weather_r = remote_get_weather().await;
-    match weather_r {
-        Ok(weather) => {
-            format!("{:.0}°C | Praha", weather)
-        }
-        Err(_) => "".to_string(),
-    }
+    weather_r.map_or_else(|_| "".to_string(), |weather| format!("{:.0}°C | Praha", weather))
 }
 
 async fn remote_get_weather() -> Result<f64, ExternalError> {

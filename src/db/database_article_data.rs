@@ -22,8 +22,8 @@ pub struct MainArticleData {
 
 impl MainArticleData {
     // used for index.html if there are no articles yet
-    pub fn empty() -> MainArticleData {
-        MainArticleData {
+    pub fn empty() -> Self {
+        Self {
             article_file_name: "".into(),
             title: "".into(),
             is_exclusive: false,
@@ -135,7 +135,7 @@ impl TryFrom<ArticleUpload> for Article {
 
     fn try_from(data: ArticleUpload) -> Result<Self, Self::Error> {
         let now = Utc::now();
-        Ok(Article {
+        Ok(Self {
             uuid: Uuid::new(), // TODO
             author: data.author,
             username: data.username,
@@ -190,7 +190,7 @@ pub fn easy_article(title: &str, author: &str, text: &str) -> Article {
         text: text.to_string(),
         short_text: "short text here".to_string(),
         mini_text: "mini text".to_string(),
-        article_file_name: format!("{}.html", base.clone()),
+        article_file_name: format!("{}.html", base),
         image_desc: "desc".to_string(),
         image_50_path: format!("{}_image_50.jpg", base),
         image_288_path: format!("{}_image_288.jpg", base),

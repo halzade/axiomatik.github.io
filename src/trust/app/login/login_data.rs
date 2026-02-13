@@ -9,8 +9,8 @@ pub struct LoginData {
 }
 
 impl LoginData {
-    pub(crate) fn new() -> LoginData {
-        LoginData { username: None, password: None, needs_password_change: false }
+    pub(crate) const fn new() -> Self {
+        Self { username: None, password: None, needs_password_change: false }
     }
 }
 

@@ -23,7 +23,7 @@ pub enum AppEnvironment {
 }
 
 impl AppEnvironment {
-    pub fn text(self) -> &'static str {
+    pub const fn text(self) -> &'static str {
         match self {
             Dev => "dev",
             Test => "staging",

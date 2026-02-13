@@ -7,8 +7,8 @@ pub struct ChangePasswordData {
 }
 
 impl ChangePasswordData {
-    pub(crate) fn new() -> ChangePasswordData {
-        ChangePasswordData::default()
+    pub(crate) fn new() -> Self {
+        Self::default()
     }
 }
 

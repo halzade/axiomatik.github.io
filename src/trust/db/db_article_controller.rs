@@ -11,7 +11,7 @@ pub struct DatabaseArticleController {
 }
 
 impl DatabaseArticleController {
-    pub fn new(dba: Arc<DatabaseArticle>) -> Self {
+    pub const fn new(dba: Arc<DatabaseArticle>) -> Self {
         Self { dba }
     }
 

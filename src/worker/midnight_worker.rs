@@ -23,14 +23,11 @@ fn calculate_next_midnight_delay() -> Duration {
         .and_then(|t| t.with_second(0))
         .and_then(|t| t.with_nanosecond(0));
 
-    if let Some(next_midnight) = next_midnight_prague {
+    next_midnight_prague.map_or_else(|| Duration::from_secs(60), |next_midnight| {
         let duration_to_midnight = next_midnight.signed_duration_since(now_prague);
         let wait_secs = duration_to_midnight.num_seconds() as u64;
         Duration::from_secs(wait_secs)
-    } else {
-        // This should not happen but return a safe default
-        Duration::from_secs(60)
-    }
+    })
 }
 
 pub fn start_midnight_worker(state: TheState) -> Result<(), MidnightWorkerError> {

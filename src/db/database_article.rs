@@ -34,16 +34,16 @@ pub struct DatabaseArticle {
 }
 
 impl DatabaseArticle {
-    pub fn new(db: Arc<DatabaseSurreal>) -> DatabaseArticle {
-        DatabaseArticle { surreal: db }
+    pub const fn new(db: Arc<DatabaseSurreal>) -> Self {
+        Self { surreal: db }
     }
 
     /*
      * use only for unit tests
      */
-    pub async fn new_from_scratch() -> Result<DatabaseArticle, SurrealError> {
+    pub async fn new_from_scratch() -> Result<Self, SurrealError> {
         let surreal = Arc::new(database::init_in_memory_db_connection().await?);
-        Ok(DatabaseArticle { surreal })
+        Ok(Self { surreal })
     }
 
     // TODO Id, file name won't work for requests, need uuid.
@@ -98,10 +98,7 @@ impl DatabaseArticle {
 
         let article_o: Option<Article> =
             self.surreal.db.select((ARTICLE, article_file_name.to_string())).await?;
-        match article_o {
-            None => Err(ArticleNotFound(article_file_name.into())),
-            Some(article) => Ok(article),
-        }
+        article_o.map_or_else(|| Err(ArticleNotFound(article_file_name.into())), Ok)
     }
 
     /**
@@ -181,9 +178,9 @@ impl DatabaseArticle {
             .query("SELECT * FROM article WHERE is_main = true ORDER BY date LIMIT 3")
             .await?;
         let mut top_articles: Vec<MainArticleData> = query_response_set.take(0)?;
-        let main: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
-        let second_m: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
-        let third_m: MainArticleData = top_articles.pop().unwrap_or(MainArticleData::empty());
+        let main: MainArticleData = top_articles.pop().unwrap_or_else(MainArticleData::empty);
+        let second_m: MainArticleData = top_articles.pop().unwrap_or_else(MainArticleData::empty);
+        let third_m: MainArticleData = top_articles.pop().unwrap_or_else(MainArticleData::empty);
 
         let tad2 = TopArticleData::from(second_m);
         let tad3 = TopArticleData::from(third_m);
@@ -222,13 +219,10 @@ impl DatabaseArticle {
             .await?;
 
         let views: Option<u64> = response.take("views")?;
-        match views {
-            Some(v) => Ok(v),
-            None => {
+        views.map_or_else(|| {
                 warn!("article not found in article_views: {}", article_file_name);
                 Ok(0)
-            }
-        }
+            }, Ok)
     }
 
     /*

@@ -33,7 +33,7 @@ pub enum ServerError {
     WebRouter(#[from] WebRouterError),
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ApplicationStatus {
     Started,
     Off,

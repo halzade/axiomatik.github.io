@@ -52,7 +52,7 @@ pub async fn show_change_password(
     auth_session: AuthSession,
 ) -> Result<Response, ChangePasswordError> {
     if let Some(user) = auth_session.user {
-        Ok(Html(ChangePasswordTemplate { error: false, username: user.username.clone() }.render()?)
+        Ok(Html(ChangePasswordTemplate { error: false, username: user.username }.render()?)
             .into_response())
     } else {
         Ok(Redirect::to("/login").into_response())

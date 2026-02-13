@@ -18,7 +18,7 @@ pub struct SetupUserController {
 }
 
 impl DatabaseUserController {
-    pub fn new(dbu: Arc<DatabaseUser>) -> Self {
+    pub const fn new(dbu: Arc<DatabaseUser>) -> Self {
         Self { dbu }
     }
 
@@ -40,13 +40,7 @@ impl DatabaseUserController {
          * retrieve the real data
          */
         let real_o = self.dbu.get_user_by_name(username).await?;
-        match real_o {
-            Some(real) => {
-                // build verifier
-                Ok(DatabaseUserVerifier::new(real))
-            }
-            None => Err(TrustError::RealData),
-        }
+        real_o.map_or_else(|| Err(TrustError::RealData), |real| Ok(DatabaseUserVerifier::new(real)))
     }
 }
 

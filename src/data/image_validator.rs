@@ -18,7 +18,7 @@ pub enum ImageValidationError {
     UndefinedDataType,
 }
 
-pub fn validate_image_width(width: u32) -> Result<(), ImageValidationError> {
+pub const fn validate_image_width(width: u32) -> Result<(), ImageValidationError> {
     if width < 820 {
         return Err(ImageWidthValidation(width));
     }

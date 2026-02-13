@@ -25,13 +25,10 @@ pub fn validate_video_data(data: &[u8]) -> Result<(), VideoValidatorError> {
     if data.is_empty() {
         return Err(DetectedEmptyVideoFile);
     }
-    match infer::get(data) {
-        Some(kind) => match kind.matcher_type() {
-            Video => Ok(()),
-            _ => Err(UnknownVideoType(kind.to_string())),
-        },
-        None => Err(UndefinedVideoType),
-    }
+    infer::get(data).map_or(Err(UndefinedVideoType), |kind| match kind.matcher_type() {
+        Video => Ok(()),
+        _ => Err(UnknownVideoType(kind.to_string())),
+    })
 }
 
 pub fn validate_video_extension(ext: &str) -> Result<(), VideoValidatorError> {

@@ -34,7 +34,7 @@ pub struct AppController {
 }
 
 impl AppController {
-    pub async fn new() -> Result<AppController, TrustError> {
+    pub async fn new() -> Result<Self, TrustError> {
         debug!("config");
         logger::config();
         data_updates::new();
@@ -71,7 +71,7 @@ impl AppController {
         server.status_start()?;
 
         // application controller
-        Ok(AppController {
+        Ok(Self {
             // app
             account: Arc::new(AccountController::new(app_router.clone())),
             article: Arc::new(CreateArticleController::new(app_router.clone())),

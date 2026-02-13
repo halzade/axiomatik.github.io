@@ -31,7 +31,7 @@ impl LoginResponseVerifier {
             .map(|s| s.to_string())
             .unwrap_or_else(|| "no cookie".to_string());
 
-        Ok(LoginResponseVerifier {
+        Ok(Self {
             headers,
             response,
             expected: LoginResponseExpected::default(),
@@ -56,7 +56,7 @@ impl LoginResponseVerifier {
         self
     }
 
-    pub fn must_see_response(mut self, status: StatusCode) -> Self {
+    pub const fn must_see_response(mut self, status: StatusCode) -> Self {
         self.expected.status = Some(status);
         self
     }

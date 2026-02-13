@@ -128,7 +128,7 @@ pub fn validate_input_simple(input: &str) -> Result<(), TextValidationError> {
     Ok(())
 }
 
-fn validate_required(input: &str) -> bool {
+const fn validate_required(input: &str) -> bool {
     !input.is_empty()
 }
 

@@ -21,7 +21,7 @@ pub struct DataValidHtml {
     zahranici_valid: RwLock<bool>,
 }
 
-pub fn new() -> DataValidHtml {
+pub const fn new() -> DataValidHtml {
     DataValidHtml {
         index_valid: RwLock::new(false),
         news_valid: RwLock::new(false),

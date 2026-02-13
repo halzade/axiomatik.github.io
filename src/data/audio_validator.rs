@@ -25,13 +25,10 @@ pub fn validate_audio_data(data: &[u8]) -> Result<(), AudioValidatorError> {
     if data.is_empty() {
         return Err(DetectedEmptyAudioFile);
     }
-    match infer::get(data) {
-        Some(kind) => match kind.matcher_type() {
-            Audio => Ok(()),
-            _ => Err(UnknownAudioType(kind.to_string())),
-        },
-        None => Err(UndefinedAudioType),
-    }
+    infer::get(data).map_or(Err(UndefinedAudioType), |kind| match kind.matcher_type() {
+        Audio => Ok(()),
+        _ => Err(UnknownAudioType(kind.to_string())),
+    })
 }
 
 pub fn validate_audio_extension(ext: &str) -> Result<(), AudioValidatorError> {

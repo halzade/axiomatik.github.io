@@ -73,8 +73,8 @@ pub struct WebRouter {
 }
 
 impl WebRouter {
-    pub fn init(state: TheState) -> Result<WebRouter, WebRouterError> {
-        Ok(WebRouter { state })
+    pub const fn init(state: TheState) -> Result<Self, WebRouterError> {
+        Ok(Self { state })
     }
 }
 

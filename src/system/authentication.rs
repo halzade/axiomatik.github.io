@@ -34,7 +34,6 @@ impl axum_login::AuthnBackend for Backend {
                 }
                 Ok(None)
             }
-            Ok(None) => Ok(None),
             _ => Ok(None),
         }
     }
@@ -44,12 +43,6 @@ impl axum_login::AuthnBackend for Backend {
         user_name: &axum_login::UserId<Self>,
     ) -> Result<Option<Self::User>, Self::Error> {
         let user_ro = self.db_user.get_user_by_name(user_name).await;
-        match user_ro {
-            Ok(user_o) => match user_o {
-                Some(user) => Ok(Some(user)),
-                None => Ok(None),
-            },
-            Err(_) => Ok(None),
-        }
+        user_ro.map_or(Ok(None), Ok)
     }
 }

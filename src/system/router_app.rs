@@ -91,8 +91,8 @@ pub struct ApplicationRouter {
 }
 
 impl ApplicationRouter {
-    pub fn init(state: TheState) -> Result<ApplicationRouter, AppRouterError> {
-        Ok(ApplicationRouter { state })
+    pub const fn init(state: TheState) -> Result<Self, AppRouterError> {
+        Ok(Self { state })
     }
 }
 
@@ -105,22 +105,22 @@ impl IntoResponse for AppRouterError {
 impl IntoResponse for ArticleError {
     fn into_response(self) -> Response {
         match self {
-            ArticleError::ArticleCreate(_) => {
+            Self::ArticleCreate(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
-            ArticleError::CategoryFailed(_) => {
+            Self::CategoryFailed(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
-            ArticleError::ImageProcessor(_) => {
+            Self::ImageProcessor(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
-            ArticleError::AudioProcessor(_) => {
+            Self::AudioProcessor(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
-            ArticleError::VideoProcessor(_) => {
+            Self::VideoProcessor(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
-            ArticleError::ProcessorError(_) => {
+            Self::ProcessorError(_) => {
                 (StatusCode::BAD_REQUEST, self.to_string()).into_response()
             }
             _ => (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response(),

@@ -37,10 +37,7 @@ pub struct LoginTemplate {
 }
 
 pub async fn show_login() -> Response {
-    match (LoginTemplate { error: false }.render()) {
-        Ok(html) => Html(html).into_response(),
-        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    }
+    (LoginTemplate { error: false }.render()).map_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response(), |html| Html(html).into_response())
 }
 
 pub async fn handle_login(
@@ -75,10 +72,7 @@ pub async fn handle_login(
         }
         Ok(None) => {
             warn!(username = %payload.username, "Failed login attempt: Invalid credentials");
-            match (LoginTemplate { error: true }.render()) {
-                Ok(html) => Html(html).into_response(),
-                Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-            }
+            (LoginTemplate { error: true }.render()).map_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response(), |html| Html(html).into_response())
         }
         Err(_) => {
             error!(username = %payload.username, "Authentication error");
