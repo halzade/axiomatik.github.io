@@ -80,7 +80,7 @@ async fn prepare_as_if_empty(surreal: &DatabaseSurreal) -> Result<(), SurrealErr
             r#"
         /* Article */
         DEFINE TABLE article SCHEMALESS;        
-        DEFINE INDEX user ON article FIELDS user;
+        DEFINE INDEX username ON article FIELDS user;
         DEFINE INDEX article_file_name ON article FIELDS article_file_name UNIQUE;
         
         /* Article Update Status */

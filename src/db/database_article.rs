@@ -74,7 +74,7 @@ impl DatabaseArticle {
             .db
             .query(
                 "SELECT * FROM article \
-                    WHERE user = $username \
+                    WHERE $username = $username \
                     ORDER BY date DESC \
                     LIMIT $limit",
             )

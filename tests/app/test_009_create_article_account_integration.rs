@@ -12,13 +12,13 @@ mod tests {
         // Create user and login
         #[rustfmt::skip]
         ac.db_user().setup_user()
-            .username("user8")
+            .username("user10")
             .password("password123")
             .execute().await?;
 
         #[rustfmt::skip]
         let auth = ac.login()
-            .username("user8")
+            .username("user10")
             .password("password123")
             .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)
@@ -28,7 +28,7 @@ mod tests {
         #[rustfmt::skip]
         ac.account().get(&auth).await?
             .must_see_response(StatusCode::OK)
-            .body_contains("user8")
+            .body_contains("user10")
             .body_contains("Moje články")
             .verify().await?;
 
@@ -44,8 +44,8 @@ mod tests {
         // Verify update in DB
         #[rustfmt::skip]
         ac.db_user()
-            .must_see("user8").await?
-            .username("user8")
+            .must_see("user10").await?
+            .username("user10")
             .author_name("Updated Author")
             .verify()?;
 
@@ -68,7 +68,7 @@ mod tests {
         #[rustfmt::skip]
         ac.account().get(&auth).await?
             .must_see_response(StatusCode::OK)
-            .body_contains("user8")
+            .body_contains("user10")
             .body_contains("Test User Article")
             .verify().await?;
 
@@ -86,7 +86,7 @@ mod tests {
         ac.account()
             .get(&auth).await?
             .must_see_response(StatusCode::OK)
-                .body_contains("user8")
+                .body_contains("user10")
                 .body_contains("Second Update")
                 .body_contains("Test User Article")
                 .verify().await?;
