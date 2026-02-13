@@ -8,7 +8,10 @@ use TextValidationError::{
 
 lazy_static! {
     pub static ref AUTHOR_NAME_REGEX: Regex =
-        Regex::new(r"^[\p{L}\p{N}]+(?: [\p{L}\p{N}]+)*$").expect("AUTHOR_NAME_REGEX error");
+        Regex::new(r"^[\p{L}\p{N}]+(?: [\p{L}\p{N}]+)*$").unwrap_or_else(|e| {
+            eprintln!("CRITICAL ERROR: AUTHOR_NAME_REGEX initialization failed: {}", e);
+            std::process::exit(1);
+        });
 }
 
 #[derive(Debug, Error)]

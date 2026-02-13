@@ -166,7 +166,7 @@ mod tests {
         assert_eq!(fetched_user.author_name, "New Author Name");
 
         // delete
-        db.delete_user("tester").await.expect("Failed to delete user");
+        db.delete_user("tester").await?;
 
         let fetched_user = db.get_user_by_name("tester").await?;
         assert!(fetched_user.is_none());
