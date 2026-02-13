@@ -103,7 +103,7 @@ pub async fn article_data(
 
     while let Ok(Some(field)) = multipart.next_field().await {
         let field_name = field.name().unwrap_or("<unnamed>");
-        let content_type = field.content_type().map(|ct| ct).unwrap_or("unknown");
+        let content_type = field.content_type().unwrap_or("unknown");
 
         debug!("Processing: {}, type: {:?}", field_name, content_type);
 

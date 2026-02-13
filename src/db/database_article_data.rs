@@ -179,7 +179,7 @@ impl TryFrom<ArticleUpload> for Article {
 
 pub fn easy_article(title: &str, author: &str, text: &str) -> Article {
     let now = Utc::now();
-    let base = safe_article_file_name(&title.to_string());
+    let base = safe_article_file_name(title);
     Article {
         uuid: Uuid::new(),
         author: author.to_string(),
