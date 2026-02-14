@@ -2,12 +2,12 @@ use crate::data::audio_extractor::{extract_audio_data, AudioExtractorError};
 use crate::data::image_extractor::{extract_image_data, ImageExtractorError};
 use crate::data::library;
 use crate::data::text_extractor::{
-    extract_required_string, extract_required_text, TextExtractorError,
+    extract_optional_string, extract_required_string, extract_required_text, TextExtractorError,
 };
 use crate::data::video_extractor::{extract_video_data, VideoExtractorError};
 use axum::extract::Multipart;
 use thiserror::Error;
-use tracing::debug;
+use tracing::{debug, warn};
 
 #[derive(Debug, Error)]
 pub enum ArticleCreateError {
@@ -77,6 +77,7 @@ pub async fn article_data(
     auth_session: crate::system::router_app::AuthSession,
     mut multipart: Multipart,
 ) -> Result<ArticleUpload, ArticleCreateError> {
+    debug!("article_data()");
     let user = auth_session.user.ok_or(ArticleCreateError::UserRequired)?.username.clone();
     // required
     let mut author = String::new();
@@ -101,73 +102,92 @@ pub async fn article_data(
     let mut is_exclusive = false;
     let mut related_articles = Vec::new();
 
+    debug!("process");
     while let Ok(Some(field)) = multipart.next_field().await {
         let field_name = field.name().unwrap_or("<unnamed>");
-        let content_type = field.content_type().unwrap_or("unknown");
-
-        debug!("Processing: {}, type: {:?}", field_name, content_type);
 
         match field_name {
             "author" => {
+                debug!("processing: author");
                 author = extract_required_text(field).await?;
             }
             "is_main" => {
+                debug!("processing: is_main");
                 // if present, then required
                 is_main = extract_required_string(field).await? == "on"
             }
 
             "is_exclusive" => {
+                debug!("processing: is_exclusive");
                 // if present, then required
                 is_exclusive = extract_required_string(field).await? == "on"
             }
 
             "title" => {
+                debug!("processing: title");
                 title = extract_required_string(field).await?;
                 base_file_name = library::safe_article_file_name(&title);
             }
 
             "text" => {
+                debug!("processing: text");
                 text_raw = extract_required_text(field).await?;
             }
 
             "short_text" => {
+                debug!("processing: short_text");
                 short_text_raw = extract_required_text(field).await?;
             }
 
             "category" => {
+                debug!("processing: category");
                 category = extract_required_string(field).await?;
             }
 
             "related_articles" => {
-                related_articles = extract_required_string(field)
+                debug!("processing: related_articles");
+                related_articles = extract_optional_string(field)
                     .await?
-                    .lines()
+                    .unwrap_or_default()
+                    .split(',')
                     .map(str::trim)
                     .filter(|s| !s.is_empty())
                     .map(String::from)
                     .collect();
+                debug!("processing: related_articles done");
             }
 
-            "image_desc" => image_desc = extract_required_string(field).await?,
+            "image_desc" => {
+                debug!("processing: image_desc");
+                image_desc = extract_required_string(field).await?
+            }
 
             "image" => {
+                debug!("processing: image");
                 (image_data, image_data_ext) = extract_image_data(field).await?;
             }
 
             "video" => {
+                debug!("processing: video");
                 (video_data, video_data_ext) = extract_video_data(field).await?;
                 has_video = true;
             }
             "audio" => {
+                debug!("processing: audio");
                 (audio_data, audio_data_ext) = extract_audio_data(field).await?;
                 has_audio = true;
             }
             "mini_text" => {
+                debug!("processing: mini_text");
                 mini_text_raw = extract_required_text(field).await?;
             }
-            _ => Err(ArticleCreateError::UnknownField(field_name.to_string()))?,
+            _ => {
+                warn!("processing: UNKNOWN");
+                Err(ArticleCreateError::UnknownField(field_name.to_string()))?
+            }
         }
     }
+    debug!("processing finished");
 
     let ad = ArticleUpload {
         is_main,

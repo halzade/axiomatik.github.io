@@ -40,6 +40,9 @@ pub struct UpdateAuthorNamePayload {
 #[derive(Template)]
 #[template(path = "application/form_account/account_template.html")]
 pub struct AccountTemplate {
+    pub date: String,
+    pub weather: String,
+    pub name_day: String,
     pub username: String,
     pub author_name: String,
     pub articles: Vec<AccountArticleData>,
@@ -65,6 +68,9 @@ pub async fn show_account(
             debug!("show_account: found {} articles", account_articles.len());
             Ok(Html(
                 AccountTemplate {
+                    date: state.ds.date(),
+                    weather: state.ds.weather(),
+                    name_day: state.ds.name_day(),
                     username: user.username,
                     author_name: user.author_name,
                     articles: account_articles,

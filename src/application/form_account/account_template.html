@@ -11,7 +11,22 @@
 </head>
 <body>
 <div class="all">
-    <main class="content">
+    <header class="w8 topbar">
+        <div class="topbar-content">
+            <div class="left">
+                {{ date }}<br/>
+                <div class="weather"></div>
+                {{ weather }}<br/>
+                {{ name_day }}
+            </div>
+            <div class="center">
+                <a href="index.html" class="logo">NE<span class="b">X</span>O</a>
+            </div>
+            <div class="right search">
+            </div>
+        </div>
+    </header>
+    <main class="w8 content">
         <h1>Můj účet</h1>
         <div class="account-info">
             <div class="field">
@@ -61,6 +76,9 @@
             {% endfor %}
         </div>
     </main>
+    <footer class="w8">
+        <p>NEXO © 2026 </p>
+    </footer>
 </div>
 </body>
 </html>

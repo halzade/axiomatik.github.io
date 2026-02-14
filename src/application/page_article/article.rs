@@ -108,25 +108,30 @@ pub async fn create_article(
     info!("is excl {}", article_db.is_exclusive);
     info!("file name {}", article_file_name.clone());
 
+    debug!("process images");
     // process data image
     image_processor::process_images(
         &article_data.image_data,
         &article_data.base_file_name,
         &article_data.image_ext,
     )?;
+    debug!("process images done");
 
     // process data audio
     if article_data.has_audio {
+        debug!("process audio");
         // validate_audio_data(&article_data.audio_data)?;
         // validate_audio_extension(&article_data.audio_ext)?;
         audio_processor::process_valid_audio(
             &article_data.audio_data,
             &format!("{}.{}", article_data.base_file_name, article_data.audio_ext),
         )?;
+        debug!("process audio done");
     }
 
     // process data video
     if article_data.has_video {
+        debug!("process video");
         // validate_video_data(&article.video_data)?;
         // validate_video_extension(&article.video_data_ext)?;
 
@@ -134,11 +139,13 @@ pub async fn create_article(
             &article_data.video_data,
             &format!("{}.{}", article_data.base_file_name, article_data.video_ext),
         )?;
+        debug!("process video done");
     }
 
     // create article record
+    debug!("create db record");
     state.dbs.create_article_record(article_file_name.clone()).await?;
-    debug!("- article record created: {}", article_file_name);
+    debug!("article record created: {}", article_file_name);
 
     // invalidate cache
     state.dv.index_invalidate();
