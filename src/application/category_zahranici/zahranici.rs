@@ -42,7 +42,7 @@ pub async fn render_zahranici(state: &TheState) -> Result<(), ZahraniciError> {
     let articles = state.dba.articles_by_category("zahranici", 100).await?;
     let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
 
-    let split = (articles.len() + 1) / 2;
+    let split = articles.len().div_ceil(2);
     let (articles_left, articles_right) = articles.split_at(split);
     let zahranici = ZahraniciTemplate {
         date: state.ds.date(),
