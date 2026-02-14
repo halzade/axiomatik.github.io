@@ -202,14 +202,21 @@ impl WebRouter {
                 // 404 or Article
                 match state.dbs.read_article_validity(real_article_name).await? {
                     ArticleStatus::Valid => {
-                        debug!("- Article valid");
+                        debug!("Article valid");
+
+                        // count views
+                        state.dba.increase_article_views(real_article_name.to_string()).await?;
+
                         // no change, serve the file
                         serve_this(&format!("/{}", real_article_name), request).await
                     }
                     ArticleStatus::Invalid => {
-                        debug!("- Article invalid");
+                        debug!("Article invalid");
+
+                        // count views
+                        state.dba.increase_article_views(real_article_name.to_string()).await?;
+
                         // article was invalidated, render article HTML
-                        // new article was u
                         article::render_article(real_article_name, &state).await?;
                         state.dbs.validate_article(real_article_name.to_string()).await?;
                         serve_this(&format!("/{}", real_article_name), request).await
