@@ -36,6 +36,7 @@ pub struct IndexTemplate {
     pub articles_most_read: Vec<MiniArticleData>,
 
     pub main_article: MainArticleData,
+    pub main_article_category_display: String,
     pub second_article: TopArticleData,
     pub third_article: TopArticleData,
 
@@ -49,9 +50,9 @@ pub async fn render_index(state: &TheState) -> Result<(), IndexError> {
     let z_republiky_articles = state.dba.articles_by_category("republika", 10).await?;
     let ze_zahranici_articles = state.dba.articles_by_category("zahranici", 10).await?;
 
-    let (mut main_article, second_article, third_article) = state.dba.article_top_three().await?;
+    let (main_article, second_article, third_article) = state.dba.article_top_three().await?;
 
-    main_article.category_display = processor::process_category(&main_article.category)
+    let main_article_category_display = processor::process_category(&main_article.category)
         .unwrap_or_else(|_| "".to_string());
 
     let template = IndexTemplate {
@@ -60,6 +61,7 @@ pub async fn render_index(state: &TheState) -> Result<(), IndexError> {
         name_day: state.ds.name_day(),
         articles_most_read,
         main_article,
+        main_article_category_display,
         second_article,
         third_article,
         z_republiky_articles,

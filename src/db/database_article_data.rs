@@ -17,7 +17,6 @@ pub struct MainArticleData {
     pub is_exclusive: bool,
     pub short_text: String,
     pub category: String,
-    pub category_display: String,
     pub image_440_path: String,
     pub image_desc: String,
 }
@@ -31,7 +30,6 @@ impl MainArticleData {
             is_exclusive: false,
             short_text: "".into(),
             category: "".into(),
-            category_display: "".into(),
             image_440_path: "".into(),
             image_desc: "".into(),
         }
