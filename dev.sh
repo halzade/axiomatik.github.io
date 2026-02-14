@@ -9,4 +9,4 @@ export APP_ENVIRONMENT=dev
 # cargo run -- create-user lukas dev
 
 # cargo watch -i "index.html" -x run
-cargo watch -x run
+cargo run

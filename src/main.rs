@@ -132,6 +132,10 @@ async fn main() -> Result<(), ApplicationError> {
     let app_address = format!("{}:{}", config.host, config.port.app);
     let web_address = format!("{}:{}", config.host, config.port.web);
 
+    info!("Application starting...");
+    info!("config app_port: {}", config.port.app);
+    info!("config web_port: {}", config.port.web);
+
     /*
      * listeners
      */

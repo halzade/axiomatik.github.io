@@ -94,7 +94,7 @@ impl DatabaseArticle {
         &self,
         article_file_name: &str,
     ) -> Result<Article, SurrealArticleError> {
-        debug!("article_by_file_name: article_file_name={}", article_file_name);
+        debug!("article_by_file_name: article_file_name={article_file_name}");
 
         let article_o: Option<Article> =
             self.surreal.db.select((ARTICLE, article_file_name.to_string())).await?;

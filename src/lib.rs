@@ -1,5 +1,4 @@
 /*
- * Lazybones!
  * cargo clippy
  */
 #![forbid(unsafe_code)]
@@ -10,8 +9,8 @@
 #![forbid(clippy::unimplemented)]
 #![deny(warnings)]
 #![deny(clippy::all)]
-// #![deny(clippy::pedantic)]
 #![deny(clippy::nursery)]
+// #![deny(clippy::pedantic)]
 /*
  * Implementation
  */
