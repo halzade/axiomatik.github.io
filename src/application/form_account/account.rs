@@ -110,6 +110,10 @@ pub async fn handle_update_author_name(
     }
 }
 
+pub fn absolute_web_path(state: TheState, relative_path: &str) -> String {
+    format!("https://{}:{}/{}", state.config.host_hame, state.config.port.web, relative_path)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

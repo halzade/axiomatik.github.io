@@ -5,6 +5,7 @@ use crate::application::category_veda::veda::VedaError;
 use crate::application::category_zahranici::zahranici::ZahraniciError;
 use crate::application::form_account::account;
 use crate::application::form_account::account::AccountError;
+use crate::application::form_change_password;
 use crate::application::form_change_password::change_password::ChangePasswordError;
 use crate::application::form_create_article::create_article;
 use crate::application::form_create_article::create_article::FormArticleCreateError;
@@ -13,7 +14,6 @@ use crate::application::form_login::login;
 use crate::application::page_all_news::all_news::NewsError;
 use crate::application::page_article::article::ArticleError;
 use crate::application::page_index::index::IndexError;
-use crate::application::{form_change_password, page_article};
 use crate::db::database::SurrealError;
 use crate::db::database_user;
 use crate::system::authentication::Backend;
@@ -106,24 +106,12 @@ impl IntoResponse for AppRouterError {
 impl IntoResponse for ArticleError {
     fn into_response(self) -> Response {
         match self {
-            Self::ArticleCreate(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
-            Self::CategoryFailed(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
-            Self::ImageProcessor(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
-            Self::AudioProcessor(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
-            Self::VideoProcessor(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
-            Self::ProcessorError(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string()).into_response()
-            }
+            Self::ArticleCreate(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            Self::CategoryFailed(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            Self::ImageProcessor(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            Self::AudioProcessor(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            Self::VideoProcessor(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
+            Self::ProcessorError(_) => (StatusCode::BAD_REQUEST, self.to_string()).into_response(),
             _ => (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response(),
         }
     }
@@ -165,7 +153,7 @@ impl ApplicationRouter {
          */
         let protected_routes = Router::new()
             .route("/form", get(create_article::show_article_create_form))
-            .route("/create", post(page_article::article::create_article))
+            .route("/create", post(create_article::create_article))
             .route("/change-password",
                 get(form_change_password::change_password::show_change_password)
                .post(form_change_password::change_password::handle_change_password),
