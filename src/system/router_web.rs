@@ -102,10 +102,10 @@ impl WebRouter {
             .route_service("/favicon.ico", ServeFile::new("web/favicon.ico"))
             .route("/ping", get("{\"message\": \"web ping\"}"))
             /*
-             * catch web requests and maybe updat invalid HTML file
+             * catch web requests and maybe update invalid HTML file
              * redirect the request to the web directory
              */
-            .fallback(get(Self::serve_static_content))
+            .fallback(Self::serve_static_content)
             .with_state(self.state.clone());
 
         info!("start_router() finished");

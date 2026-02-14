@@ -148,8 +148,11 @@ async fn main() -> Result<(), ApplicationError> {
     /*
      * start Application
      */
-    axum::serve(app_listener, app_router).await?;
-    axum::serve(web_listener, web_router).await?;
+    let app_server = axum::serve(app_listener, app_router);
+    let web_server = axum::serve(web_listener, web_router);
+
+    // execute web future and app future concurrently
+    tokio::try_join!(app_server, web_server)?;
 
     info!("end.");
     Ok(())

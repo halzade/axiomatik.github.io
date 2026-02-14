@@ -5,9 +5,10 @@
 /axiomatik.db
 /axiomatik.test
 
-/web/finance.html
 /web/index.html
 /web/news.html
+
+/web/finance.html
 /web/republika.html
 /web/technologie.html
 /web/veda.html

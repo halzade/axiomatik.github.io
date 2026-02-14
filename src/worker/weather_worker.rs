@@ -12,12 +12,15 @@ pub enum WeatherWorkerError {
 
 pub fn start_weather_worker(state: TheState) -> Result<(), WeatherWorkerError> {
     info!("start weather worker");
+
+    // loop thread
     tokio::spawn(async move {
         let mut interval = interval(Duration::from_mins(60));
 
         loop {
             let state_c = state.clone();
 
+            // task thread
             tokio::spawn(async move {
                 info!("weather action: update data");
                 let changed = state_c.ds.update_weather().await;
