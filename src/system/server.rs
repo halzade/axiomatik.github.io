@@ -1,6 +1,7 @@
 use crate::db::database_article::DatabaseArticle;
 use crate::db::database_system::DatabaseSystem;
 use crate::db::database_user::DatabaseUser;
+use crate::system::configuration::ApplicationSettings;
 use crate::system::data_system::DataSystem;
 use crate::system::data_updates::DataValidHtml;
 use crate::system::router_app::{AppRouterError, ApplicationRouter};
@@ -56,6 +57,7 @@ pub struct TheState {
     // data updates e.g.: is index.html valid
     pub dv: Arc<DataValidHtml>,
     pub start_time: DateTime<Utc>,
+    pub config: ApplicationSettings,
 }
 
 pub struct Server {

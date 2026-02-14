@@ -1,4 +1,5 @@
 [application]
 host = "127.0.0.1"
+host_hame = "localhost"
 port.web = 80
 port.app = 3001

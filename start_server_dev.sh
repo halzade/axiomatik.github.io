@@ -8,7 +8,7 @@ echo "shut down complete"
 export APP_ENVIRONMENT=dev
 
 # cargo run -- delete-user lukas
-cargo run -- create-user lukas dev
+# cargo run -- create-user lukas dev
 
 echo "starting"
-cargo run &
+cargo run

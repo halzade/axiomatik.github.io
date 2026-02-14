@@ -179,7 +179,11 @@ pub async fn create_article(
      * redirect to the new article
      * trigger to render from template will be handled by router
      */
-    Ok(Redirect::to(&article_file_name).into_response())
+    Ok(Redirect::to(&absolute_web_path(state, &article_file_name)).into_response())
+}
+
+pub fn absolute_web_path(state: TheState, relative_path: &str) -> String {
+    format!("https://{}:{}/{}", state.config.host_hame, state.config.port.web, relative_path)
 }
 
 /**

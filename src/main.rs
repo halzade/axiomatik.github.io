@@ -76,7 +76,16 @@ async fn main() -> Result<(), ApplicationError> {
     /*
      * the application state
      */
-    let state = TheState { dba, dbu, dbs, ds, dv, start_time: chrono::Utc::now() };
+    let config = configuration::get_config()?;
+    let state = TheState {
+        dba,
+        dbu,
+        dbs,
+        ds,
+        dv,
+        start_time: chrono::Utc::now(),
+        config: config.clone(),
+    };
 
     // TODO remove commands
     /*
@@ -128,7 +137,6 @@ async fn main() -> Result<(), ApplicationError> {
     let web_router = server.start_web_router().await?;
     server.status_start()?;
 
-    let config = configuration::get_config()?;
     let app_address = format!("{}:{}", config.host, config.port.app);
     let web_address = format!("{}:{}", config.host, config.port.web);
 

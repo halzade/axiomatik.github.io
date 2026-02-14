@@ -30,7 +30,7 @@ use thiserror::Error;
 use tower::ServiceExt;
 use tower_http::services::{ServeDir, ServeFile};
 use tracing::log::debug;
-use tracing::{info, warn};
+use tracing::{info, trace, warn};
 
 #[derive(Debug, Error)]
 pub enum WebRouterError {
@@ -103,7 +103,7 @@ impl WebRouter {
             .route_service("/favicon.ico", ServeFile::new("web/favicon.ico"))
             .route("/ping", get("{\"message\": \"web ping\"}"))
             /*
-             * catch web requests and maybe update invalid HTML file
+             * catch web requests and maybe update an invalid HTML file
              * redirect the request to the web directory
              */
             .fallback(Self::serve_static_content)
@@ -123,12 +123,12 @@ impl WebRouter {
         request: Request<Body>,
     ) -> Result<Response, WebRouterError> {
         // this is an HTML file request, HTML content may need refresh
-        info!("serve_static_content()");
+        debug!("serve_static_content()");
 
         let uri = request.uri().clone();
         let url = uri.path().to_string();
 
-        info!("url: {}", url);
+        debug!("url: {}", url);
 
         match url.as_str() {
             "/index.html" => {
@@ -231,7 +231,7 @@ fn real_filename(article_file_name: &str) -> &str {
 
 async fn serve_this(path: &str, request: Request<Body>) -> Result<Response, WebRouterError> {
     // path already begins with /
-    info!("serve_this: web{}", path);
+    trace!("serve_this: web{}", path);
     let sf_r = ServeFile::new(format!("web{}", path)).oneshot(request).await;
     match sf_r {
         Ok(sf) => Ok(sf.into_response()),

@@ -170,12 +170,18 @@ pub async fn article_data(
             "video" => {
                 debug!("processing: video");
                 (video_data, video_data_ext) = extract_video_data(field).await?;
-                has_video = true;
+                if !video_data.is_empty() && !video_data_ext.is_empty() {
+                    debug!("processing: video is set");
+                    has_video = true;
+                }
             }
             "audio" => {
                 debug!("processing: audio");
                 (audio_data, audio_data_ext) = extract_audio_data(field).await?;
-                has_audio = true;
+                if !audio_data.is_empty() && !audio_data_ext.is_empty() {
+                    debug!("processing: audio is set");
+                    has_audio = true;
+                }
             }
             "mini_text" => {
                 debug!("processing: mini_text");

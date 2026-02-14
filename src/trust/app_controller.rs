@@ -3,7 +3,7 @@ use crate::db::database_article::DatabaseArticle;
 use crate::db::database_system::DatabaseSystem;
 use crate::db::database_user::DatabaseUser;
 use crate::system::server::TheState;
-use crate::system::{data_system, data_updates, logger, server};
+use crate::system::{configuration, data_system, data_updates, logger, server};
 use crate::trust::app::account::account_controller::AccountController;
 use crate::trust::app::article::create_article_controller::CreateArticleController;
 use crate::trust::app::change_password::change_password_controller::ChangePasswordController;
@@ -53,6 +53,7 @@ impl AppController {
         let dv = Arc::new(data_updates::new());
 
         // the application state
+        let config = configuration::get_config()?;
         let state = TheState {
             dba: dba.clone(),
             dbu: dbu.clone(),
@@ -60,6 +61,7 @@ impl AppController {
             ds,
             dv,
             start_time: chrono::Utc::now(),
+            config,
         };
 
         // server

@@ -4,12 +4,5 @@
 /target
 /axiomatik.db
 /axiomatik.test
-
-/web/index.html
-/web/news.html
-
-/web/finance.html
-/web/republika.html
-/web/technologie.html
-/web/veda.html
-/web/zahranici.html
+/web/*.html
+/web/u/

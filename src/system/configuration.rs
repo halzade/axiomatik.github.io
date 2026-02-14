@@ -35,6 +35,7 @@ impl AppEnvironment {
 #[derive(Deserialize, Clone)]
 pub struct ApplicationSettings {
     pub host: String,
+    pub host_hame: String,
     pub port: PortSettings,
 }
 
