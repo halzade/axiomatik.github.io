@@ -141,10 +141,23 @@ pub async fn create_article(
         debug!("process video done");
     }
 
-    // create article record
-    debug!("create db record");
+    match article_data.category.as_str() {
+        "zahranici" => state.dv.zahranici_invalidate(),
+        "republika" => state.dv.republika_invalidate(),
+        "finance" => state.dv.finance_invalidate(),
+        "technologie" => state.dv.technologie_invalidate(),
+        "veda" => state.dv.veda_invalidate(),
+        cat => return Err(CategoryFailed(cat.into())),
+    }
+
+    /*
+     * store Article data
+     */
+    state.dba.create_article(article_db).await?;
+    // create record in article views
+    state.dba.increase_article_views(article_file_name.clone()).await?;
+    // create a record, that article exists
     state.dbs.create_article_record(article_file_name.clone()).await?;
-    debug!("article record created: {}", article_file_name);
 
     // invalidate cache
     state.dv.index_invalidate();
@@ -159,23 +172,8 @@ pub async fn create_article(
         state.dba.add_related_article(related_article.clone(), article_file_name.clone()).await?;
     }
 
-    match article_data.category.as_str() {
-        "zahranici" => state.dv.zahranici_invalidate(),
-        "republika" => state.dv.republika_invalidate(),
-        "finance" => state.dv.finance_invalidate(),
-        "technologie" => state.dv.technologie_invalidate(),
-        "veda" => state.dv.veda_invalidate(),
-        cat => return Err(CategoryFailed(cat.into())),
-    }
-
-    /*
-     * store Article data
-     */
-    state.dba.create_article(article_db).await?;
-
     /*
      * don't render anything
-     * redirect to the new article
      * web router manages render trigger
      */
     Ok(Redirect::to("/account").into_response())

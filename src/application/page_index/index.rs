@@ -7,6 +7,7 @@ use crate::db::database_system::SurrealSystemError;
 use crate::system::server::TheState;
 use askama::Template;
 use thiserror::Error;
+use tracing::debug;
 
 #[derive(Debug, Error)]
 pub enum IndexError {
@@ -46,14 +47,17 @@ pub struct IndexTemplate {
 
 pub async fn render_index(state: &TheState) -> Result<(), IndexError> {
     let articles_most_read = state.dba.most_read_by_views().await?;
-
     let z_republiky_articles = state.dba.articles_by_category("republika", 10).await?;
     let ze_zahranici_articles = state.dba.articles_by_category("zahranici", 10).await?;
 
+    debug!("articles_most_read: {}", articles_most_read.len());
+    debug!("z_republiky_articles: {}", z_republiky_articles.len());
+    debug!("ze_zahranici_articles: {}", ze_zahranici_articles.len());
+
     let (main_article, second_article, third_article) = state.dba.article_top_three().await?;
 
-    let main_article_category_display = processor::process_category(&main_article.category)
-        .unwrap_or_else(|_| "".to_string());
+    let main_article_category_display =
+        processor::process_category(&main_article.category).unwrap_or_else(|_| "".to_string());
 
     let template = IndexTemplate {
         date: state.ds.date(),

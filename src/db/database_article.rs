@@ -194,10 +194,10 @@ impl DatabaseArticle {
     pub async fn most_read_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
         #[rustfmt::skip]
         let mut result_response_set = self.surreal.db
-            .query("SELECT VALUE article FROM (SELECT type::record('article', article_file_name) AS article, views FROM article_views ORDER BY views DESC LIMIT 3) FETCH article")
+            .query("SELECT (type::record('article', article_file_name)).* AS article, views FROM article_views ORDER BY views DESC LIMIT 3")
             .await?;
 
-        let most_read_articles: Vec<MiniArticleData> = result_response_set.take(0)?;
+        let most_read_articles: Vec<MiniArticleData> = result_response_set.take("article")?;
 
         Ok(most_read_articles)
     }

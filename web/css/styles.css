@@ -269,6 +269,8 @@ article a:hover {
 
 .most-articles * {
     display: inline-block;
+    text-decoration: none;
+    color: inherit;
 }
 
 .most-articles table {

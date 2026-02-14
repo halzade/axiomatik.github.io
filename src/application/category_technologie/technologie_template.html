@@ -39,17 +39,19 @@
         <div class="most-articles">
             <div class="arrow red-arrow-left"></div>
             {% for article in articles_most_read %}
-            <table>
-                <tr>
-                    <td>
-                        <img class="most-image" src="{{ article.image_50_path }}" alt="{{ article.image_desc }}">
-                    </td>
-                    <td>
-                        <h3>{{ article.title }}</h3><br/>
-                        <p>{{ article.mini_text }}</p>
-                    </td>
-                </tr>
-            </table>
+            <a class="most-read-link" href="{{ article.article_file_name }}">
+                <table>
+                    <tr>
+                        <td>
+                            <img class="most-image" src="{{ article.image_50_path }}" alt="{{ article.image_desc }}">
+                        </td>
+                        <td>
+                            <h3>{{ article.title }}</h3><br/>
+                            <p>{{ article.mini_text }}</p>
+                        </td>
+                    </tr>
+                </table>
+            </a>
             {% endfor %}
             <div class="arrow red-arrow-right right-click-arrow"></div>
         </div>
