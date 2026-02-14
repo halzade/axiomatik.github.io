@@ -283,10 +283,15 @@ article a:hover {
 
 .red-arrow-left {
     background-image: url("../image/red_arrow_left.png");
+    position: relative;
+    margin-top: 19px;
+    margin-bottom: 27px;
 }
 
 .red-arrow-right {
     background-image: url("../image/red_arrow_right.png");
+    position: relative;
+    margin-top: 19px;
 }
 
 .white-arrow {
