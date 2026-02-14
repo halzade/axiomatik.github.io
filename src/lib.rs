@@ -10,7 +10,6 @@
 #![deny(warnings)]
 #![deny(clippy::all)]
 #![deny(clippy::nursery)]
-// #![deny(clippy::pedantic)]
 /*
  * Implementation
  */

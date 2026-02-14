@@ -114,13 +114,13 @@ pub async fn article_data(
             "is_main" => {
                 debug!("processing: is_main");
                 // if present, then required
-                is_main = extract_required_string(field).await? == "on"
+                is_main = extract_required_string(field).await? == "on";
             }
 
             "is_exclusive" => {
                 debug!("processing: is_exclusive");
                 // if present, then required
-                is_exclusive = extract_required_string(field).await? == "on"
+                is_exclusive = extract_required_string(field).await? == "on";
             }
 
             "title" => {
@@ -159,7 +159,7 @@ pub async fn article_data(
 
             "image_desc" => {
                 debug!("processing: image_desc");
-                image_desc = extract_required_string(field).await?
+                image_desc = extract_required_string(field).await?;
             }
 
             "image" => {
@@ -189,7 +189,7 @@ pub async fn article_data(
             }
             _ => {
                 warn!("processing: UNKNOWN");
-                Err(ArticleCreateError::UnknownField(field_name.to_string()))?
+                Err(ArticleCreateError::UnknownField(field_name.to_string()))?;
             }
         }
     }

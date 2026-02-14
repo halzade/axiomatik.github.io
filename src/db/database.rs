@@ -75,7 +75,7 @@ async fn prepare_as_if_empty(surreal: &DatabaseSurreal) -> Result<(), SurrealErr
     surreal
         .db
         .query(
-            r#"
+            r"
         /* Article */
         DEFINE TABLE article SCHEMALESS;        
         DEFINE INDEX username ON article FIELDS user;
@@ -92,7 +92,7 @@ async fn prepare_as_if_empty(surreal: &DatabaseSurreal) -> Result<(), SurrealErr
         /* User */
         DEFINE TABLE user SCHEMALESS;
         DEFINE INDEX username ON user FIELDS username UNIQUE;
-        "#,
+        ",
         )
         .await?;
     Ok(())

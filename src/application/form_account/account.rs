@@ -96,24 +96,21 @@ pub async fn handle_update_author_name(
 ) -> Response {
     debug!("handle_update_author_name()");
 
-    match auth_session.user {
-        Some(user) => {
-            debug!("session user: {}", user.username);
+    if let Some(user) = auth_session.user {
+        debug!("session user: {}", user.username);
 
-            if let Err(errors) = payload.validate() {
-                println!("{:#?}", errors);
-                return StatusCode::BAD_REQUEST.into_response();
-            }
+        if let Err(errors) = payload.validate() {
+            println!("{errors:#?}");
+            return StatusCode::BAD_REQUEST.into_response();
+        }
 
-            debug!("validation ok");
-            let _ = state.dbu.update_user_author_name(&user.username, &payload.author_name).await;
-            debug!("always redirect to account");
-            Redirect::to("/account").into_response()
-        }
-        None => {
-            debug!("failed");
-            Redirect::to("/login").into_response()
-        }
+        debug!("validation ok");
+        let _ = state.dbu.update_user_author_name(&user.username, &payload.author_name).await;
+        debug!("always redirect to account");
+        Redirect::to("/account").into_response()
+    } else {
+        debug!("failed");
+        Redirect::to("/login").into_response()
     }
 }
 

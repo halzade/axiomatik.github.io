@@ -55,38 +55,35 @@ pub async fn handle_search(
         Vec::new()
     });
 
-    match articles_r {
-        Ok(articles) => {
-            let template = SearchTemplate {
-                title: format!("Výsledky hledání: {}", query),
-                date: state.ds.date(),
-                weather: state.ds.weather(),
-                name_day: state.ds.name_day(),
-                articles,
-                articles_most_read: articles_most_read_use,
-            };
+    if let Ok(articles) = articles_r {
+        let template = SearchTemplate {
+            title: format!("Výsledky hledání: {query}"),
+            date: state.ds.date(),
+            weather: state.ds.weather(),
+            name_day: state.ds.name_day(),
+            articles,
+            articles_most_read: articles_most_read_use,
+        };
 
-            template.render().map_or_else(
-                |_| StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-                |html| Html(html).into_response(),
-            )
-        }
-        Err(_) => {
-            error!("error while searching articles");
+        template.render().map_or_else(
+            |_| StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            |html| Html(html).into_response(),
+        )
+    } else {
+        error!("error while searching articles");
 
-            let template = SearchTemplate {
-                title: format!("Výsledky hledání: {}", query),
-                date: state.ds.date(),
-                weather: state.ds.weather(),
-                name_day: state.ds.name_day(),
-                articles: Vec::new(),
-                articles_most_read: articles_most_read_use,
-            };
+        let template = SearchTemplate {
+            title: format!("Výsledky hledání: {query}"),
+            date: state.ds.date(),
+            weather: state.ds.weather(),
+            name_day: state.ds.name_day(),
+            articles: Vec::new(),
+            articles_most_read: articles_most_read_use,
+        };
 
-            template.render().map_or_else(
-                |_| StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-                |html| Html(html).into_response(),
-            )
-        }
+        template.render().map_or_else(
+            |_| StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            |html| Html(html).into_response(),
+        )
     }
 }
