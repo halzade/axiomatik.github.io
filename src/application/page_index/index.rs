@@ -1,3 +1,4 @@
+use crate::data::processor;
 use crate::db::database_article::SurrealArticleError;
 use crate::db::database_article_data::{
     MainArticleData, MiniArticleData, ShortArticleData, TopArticleData,
@@ -48,7 +49,10 @@ pub async fn render_index(state: &TheState) -> Result<(), IndexError> {
     let z_republiky_articles = state.dba.articles_by_category("republika", 10).await?;
     let ze_zahranici_articles = state.dba.articles_by_category("zahranici", 10).await?;
 
-    let (main_article, second_article, third_article) = state.dba.article_top_three().await?;
+    let (mut main_article, second_article, third_article) = state.dba.article_top_three().await?;
+
+    main_article.category_display = processor::process_category(&main_article.category)
+        .unwrap_or_else(|_| "".to_string());
 
     let template = IndexTemplate {
         date: state.ds.date(),
@@ -64,7 +68,7 @@ pub async fn render_index(state: &TheState) -> Result<(), IndexError> {
 
     match template.render() {
         Ok(rendered_html) => {
-            crate::data::processor::save_web_file(rendered_html, "index.html")
+            processor::save_web_file(rendered_html, "index.html")
                 .map_err(|_| IndexError::RenderError)?;
             Ok(())
         }
