@@ -23,22 +23,20 @@ fn calculate_next_midnight_delay() -> Duration {
         .and_then(|t| t.with_second(0))
         .and_then(|t| t.with_nanosecond(0));
 
-    next_midnight_prague.map_or_else(|| Duration::from_secs(60), |next_midnight| {
-        let duration_to_midnight = next_midnight.signed_duration_since(now_prague);
-        let wait_secs = duration_to_midnight.num_seconds() as u64;
-        Duration::from_secs(wait_secs)
-    })
+    next_midnight_prague.map_or_else(
+        || Duration::from_secs(60),
+        |next_midnight| {
+            let duration_to_midnight = next_midnight.signed_duration_since(now_prague);
+            let wait_secs = duration_to_midnight.num_seconds() as u64;
+            Duration::from_secs(wait_secs)
+        },
+    )
 }
 
 pub fn start_midnight_worker(state: TheState) -> Result<(), MidnightWorkerError> {
     info!("start midnight worker");
     tokio::spawn(async move {
         loop {
-            let wait_duration = calculate_next_midnight_delay();
-
-            info!("waiting {} seconds until midnight in Prague", wait_duration.as_secs());
-            sleep(wait_duration).await;
-
             let state_c = state.clone();
             tokio::spawn(async move {
                 info!("midnight action: update data");
@@ -51,7 +49,13 @@ pub fn start_midnight_worker(state: TheState) -> Result<(), MidnightWorkerError>
                 info!("midnight action: finished");
             });
 
+            // sichr wait
             sleep(Duration::from_secs(2)).await;
+
+            let wait_duration = calculate_next_midnight_delay();
+
+            info!("waiting {} seconds until midnight in Prague", wait_duration.as_secs());
+            sleep(wait_duration).await;
         }
     });
 
