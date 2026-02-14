@@ -64,13 +64,13 @@
                             {% if main_article.is_exclusive %}<span class="red">EXKLUZIVNĚ:</span>{% endif %}
                             {{ main_article.title }}
                         </h2>
-                    </a>
-                    <a class="category" href="{{main_article.category}}.html">{{main_article_category_display}}</a>
+                    </a><br/>
+                    <a class="category" href="{{main_article.category}}.html">{{main_article_category_display}}</a><br/>
                     <a href="{{ main_article.article_file_name }}">
                         <p>{{ main_article.short_text }}</p>
                     </a>
                 </div>
-                <a href="{{ main_article.article_file_name }}"><img src="u/{{ main_article.image_440_path }}" alt="{{ main_article.image_desc }}"></a>
+                <a href="{{ main_article.article_file_name }}"><img src="{{ main_article.image_440_path }}" alt="{{ main_article.image_desc }}"></a>
             </section>
 
             <section class="right-articles">

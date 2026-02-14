@@ -24,7 +24,7 @@ pub async fn extract_required_string(field: Field<'_>) -> Result<String, TextExt
     match field.text().await {
         Ok(text) => {
             validate_required_string(&text)?;
-            Ok(text)
+            Ok(text.trim().to_string())
         }
         Err(e) => Err(TextExtractionFailed(e)),
     }

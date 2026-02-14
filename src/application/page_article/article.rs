@@ -170,16 +170,16 @@ pub async fn create_article(
     }
 
     /*
-     * Store Article data
+     * store Article data
      */
     state.dba.create_article(article_db).await?;
 
     /*
      * don't render anything
      * redirect to the new article
-     * trigger to render from template will be handled by router
+     * web router manages render trigger
      */
-    Ok(Redirect::to(&absolute_web_path(state, &article_file_name)).into_response())
+    Ok(Redirect::to("/account").into_response())
 }
 
 pub fn absolute_web_path(state: TheState, relative_path: &str) -> String {

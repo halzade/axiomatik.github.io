@@ -192,9 +192,8 @@ impl DatabaseArticle {
      * TODO keep these in memory, refresh every hour or so
      */
     pub async fn most_read_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
-        let mut result_response_set = self
-            .surreal
-            .db
+        #[rustfmt::skip]
+        let mut result_response_set = self.surreal.db
             .query("SELECT VALUE article FROM (SELECT type::record('article', article_file_name) AS article, views FROM article_views ORDER BY views DESC LIMIT 3) FETCH article")
             .await?;
 

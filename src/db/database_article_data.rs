@@ -148,7 +148,8 @@ impl TryFrom<ArticleUpload> for Article {
             text: process_text(&data.text_raw),
             short_text: process_short_text(&data.short_text_raw),
             mini_text: process_short_text(&data.mini_text_raw),
-
+            
+            // everything should be relative to web/
             article_file_name: format!("{}.html", data.base_file_name.clone()),
             image_desc: data.image_desc,
             image_50_path: format!("u/{}_image_50.{}", data.base_file_name, data.image_ext),

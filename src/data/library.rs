@@ -66,7 +66,7 @@ pub fn day_of_week(utc: DateTime<Utc>) -> &'static str {
 }
 
 pub fn safe_article_file_name(title: &str) -> String {
-    title
+    title.trim()
         .to_lowercase()
         .chars()
         .map(|c| match c {
