@@ -2,6 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nový článek</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/styles-dark.css" media="(prefers-color-scheme: dark)">
@@ -10,103 +11,123 @@
     <script src="../js/form.js" defer></script>
 </head>
 <body>
-<div>
-    <h1>Vytvořit nový článek</h1>
-    <form action="/create" method="post" enctype="multipart/form-data" id="article-form">
-        <div>
-            <label>Titulek</label><br>
-            <input type="text" name="title" class="required">
-            <div class="error-message">Prosím vyplňte titulek.</div>
+<div class="all">
+    <header class="w8 topbar">
+        <div class="topbar-content">
+            <div class="left">
+                {{ date }}<br/>
+                <div class="weather"></div>
+                {{ weather }}<br/>
+                {{ name_day }}
+            </div>
+            <div class="center">
+                <a href="#" class="logo">NE<span class="b">X</span>O</a>
+            </div>
+            <div class="right search">
+            </div>
         </div>
-        <div>
-            <label>Autor </label><br>
-            <input type="text" name="author" value="{{ author_name }}" readonly>
-        </div>
-        <div>
-            <label>Text článku</label><br>
-            <textarea name="text" rows="20" cols="50" class="required"></textarea>
-            <div class="error-message">Prosím vyplňte text článku.</div>
-        </div>
-        <div class="container-wide">
-            <p>
-                prázdný řádek - pro nový odstavec
-            </p>
-            <p>
-                dva prázdné řádky - pro novou sekci
-            </p>
-            <p>
-                řádek se třemi mezerami na začátku - pro "citaci"
-            </p>
-        </div>
+    </header>
+    <main class="w8 content">
+        <h1>Vytvořit nový článek</h1>
+        <form action="/create" method="post" enctype="multipart/form-data" id="article-form">
+            <div>
+                <label>Titulek</label><br>
+                <input type="text" name="title" class="required">
+                <div class="error-message">Prosím vyplňte titulek.</div>
+            </div>
+            <div>
+                <label>Autor </label><br>
+                <input type="text" name="author" value="{{ author_name }}" readonly>
+            </div>
+            <div>
+                <label>Text článku</label><br>
+                <textarea name="text" rows="20" cols="50" class="required"></textarea>
+                <div class="error-message">Prosím vyplňte text článku.</div>
+            </div>
+            <div class="container-wide">
+                <p>
+                    prázdný řádek - pro nový odstavec
+                </p>
+                <p>
+                    dva prázdné řádky - pro novou sekci
+                </p>
+                <p>
+                    řádek se třemi mezerami na začátku - pro "citaci"
+                </p>
+            </div>
 
-        <div class="container-wide">
-            <br/>
-            <label>Krátký text, souvysející článek náhled</label><br>
-            <textarea name="short_text" rows="5" cols="50" class="required"></textarea>
-            <div class="error-message">Prosím vyplňte krátký text článku.</div>
-        </div>
+            <div class="container-wide">
+                <br/>
+                <label>Krátký text, souvysející článek náhled</label><br>
+                <textarea name="short_text" rows="5" cols="50" class="required"></textarea>
+                <div class="error-message">Prosím vyplňte krátký text článku.</div>
+            </div>
 
-        <div class="container-wide">
-            <br/>
-            <label>Soubor obrázku článku (povinný rozměr na šířku je minimálně 820 px)</label><br/>
-            <input type="file" name="image" id="image-input" accept="image/*" class="required">
-            <div id="image-error" class="error-message">Obrázek musí mít šířku alespoň 820 px.</div>
-            <br/>
-            <label>Popis obrázku</label><br/>
-            <textarea name="image_desc" rows="1" style="width: 100%;"></textarea><br/>
-            <br/>
-            <br/>
-            <label>Soubor video obrázku</label><br>
-            <input type="file" name="video" accept="video/*">
-            <br/>
-            <br/>
-            <label>Soubor audio nahrávky textu</label><br>
-            <input type="file" name="audio" accept="audio/*">
-            <br/>
-        </div>
-        <div class="container-wide">
-            <br/>
-            <label>Homepage</label><br>
-            <input type="checkbox" name="is_main"/> hlavní článek<br>
-            <input class="red" type="checkbox" name="is_exclusive"/> exkluzivně
-        </div>
-        <div>
-            <br/>
-            <label>Kategorie</label><br/>
-            <select name="category" class="required">
-                <option value="">-- Vyberte kategorii --</option>
-                <option value="republika">Republika</option>
-                <option value="zahranici">Zahraničí</option>
-                <option value="finance">Finance</option>
-                <option value="technologie">Technologie</option>
-                <option value="veda">Věda</option>
-            </select>
-            <div class="error-message">Prosím vyberte kategorii.</div>
-        </div>
-        <div>
-            <br/>
-            <label>Související články,
+            <div class="container-wide">
                 <br/>
-                cesty k souborům, každý na nový řádek, například:
+                <label>Soubor obrázku článku (povinný rozměr na šířku je minimálně 820 px)</label><br/>
+                <input type="file" name="image" id="image-input" accept="image/*" class="required">
+                <div id="image-error" class="error-message">Obrázek musí mít šířku alespoň 820 px.</div>
                 <br/>
-                jeden-tisic-dnu.html
-            </label>
+                <label>Popis obrázku</label><br/>
+                <textarea name="image_desc" rows="1" style="width: 100%;"></textarea><br/>
+                <br/>
+                <br/>
+                <label>Soubor video obrázku</label><br>
+                <input type="file" name="video" accept="video/*">
+                <br/>
+                <br/>
+                <label>Soubor audio nahrávky textu</label><br>
+                <input type="file" name="audio" accept="audio/*">
+                <br/>
+            </div>
+            <div class="container-wide">
+                <br/>
+                <label>Homepage</label><br>
+                <input type="checkbox" name="is_main"/> hlavní článek<br>
+                <input class="red" type="checkbox" name="is_exclusive"/> exkluzivně
+            </div>
+            <div>
+                <br/>
+                <label>Kategorie</label><br/>
+                <select name="category" class="required">
+                    <option value="">-- Vyberte kategorii --</option>
+                    <option value="republika">Republika</option>
+                    <option value="zahranici">Zahraničí</option>
+                    <option value="finance">Finance</option>
+                    <option value="technologie">Technologie</option>
+                    <option value="veda">Věda</option>
+                </select>
+                <div class="error-message">Prosím vyberte kategorii.</div>
+            </div>
+            <div>
+                <br/>
+                <label>Související články,
+                    <br/>
+                    cesty k souborům, každý na nový řádek, například:
+                    <br/>
+                    jeden-tisic-dnu.html
+                </label>
+                <br>
+                <textarea name="related_articles" rows="5" style="width: 100%;"></textarea>
+            </div>
             <br>
-            <textarea name="related_articles" rows="5" style="width: 100%;"></textarea>
-        </div>
-        <br>
-        <div class="container-wide minor-validation"
-             style="display: none;">
-            Tato pole nejsou vyplněna:<br/>
-            <span class="err-video">• video</span><br/>
-            <span class="err-audio">• audio</span><br/>
-            <span class="err-related_articles">• související články</span>
-        </div>
-        <br>
-        <button type="submit">Vytvořit článek</button>
-        <!--<button type="submit" style="display: none;">Potvrdit</button>-->
-        <br>
-    </form>
+            <div class="container-wide minor-validation"
+                 style="display: none;">
+                Tato pole nejsou vyplněna:<br/>
+                <span class="err-video">• video</span><br/>
+                <span class="err-audio">• audio</span><br/>
+                <span class="err-related_articles">• související články</span>
+            </div>
+            <br>
+            <button type="submit">Vytvořit článek</button>
+            <!--<button type="submit" style="display: none;">Potvrdit</button>-->
+            <br>
+        </form>
+    </main>
+    <footer class="">
+        <p>NEXO © 2026 </p>
+    </footer>
 </div>
 </body>
 </html>

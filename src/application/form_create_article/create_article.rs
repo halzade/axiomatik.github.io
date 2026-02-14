@@ -49,6 +49,9 @@ pub enum FormArticleCreateError {
 #[template(path = "application/form_create_article/create_article_template.html")]
 pub struct FormTemplate {
     pub author_name: String,
+    pub date: String,
+    pub name_day: String,
+    pub weather: String,
 }
 
 pub async fn show_article_create_form(
@@ -62,8 +65,16 @@ pub async fn show_article_create_form(
             match user_o {
                 None => {}
                 Some(user) => {
-                    return Ok(Html(FormTemplate { author_name: user.author_name }.render()?)
-                        .into_response());
+                    return Ok(Html(
+                        FormTemplate {
+                            author_name: user.author_name,
+                            date: state.ds.date(),
+                            name_day: state.ds.name_day(),
+                            weather: state.ds.weather(),
+                        }
+                        .render()?,
+                    )
+                    .into_response());
                 }
             }
         }

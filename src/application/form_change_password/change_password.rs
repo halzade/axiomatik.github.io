@@ -46,14 +46,27 @@ pub struct ChangePasswordPayload {
 pub struct ChangePasswordTemplate {
     pub error: bool,
     pub username: String,
+    pub date: String,
+    pub name_day: String,
+    pub weather: String,
 }
 
 pub async fn show_change_password(
+    State(state): State<TheState>,
     auth_session: AuthSession,
 ) -> Result<Response, ChangePasswordError> {
     if let Some(user) = auth_session.user {
-        Ok(Html(ChangePasswordTemplate { error: false, username: user.username }.render()?)
-            .into_response())
+        Ok(Html(
+            ChangePasswordTemplate {
+                error: false,
+                username: user.username,
+                date: state.ds.date(),
+                name_day: state.ds.name_day(),
+                weather: state.ds.weather(),
+            }
+            .render()?,
+        )
+        .into_response())
     } else {
         Ok(Redirect::to("/login").into_response())
     }

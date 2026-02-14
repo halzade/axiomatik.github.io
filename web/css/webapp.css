@@ -1,8 +1,6 @@
 body {
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: block;
     min-height: 100vh;
 }
 
@@ -20,6 +18,8 @@ form {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-bottom: 50px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 form div {
@@ -30,6 +30,20 @@ label {
     display: inline-block;
     margin-bottom: 8px;
     font-size: 1rem;
+}
+
+#author-form {
+    display: inline-block;
+    max-width: none;
+    min-width: 0;
+    width: auto;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .field span {

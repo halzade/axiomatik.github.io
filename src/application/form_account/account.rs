@@ -12,6 +12,7 @@ use serde::Deserialize;
 use thiserror::Error;
 use tracing::debug;
 use validator::Validate;
+use AccountError::AccountSurreal;
 
 #[derive(Debug, Error)]
 pub enum AccountError {
@@ -46,6 +47,8 @@ pub struct AccountTemplate {
     pub username: String,
     pub author_name: String,
     pub articles: Vec<AccountArticleData>,
+    pub server_host: String,
+    pub server_port: u16,
 }
 
 pub async fn show_account(
@@ -63,9 +66,10 @@ pub async fn show_account(
             let account_articles =
                 state.dba.articles_by_username(&user.username, 100).await.map_err(|e| {
                     debug!("show_account: articles_by_username error: {:?}", e);
-                    AccountError::AccountSurreal(e)
+                    AccountSurreal(e)
                 })?;
             debug!("show_account: found {} articles", account_articles.len());
+
             Ok(Html(
                 AccountTemplate {
                     date: state.ds.date(),
@@ -74,6 +78,9 @@ pub async fn show_account(
                     username: user.username,
                     author_name: user.author_name,
                     articles: account_articles,
+                    // for absolut redirects for articles on web port
+                    server_host: state.config.host_hame,
+                    server_port: state.config.port.web,
                 }
                 .render()?,
             )
@@ -108,10 +115,6 @@ pub async fn handle_update_author_name(
             Redirect::to("/login").into_response()
         }
     }
-}
-
-pub fn absolute_web_path(state: TheState, relative_path: &str) -> String {
-    format!("https://{}:{}/{}", state.config.host_hame, state.config.port.web, relative_path)
 }
 
 #[cfg(test)]

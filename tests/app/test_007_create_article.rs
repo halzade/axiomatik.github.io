@@ -35,7 +35,7 @@ mod tests {
             .image_any_png()?
             .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)
-                .header_location("test-article.html")
+                .header_location("/account")
                 .verify().await?;
 
         // article isn't rendered yet

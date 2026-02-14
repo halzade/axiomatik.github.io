@@ -39,7 +39,7 @@
             <br/>
             <div class="field">
                 <label>jméno autora zobrazené na článcích:</label>
-                <form id="author-form" action="/account/update-author" method="post" style="display: inline;">
+                <form id="author-form" action="/account/update-author" method="post">
                     <span id="author-name-display">{{ author_name }}</span>&nbsp;&nbsp;
                     <input type="text" name="author_name" id="author-name-input" value="{{ author_name }}" style="display: none;">
                     <button type="button" id="btn-edit">Změnit</button>
@@ -61,7 +61,7 @@
             <div class="article-item card">
                 <div class="article-header">
                     <div class="left">
-                        <a class="" href="{{ article.article_file_name }}.html">{{ article.article_file_name }}</a>
+                        <a class="" href="https://{{ server_host }}:{{ server_port }}/{{ article.article_file_name }}">{{ article.article_file_name }}</a>
                         <br/>
                         <span class="">{{ article.date }}</span>
                         <br/>
@@ -79,7 +79,7 @@
             {% endfor %}
         </div>
     </main>
-    <footer class="w8">
+    <footer class="">
         <p>NEXO © 2026 </p>
     </footer>
 </div>

@@ -2,6 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Přihlášení - NEXO</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/styles-dark.css" media="(prefers-color-scheme: dark)">
@@ -9,26 +10,29 @@
     <link rel="stylesheet" href="../css/webapp-dark.css" media="(prefers-color-scheme: dark)">
 </head>
 <body>
-    <div>
-        <main data-error="{{ error }}">
-            <h1>Přihlášení</h1>
-            <br/>
-            <form action="/login" method="post">
-                <div id="login-error" style="display: none; color: #dc3545; margin-bottom: 20px;">
-                    Neplatné jméno nebo heslo
-                </div>
-                <div>
-                    <label>Uživatelské jméno</label>
-                    <input type="text" name="username" required id="username">
-                </div>
-                <div>
-                    <label>Heslo</label>
-                    <input type="password" name="password" required id="password">
-                </div>
-                <button type="submit">Přihlásit se</button>
-            </form>
-            <script src="/js/login.js" defer></script>
-        </main>
-    </div>
+<div class="all">
+    <main class="w8 content" data-error="{{ error }}">
+        <h1>Přihlášení</h1>
+        <br/>
+        <form action="/login" method="post">
+            <div id="login-error" style="display: none; color: #dc3545; margin-bottom: 20px;">
+                Neplatné jméno nebo heslo
+            </div>
+            <div>
+                <label>Uživatelské jméno</label>
+                <input type="text" name="username" required id="username">
+            </div>
+            <div>
+                <label>Heslo</label>
+                <input type="password" name="password" required id="password">
+            </div>
+            <button type="submit">Přihlásit se</button>
+        </form>
+        <script src="/js/login.js" defer></script>
+    </main>
+    <footer class="">
+        <p>NEXO © 2026 </p>
+    </footer>
+</div>
 </body>
 </html>
