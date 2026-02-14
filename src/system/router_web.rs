@@ -95,6 +95,7 @@ impl WebRouter {
         let ret = Router::new()
             .route("/search", get(search::handle_search))
             // serve static directories (nest service)
+            .nest_service("/image", ServeDir::new("web/image"))
             .nest_service("/css", ServeDir::new("web/css"))
             .nest_service("/js", ServeDir::new("web/js"))
             .nest_service("/u", ServeDir::new("web/u"))

@@ -62,7 +62,7 @@ button:hover, input[type="file"]::file-selector-button:hover {
 }
 
 .weather {
-    background-image: url("../images/weather-icon-17-light.png");
+    background-image: url("../image/weather-icon-17-light.png");
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -74,7 +74,7 @@ a h1, a h2, a h3, a h4, a h5, a h6 {
 }
 
 .search-icon {
-    background-image: url('../images/search-50-white.png');
+    background-image: url('../image/search-50-white.png');
 }
 
 .category {
@@ -95,5 +95,5 @@ a h1, a h2, a h3, a h4, a h5, a h6 {
 }
 
 .white-arrow {
-    background-image: url("../images/black_arrow.png");
+    background-image: url("../image/black_arrow.png");
 }
