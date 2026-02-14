@@ -42,7 +42,7 @@ pub async fn render_finance(state: &TheState) -> Result<(), FinanceError> {
     let articles = state.dba.articles_by_category("finance", 100).await?;
     let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
 
-    let split = articles.len() / 3;
+    let split = (articles.len() + 1) / 2;
     let (articles_left, articles_right) = articles.split_at(split);
     let finance = FinanceTemplate {
         date: state.ds.date(),
