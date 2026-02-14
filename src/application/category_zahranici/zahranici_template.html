@@ -69,7 +69,7 @@
                 <section class="article-grid text">
                     {% for article in articles_left %}
                     <article class="card first">
-                        <a href="#{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
+                        <a href="{{ article.article_file_name }}"><img src="{{ article.image_288_path }}" alt="{{ article.image_desc }}"></a>
                         <div class="article-right">
                             <a href="#"><h2>{{ article.title }}</h2></a><br/>
                             <span class="category always-white">Zahraničí</span><br/>

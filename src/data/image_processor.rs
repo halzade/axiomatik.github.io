@@ -47,7 +47,14 @@ fn resized_and_save_image(
     resolution_image_suffix: &str,
     ext: &str,
 ) -> Result<(), ImageProcessorError> {
-    let resized = img.resize_to_fill(w, h, Lanczos3);
+    let aspect_ratio = h as f64 / w as f64;
+    let new_height = (w as f64 * aspect_ratio).round() as u32;
+
+    /*
+     * scale the image
+     */
+    let resized = img.resize_to_fill(w, new_height, Lanczos3);
+
     let name = format!("{}_{}.{}", file_base, resolution_image_suffix, ext);
     save_image(&resized, name.as_str())?;
     Ok(())
