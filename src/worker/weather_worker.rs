@@ -18,6 +18,7 @@ pub fn start_weather_worker(state: TheState) -> Result<(), WeatherWorkerError> {
         let mut interval = interval(Duration::from_mins(60));
 
         loop {
+            interval.tick().await;
             let state_c = state.clone();
 
             // task thread
@@ -35,7 +36,6 @@ pub fn start_weather_worker(state: TheState) -> Result<(), WeatherWorkerError> {
                     info!("weather action: nothing changed");
                 }
             });
-            interval.tick().await;
         }
     });
 
