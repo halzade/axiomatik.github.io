@@ -241,5 +241,5 @@ async fn serve_this(path: &str, request: Request<Body>) -> Result<Response, WebR
 
 async fn serve_404() -> Result<Response, WebRouterError> {
     warn!("web router fallback");
-    Ok((StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string())).into_response())
+    Ok((StatusCode::NOT_FOUND, Html("404; stránka nenalezena".to_string())).into_response())
 }

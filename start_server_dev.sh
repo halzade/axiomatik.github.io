@@ -11,4 +11,4 @@ export APP_ENVIRONMENT=dev
 # cargo run -- create-user lukas dev
 
 echo "starting"
-cargo run
+cargo run &

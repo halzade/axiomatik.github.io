@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="all">
-    <header class="topbar">
+    <header class="w8 topbar">
         <div class="topbar-content">
             <div class="left">
                 {{ date }}<br/>
@@ -22,23 +22,40 @@
             </div>
             <div class="right search">
                 <form action="/search" method="get" class="search-form">
-                    <input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
-                    <button type="submit">
-                        <div class="search-icon" aria-label="Hledat"></div>
-                    </button>
+                    <button type="submit" class="search-button" aria-label="Hledat"><span class="search-icon"></span></button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="q" placeholder="Hledat..." minlength="3" maxlength="100" required>
                 </form>
             </div>
         </div>
     </header>
-    <nav class="main-nav">
-        <a href="republika.html">republika</a>
-        <a href="zahranici.html">zahraničí</a>
-        <a href="technologie.html">technologie</a>
-        <a href="finance_template.html">finance</a>
-        <a href="veda.html">věda</a>
+    <nav class="w8 main-nav">
+        <a href="republika.html">REPUBLIKA</a>
+        <a href="zahranici.html">ZAHRANIČÍ</a>
+        <a href="technologie.html">TECHNOLOGIE</a>
+        <a href="finance.html">FINANCE</a>
+        <a href="veda.html">VĚDA</a>
     </nav>
-
-    <main class="content category-page">
+    <div class="w8 most">
+        <h2>Nejsledovanější</h2>
+        <div class="most-articles">
+            <div class="arrow red-arrow-left"></div>
+            {% for article in articles_most_read %}
+            <table>
+                <tr>
+                    <td>
+                        <img class="most-image" src="{{ article.image_50_path }}" alt="{{ article.image_desc }}">
+                    </td>
+                    <td>
+                        <h3>{{ article.title }}</h3><br/>
+                        <p>{{ article.mini_text }}</p>
+                    </td>
+                </tr>
+            </table>
+            {% endfor %}
+            <div class="arrow red-arrow-right right-click-arrow"></div>
+        </div>
+    </div>
+    <div class="little"></div>
+    <main class="w8 content">
         <header class="category-header">
             <h1>{{ title }}</h1>
         </header>
@@ -63,8 +80,8 @@
             {% endfor %}
         </section>
     </main>
-    <footer>
-        <p>NEXO © 2026</p>
+    <footer class="w8">
+        <p>NEXO © 2026 </p>
     </footer>
 </div>
 </body>

@@ -189,6 +189,7 @@ impl DatabaseArticle {
 
     /**
      * returns Articles with most views
+     * TODO keep these in memory, refresh every hour or so
      */
     pub async fn most_read_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
         let mut result_response_set = self

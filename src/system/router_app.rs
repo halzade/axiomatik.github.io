@@ -31,6 +31,7 @@ use axum_login::AuthManagerLayerBuilder;
 use database_user::Role::Editor;
 use http::StatusCode;
 use thiserror::Error;
+use tower_http::services::{ServeDir, ServeFile};
 use tower_sessions::cookie::SameSite::Strict;
 use tower_sessions::{MemoryStore, SessionManagerLayer};
 use tracing::log::debug;
@@ -183,6 +184,14 @@ impl ApplicationRouter {
                .post(login::handle_login),
             )
             .route("/ping", get("{\"message\": \"app ping\"}"))
+
+            // static content
+            .nest_service("/image", ServeDir::new("web/image"))
+            .nest_service("/css", ServeDir::new("web/css"))
+            .nest_service("/js", ServeDir::new("web/js"))
+            .nest_service("/u", ServeDir::new("web/u"))
+            .route_service("/favicon.ico", ServeFile::new("web/favicon.ico"))
+
             // protected routes
             .merge(protected_routes)
             // everything already served, user requested for non-existent content
@@ -225,5 +234,5 @@ async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Ne
 
 async fn show_404() -> impl IntoResponse {
     warn!("app router fallback");
-    (StatusCode::NOT_FOUND, Html("404, stránka nenalezená".to_string()))
+    (StatusCode::NOT_FOUND, Html("404; stránka nenalezena".to_string()))
 }

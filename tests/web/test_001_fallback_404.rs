@@ -11,7 +11,7 @@ mod tests {
         #[rustfmt::skip]
         ac.web().get_url("/non-existent-page.html").await?
             .must_see_response(StatusCode::NOT_FOUND)
-            .body("404, stránka nenalezená")
+            .body("404; stránka nenalezena")
             .verify().await?;
 
         Ok(())

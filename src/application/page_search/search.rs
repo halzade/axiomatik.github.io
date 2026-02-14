@@ -1,5 +1,5 @@
 use crate::data::text_validator::validate_search_query;
-use crate::db::database_article_data::ShortArticleData;
+use crate::db::database_article_data::{MiniArticleData, ShortArticleData};
 use crate::system::server::TheState;
 use askama::Template;
 use axum::extract::State;
@@ -7,11 +7,7 @@ use axum::response::{Html, IntoResponse, Response};
 use axum::Form;
 use http::StatusCode;
 use serde::Deserialize;
-use thiserror::Error;
 use tracing::error;
-
-#[derive(Debug, Error)]
-pub enum SerchError {}
 
 #[derive(Deserialize)]
 pub struct SearchPayload {
@@ -25,6 +21,7 @@ pub struct SearchTemplate {
     pub date: String,
     pub weather: String,
     pub name_day: String,
+    pub articles_most_read: Vec<MiniArticleData>,
     pub articles: Vec<ShortArticleData>,
 }
 
@@ -51,6 +48,18 @@ pub async fn handle_search(
         .collect();
 
     let articles_r = state.dba.articles_by_words(search_words, 20).await;
+    let articles_most_read_r = state.dba.most_read_by_views().await;
+
+    let articles_most_read_use;
+    match articles_most_read_r {
+        Ok(articles_most_read) => {
+            articles_most_read_use = articles_most_read;
+        }
+        Err(e) => {
+            error!("error while getting most read articles: {}", e);
+            articles_most_read_use = Vec::new();
+        }
+    }
 
     match articles_r {
         Ok(articles) => {
@@ -60,9 +69,13 @@ pub async fn handle_search(
                 weather: state.ds.weather(),
                 name_day: state.ds.name_day(),
                 articles,
+                articles_most_read: articles_most_read_use,
             };
 
-            template.render().map_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response(), |html| Html(html).into_response())
+            template.render().map_or_else(
+                |_| StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+                |html| Html(html).into_response(),
+            )
         }
         Err(_) => {
             error!("error while searching articles");
@@ -73,9 +86,13 @@ pub async fn handle_search(
                 weather: state.ds.weather(),
                 name_day: state.ds.name_day(),
                 articles: Vec::new(),
+                articles_most_read: articles_most_read_use,
             };
 
-            template.render().map_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response(), |html| Html(html).into_response())
+            template.render().map_or_else(
+                |_| StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+                |html| Html(html).into_response(),
+            )
         }
     }
 }
