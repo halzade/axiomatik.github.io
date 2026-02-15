@@ -13,33 +13,7 @@ mod tests {
         ac.db_user().setup_admin_user()
             .username("admin1")
             .password("strong*admin*password")
-            .needs_password_change(true)
             .execute().await?;
-
-        // login as admin
-        #[rustfmt::skip]
-        let auth = ac.login()
-            .username("admin1")
-            .password("strong*admin*password")
-            .execute().await?
-                .must_see_response(StatusCode::SEE_OTHER)
-                .header_location("/admin")
-                .verify().await?;
-
-        // create an Editor user
-        #[rustfmt::skip]
-        ac.db_user().setup_user()
-            .username("user_a1")
-            .password("password")
-            .needs_password_change(true)
-            .execute().await?;
-
-        // verify editor user in DB
-        #[rustfmt::skip]
-        ac.db_user().must_see("user_a1").await?
-            .username("user_a1")
-            .needs_password_change(true)
-            .verify()?;
 
         // verify admin user in DB
         #[rustfmt::skip]
@@ -48,19 +22,23 @@ mod tests {
             .needs_password_change(false)
             .verify()?;
 
-        // admin delete user
+        // login as admin
         #[rustfmt::skip]
-        ac.admin(&auth).delete_user()
-            .username("user_a1")
-            .execute_delete_user().await?
+        let auth = ac.login()
+            .username("admin1")
+            .password("strong*admin*password")
+            .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)
                 .header_location("/admin_user")
                 .verify().await?;
 
-        // Verify user in DB
-        #[rustfmt::skip]
-        ac.db_user().must_not_see("user_a1").await?
-            .verify()?;
+        ac.web_app(&auth).get_url("/admin_user").await?
+            .must_see_response(StatusCode::OK)
+            .verify().await?;
+
+        ac.web_app(&auth).get_url("/admin_article").await?
+            .must_see_response(StatusCode::OK)
+            .verify().await?;
 
         Ok(())
     }

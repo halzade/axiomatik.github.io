@@ -266,15 +266,13 @@ async fn admin_middleware(auth_session: AuthSession, req: Request<Body>, next: N
                 return next.run(req).await;
             }
             info!("admin_middleware: role NOT Admin: {:?}", user.role);
+            Redirect::to("/login").into_response()
         }
         None => {
             info!("admin_middleware: No user in session");
-            return Redirect::to("/login").into_response();
+            Redirect::to("/login").into_response()
         }
     }
-
-    info!("admin_middleware: default redirect to /account (Unauthorized)");
-    Redirect::to("/account").into_response()
 }
 
 async fn show_404() -> impl IntoResponse {

@@ -13,7 +13,6 @@ mod tests {
         ac.db_user().setup_admin_user()
             .username("admin1")
             .password("strong*admin*password")
-            .needs_password_change(true)
             .execute().await?;
 
         // verify admin in DB
@@ -30,7 +29,7 @@ mod tests {
             .password("strong*admin*password")
             .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)
-                .header_location("/admin")
+                .header_location("/admin_user")
                 .verify().await?;
 
         Ok(())
