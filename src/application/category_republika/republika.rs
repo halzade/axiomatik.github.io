@@ -27,6 +27,8 @@ pub enum RepublikaError {
     SurrealSystem(#[from] SurrealSystemError),
 }
 
+const REPUBLIKA: &str = "republika";
+
 #[derive(Template)]
 #[template(path = "application/category_republika/republika_template.html")]
 pub struct RepublikaTemplate<'a> {
@@ -39,8 +41,8 @@ pub struct RepublikaTemplate<'a> {
 }
 
 pub async fn render_republika(state: &TheState) -> Result<(), RepublikaError> {
-    let articles = state.dba.articles_by_category("republika", 100).await?;
-    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
+    let articles = state.dba.articles_by_category(REPUBLIKA, 100).await?;
+    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_in_category_by_views(REPUBLIKA).await?;
 
     let split = articles.len().div_ceil(2);
     let (articles_left, articles_right) = articles.split_at(split);

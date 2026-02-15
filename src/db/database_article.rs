@@ -189,13 +189,28 @@ impl DatabaseArticle {
 
     /**
      * returns Articles with most views
-     * TODO keep these in memory, refresh every hour or so
-     * TODO most read articles per category
+     * TODO XX most read articles per category
+     * TODO XX keep these in memory, refresh every hour or so
      */
-    pub async fn most_read_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
+    pub async fn most_read_all_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
         #[rustfmt::skip]
         let mut result_response_set = self.surreal.db
             .query("SELECT (type::record('article', article_file_name)).* AS article, views FROM article_views ORDER BY views DESC LIMIT 3")
+            .await?;
+
+        let most_read_articles: Vec<MiniArticleData> = result_response_set.take("article")?;
+
+        Ok(most_read_articles)
+    }
+
+    pub async fn most_read_in_category_by_views(
+        &self,
+        category: &str,
+    ) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
+        #[rustfmt::skip]
+        let mut result_response_set = self.surreal.db
+            .query("SELECT (type::record('article', article_file_name)).* AS article, views FROM article_views WHERE category = $category ORDER BY views DESC LIMIT 3")
+            .bind(("category", category.to_string()))
             .await?;
 
         let most_read_articles: Vec<MiniArticleData> = result_response_set.take("article")?;
@@ -415,14 +430,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_most_read_article_one() -> Result<(), TrustError> {
+    async fn test_most_read_all_article_one() -> Result<(), TrustError> {
         let dba = DatabaseArticle::new_from_scratch().await?;
 
         let article_1 = "test-11.html".to_string();
         dba.create_article(easy_article("Test 11", "user AA1", "text")).await?;
         dba.increase_article_views(article_1.clone()).await?;
 
-        let most_read = dba.most_read_by_views().await?;
+        let most_read = dba.most_read_all_by_views().await?;
 
         assert_eq!(most_read.len(), 1);
         assert_eq!(most_read[0].article_file_name, article_1);
@@ -430,10 +445,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_most_read_article_none() -> Result<(), TrustError> {
+    async fn test_most_read_all_article_none() -> Result<(), TrustError> {
         let dba = DatabaseArticle::new_from_scratch().await?;
 
-        let most_read = dba.most_read_by_views().await?;
+        let most_read = dba.most_read_all_by_views().await?;
 
         assert_eq!(most_read.len(), 0);
         Ok(())
@@ -471,7 +486,7 @@ mod tests {
 
         dba.increase_article_views(article_5.clone()).await?;
 
-        let most_read = dba.most_read_by_views().await?;
+        let most_read = dba.most_read_all_by_views().await?;
         assert_eq!(most_read.len(), 3);
         assert_eq!(most_read[0].article_file_name, article_4);
         assert_eq!(most_read[1].article_file_name, article_3);

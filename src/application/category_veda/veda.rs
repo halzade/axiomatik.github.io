@@ -38,9 +38,11 @@ pub struct VedaTemplate<'a> {
     pub articles_right: &'a [ShortArticleData],
 }
 
+const VEDA: &str = "veda";
+
 pub async fn render_veda(state: &TheState) -> Result<(), VedaError> {
-    let articles = state.dba.articles_by_category("veda", 100).await?;
-    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
+    let articles = state.dba.articles_by_category(VEDA, 100).await?;
+    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_in_category_by_views(VEDA).await?;
 
     let split = articles.len().div_ceil(2);
     let (articles_left, articles_right) = articles.split_at(split);

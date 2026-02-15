@@ -48,7 +48,7 @@ pub async fn handle_search(
         .collect();
 
     let articles_r = state.dba.articles_by_words(search_words, 20).await;
-    let articles_most_read_r = state.dba.most_read_by_views().await;
+    let articles_most_read_r = state.dba.most_read_all_by_views().await;
 
     let articles_most_read_use = articles_most_read_r.unwrap_or_else(|e| {
         error!("error while getting most read articles: {}", e);

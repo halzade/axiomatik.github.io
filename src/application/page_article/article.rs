@@ -83,7 +83,9 @@ pub async fn render_article(article_file_name: &str, state: &TheState) -> Result
     let article = state.dba.article_by_file_name(article_file_name).await?;
 
     let related_articles = state.dba.related_articles(article.related_articles).await?;
-    let articles_most_read = state.dba.most_read_by_views().await?;
+
+    let category = article.category.clone();
+    let articles_most_read = state.dba.most_read_in_category_by_views(&category).await?;
 
     let article_template = ArticleTemplate {
         date: state.ds.date(),

@@ -42,7 +42,7 @@ pub struct NewsTemplate {
 }
 
 pub async fn render_news(state: &TheState) -> Result<(), NewsError> {
-    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
+    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_all_by_views().await?;
     let z_republiky = state.dba.articles_by_category("republika", 10).await?;
     let ze_zahranici = state.dba.articles_by_category("zahranici", 10).await?;
     let technologie = state.dba.articles_by_category("technologie", 10).await?;

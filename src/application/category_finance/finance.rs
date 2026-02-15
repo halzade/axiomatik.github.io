@@ -27,6 +27,8 @@ pub enum FinanceError {
     SurrealSystem(#[from] SurrealSystemError),
 }
 
+const FINANCE: &str = "finance";
+
 #[derive(Template)]
 #[template(path = "application/category_finance/finance_template.html")]
 pub struct FinanceTemplate<'a> {
@@ -39,8 +41,9 @@ pub struct FinanceTemplate<'a> {
 }
 
 pub async fn render_finance(state: &TheState) -> Result<(), FinanceError> {
-    let articles = state.dba.articles_by_category("finance", 100).await?;
-    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
+    let articles = state.dba.articles_by_category(FINANCE, 100).await?;
+    let articles_most_read: Vec<MiniArticleData> =
+        state.dba.most_read_in_category_by_views(FINANCE).await?;
 
     let split = articles.len().div_ceil(2);
     let (articles_left, articles_right) = articles.split_at(split);

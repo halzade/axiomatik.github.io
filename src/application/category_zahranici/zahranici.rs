@@ -27,6 +27,8 @@ pub enum ZahraniciError {
     SurrealSystem(#[from] SurrealSystemError),
 }
 
+const ZAHRANICI: &str = "zahranici";
+
 #[derive(Template)]
 #[template(path = "application/category_zahranici/zahranici_template.html")]
 pub struct ZahraniciTemplate<'a> {
@@ -39,8 +41,8 @@ pub struct ZahraniciTemplate<'a> {
 }
 
 pub async fn render_zahranici(state: &TheState) -> Result<(), ZahraniciError> {
-    let articles = state.dba.articles_by_category("zahranici", 100).await?;
-    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_by_views().await?;
+    let articles = state.dba.articles_by_category(ZAHRANICI, 100).await?;
+    let articles_most_read: Vec<MiniArticleData> = state.dba.most_read_in_category_by_views(ZAHRANICI).await?;
 
     let split = articles.len().div_ceil(2);
     let (articles_left, articles_right) = articles.split_at(split);
