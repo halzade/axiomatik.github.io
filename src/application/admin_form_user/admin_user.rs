@@ -90,7 +90,7 @@ pub async fn handle_delete_user(
         }
     }
 
-    Ok(Redirect::to("/admin/users").into_response())
+    Ok(Redirect::to("/admin_user").into_response())
 }
 
 pub async fn show_create_user_form(State(state): State<TheState>) -> Result<Response, AdminUserError> {
@@ -123,5 +123,5 @@ pub async fn handle_create_user(
 
     state.dbu.create_user(new_user).await.map_err(|e| AdminUserError::Database(e.to_string()))?;
 
-    Ok(Redirect::to("/admin/users").into_response())
+    Ok(Redirect::to("/admin_user").into_response())
 }

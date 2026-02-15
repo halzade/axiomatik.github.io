@@ -28,12 +28,12 @@
     <main class="w8 content">
         <h1>Správa uživatelů</h1>
         <div class="admin-nav">
-            <a href="/admin/users">Uživatelé</a> | 
-            <a href="/admin/articles">Články</a>
+            <a href="/admin_user">Uživatelé</a> | 
+            <a href="/admin_article">Články</a>
         </div>
         <br/>
         <div class="account-buttons">
-            <button type="button" onclick="window.location.href='/admin/users/create'" class="button">
+            <button type="button" onclick="window.location.href='/admin_user/create'" class="button">
                 Vytvořit nového redaktora
             </button>
         </div>
@@ -55,7 +55,7 @@
                     <td>{{ user.role }}</td>
                     <td>
                         {% if user.role.to_string() == "Editor" %}
-                        <form action="/admin/users/delete/{{ user.username }}" method="post" onsubmit="return confirm('Opravdu smazat uživatele {{ user.username }}?');">
+                        <form action="/admin_user/delete/{{ user.username }}" method="post" onsubmit="return confirm('Opravdu smazat uživatele {{ user.username }}?');">
                             <button type="submit">Smazat</button>
                         </form>
                         {% endif %}

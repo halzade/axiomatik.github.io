@@ -6,7 +6,7 @@ mod tests {
     use axiomatik_web::trust;
 
     #[tokio::test]
-    async fn test_002_create_and_delete_article() -> Result<(), TrustError> {
+    async fn test_create_and_delete_article() -> Result<(), TrustError> {
         // setup
         let ac = AppController::new().await?;
 

@@ -117,9 +117,16 @@ pub mod trust {
             pub mod account_data;
         }
         pub mod admin {
-            pub mod admin_article_data;
+            pub mod admin_article {
+                pub mod admin_article_data;
+                pub mod admin_delete_article_controller;
+            }
+            pub mod admin_user {
+                pub mod admin_create_user_controller;
+                pub mod admin_delete_user_controller;
+                pub mod admin_user_data;
+            }
             pub mod admin_controller;
-            pub mod admin_user_data;
         }
         pub mod article {
             pub mod create_article_controller;

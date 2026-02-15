@@ -14,7 +14,7 @@ impl AdminArticleData {
 
 #[derive(Clone, Debug)]
 pub struct AdminArticleFluent {
-    data: Arc<RwLock<AdminArticleData>>,
+    pub data: Arc<RwLock<AdminArticleData>>,
 }
 
 impl Default for AdminArticleFluent {
@@ -39,5 +39,9 @@ impl AdminArticleFluent {
         AdminArticleData {
             article_file_name: guard.article_file_name.clone(),
         }
+    }
+
+    pub fn reset(&self) {
+        *self.data.write() = AdminArticleData::new();
     }
 }
