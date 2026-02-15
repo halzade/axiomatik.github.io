@@ -83,6 +83,11 @@ pub fn path_exists(path: &str) -> Result<(), TrustError> {
     Ok(())
 }
 
+pub fn path_doesnt_exists(path: &str) -> Result<(), TrustError> {
+    assert!(!Path::new(path).exists());
+    Ok(())
+}
+
 pub fn remove_file(path: &str) -> Result<(), TrustError> {
     assert!(fs::remove_file(path).is_ok());
     Ok(())
