@@ -5,7 +5,7 @@ mod tests {
     use http::StatusCode;
 
     #[tokio::test]
-    async fn test_001_create_and_delete_user() -> Result<(), TrustError> {
+    async fn test_001_admin_login() -> Result<(), TrustError> {
         let ac = AppController::new().await?;
 
         // create admin user

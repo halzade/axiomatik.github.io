@@ -174,13 +174,13 @@ impl ApplicationRouter {
          * protected admin routes
          */
         let admin_article_routes = Router::new()
-            .route("/admin_article", get(admin_article::show_admin_articles))
-            .route("/admin_article/delete/{article_file_name}", post(admin_article::handle_delete_article))
+            .route("/", get(admin_article::show_admin_articles))
+            .route("/delete/{article_file_name}", post(admin_article::handle_delete_article))
             .layer(middleware::from_fn(admin_middleware));
         let admin_user_routes = Router::new()
-            .route("/users_user", get(admin_user::show_admin_users))
-            .route("/users_user/create", get(admin_user::show_create_user_form).post(admin_user::handle_create_user))
-            .route("/users_user/delete/{username}", post(admin_user::handle_delete_user))
+            .route("/", get(admin_user::show_admin_users))
+            .route("/create", get(admin_user::show_create_user_form).post(admin_user::handle_create_user))
+            .route("/delete/{username}", post(admin_user::handle_delete_user))
             .layer(middleware::from_fn(admin_middleware));
 
         /*
@@ -188,7 +188,7 @@ impl ApplicationRouter {
          */
         let protected_routes = Router::new()
             .nest("/admin_article", admin_article_routes)
-            .nest("/users_user", admin_user_routes)
+            .nest("/admin_user", admin_user_routes)
             .route("/form", get(create_article::show_article_create_form))
             .route("/create", post(create_article::create_article))
             .route("/change-password",

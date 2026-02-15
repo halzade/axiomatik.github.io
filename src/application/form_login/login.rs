@@ -1,5 +1,5 @@
 use crate::data::text_validator::validate_input_simple;
-use crate::db::database_user::{SurrealUserError, User};
+use crate::db::database_user::{Role, SurrealUserError, User};
 use crate::system::router_app::AuthSession;
 use crate::system::server::TheState;
 use askama::Template;
@@ -65,6 +65,9 @@ pub async fn handle_login(
             if user.needs_password_change {
                 debug!("Redirecting to change password");
                 Redirect::to("/change-password").into_response()
+            } else if user.role == Role::Admin {
+                debug!("Redirecting to admin_user");
+                Redirect::to("/admin_user").into_response()
             } else {
                 debug!("Redirecting to account");
                 Redirect::to("/account").into_response()
