@@ -5,6 +5,7 @@ use crate::db::database_user::DatabaseUser;
 use crate::system::server::TheState;
 use crate::system::{configuration, data_system, data_updates, logger, server};
 use crate::trust::app::account::account_controller::AccountController;
+use crate::trust::app::admin::admin_controller::AdminController;
 use crate::trust::app::article::create_article_controller::CreateArticleController;
 use crate::trust::app::change_password::change_password_controller::ChangePasswordController;
 use crate::trust::app::login::login_controller::LoginController;
@@ -21,6 +22,7 @@ use tracing::debug;
 pub struct AppController {
     // app
     account: Arc<AccountController>,
+    admin: Arc<AdminController>,
     article: Arc<CreateArticleController>,
     change_password: Arc<ChangePasswordController>,
     login: Arc<LoginController>,
@@ -76,6 +78,7 @@ impl AppController {
         Ok(Self {
             // app
             account: Arc::new(AccountController::new(app_router.clone())),
+            admin: Arc::new(AdminController::new(app_router.clone())),
             article: Arc::new(CreateArticleController::new(app_router.clone())),
             change_password: Arc::new(ChangePasswordController::new(app_router.clone())),
             login: Arc::new(LoginController::new(app_router.clone())),
@@ -114,6 +117,11 @@ impl AppController {
 
     pub fn web(&self) -> Arc<WebController> {
         self.web.clone()
+    }
+
+    pub fn admin(&self, auth: &str) -> Arc<AdminController> {
+        self.admin.set_cookie(Some(auth.to_string()));
+        self.admin.clone()
     }
 
     pub fn db_article(&self) -> Arc<DatabaseArticleController> {

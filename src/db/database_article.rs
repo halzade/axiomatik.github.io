@@ -287,6 +287,13 @@ impl DatabaseArticle {
         let _: Option<Article> = self.surreal.db.delete(("article", article_file_name)).await?;
         Ok(())
     }
+
+    pub async fn article_by_file_name_optional(
+        &self,
+        article_file_name: &str,
+    ) -> Result<Option<Article>, SurrealArticleError> {
+        Ok(self.surreal.db.select(("article", article_file_name)).await?)
+    }
 }
 
 #[cfg(test)]

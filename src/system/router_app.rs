@@ -1,5 +1,7 @@
-use crate::application::admin;
-use crate::application::admin::AdminError;
+use crate::application::admin_form_article::admin_article;
+use crate::application::admin_form_article::admin_article::AdminArticleError;
+use crate::application::admin_form_user::admin_user;
+use crate::application::admin_form_user::admin_user::AdminUserError;
 use crate::application::category_finance::finance::FinanceError;
 use crate::application::category_republika::republika::RepublikaError;
 use crate::application::category_technologie::technologie::TechnologieError;
@@ -79,8 +81,11 @@ pub enum AppRouterError {
     #[error("form error: {0}")]
     RouterForm(#[from] FormArticleCreateError),
 
-    #[error("admin error: {0}")]
-    RouterAdminError(#[from] AdminError),
+    #[error("admin article error: {0}")]
+    RouterAdminArticleError(#[from] AdminArticleError),
+
+    #[error("admin user error: {0}")]
+    RouterAdminUserError(#[from] AdminUserError),
 
     #[error("change password error: {0}")]
     RouterChangePasswordError(#[from] ChangePasswordError),
@@ -140,7 +145,13 @@ impl IntoResponse for AccountError {
     }
 }
 
-impl IntoResponse for AdminError {
+impl IntoResponse for AdminArticleError {
+    fn into_response(self) -> Response {
+        (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+    }
+}
+
+impl IntoResponse for AdminUserError {
     fn into_response(self) -> Response {
         (StatusCode::BAD_REQUEST, self.to_string()).into_response()
     }
@@ -162,19 +173,22 @@ impl ApplicationRouter {
         /*
          * protected admin routes
          */
-        let admin_routes = Router::new()
-            .route("/users", get(admin::show_admin_users))
-            .route("/users/create", get(admin::show_create_user_form).post(admin::handle_create_user))
-            .route("/users/delete/:username", post(admin::handle_delete_user))
-            .route("/articles", get(admin::show_admin_articles))
-            .route("/articles/delete/:article_file_name", post(admin::handle_delete_article))
+        let admin_article_routes = Router::new()
+            .route("/admin_article", get(admin_article::show_admin_articles))
+            .route("/admin_article/delete/{article_file_name}", post(admin_article::handle_delete_article))
+            .layer(middleware::from_fn(admin_middleware));
+        let admin_user_routes = Router::new()
+            .route("/users_user", get(admin_user::show_admin_users))
+            .route("/users_user/create", get(admin_user::show_create_user_form).post(admin_user::handle_create_user))
+            .route("/users_user/delete/{username}", post(admin_user::handle_delete_user))
             .layer(middleware::from_fn(admin_middleware));
 
         /*
          * protected routes
          */
         let protected_routes = Router::new()
-            .nest("/admin", admin_routes)
+            .nest("/admin_article", admin_article_routes)
+            .nest("/users_user", admin_user_routes)
             .route("/form", get(create_article::show_article_create_form))
             .route("/create", post(create_article::create_article))
             .route("/change-password",

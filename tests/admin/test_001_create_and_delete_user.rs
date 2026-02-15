@@ -23,7 +23,7 @@ mod tests {
             .password("strong*admin*password")
             .execute().await?
                 .must_see_response(StatusCode::SEE_OTHER)
-                .header_location("/TODO")
+                .header_location("/admin")
                 .verify().await?;
 
         // Create an Editor user
@@ -41,7 +41,14 @@ mod tests {
             .needs_password_change(false)
             .verify()?;
 
-        // TODO admin delete user
+        // admin delete user
+        #[rustfmt::skip]
+        ac.admin(&auth).delete_user()
+            .username("user_a1")
+            .execute_delete_user().await?
+                .must_see_response(StatusCode::SEE_OTHER)
+                .header_location("/admin/users")
+                .verify().await?;
 
         // Verify user in DB
         #[rustfmt::skip]

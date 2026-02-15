@@ -121,7 +121,7 @@ pub fn validate_input_simple(input: &str) -> Result<(), TextValidationError> {
         return Err(InvalidLength);
     }
     for c in input.chars() {
-        if !c.is_ascii_alphanumeric() && c != '_' {
+        if !c.is_ascii_alphanumeric() && c != '_' && c != '*' {
             return Err(SimpleInputIncorrectCharacter(c));
         }
     }

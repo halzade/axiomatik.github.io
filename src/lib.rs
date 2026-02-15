@@ -14,6 +14,12 @@
  * Implementation
  */
 pub mod application {
+    pub mod admin_form_article {
+        pub mod admin_article;
+    }
+    pub mod admin_form_user {
+        pub mod admin_user;
+    }
     pub mod form_account {
         pub mod account;
     }
@@ -54,7 +60,6 @@ pub mod application {
     pub mod category_zahranici {
         pub mod zahranici;
     }
-    pub mod admin;
 }
 pub mod db {
     pub mod database;
@@ -110,6 +115,11 @@ pub mod trust {
         pub mod account {
             pub mod account_controller;
             pub mod account_data;
+        }
+        pub mod admin {
+            pub mod admin_article_data;
+            pub mod admin_controller;
+            pub mod admin_user_data;
         }
         pub mod article {
             pub mod create_article_controller;

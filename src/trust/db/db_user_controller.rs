@@ -35,7 +35,7 @@ impl DatabaseUserController {
         SetupUserController::new(self.dbu.clone())
     }
 
-    pub fn setup_admin_user(&self) -> SetupUserController {
+    pub fn setup_admin_user(&self) -> SetupAdminController {
         SetupAdminController::new(self.dbu.clone())
     }
 
@@ -45,6 +45,74 @@ impl DatabaseUserController {
          */
         let real_o = self.dbu.get_user_by_name(username).await?;
         real_o.map_or_else(|| Err(TrustError::RealData), |real| Ok(DatabaseUserVerifier::new(real)))
+    }
+
+    pub async fn must_not_see(&self, username: &str) -> Result<DatabaseUserVerifierEmpty, TrustError> {
+        /*
+         * retrieve the real data
+         */
+        let real_o = self.dbu.get_user_by_name(username).await?;
+        Ok(DatabaseUserVerifierEmpty::new(real_o))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SetupAdminController {
+    dbu: Arc<DatabaseUser>,
+    input: LoginFluent,
+}
+
+impl SetupAdminController {
+    pub fn new(dbu: Arc<DatabaseUser>) -> Self {
+        Self { dbu, input: LoginFluent::new() }
+    }
+
+    pub fn username(&self, username: &str) -> &Self {
+        self.input.username(username);
+        self
+    }
+
+    pub fn password(&self, password: &str) -> &Self {
+        self.input.password(password);
+        self
+    }
+
+    pub fn needs_password_change(&self, needs: bool) -> &Self {
+        self.input.needs_password_change(needs);
+        self
+    }
+
+    pub async fn execute(&self) -> Result<(), TrustError> {
+        let data = self.input.get_data();
+        let username = data.username.unwrap_or_default();
+        let password = data.password.unwrap_or_default();
+
+        // db create user
+        self.dbu
+            .create_user(User {
+                username: username.to_string(),
+                author_name: username.to_string(),
+                password_hash: hash(password, DEFAULT_COST)?,
+                needs_password_change: data.needs_password_change,
+                role: Role::Admin,
+            })
+            .await?;
+        Ok(())
+    }
+}
+
+pub struct DatabaseUserVerifierEmpty {}
+
+impl DatabaseUserVerifierEmpty {
+    pub const fn new() -> Self {
+        Self {}
+    }
+
+    pub const fn verify(&self) -> Result<(), TrustError> {
+        if self.real_o.is_some() {
+            return Err(TrustError::RealData);
+        }
+        Ok(())
     }
 }
 

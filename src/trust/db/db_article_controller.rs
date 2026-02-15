@@ -1,5 +1,6 @@
 use crate::db::database_article::DatabaseArticle;
 use crate::system::logger;
+use crate::db::database_article_data::Article;
 use crate::trust::app::article::create_article_easy_builder::ArticleBuilder;
 use crate::trust::db::db_article_verifier::DatabaseArticleVerifier;
 use crate::trust::me::TrustError;
@@ -45,6 +46,35 @@ impl DatabaseArticleController {
         // build verifier
         Ok(DatabaseArticleVerifier::new(real))
     }
+
+    pub async fn must_not_see(
+        &self,
+        article_file_html: &str,
+    ) -> Result<DatabaseArticleVerifierEmpty, TrustError> {
+        /*
+         * retrieve the real data
+         */
+        let real_o = self.dba.article_by_file_name_optional(article_file_html).await?;
+        Ok(DatabaseArticleVerifierEmpty::new(real_o))
+    }
+}
+
+pub struct DatabaseArticleVerifierEmpty {
+    real_o: Option<Article>,
+}
+
+impl DatabaseArticleVerifierEmpty {
+    pub const fn new(real_o: Option<Article>) -> Self {
+        Self { real_o }
+    }
+
+    pub fn verify(&self) -> Result<(), TrustError> {
+        if self.real_o.is_some() {
+            return Err(TrustError::Validation("article should not exist".to_string()));
+        }
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -81,6 +111,33 @@ mod tests {
 
         assert!(err.is_err());
         assert_eq!(err.unwrap_err().to_string(), "validation error: 2 incorrect");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_must_not_see_pass() -> Result<(), TrustError> {
+        let ac = DatabaseArticleController::new_local().await?;
+
+        // No article created
+
+        ac.must_not_see("non-existent.html").await?
+            .verify()?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_must_not_see_fail() -> Result<(), TrustError> {
+        let ac = DatabaseArticleController::new_local().await?;
+
+        ac.db_setup_article("Existing Article", "Content").await?;
+
+        let err = ac.must_not_see("existing-article.html").await?
+            .verify();
+
+        assert!(err.is_err());
+        assert_eq!(err.unwrap_err().to_string(), "validation error: article should not exist");
+
         Ok(())
     }
 }
