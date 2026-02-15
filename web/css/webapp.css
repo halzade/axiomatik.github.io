@@ -32,7 +32,7 @@ label {
     font-size: 1rem;
 }
 
-#author-form {
+#author-form, form.delete {
     display: inline-block;
     max-width: none;
     min-width: 0;
@@ -172,4 +172,8 @@ input[readonly], input.read-only {
 input[readonly]:focus, input.read-only:focus {
     outline: none;
     box-shadow: none;
+}
+
+.admin-button {
+    width: 380px;
 }

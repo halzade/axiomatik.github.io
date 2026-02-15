@@ -101,12 +101,6 @@ pub struct ApplicationRouter {
     state: TheState,
 }
 
-impl ApplicationRouter {
-    pub const fn init(state: TheState) -> Result<Self, AppRouterError> {
-        Ok(Self { state })
-    }
-}
-
 impl IntoResponse for AppRouterError {
     fn into_response(self) -> Response {
         (StatusCode::BAD_REQUEST, self.to_string()).into_response()
@@ -158,6 +152,10 @@ impl IntoResponse for AdminUserError {
 }
 
 impl ApplicationRouter {
+    pub const fn init(state: TheState) -> Result<Self, AppRouterError> {
+        Ok(Self { state })
+    }
+
     #[rustfmt::skip]
     pub async fn start_app_router(&self) -> Router {
         info!("start_app_router()");

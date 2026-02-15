@@ -57,12 +57,13 @@ pub enum ApplicationError {
 
 #[tokio::main]
 async fn main() -> Result<(), ApplicationError> {
+    logger::config();
+
     /*
      * command arguments if any
      */
     let args: Vec<String> = env::args().collect();
-    error!("[{:?}]", args);
-
+    info!("{:?}", args);
     if args.len() > 1 {
         return Err(UnrecognizedParameters);
     }
@@ -113,7 +114,6 @@ async fn main() -> Result<(), ApplicationError> {
      * init application infrastructure
      */
     info!("Application starting...");
-    logger::config();
     // the uploads directory
     create_dir_all("web/u")?;
 
@@ -127,7 +127,7 @@ async fn main() -> Result<(), ApplicationError> {
 
     /*
      * routers
-     * - application router
+     * - app router
      * - web router
      */
     let app_router = server.start_app_router().await?;
@@ -167,7 +167,7 @@ async fn main() -> Result<(), ApplicationError> {
 mod tests {
 
     #[test]
-    fn text_context_load() {
+    fn test_context_load() {
         // the smokiest test ever
     }
 }

@@ -1,7 +1,8 @@
 use crate::application::form_change_password::change_password::ChangePasswordError::UserNotFound;
 use crate::data::text_validator::validate_input_simple;
 use crate::db::database::SurrealError;
-use crate::db::database_user::SurrealUserError;
+use crate::db::database_user::Role::Admin;
+use crate::db::database_user::{Role, SurrealUserError};
 use crate::system::router_app::AuthSession;
 use crate::system::server::TheState;
 use askama::Template;
@@ -11,6 +12,7 @@ use axum::Form;
 use bcrypt::{hash, DEFAULT_COST};
 use serde::Deserialize;
 use thiserror::Error;
+use Role::Editor;
 
 #[derive(Debug, Error)]
 pub enum ChangePasswordError {
@@ -86,8 +88,9 @@ pub async fn handle_change_password(
         if payload.new_password.len() < 3 {
             return Err(ChangePasswordError::PasswordTooShort);
         }
-        state
-            .dbu
+
+        #[rustfmt::skip]
+        state.dbu
             .update_user_password(username.clone(), hash(&payload.new_password, DEFAULT_COST)?)
             .await?;
 
@@ -102,7 +105,11 @@ pub async fn handle_change_password(
             None => Err(UserNotFound),
             Some(updated_user) => {
                 let _ = auth_session.login(&updated_user).await;
-                Ok(Redirect::to("/account").into_response())
+
+                match updated_user.role {
+                    Admin => Ok(Redirect::to("/admin_user").into_response()),
+                    Editor => Ok(Redirect::to("/account").into_response()),
+                }
             }
         };
     }

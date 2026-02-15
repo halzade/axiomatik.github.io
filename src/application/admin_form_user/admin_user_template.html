@@ -33,7 +33,7 @@
         </div>
         <br/>
         <div class="account-buttons">
-            <button type="button" onclick="window.location.href='/admin_user/create'" class="button">
+            <button type="button" onclick="window.location.href='/admin_user/create'" class="button admin-button">
                 Vytvořit nového redaktora
             </button>
         </div>
@@ -55,7 +55,7 @@
                     <td>{{ user.role }}</td>
                     <td>
                         {% if user.role.to_string() == "Editor" %}
-                        <form action="/admin_user/delete/{{ user.username }}" method="post" onsubmit="return confirm('Opravdu smazat uživatele {{ user.username }}?');">
+                        <form class="delete" action="/admin_user/delete/{{ user.username }}" method="post" onsubmit="return confirm('Opravdu smazat uživatele {{ user.username }}?');">
                             <button type="submit">Smazat</button>
                         </form>
                         {% endif %}
