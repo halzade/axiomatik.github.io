@@ -3,8 +3,8 @@ use axiomatik_web::db::database;
 use axiomatik_web::db::database::SurrealError;
 use axiomatik_web::db::database_article::DatabaseArticle;
 use axiomatik_web::db::database_system::DatabaseSystem;
-use axiomatik_web::db::database_user::DatabaseUser;
-use axiomatik_web::system::commands::{create_user, delete_user, CommandError};
+use axiomatik_web::db::database_user::{DatabaseUser, SurrealUserError};
+use axiomatik_web::system::commands::{create_admin_user, CommandError};
 use axiomatik_web::system::configuration::ConfigurationError;
 use axiomatik_web::system::server::{ServerError, TheState};
 use axiomatik_web::system::{configuration, logger};
@@ -50,6 +50,9 @@ pub enum ApplicationError {
 
     #[error("weather error")]
     Weather(#[from] WeatherWorkerError),
+
+    #[error("surreal user error")]
+    SurrealUser(#[from] SurrealUserError),
 }
 
 #[tokio::main]
@@ -77,28 +80,19 @@ async fn main() -> Result<(), ApplicationError> {
      * the application state
      */
     let config = configuration::get_config()?;
+    #[rustfmt::skip]
     let state = TheState {
-        dba,
-        dbu,
-        dbs,
-        ds,
-        dv,
+        dba, dbu, dbs, ds, dv,
         start_time: chrono::Utc::now(),
         config: config.clone(),
     };
 
-    // TODO remove commands
-    /*
-     * process the commands
-     */
-    if args.len() > 1 && args[1] == "create-user" {
-        create_user(&args, &state).await;
-    }
-    if args.len() > 1 && args[1] == "delete-user" {
-        delete_user(&args, &state).await?;
+    if !state.dbu.admin_exists().await? {
+        // create bootstrap admin if none exists
+        create_admin_user(&state).await?;
     }
 
-    if args.len() > 1 {
+    if args.len() > 0 {
         return Err(UnrecognizedParameters);
     }
 

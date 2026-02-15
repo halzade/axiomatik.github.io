@@ -189,7 +189,6 @@ impl DatabaseArticle {
 
     /**
      * returns Articles with most views
-     * TODO XX most read articles per category
      * TODO XX keep these in memory, refresh every hour or so
      */
     pub async fn most_read_all_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {

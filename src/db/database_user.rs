@@ -149,6 +149,17 @@ impl DatabaseUser {
         let users = self.surreal.db.select("user").await?;
         Ok(users)
     }
+
+    pub async fn admin_exists(&self) -> Result<bool, SurrealUserError> {
+        #[rustfmt::skip]
+        let mut response = self.surreal.db
+            .query("SELECT * FROM user WHERE role = $role LIMIT 1")
+            .bind(("role", Role::Admin)).await?;
+
+        let users: Vec<User> = response.take(0)?;
+
+        Ok(!users.is_empty())
+    }
 }
 
 #[cfg(test)]
@@ -210,6 +221,46 @@ mod tests {
 
         // delete first user
         db.delete_user("tester1").await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_admin_exists_positive() -> Result<(), SurrealUserError> {
+        let db = DatabaseUser::new_from_scratch().await?;
+
+        let user = User {
+            username: "lukas".to_string(),
+            author_name: "Any author".to_string(),
+            password_hash: "hash".to_string(),
+            needs_password_change: false,
+            role: Role::Admin,
+        };
+
+        db.create_user(user).await?;
+
+        let exists = db.admin_exists().await?;
+        assert_eq!(exists, true);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_admin_exists_negative() -> Result<(), SurrealUserError> {
+        let db = DatabaseUser::new_from_scratch().await?;
+
+        let user = User {
+            username: "editor".to_string(),
+            author_name: "Editor Author".to_string(),
+            password_hash: "hash".to_string(),
+            needs_password_change: false,
+            role: Role::Editor,
+        };
+
+        db.create_user(user).await?;
+
+        let exists = db.admin_exists().await?;
+        assert_eq!(exists, false);
 
         Ok(())
     }
