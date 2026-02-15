@@ -276,7 +276,7 @@ impl DatabaseArticle {
         Ok(matching_articles)
     }
 
-    // TODO add limit
+    // TODO XX add limit
     pub async fn list_all_articles(&self) -> Result<Vec<ShortArticleData>, SurrealArticleError> {
         let articles: Vec<ShortArticleData> =
             self.surreal.db.query("SELECT * FROM article ORDER BY created DESC").await?.take(0)?;

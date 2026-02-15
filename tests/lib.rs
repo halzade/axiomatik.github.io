@@ -29,6 +29,6 @@ pub mod sys {
 pub mod web {
     pub mod test_001_fallback_404;
     pub mod test_002_serve_static_content;
-    pub mod test_003_serve_HTMLa;
-    pub mod test_004_serve_HTML_404a;
+    pub mod test_003_serve_page;
+    pub mod test_004_serve_page_404;
 }

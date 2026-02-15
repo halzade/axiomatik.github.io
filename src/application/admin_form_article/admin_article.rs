@@ -59,17 +59,16 @@ pub async fn handle_delete_article(
 ) -> Result<Response, AdminArticleError> {
     debug!("handle_delete_article: {}", article_file_name);
 
-    let article = state
-        .dba
-        .article_by_file_name(&article_file_name)
-        .await
+    #[rustfmt::skip]
+    let article = state.dba.article_by_file_name(&article_file_name).await
         .map_err(|e| AdminArticleError::Database(e.to_string()))?;
 
-    state
-        .dba
-        .delete_article(&article_file_name)
-        .await
+    let category = article.category.clone();
+
+    #[rustfmt::skip]
+    state.dba.delete_article(&article_file_name).await
         .map_err(|e| AdminArticleError::Database(e.to_string()))?;
+
     info!("Admin deleted article: {}", article_file_name);
 
     // delete the html file
@@ -90,16 +89,18 @@ pub async fn handle_delete_article(
         let _ = fs::remove_file(format!("web/{}", article.video_path));
     }
 
-    // Invalidate caches
-    // TODO invalidate only the original article category
+    // Invalidate
     state.dv.index_invalidate();
     state.dv.news_invalidate();
-    // Invalidate categories as well, to be sure
-    state.dv.zahranici_invalidate();
-    state.dv.republika_invalidate();
-    state.dv.finance_invalidate();
-    state.dv.technologie_invalidate();
-    state.dv.veda_invalidate();
+
+    match category.as_str() {
+        "zahranici" => state.dv.zahranici_invalidate(),
+        "republika" => state.dv.republika_invalidate(),
+        "finance" => state.dv.finance_invalidate(),
+        "technologie" => state.dv.technologie_invalidate(),
+        "veda" => state.dv.veda_invalidate(),
+        _ => info!("Unknown category for invalidation: {}", category),
+    }
 
     Ok(Redirect::to("/admin_article").into_response())
 }
