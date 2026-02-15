@@ -25,7 +25,7 @@ pub enum AdminUserError {
 }
 
 #[derive(Template)]
-#[template(path = "application/admin/admin_users_template.html")]
+#[template(path = "application/admin_form_user/admin_user_template.html")]
 pub struct AdminUsersTemplate {
     pub users: Vec<User>,
     pub date: String,
@@ -34,7 +34,7 @@ pub struct AdminUsersTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "application/admin/create_user_template.html")]
+#[template(path = "application/admin_form_user/admin_user_create_user_template.html")]
 pub struct CreateUserTemplate {
     pub date: String,
     pub name_day: String,
@@ -48,10 +48,10 @@ pub struct CreateUserPayload {
     pub password: String,
 }
 
-pub async fn show_admin_users(State(state): State<TheState>) -> Result<Response, AdminError> {
+pub async fn show_admin_users(State(state): State<TheState>) -> Result<Response, AdminUserError> {
     debug!("show_admin_users()");
     let users =
-        state.dbu.list_all_users().await.map_err(|e| AdminError::Database(e.to_string()))?;
+        state.dbu.list_all_users().await.map_err(|e| AdminUserError::Database(e.to_string()))?;
 
     Ok(Html(
         AdminUsersTemplate {
@@ -68,7 +68,7 @@ pub async fn show_admin_users(State(state): State<TheState>) -> Result<Response,
 pub async fn handle_delete_user(
     State(state): State<TheState>,
     Path(username): Path<String>,
-) -> Result<Response, AdminError> {
+) -> Result<Response, AdminUserError> {
     debug!("handle_delete_user: {}", username);
 
     // Check if user exists and is Editor
@@ -76,24 +76,24 @@ pub async fn handle_delete_user(
         .dbu
         .get_user_by_name(&username)
         .await
-        .map_err(|e| AdminError::Database(e.to_string()))?;
+        .map_err(|e| AdminUserError::Database(e.to_string()))?;
     if let Some(user) = user_o {
         if user.role == Role::Editor {
             state
                 .dbu
                 .delete_user(&username)
                 .await
-                .map_err(|e| AdminError::Database(e.to_string()))?;
+                .map_err(|e| AdminUserError::Database(e.to_string()))?;
             info!("Admin deleted user: {}", username);
         } else {
-            return Err(AdminError::Database("Only Editors can be deleted".to_string()));
+            return Err(AdminUserError::Database("Only Editors can be deleted".to_string()));
         }
     }
 
     Ok(Redirect::to("/admin/users").into_response())
 }
 
-pub async fn show_create_user_form(State(state): State<TheState>) -> Result<Response, AdminError> {
+pub async fn show_create_user_form(State(state): State<TheState>) -> Result<Response, AdminUserError> {
     Ok(Html(
         CreateUserTemplate {
             date: state.ds.date(),
@@ -108,7 +108,7 @@ pub async fn show_create_user_form(State(state): State<TheState>) -> Result<Resp
 pub async fn handle_create_user(
     State(state): State<TheState>,
     Form(payload): Form<CreateUserPayload>,
-) -> Result<Response, AdminError> {
+) -> Result<Response, AdminUserError> {
     debug!("handle_create_user: {}", payload.username);
 
     let hashed_password = hash(&payload.password, DEFAULT_COST)?;
@@ -121,7 +121,7 @@ pub async fn handle_create_user(
         role: Role::Editor,
     };
 
-    state.dbu.create_user(new_user).await.map_err(|e| AdminError::Database(e.to_string()))?;
+    state.dbu.create_user(new_user).await.map_err(|e| AdminUserError::Database(e.to_string()))?;
 
     Ok(Redirect::to("/admin/users").into_response())
 }

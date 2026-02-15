@@ -1,12 +1,8 @@
 use crate::db::database_article_data::ShortArticleData;
-use crate::db::database_user::{Role, User};
 use crate::system::server::TheState;
 use askama::Template;
 use axum::extract::{Path, State};
 use axum::response::{Html, IntoResponse, Redirect, Response};
-use axum::Form;
-use bcrypt::{hash, DEFAULT_COST};
-use serde::Deserialize;
 use thiserror::Error;
 use tracing::{debug, info};
 
@@ -26,7 +22,7 @@ pub enum AdminArticleError {
 }
 
 #[derive(Template)]
-#[template(path = "application/admin/admin_articles_template.html")]
+#[template(path = "application/admin_form_article/admin_article_template.html")]
 pub struct AdminArticlesTemplate {
     pub articles: Vec<ShortArticleData>,
     pub date: String,
@@ -34,10 +30,15 @@ pub struct AdminArticlesTemplate {
     pub weather: String,
 }
 
-pub async fn show_admin_articles(State(state): State<TheState>) -> Result<Response, AdminError> {
+pub async fn show_admin_articles(
+    State(state): State<TheState>,
+) -> Result<Response, AdminArticleError> {
     debug!("show_admin_articles()");
-    let articles =
-        state.dba.list_all_articles().await.map_err(|e| AdminError::Database(e.to_string()))?;
+    let articles = state
+        .dba
+        .list_all_articles()
+        .await
+        .map_err(|e| AdminArticleError::Database(e.to_string()))?;
 
     Ok(Html(
         AdminArticlesTemplate {
@@ -54,14 +55,14 @@ pub async fn show_admin_articles(State(state): State<TheState>) -> Result<Respon
 pub async fn handle_delete_article(
     State(state): State<TheState>,
     Path(article_file_name): Path<String>,
-) -> Result<Response, AdminError> {
+) -> Result<Response, AdminArticleError> {
     debug!("handle_delete_article: {}", article_file_name);
 
     state
         .dba
         .delete_article(&article_file_name)
         .await
-        .map_err(|e| AdminError::Database(e.to_string()))?;
+        .map_err(|e| AdminArticleError::Database(e.to_string()))?;
     info!("Admin deleted article: {}", article_file_name);
 
     // TODO delete the html file

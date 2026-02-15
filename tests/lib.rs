@@ -1,6 +1,7 @@
 pub mod admin {
-    pub mod test_001_create_and_delete_user;
-    pub mod test_002_create_and_delete_article;
+    pub mod test_001_admin_login;
+    pub mod test_002_create_and_delete_user;
+    pub mod test_003_create_and_delete_article;
 }
 pub mod app {
     pub mod test_001_login;

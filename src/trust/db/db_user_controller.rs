@@ -101,16 +101,18 @@ impl SetupAdminController {
     }
 }
 
-pub struct DatabaseUserVerifierEmpty {}
+pub struct DatabaseUserVerifierEmpty {
+    real_o: Option<User>,
+}
 
 impl DatabaseUserVerifierEmpty {
-    pub const fn new() -> Self {
-        Self {}
+    pub const fn new(real_o: Option<User>) -> Self {
+        Self { real_o }
     }
 
-    pub const fn verify(&self) -> Result<(), TrustError> {
+    pub fn verify(&self) -> Result<(), TrustError> {
         if self.real_o.is_some() {
-            return Err(TrustError::RealData);
+            return Err(TrustError::Validation("user should not exist".to_string()));
         }
         Ok(())
     }
@@ -193,6 +195,33 @@ mod tests {
 
         assert!(err.is_err());
         assert_eq!(err.unwrap_err().to_string(), "validation error: 2 incorrect");
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_must_not_see_pass() -> Result<(), TrustError> {
+        let uc = DatabaseUserController::new_local().await?;
+
+        // No user created
+
+        uc.must_not_see("non-existent").await?
+            .verify()?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_must_not_see_fail() -> Result<(), TrustError> {
+        let uc = DatabaseUserController::new_local().await?;
+
+        uc.setup_user().username("existing").password("password").execute().await?;
+
+        let err = uc.must_not_see("existing").await?
+            .verify();
+
+        assert!(err.is_err());
+        assert_eq!(err.unwrap_err().to_string(), "validation error: user should not exist");
 
         Ok(())
     }

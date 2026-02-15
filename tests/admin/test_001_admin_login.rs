@@ -16,7 +16,7 @@ mod tests {
             .needs_password_change(true)
             .execute().await?;
 
-        // Login as admin
+        // login as admin
         #[rustfmt::skip]
         let auth = ac.login()
             .username("admin1")
@@ -26,7 +26,7 @@ mod tests {
                 .header_location("/admin")
                 .verify().await?;
 
-        // Create an Editor user
+        // create an Editor user
         #[rustfmt::skip]
         ac.db_user().setup_user()
             .username("user_a1")
@@ -34,7 +34,14 @@ mod tests {
             .needs_password_change(true)
             .execute().await?;
 
-        // Verify user in DB
+        // verify editor user in DB
+        #[rustfmt::skip]
+        ac.db_user().must_see("user_a1").await?
+            .username("user_a1")
+            .needs_password_change(true)
+            .verify()?;
+
+        // verify admin user in DB
         #[rustfmt::skip]
         ac.db_user().must_see("admin1").await?
             .username("admin1")
@@ -47,7 +54,7 @@ mod tests {
             .username("user_a1")
             .execute_delete_user().await?
                 .must_see_response(StatusCode::SEE_OTHER)
-                .header_location("/admin/users")
+                .header_location("/admin_user")
                 .verify().await?;
 
         // Verify user in DB
