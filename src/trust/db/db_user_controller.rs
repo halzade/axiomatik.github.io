@@ -35,6 +35,10 @@ impl DatabaseUserController {
         SetupUserController::new(self.dbu.clone())
     }
 
+    pub fn setup_admin_user(&self) -> SetupUserController {
+        SetupAdminController::new(self.dbu.clone())
+    }
+
     pub async fn must_see(&self, username: &str) -> Result<DatabaseUserVerifier, TrustError> {
         /*
          * retrieve the real data
