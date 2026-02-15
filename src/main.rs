@@ -20,7 +20,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::signal;
-use tracing::info;
+use tracing::{error, info, warn};
 
 #[derive(Debug, Error)]
 pub enum ApplicationError {
@@ -61,6 +61,11 @@ async fn main() -> Result<(), ApplicationError> {
      * command arguments if any
      */
     let args: Vec<String> = env::args().collect();
+    error!("[{:?}]", args);
+
+    if args.len() > 1 {
+        return Err(UnrecognizedParameters);
+    }
 
     /*
      * databases
@@ -88,12 +93,10 @@ async fn main() -> Result<(), ApplicationError> {
     };
 
     if !state.dbu.admin_exists().await? {
+        warn!("no admin found");
+
         // create bootstrap admin if none exists
         create_admin_user(&state).await?;
-    }
-
-    if args.len() > 0 {
-        return Err(UnrecognizedParameters);
     }
 
     /*

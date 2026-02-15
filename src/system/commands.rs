@@ -2,6 +2,7 @@ use crate::db::database_user::{Role, SurrealUserError, User};
 use crate::system::server::TheState;
 use bcrypt::{hash, DEFAULT_COST};
 use thiserror::Error;
+use tracing::warn;
 use CommandError::Bcrypt;
 
 #[derive(Debug, Error)]
@@ -17,6 +18,9 @@ pub enum CommandError {
  * create bootstrap admin
  */
 pub async fn create_admin_user(state: &TheState) -> Result<(), CommandError> {
+    
+    warn!("create_admin_user()");
+    
     let username = "admin";
     let password = "admin*";
 
@@ -30,5 +34,7 @@ pub async fn create_admin_user(state: &TheState) -> Result<(), CommandError> {
     };
 
     state.dbu.create_user(user).await?;
+
+    warn!("create_admin_user() done");
     Ok(())
 }
