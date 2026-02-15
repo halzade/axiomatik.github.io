@@ -234,7 +234,7 @@ impl DatabaseArticle {
         search_words: Vec<String>,
         limit: u32,
     ) -> Result<Vec<ShortArticleData>, SurrealArticleError> {
-        debug!("articles_by_words: search_words={:?}, limit={}", search_words, limit);
+        debug!("articles_by_words: search_words={search_words:?}, limit={limit}");
 
         if search_words.is_empty() {
             return Ok(Vec::new());
@@ -245,7 +245,7 @@ impl DatabaseArticle {
          */
         let mut conditions = Vec::new();
         for i in 0..search_words.len() {
-            conditions.push(format!("string::matches(text, $w{})", i));
+            conditions.push(format!("string::matches(text, $w{i})"));
         }
         /*
          * build search query
@@ -260,7 +260,7 @@ impl DatabaseArticle {
         let mut q = self.surreal.db.query(query);
         for (i, word) in search_words.iter().enumerate() {
             let pattern = format!(r"(?i)\b{}\b", regex::escape(word));
-            q = q.bind((format!("w{}", i), pattern));
+            q = q.bind((format!("w{i}"), pattern));
         }
         q = q.bind(("limit", limit));
 
@@ -270,6 +270,22 @@ impl DatabaseArticle {
         let mut response = q.await?;
         let matching_articles: Vec<ShortArticleData> = response.take(0)?;
         Ok(matching_articles)
+    }
+
+    // TODO add limit
+    pub async fn list_all_articles(&self) -> Result<Vec<ShortArticleData>, SurrealArticleError> {
+        let articles: Vec<ShortArticleData> = self
+            .surreal
+            .db
+            .query("SELECT * FROM article ORDER BY date DESC")
+            .await?
+            .take(0)?;
+        Ok(articles)
+    }
+
+    pub async fn delete_article(&self, article_file_name: &str) -> Result<(), SurrealArticleError> {
+        let _: Option<Article> = self.surreal.db.delete(("article", article_file_name)).await?;
+        Ok(())
     }
 }
 

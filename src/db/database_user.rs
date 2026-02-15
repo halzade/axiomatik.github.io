@@ -64,7 +64,17 @@ impl AuthUser for User {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, SurrealValue)]
 pub enum Role {
+    Admin,
     Editor,
+}
+
+impl std::fmt::Display for Role {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Admin => write!(f, "Admin"),
+            Self::Editor => write!(f, "Editor"),
+        }
+    }
 }
 
 /**
@@ -133,6 +143,11 @@ impl DatabaseUser {
     pub async fn get_user_by_name(&self, user_id: &str) -> Result<Option<User>, SurrealUserError> {
         let user_o = self.surreal.db.select(("user", user_id)).await?;
         Ok(user_o)
+    }
+
+    pub async fn list_all_users(&self) -> Result<Vec<User>, SurrealUserError> {
+        let users = self.surreal.db.select("user").await?;
+        Ok(users)
     }
 }
 

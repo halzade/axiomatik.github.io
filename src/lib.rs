@@ -54,6 +54,7 @@ pub mod application {
     pub mod category_zahranici {
         pub mod zahranici;
     }
+    pub mod admin;
 }
 pub mod db {
     pub mod database;

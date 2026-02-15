@@ -46,6 +46,7 @@ pub struct DatabaseSystem {
 }
 
 impl DatabaseSystem {
+    #[must_use]
     pub const fn new(db: Arc<DatabaseSurreal>) -> Self {
         Self { surreal: db }
     }

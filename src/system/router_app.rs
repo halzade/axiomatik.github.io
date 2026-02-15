@@ -1,3 +1,5 @@
+use crate::application::admin;
+use crate::application::admin::AdminError;
 use crate::application::category_finance::finance::FinanceError;
 use crate::application::category_republika::republika::RepublikaError;
 use crate::application::category_technologie::technologie::TechnologieError;
@@ -28,7 +30,7 @@ use axum::routing::{get, post};
 use axum::{middleware, Router};
 use axum_core::extract::Request;
 use axum_login::AuthManagerLayerBuilder;
-use database_user::Role::Editor;
+use database_user::Role::{Admin, Editor};
 use http::StatusCode;
 use thiserror::Error;
 use tower_http::services::{ServeDir, ServeFile};
@@ -76,6 +78,9 @@ pub enum AppRouterError {
 
     #[error("form error: {0}")]
     RouterForm(#[from] FormArticleCreateError),
+
+    #[error("admin error: {0}")]
+    RouterAdminError(#[from] AdminError),
 
     #[error("change password error: {0}")]
     RouterChangePasswordError(#[from] ChangePasswordError),
@@ -135,6 +140,12 @@ impl IntoResponse for AccountError {
     }
 }
 
+impl IntoResponse for AdminError {
+    fn into_response(self) -> Response {
+        (StatusCode::BAD_REQUEST, self.to_string()).into_response()
+    }
+}
+
 impl ApplicationRouter {
     #[rustfmt::skip]
     pub async fn start_app_router(&self) -> Router {
@@ -149,9 +160,21 @@ impl ApplicationRouter {
         let auth_layer = AuthManagerLayerBuilder::new(Backend { db_user: self.state.dbu.clone() }, session_layer).build();
 
         /*
+         * protected admin routes
+         */
+        let admin_routes = Router::new()
+            .route("/users", get(admin::show_admin_users))
+            .route("/users/create", get(admin::show_create_user_form).post(admin::handle_create_user))
+            .route("/users/delete/:username", post(admin::handle_delete_user))
+            .route("/articles", get(admin::show_admin_articles))
+            .route("/articles/delete/:article_file_name", post(admin::handle_delete_article))
+            .layer(middleware::from_fn(admin_middleware));
+
+        /*
          * protected routes
          */
         let protected_routes = Router::new()
+            .nest("/admin", admin_routes)
             .route("/form", get(create_article::show_article_create_form))
             .route("/create", post(create_article::create_article))
             .route("/change-password",
@@ -203,11 +226,11 @@ async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Ne
             }
 
             // continue
-            if user.role == Editor {
-                info!("auth_middleware: role=Editor, continue");
+            if user.role == Editor || user.role == Admin {
+                info!("auth_middleware: role={:?}, continue", user.role);
                 return next.run(req).await;
             }
-            info!("auth_middleware: role NOT Editor: {:?}", user.role);
+            info!("auth_middleware: role NOT Editor/Admin: {:?}", user.role);
         }
         None => {
             info!("auth_middleware: No user in session");
@@ -218,6 +241,26 @@ async fn auth_middleware(auth_session: AuthSession, req: Request<Body>, next: Ne
     // login
     info!("auth_middleware: default redirect to /login");
     Redirect::to("/login").into_response()
+}
+
+async fn admin_middleware(auth_session: AuthSession, req: Request<Body>, next: Next) -> Response {
+    debug!("admin_middleware");
+    match auth_session.user {
+        Some(user) => {
+            if user.role == Admin {
+                info!("admin_middleware: role=Admin, continue");
+                return next.run(req).await;
+            }
+            info!("admin_middleware: role NOT Admin: {:?}", user.role);
+        }
+        None => {
+            info!("admin_middleware: No user in session");
+            return Redirect::to("/login").into_response();
+        }
+    }
+
+    info!("admin_middleware: default redirect to /account (Unauthorized)");
+    Redirect::to("/account").into_response()
 }
 
 async fn show_404() -> impl IntoResponse {

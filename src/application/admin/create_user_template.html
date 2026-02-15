@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vytvořit redaktora - Admin - NEXO</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="../../css/styles-dark.css" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="../../css/webapp.css">
+    <link rel="stylesheet" href="../../css/webapp-dark.css" media="(prefers-color-scheme: dark)">
+</head>
+<body>
+<div class="all">
+    <header class="w8 topbar">
+        <div class="topbar-content">
+            <div class="left">
+                {{ date }}<br/>
+                {{ weather }}<br/>
+                {{ name_day }}
+            </div>
+            <div class="center">
+                <a href="/account" class="logo">NE<span class="b">X</span>O</a>
+            </div>
+            <div class="right search">
+            </div>
+        </div>
+    </header>
+    <main class="w8 content">
+        <h1>Vytvořit nového redaktora</h1>
+        <br/>
+        <form action="/admin/users/create" method="post" class="form-container">
+            <div class="field">
+                <label for="username">Uživatelské jméno:</label>
+                <input type="text" name="username" id="username" required>
+            </div>
+            <br/>
+            <div class="field">
+                <label for="author_name">Jméno autora:</label>
+                <input type="text" name="author_name" id="author_name" required>
+            </div>
+            <br/>
+            <div class="field">
+                <label for="password">Heslo:</label>
+                <input type="password" name="password" id="password" required>
+            </div>
+            <br/>
+            <div class="account-buttons">
+                <button type="submit" class="button">Vytvořit</button>
+                <button type="button" onclick="window.location.href='/admin/users'" class="button">Zrušit</button>
+            </div>
+        </form>
+    </main>
+    <footer class="">
+        <p>NEXO © 2026 </p>
+    </footer>
+</div>
+</body>
+</html>

@@ -93,6 +93,8 @@ pub struct ShortArticleData {
     pub short_text: String,
     pub image_288_path: String,
     pub image_desc: String,
+    pub date_str: String,
+    pub category: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
