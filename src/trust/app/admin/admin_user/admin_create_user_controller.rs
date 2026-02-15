@@ -42,7 +42,7 @@ impl AdminCreateUserController {
     pub async fn execute(&self) -> Result<ResponseVerifier, TrustError> {
         let data = self.user_fluent.get_data();
         let username = data.username.unwrap_or_default();
-        let author_name = data.author_name.unwrap_or(username.clone());
+        let author_name = data.author_name.unwrap_or_else(|| username.clone());
         let password = data.password.unwrap_or_default();
         let cookie = self.user_cookie.read().clone().unwrap_or_default();
 

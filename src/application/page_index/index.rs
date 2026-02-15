@@ -57,7 +57,7 @@ pub async fn render_index(state: &TheState) -> Result<(), IndexError> {
     let (main_article, second_article, third_article) = state.dba.article_top_three().await?;
 
     let main_article_category_display =
-        processor::process_category(&main_article.category).unwrap_or_else(|_| String::new());
+        processor::process_category(&main_article.category);
 
     let template = IndexTemplate {
         date: state.ds.date(),

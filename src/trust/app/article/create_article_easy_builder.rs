@@ -116,7 +116,6 @@ impl ArticleBuilder {
             author: self.author.clone(),
             username: self.author,
             date: now,
-            date_str: "date".to_string(),
 
             title: self.title,
             text: self.text,

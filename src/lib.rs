@@ -1,5 +1,6 @@
 /*
  * cargo clippy
+ * cargo clippy --release
  */
 #![forbid(unsafe_code)]
 #![forbid(clippy::unwrap_used)]

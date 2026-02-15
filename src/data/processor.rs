@@ -22,16 +22,16 @@ pub fn save_web_file(rendered_html: String, path: &str) -> Result<(), ProcessorE
     Ok(())
 }
 
-pub fn process_category(raw_category: &str) -> Result<String, ProcessorError> {
+pub fn process_category(raw_category: &str) -> String {
     match raw_category {
-        "zahranici" => Ok("zahraničí".into()),
-        "republika" => Ok("republika".into()),
-        "finance" => Ok("finance".into()),
-        "technologie" => Ok("technologie".into()),
-        "veda" => Ok("věda".into()),
+        "zahranici" => "zahraničí".into(),
+        "republika" => "republika".into(),
+        "finance" => "finance".into(),
+        "technologie" => "technologie".into(),
+        "veda" => "věda".into(),
         cat => {
             error!("Unknown category: {}", cat);
-            Err(ProcessorError::UnknownCategory(cat.to_string()))
+            "".into()
         }
     }
 }
@@ -45,11 +45,11 @@ mod tests {
 
     #[test]
     fn test_process_category() {
-        assert_eq!(process_category("zahranici").unwrap(), "zahraničí");
-        assert_eq!(process_category("republika").unwrap(), "republika");
-        assert_eq!(process_category("finance").unwrap(), "finance");
-        assert_eq!(process_category("technologie").unwrap(), "technologie");
-        assert_eq!(process_category("veda").unwrap(), "věda");
-        assert!(process_category("invalid").is_err());
+        assert_eq!(process_category("zahranici"), "zahraničí");
+        assert_eq!(process_category("republika"), "republika");
+        assert_eq!(process_category("finance"), "finance");
+        assert_eq!(process_category("technologie"), "technologie");
+        assert_eq!(process_category("veda"), "věda");
+        assert_eq!(process_category("invalid"), "");
     }
 }

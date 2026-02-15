@@ -35,15 +35,15 @@ impl AdminController {
         *self.user_cookie.write() = cookie;
     }
 
-    pub fn create_user(&self) -> &AdminCreateUserController {
+    pub const fn create_user(&self) -> &AdminCreateUserController {
         &self.create_user_controller
     }
 
-    pub fn delete_user(&self) -> &AdminDeleteUserController {
+    pub const fn delete_user(&self) -> &AdminDeleteUserController {
         &self.delete_user_controller
     }
 
-    pub fn delete_article(&self) -> &AdminDeleteArticleController {
+    pub const fn delete_article(&self) -> &AdminDeleteArticleController {
         &self.delete_article_controller
     }
 }

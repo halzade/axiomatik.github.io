@@ -100,7 +100,7 @@ pub async fn render_article(article_file_name: &str, state: &TheState) -> Result
         video_path: if article.has_video { Some(article.video_path) } else { None },
         audio_path: if article.has_audio { Some(article.audio_path) } else { None },
         category: article.category.clone(),
-        category_display: processor::process_category(article.category.as_str())?,
+        category_display: processor::process_category(article.category.as_str()),
         related_articles,
         articles_most_read,
     };

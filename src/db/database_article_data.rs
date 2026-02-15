@@ -1,12 +1,12 @@
-use crate::data::library;
+use crate::application::form_create_article::create_article_parser::ArticleUpload;
 use crate::data::library::safe_article_file_name;
+use crate::data::processor;
 use crate::data::text_processor::{process_short_text, process_text};
 use crate::db::database::SurrealError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use surrealdb::types::{SurrealValue, Uuid};
-use crate::application::form_create_article::create_article_parser::ArticleUpload;
 /*
  * Main Articles on index.html
  */
@@ -52,17 +52,13 @@ pub struct TopArticleData {
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
 pub struct Article {
     pub uuid: Uuid,
-
     pub article_file_name: String,
 
     pub author: String,
     pub username: String,
-
     pub date: DateTime<Utc>,
-    pub date_str: String,
 
     pub title: String,
-
     pub text: String,
     pub short_text: String,
     pub mini_text: String,
@@ -115,7 +111,12 @@ pub struct AccountArticleData {
     pub image_desc: String,
     pub category: String,
     pub date: DateTime<Utc>,
-    pub date_str: String,
+}
+
+impl AccountArticleData {
+    pub fn category_display(&self) -> String {
+        processor::process_category(&self.category)
+    }
 }
 
 impl From<MainArticleData> for TopArticleData {
@@ -138,7 +139,6 @@ impl TryFrom<ArticleUpload> for Article {
             author: data.author,
             username: data.username,
             date: now,
-            date_str: library::formatted_article_date(now),
 
             title: data.title,
             text: process_text(&data.text_raw),
@@ -184,7 +184,6 @@ pub fn easy_article(title: &str, author: &str, text: &str) -> Article {
         author: author.to_string(),
         username: author.to_string(),
         date: now,
-        date_str: "date".to_string(),
         title: title.to_string(),
         text: text.to_string(),
         short_text: "short text here".to_string(),
