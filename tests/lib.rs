@@ -1,7 +1,7 @@
 pub mod admin {
     pub mod test_001_admin_login;
     pub mod test_002_create_and_delete_user;
-    pub mod test_003_create_and_delete_article;
+    pub mod test_003_delete_article;
 }
 pub mod app {
     pub mod test_001_login;
@@ -29,6 +29,6 @@ pub mod sys {
 pub mod web {
     pub mod test_001_fallback_404;
     pub mod test_002_serve_static_content;
-    pub mod test_003_serve_thml;
-    pub mod test_004_serve_thml_404;
+    pub mod test_003_serve_HTMLa;
+    pub mod test_004_serve_HTML_404a;
 }
