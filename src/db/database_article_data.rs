@@ -1,7 +1,7 @@
 use crate::application::form_create_article::create_article_parser::ArticleUpload;
 use crate::data::library::safe_article_file_name;
-use crate::data::processor;
 use crate::data::text_processor::{process_short_text, process_text};
+use crate::data::{library, processor};
 use crate::db::database::SurrealError;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -56,7 +56,7 @@ pub struct Article {
 
     pub author: String,
     pub username: String,
-    pub date: DateTime<Utc>,
+    pub created: DateTime<Utc>,
 
     pub title: String,
     pub text: String,
@@ -89,8 +89,14 @@ pub struct ShortArticleData {
     pub short_text: String,
     pub image_288_path: String,
     pub image_desc: String,
-    pub date_str: String,
+    pub created: DateTime<Utc>,
     pub category: String,
+}
+
+impl ShortArticleData {
+    pub fn created_display(&self) -> String {
+        library::display_date(self.created)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, SurrealValue)]
@@ -110,12 +116,16 @@ pub struct AccountArticleData {
     pub image_288_path: String,
     pub image_desc: String,
     pub category: String,
-    pub date: DateTime<Utc>,
+    pub created: DateTime<Utc>,
 }
 
 impl AccountArticleData {
     pub fn category_display(&self) -> String {
         processor::process_category(&self.category)
+    }
+
+    pub fn created_display(&self) -> String {
+        library::display_date(self.created)
     }
 }
 
@@ -138,7 +148,7 @@ impl TryFrom<ArticleUpload> for Article {
             uuid: Uuid::new(), // TODO
             author: data.author,
             username: data.username,
-            date: now,
+            created: now,
 
             title: data.title,
             text: process_text(&data.text_raw),
@@ -183,7 +193,7 @@ pub fn easy_article(title: &str, author: &str, text: &str) -> Article {
         uuid: Uuid::new(),
         author: author.to_string(),
         username: author.to_string(),
-        date: now,
+        created: now,
         title: title.to_string(),
         text: text.to_string(),
         short_text: "short text here".to_string(),

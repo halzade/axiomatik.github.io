@@ -47,7 +47,7 @@
             <tr>
                 <td>{{ article.article_file_name }}</td>
                 <td>{{ article.title }}</td>
-                <td>{{ article.date_str }}</td>
+                <td>{{ article.created_display() }}</td>
                 <td>{{ article.category }}</td>
                 <td>
                     <form action="/admin_article/delete/{{ article.article_file_name }}" method="post" onsubmit="return confirm('Opravdu smazat článek {{ article.article_file_name }}?');">

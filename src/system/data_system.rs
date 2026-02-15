@@ -52,7 +52,7 @@ impl DataSystem {
     }
 
     pub fn update_date(&self) {
-        let d = library::formatted_article_date(Utc::now());
+        let d = library::display_date(Utc::now());
         *self.date.write() = d;
     }
 

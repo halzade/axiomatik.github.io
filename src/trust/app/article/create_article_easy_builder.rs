@@ -115,7 +115,7 @@ impl ArticleBuilder {
             uuid: Uuid::new(),
             author: self.author.clone(),
             username: self.author,
-            date: now,
+            created: now,
 
             title: self.title,
             text: self.text,

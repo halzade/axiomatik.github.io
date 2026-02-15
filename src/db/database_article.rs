@@ -75,7 +75,7 @@ impl DatabaseArticle {
             .query(
                 "SELECT * FROM article \
                     WHERE $username = $username \
-                    ORDER BY date DESC \
+                    ORDER BY created DESC \
                     LIMIT $limit",
             )
             .bind(("username", username.to_string()))
@@ -118,10 +118,10 @@ impl DatabaseArticle {
             .surreal
             .db
             .query(
-                "SELECT article_file_name, title, short_text, image_288_path, image_desc, date \
+                "SELECT article_file_name, category, title, short_text, image_288_path, image_desc, created \
                     FROM article \
                     WHERE article_file_name IN $related \
-                    ORDER BY date DESC",
+                    ORDER BY created DESC",
             )
             .bind(("related", related.to_vec()))
             .await?;
@@ -160,7 +160,7 @@ impl DatabaseArticle {
             .surreal
             .db
             .query(
-                "SELECT * FROM article WHERE category = $category ORDER BY date DESC LIMIT $limit",
+                "SELECT * FROM article WHERE category = $category ORDER BY created DESC LIMIT $limit",
             )
             .bind(("category", category.to_string()))
             .bind(("limit", limit))
@@ -175,7 +175,7 @@ impl DatabaseArticle {
         let mut query_response_set = self
             .surreal
             .db
-            .query("SELECT * FROM article WHERE is_main = true ORDER BY date LIMIT 3")
+            .query("SELECT * FROM article WHERE is_main = true ORDER BY created LIMIT 3")
             .await?;
         let mut top_articles: Vec<MainArticleData> = query_response_set.take(0)?;
         let main: MainArticleData = top_articles.pop().unwrap_or_else(MainArticleData::empty);
@@ -220,10 +220,13 @@ impl DatabaseArticle {
             .await?;
 
         let views: Option<u64> = response.take("views")?;
-        views.map_or_else(|| {
+        views.map_or_else(
+            || {
                 warn!("article not found in article_views: {}", article_file_name);
                 Ok(0)
-            }, Ok)
+            },
+            Ok,
+        )
     }
 
     /*
@@ -254,7 +257,7 @@ impl DatabaseArticle {
         let query = format!(
             "SELECT * FROM article
          WHERE {}
-         ORDER BY date DESC
+         ORDER BY created DESC
          LIMIT $limit",
             conditions.join(" OR ")
         );
@@ -275,12 +278,8 @@ impl DatabaseArticle {
 
     // TODO add limit
     pub async fn list_all_articles(&self) -> Result<Vec<ShortArticleData>, SurrealArticleError> {
-        let articles: Vec<ShortArticleData> = self
-            .surreal
-            .db
-            .query("SELECT * FROM article ORDER BY date DESC")
-            .await?
-            .take(0)?;
+        let articles: Vec<ShortArticleData> =
+            self.surreal.db.query("SELECT * FROM article ORDER BY created DESC").await?.take(0)?;
         Ok(articles)
     }
 
@@ -371,7 +370,7 @@ mod tests {
             db.related_articles(vec!["related-1.html".into(), "related-2.html".into()]).await?;
 
         assert_eq!(related_articles.len(), 2);
-        // descending order by date
+        // descending order by created
         assert_eq!(related_articles[0].title, "Related 2");
         assert_eq!(related_articles[1].title, "Related 1");
         Ok(())
@@ -407,7 +406,7 @@ mod tests {
         let articles = db.articles_by_words(vec!["abc".into(), "XYZ".into()], 100).await?;
 
         assert_eq!(articles.len(), 2);
-        // descending order by date
+        // descending order by created
         let a1 = articles.get(0).unwrap();
         let a2 = articles.get(1).unwrap();
         assert_eq!(a1.title, "Title 3");

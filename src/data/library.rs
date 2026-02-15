@@ -66,7 +66,8 @@ pub fn day_of_week(utc: DateTime<Utc>) -> &'static str {
 }
 
 pub fn safe_article_file_name(title: &str) -> String {
-    title.trim()
+    title
+        .trim()
         .to_lowercase()
         .chars()
         .map(|c| match c {
@@ -95,13 +96,15 @@ pub fn safe_article_file_name(title: &str) -> String {
         .collect::<String>()
 }
 
-pub fn formatted_article_date(utc: DateTime<Utc>) -> String {
+/**
+ * Prague display date from UTC
+ */
+pub fn display_date(utc: DateTime<Utc>) -> String {
     let day_name = day_of_week(utc);
     let now = to_prague_time(utc);
-    
+
     let month_name_genitive = get_czech_month_genitive(now.month());
 
-    
     format!("{} {}. {} {}", day_name, now.day(), month_name_genitive, now.year())
 }
 
@@ -148,6 +151,6 @@ mod tests {
     #[test]
     fn test_formatted_article_date() {
         let dt = Utc.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap();
-        assert_eq!(formatted_article_date(dt), "Pondělí 1. ledna 2024");
+        assert_eq!(display_date(dt), "Pondělí 1. ledna 2024");
     }
 }
