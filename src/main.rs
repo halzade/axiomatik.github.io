@@ -20,7 +20,7 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::net::TcpListener;
 use tokio::signal;
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 #[derive(Debug, Error)]
 pub enum ApplicationError {

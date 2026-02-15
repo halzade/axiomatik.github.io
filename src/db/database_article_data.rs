@@ -145,7 +145,8 @@ impl TryFrom<ArticleUpload> for Article {
     fn try_from(data: ArticleUpload) -> Result<Self, Self::Error> {
         let now = Utc::now();
         Ok(Self {
-            uuid: Uuid::new(), // TODO
+            // TODO Use uuid as Article ID, so that it is possible to change article name
+            uuid: Uuid::new(),
             author: data.author,
             username: data.username,
             created: now,
@@ -178,6 +179,7 @@ impl TryFrom<ArticleUpload> for Article {
             },
 
             category: data.category,
+            // TODO use UUIDs to refference related articles
             related_articles: data.related_articles,
 
             is_main: data.is_main,

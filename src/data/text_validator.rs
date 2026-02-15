@@ -35,6 +35,8 @@ pub enum TextValidationError {
     RequiredFieldMissing,
 }
 
+// TODO use validator framework instead
+
 pub fn validate_required_string(input: &str) -> Result<(), TextValidationError> {
     if input.len() > 200 {
         return Err(InvalidLength);

@@ -2,14 +2,17 @@
 
 ### DEV environment
 
-Use 
-    
-    dev.sh
+to start and stop server use  
 
-See [dev.sh](dev.sh)
+    start_server_dev.sh
 
-And a friendly file [DEV.md](DEV.md)
+    shut_down.sh
 
-### Production
 
-    cargo clippy -- -D warnings
+and a friendly file [DEV.md](DEV.md)
+
+### code quality
+
+use
+
+    cargo clippy

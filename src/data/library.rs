@@ -1,6 +1,6 @@
 use crate::data::time::to_prague_time;
 use chrono::{DateTime, Datelike, Utc, Weekday};
-// TODO XX nejsou vyřešeny státní svátky
+// TODO nejsou vyřešeny státní svátky
 
 pub const CZECH_MONTHS_CAPITAL: [&str; 12] = [
     "Leden",

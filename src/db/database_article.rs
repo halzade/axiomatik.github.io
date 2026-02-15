@@ -46,7 +46,6 @@ impl DatabaseArticle {
         Ok(Self { surreal })
     }
 
-    // TODO Id, file name won't work for requests, need uuid.
     pub async fn create_article(&self, article: Article) -> Result<(), SurrealArticleError> {
         debug!("create_article: {:?}", article);
         let _: Option<Article> = self
@@ -189,8 +188,8 @@ impl DatabaseArticle {
 
     /**
      * returns Articles with most views
-     * TODO XX keep these in memory, refresh every hour or so
      */
+    // TODO keep these in memory, refresh every hour or so
     pub async fn most_read_all_by_views(&self) -> Result<Vec<MiniArticleData>, SurrealSystemError> {
         #[rustfmt::skip]
         let mut result_response_set = self.surreal.db
@@ -290,7 +289,7 @@ impl DatabaseArticle {
         Ok(matching_articles)
     }
 
-    // TODO XX add limit
+    // TODO add limit
     pub async fn list_all_articles(&self) -> Result<Vec<ShortArticleData>, SurrealArticleError> {
         let articles: Vec<ShortArticleData> =
             self.surreal.db.query("SELECT * FROM article ORDER BY created DESC").await?.take(0)?;

@@ -39,6 +39,12 @@ h1, h2, h3, h4, h5, h6 {
     display: inline-block;
 }
 
+div.logo {
+    background-image: url("../image/logo.jpeg");
+    width: 248px;
+    height: 105px;
+}
+
 .border-right {
     border-right: 3px solid #E0E0E0;
 }
@@ -96,7 +102,7 @@ h2 {
     padding-bottom: 12px;
     border-bottom: 3px solid #E0E0E0;
     z-index: 10;
-    min-height: 80px;
+    min-height: 166px;
     max-width: 2990px;
     width: 80%;
 }
