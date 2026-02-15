@@ -28,34 +28,34 @@
     <main class="w8 content">
         <h1>Správa článků</h1>
         <div class="admin-nav">
-            <a href="/admin_user">Uživatelé</a> | 
+            <a href="/admin_user">Uživatelé</a> |
             <a href="/admin_article">Články</a>
         </div>
         <br/>
         <table>
             <thead>
-                <tr>
-                    <th>Název souboru</th>
-                    <th>Titulek</th>
-                    <th>Datum</th>
-                    <th>Kategorie</th>
-                    <th>Akce</th>
-                </tr>
+            <tr>
+                <th>Název souboru</th>
+                <th>Titulek</th>
+                <th>Datum</th>
+                <th>Kategorie</th>
+                <th>Akce</th>
+            </tr>
             </thead>
             <tbody>
-                {% for article in articles %}
-                <tr>
-                    <td>{{ article.article_file_name }}</td>
-                    <td>{{ article.title }}</td>
-                    <td>{{ article.date_str }}</td>
-                    <td>{{ article.category }}</td>
-                    <td>
-                        <form action="/admin/articles/delete/{{ article.article_file_name }}" method="post" onsubmit="return confirm('Opravdu smazat článek {{ article.article_file_name }}?');">
-                            <button type="submit">Smazat</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
+            {% for article in articles %}
+            <tr>
+                <td>{{ article.article_file_name }}</td>
+                <td>{{ article.title }}</td>
+                <td>{{ article.date_str }}</td>
+                <td>{{ article.category }}</td>
+                <td>
+                    <form action="/admin_article/delete/{{ article.article_file_name }}" method="post" onsubmit="return confirm('Opravdu smazat článek {{ article.article_file_name }}?');">
+                        <button type="submit">Smazat</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
             </tbody>
         </table>
     </main>

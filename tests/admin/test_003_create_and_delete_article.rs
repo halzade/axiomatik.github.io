@@ -71,19 +71,19 @@ mod tests {
         ac.admin(&auth).delete_article()
             .article_file_name("test-article-admin.html")
             .execute().await?
-                .must_see_response(StatusCode::OK)
+                .must_see_response(StatusCode::SEE_OTHER)
                 .header_location("/admin_article")
                 .verify().await?;
 
         // verify the article was deleted from DB
-        ac.db_article().must_not_see("test-article_admin.html").await?.verify()?;
+        ac.db_article().must_not_see("test-article-admin.html").await?.verify()?;
 
         // Cleanup
         trust::me::path_doesnt_exists("web/test-article-admin.html")?;
-        trust::me::path_doesnt_exists("web/u/test-article_admin_image_50.png")?;
-        trust::me::path_doesnt_exists("web/u/test-article_admin_image_288.png")?;
-        trust::me::path_doesnt_exists("web/u/test-article_admin_image_440.png")?;
-        trust::me::path_doesnt_exists("web/u/test-article_admin_image_820.png")?;
+        trust::me::path_doesnt_exists("web/u/test-article-admin_image_50.png")?;
+        trust::me::path_doesnt_exists("web/u/test-article-admin_image_288.png")?;
+        trust::me::path_doesnt_exists("web/u/test-article-admin_image_440.png")?;
+        trust::me::path_doesnt_exists("web/u/test-article-admin_image_820.png")?;
 
         Ok(())
     }

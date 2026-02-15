@@ -3,6 +3,7 @@ use crate::system::server::TheState;
 use askama::Template;
 use axum::extract::{Path, State};
 use axum::response::{Html, IntoResponse, Redirect, Response};
+use std::fs;
 use thiserror::Error;
 use tracing::{debug, info};
 
@@ -58,6 +59,12 @@ pub async fn handle_delete_article(
 ) -> Result<Response, AdminArticleError> {
     debug!("handle_delete_article: {}", article_file_name);
 
+    let article = state
+        .dba
+        .article_by_file_name(&article_file_name)
+        .await
+        .map_err(|e| AdminArticleError::Database(e.to_string()))?;
+
     state
         .dba
         .delete_article(&article_file_name)
@@ -65,11 +72,26 @@ pub async fn handle_delete_article(
         .map_err(|e| AdminArticleError::Database(e.to_string()))?;
     info!("Admin deleted article: {}", article_file_name);
 
-    // TODO delete the html file
+    // delete the html file
+    let path = format!("web/{}", article.article_file_name);
+    let _ = fs::remove_file(path);
 
-    // TODO delete images, audio, video
+    // delete images
+    let _ = fs::remove_file(format!("web/{}", article.image_50_path));
+    let _ = fs::remove_file(format!("web/{}", article.image_288_path));
+    let _ = fs::remove_file(format!("web/{}", article.image_440_path));
+    let _ = fs::remove_file(format!("web/{}", article.image_820_path));
+
+    // delete audio, video
+    if article.has_audio {
+        let _ = fs::remove_file(format!("web/{}", article.audio_path));
+    }
+    if article.has_video {
+        let _ = fs::remove_file(format!("web/{}", article.video_path));
+    }
 
     // Invalidate caches
+    // TODO invalidate only the original article category
     state.dv.index_invalidate();
     state.dv.news_invalidate();
     // Invalidate categories as well, to be sure
@@ -79,5 +101,5 @@ pub async fn handle_delete_article(
     state.dv.technologie_invalidate();
     state.dv.veda_invalidate();
 
-    Ok(Redirect::to("/admin/articles").into_response())
+    Ok(Redirect::to("/admin_article").into_response())
 }
