@@ -6,6 +6,7 @@ use axum::response::{Html, IntoResponse, Redirect, Response};
 use std::fs;
 use thiserror::Error;
 use tracing::{debug, info};
+use crate::system::router_app::AuthSession;
 
 #[derive(Debug, Error)]
 pub enum AdminArticleError {
@@ -29,9 +30,11 @@ pub struct AdminArticlesTemplate {
     pub date: String,
     pub name_day: String,
     pub weather: String,
+    pub username: String,
 }
 
 pub async fn show_admin_articles(
+    auth_session: AuthSession,
     State(state): State<TheState>,
 ) -> Result<Response, AdminArticleError> {
     debug!("show_admin_articles()");
@@ -41,12 +44,18 @@ pub async fn show_admin_articles(
         .await
         .map_err(|e| AdminArticleError::Database(e.to_string()))?;
 
+    let username = auth_session
+        .user
+        .map(|u| u.username)
+        .unwrap_or_else(|| "unknown".to_string());
+
     Ok(Html(
         AdminArticlesTemplate {
             articles,
             date: state.ds.date(),
             name_day: state.ds.name_day(),
             weather: state.ds.weather(),
+            username,
         }
         .render()?,
     )

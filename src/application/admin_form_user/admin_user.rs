@@ -31,6 +31,7 @@ pub struct AdminUsersTemplate {
     pub date: String,
     pub name_day: String,
     pub weather: String,
+    pub username: String,
 }
 
 #[derive(Template)]
@@ -48,10 +49,18 @@ pub struct CreateUserPayload {
     pub password: String,
 }
 
-pub async fn show_admin_users(State(state): State<TheState>) -> Result<Response, AdminUserError> {
+pub async fn show_admin_users(
+    auth_session: crate::system::router_app::AuthSession,
+    State(state): State<TheState>,
+) -> Result<Response, AdminUserError> {
     debug!("show_admin_users()");
     let users =
         state.dbu.list_all_users().await.map_err(|e| AdminUserError::Database(e.to_string()))?;
+
+    let username = auth_session
+        .user
+        .map(|u| u.username)
+        .unwrap_or_else(|| "unknown".to_string());
 
     Ok(Html(
         AdminUsersTemplate {
@@ -59,6 +68,7 @@ pub async fn show_admin_users(State(state): State<TheState>) -> Result<Response,
             date: state.ds.date(),
             name_day: state.ds.name_day(),
             weather: state.ds.weather(),
+            username,
         }
         .render()?,
     )

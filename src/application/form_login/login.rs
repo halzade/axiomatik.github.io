@@ -84,6 +84,14 @@ pub async fn handle_login(
     }
 }
 
+pub async fn handle_logout(mut auth_session: AuthSession) -> Response {
+    debug!("Handling logout request");
+    if auth_session.logout().await.is_err() {
+        return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+    }
+    Redirect::to("/login").into_response()
+}
+
 pub async fn authenticate_user(
     state: &TheState,
     username: &str,

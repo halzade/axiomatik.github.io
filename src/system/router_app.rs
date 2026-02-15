@@ -185,8 +185,11 @@ impl ApplicationRouter {
          * protected routes
          */
         let protected_routes = Router::new()
+            // admin
             .nest("/admin_article", admin_article_routes)
             .nest("/admin_user", admin_user_routes)
+            // application
+            .route("/logout", get(login::handle_logout))
             .route("/form", get(create_article::show_article_create_form))
             .route("/create", post(create_article::create_article))
             .route("/change-password",
@@ -195,6 +198,7 @@ impl ApplicationRouter {
             )
             .route("/account", get(account::show_account))
             .route("/account/update-author", post(account::handle_update_author_name))
+            // system
             .route("/health", get(health::handle_health))
             .layer(middleware::from_fn(auth_middleware));
 
