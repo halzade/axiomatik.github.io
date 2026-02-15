@@ -32,11 +32,13 @@ mod tests {
                 .header_location("/admin_user")
                 .verify().await?;
 
-        ac.web_app(&auth).get_url("/admin_user").await?
+        #[rustfmt::skip]
+        ac.web_app(&auth).get_url("/admin_article").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
 
-        ac.web_app(&auth).get_url("/admin_article").await?
+        #[rustfmt::skip]
+        ac.web_app(&auth).get_url("/admin_user").await?
             .must_see_response(StatusCode::OK)
             .verify().await?;
 
